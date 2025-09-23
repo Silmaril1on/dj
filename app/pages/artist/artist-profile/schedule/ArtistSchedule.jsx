@@ -1,0 +1,81 @@
+"use client"
+import { motion } from 'framer-motion'
+import { MdEvent, MdAccessTime, MdCalendarToday } from 'react-icons/md'
+import ArtistCountry from '@/app/components/materials/ArtistCountry'
+import SectionContainer from '@/app/components/containers/SectionContainer'
+import Title from '@/app/components/ui/Title'
+import MyLink from '@/app/components/ui/MyLink'
+
+const ArtistSchedule = ({ data }) => {
+  if (!data || data.length === 0) {
+    return null
+  }
+
+  const formatDate = (dateString) => {
+    const date = new Date(dateString)
+    return date.toLocaleDateString('en-US', {
+      month: 'short',
+      day: 'numeric',
+      year: 'numeric'
+    })
+  }
+
+
+
+  return (
+
+    <SectionContainer title="Upcoming Dates" description="Stay updated with upcoming dates" className='mt-10'>
+      <div className="w-[70%] space-y-4">
+        {data.map((schedule, index) => (
+          <motion.div
+            key={schedule.id}
+            initial={{ opacity: 0, x: -100 }}
+            whileInView={{ opacity: 1, x: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.6, delay: index * 0.1 }}
+            className="bg-stone-900 border border-gold/20 py-2 px-4 hover:border-gold/40 hover:scale-105  duration-300"
+          >
+            <div className="grid grid-cols-4">
+              {/* Date */}
+              <div className="flex items-center gap-2 text-gold pointer-events-none">
+                <MdCalendarToday size={18} />
+                <span className="font-semibold text-lg">
+                  {formatDate(schedule.date)}
+                </span>
+              </div>
+
+              {/* Time */}
+              <div className="flex items-center gap-2 text-chino font-bold pointer-events-none">
+                <MdAccessTime size={16} />
+                <span>{schedule.time}</span>
+              </div>
+
+              {/* Location */}
+              <div className="flex items-center gap-2 text-chino pointer-events-none">
+                <ArtistCountry
+                  artistCountry={{
+                    country: schedule.country,
+                    city: schedule.city
+                  }}
+                />
+              </div>
+
+              {/* Club/Venue Name */}
+              <div className="flex flex-col items-end">
+                <Title text={schedule.club_name} />
+                {schedule.event_link && (
+                  <MyLink color="chino" icon={<MdEvent />} href={schedule.event_link} text="View Event" />
+                )}
+              </div>
+            </div>
+
+
+
+          </motion.div>
+        ))}
+      </div>
+    </SectionContainer>
+  )
+}
+
+export default ArtistSchedule

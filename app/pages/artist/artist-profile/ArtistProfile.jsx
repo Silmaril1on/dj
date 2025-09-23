@@ -1,0 +1,25 @@
+import Avatar from './hero/Avatar'
+import BasicInfo from './hero/BasicInfo';
+import Bio from './bio/Bio';
+import ArtistSchedule from './schedule/ArtistSchedule';
+import ArtistInsight from './artist-insights/ArtistInsight';
+
+const ArtistProfile = ({ data, ratingInsights }) => {
+
+  const scheduleData = data?.artist_schedule;
+
+  return (
+    <div className="min-h-screen">
+      <div className="grid lg:grid-cols-2 gap-12 items-center min-h-[80vh] p-5 relative">
+        <div className="absolute -z-[1] inset-0 bg-[radial-gradient(circle_at_center,rgb(255_215_0_/_0.2)_2%,rgb(255_215_0_/_0.04)_20%)]" />
+        <Avatar data={data} />
+        <BasicInfo data={data} />
+      </div>
+      <Bio data={data} />
+      <ArtistSchedule data={scheduleData} />
+      <ArtistInsight ratingInsights={ratingInsights} />
+    </div>
+  )
+}
+
+export default ArtistProfile

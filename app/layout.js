@@ -1,14 +1,21 @@
-import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
+import { Rationale, Montserrat_Alternates } from "next/font/google";
+import { StoreProvider } from "@/app/lib/store/StoreProvider";
+import AuthProvider from "@/app/lib/store/AuthProvider";
+import ErrorMsg from "./components/ui/ErrorMsg";
+import NavigationWrapper from "./layout/navigation/NavigationWrapper";
+import GlobalModal from "./components/containers/GlobalModal";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
+const rationale = Rationale({
+  variable: "--font-rationale",
   subsets: ["latin"],
+  weight: "400",
 });
 
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
+const montserratAlternates = Montserrat_Alternates({
+  variable: "--font-montserrat-alternates",
   subsets: ["latin"],
+  weight: ["100", "200", "300", "400", "500", "600", "700", "800", "900"],
 });
 
 export const metadata = {
@@ -20,9 +27,17 @@ export default function RootLayout({ children }) {
   return (
     <html lang="en">
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+        className={`${rationale.variable} ${montserratAlternates.variable} min-h-screen flex flex-col duration-300 bg-black text-gold`}
       >
-        {children}
+        <StoreProvider>
+          <AuthProvider>
+            <NavigationWrapper />
+            {children}
+            <ErrorMsg />
+            <GlobalModal />
+            <h1>hello footer</h1>
+          </AuthProvider>
+        </StoreProvider>
       </body>
     </html>
   );

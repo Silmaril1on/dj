@@ -1,26 +1,42 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
+@custom-variant dark (&:where(.dark, .dark *));
+
+@theme {
+  --color-cream: #fcf5df;
+  --color-green: #4affd7;
+  --color-orange: #d99d00;
+  --color-gray: #7e7b71;
+  --color-chino: #ccc3a6;
+  --color-gold: #fcb913;
+  --color-emperor: #535353;
+  --color-blue: #0957c3;
+  --color-crimson: #d91a17;
+  --color-choco: #d6a461;
+  --color-violet: #9b59ff;
+  --color-pink: #ff3d81;
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
-}
-
+/* Set Rationale as default font */
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-rationale);
+}
+
+.primary {
+  font-family: var(--font-rationale);
+}
+
+.secondary {
+  font-family: var(--font-montserrat-alternates);
+}
+
+@layer utilities {
+  .center {
+    @apply flex items-center justify-center;
+  }
+  input,
+  textarea,
+  select {
+    @apply appearance-none rounded-none relative block w-full px-2 py-1 lg:px-3 lg:py-2 border border-orange/40 placeholder-gold/40 text-gold bg-gold/20 focus:outline-none focus:ring-2 focus:ring-orange duration-300;
+  }
 }

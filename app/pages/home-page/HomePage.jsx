@@ -1,0 +1,19 @@
+import AlbumLogo from "../AlbumLogo";
+import ArtistsSection from "./artists-section/ArtistsSection";
+import BornToday from "./bord-today-section/BornToday";
+import Events from "./events-section/Events";
+import SubmitSection from "./submit-section/SubmitSection";
+
+const HomePage = ({ events = [] }) => {
+    return (
+        <div className="flex-1 center flex-col space-y-10 ">
+            <Events events={events} />
+            <ArtistsSection />
+            <SubmitSection />
+            <BornToday />
+            <AlbumLogo />
+        </div>
+    )
+}
+
+export default HomePage
