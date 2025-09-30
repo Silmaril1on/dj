@@ -14,15 +14,18 @@ const SliderContainer = ({
   animate = false,
   className = ""
 }) => {
-  const [currentIndex, setCurrentIndex] = useState(0)
+  const [currentIndex, setCurrentIndex] = useState(0);
+
+  // Dynamically calculate container width
+  const containerWidth = itemsPerPage * (cardWidth + 2 * cardMargin);
 
   const wrapperStyle = {
     overflow: "hidden",
     position: "relative",
     display: "flex",
     alignItems: "center",
-    width: `${(cardWidth + 2 * cardMargin) * itemsPerPage}px`,
-  }
+    width: `${containerWidth}px`,
+  };
 
   const innerStyles = {
     style: {

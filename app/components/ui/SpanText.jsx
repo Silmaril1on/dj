@@ -17,7 +17,8 @@ const SpanText = ({
         default: "text-gold",
         crimson: "text-crimson",
         gold: "text-gold",
-        chino: "text-chino"
+        chino: "text-chino",
+        cream: "text-cream"
     }
 
     const sizeClasses = {
@@ -31,7 +32,7 @@ const SpanText = ({
     const colorClass = colorClasses[color] || colorClasses.default
 
     return (
-        <h6 className={`${baseClasses} ${sizeClasses[size]} ${fontClass} ${colorClass} ${className} center gap-1`}>
+        <h6 className={`${baseClasses} ${sizeClasses[size]} ${fontClass} ${colorClass} ${className} flex items-center gap-1`}>
             {icon && <span>{icon}</span>}
             {text}
         </h6>

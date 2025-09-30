@@ -61,9 +61,8 @@ const ViewSubmittedInfo = () => {
   if (!isOpen) return null
 
   return (
-    <div className=''>
+    <div className=' '>
       <Close className="absolute top-4 right-4 z-10" onClick={handleClose} />
-
       {loading && (
         <div className="flex justify-center py-8">
           <Spinner />

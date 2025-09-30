@@ -1,6 +1,7 @@
 'use client'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useDispatch } from 'react-redux'
+import { useSearchParams } from 'next/navigation'
 import { setError } from '@/app/features/modalSlice'
 import { showSuccess } from '@/app/features/successSlice'
 import { formConfigs } from '@/app/helpers/formData/formConfigs'
@@ -10,20 +11,75 @@ import TermsAndConditions from '@/app/components/materials/TermsAndConditions'
 
 const AddClub = () => {
     const dispatch = useDispatch()
+    const searchParams = useSearchParams()
     const [isSubmitting, setIsSubmitting] = useState(false)
-    const formConfig = formConfigs.addClub
+    const [isEditMode, setIsEditMode] = useState(false)
+    const [clubData, setClubData] = useState(null)
+    const [loading, setLoading] = useState(false)
+
+    // Create form config with initial data for edit mode
+    const formConfig = {
+        ...formConfigs.addClub,
+        initialData: isEditMode && clubData ? {
+            name: clubData.name || '',
+            country: clubData.country || '',
+            city: clubData.city || '',
+            address: clubData.address || '',
+            description: clubData.description || '',
+            club_image: clubData.club_image || '',
+            social_links: clubData.social_links || [''],
+            residents: clubData.residents || [''],
+            capacity: clubData.capacity || '',
+        } : formConfigs.addClub.initialData
+    }
+
+    // Check if we're in edit mode
+    useEffect(() => {
+        const edit = searchParams.get('edit')
+        const clubId = searchParams.get('clubId')
+
+        if (edit === 'true' && clubId) {
+            setIsEditMode(true)
+            fetchClubData(clubId)
+        }
+    }, [searchParams])
+
+    const fetchClubData = async (clubId) => {
+        setLoading(true)
+        try {
+            const response = await fetch(`/api/club/${clubId}`)
+            if (response.ok) {
+                const data = await response.json()
+                setClubData(data.club)
+            } else {
+                dispatch(setError({ message: 'Failed to fetch club data', type: 'error' }))
+            }
+        } catch (error) {
+            dispatch(setError({ message: 'Error fetching club data', type: 'error' }))
+        } finally {
+            setLoading(false)
+        }
+    }
 
     const handleSubmit = async (formData) => {
         setIsSubmitting(true)
         dispatch(setError(''))
         try {
-            const response = await fetch('/api/club/add-club', {
-                method: 'POST',
+            const url = isEditMode ? `/api/club/add-club` : '/api/club/add-club'
+            const method = isEditMode ? 'PATCH' : 'POST'
+
+            // Add clubId for edit mode
+            if (isEditMode && clubData) {
+                formData.append('clubId', clubData.id)
+            }
+
+            const response = await fetch(url, {
+                method,
                 body: formData,
             })
             if (!response.ok) {
                 const errorData = await response.json()
-                throw new Error(errorData.error || 'Failed to submit club')
+                throw new Error(errorData.error || `Failed to ${isEditMode ? 'update' : 'submit'} club`)
             }
             const result = await response.json()
             dispatch(showSuccess({
@@ -31,7 +87,9 @@ const AddClub = () => {
                 image: result.data?.club_image || '',
                 name: result.data?.name || '',
                 country: result.data?.country || '',
-                city: result.data?.city || ''
+                city: result.data?.city || '',
+                address: result.data?.address || '',
+                description: result.data?.description || ''
             }))
         } catch (err) {
             dispatch(setError({ message: err.message, type: 'error' }))
@@ -45,15 +103,22 @@ const AddClub = () => {
             <div className='flex-1 w-full'>
                 <FormContainer
                     maxWidth="w-full"
-                    title="Add Club"
-                    description="Submit a new club to our platform"
+                    title={isEditMode ? "Edit Club" : "Add Club"}
+                    description={isEditMode ? "Update your club information" : "Submit a new club to our platform"}
                 >
-                    <SubmissionForm
-                        formConfig={formConfig}
-                        onSubmit={handleSubmit}
-                        isLoading={isSubmitting}
-                        submitButtonText="Submit Club"
-                    />
+                    {loading ? (
+                        <div className="flex justify-center py-8">
+                            <div className="text-gold">Loading club data...</div>
+                        </div>
+                    ) : (
+                            <SubmissionForm
+                                showGoogle={false}
+                            formConfig={formConfig}
+                            onSubmit={handleSubmit}
+                            isLoading={isSubmitting}
+                            submitButtonText={isEditMode ? "Update Club" : "Submit Club"}
+                        />
+                    )}
                 </FormContainer>
             </div>
             <div className='w-full lg:w-[35%] lg:min-w-[400px]'>

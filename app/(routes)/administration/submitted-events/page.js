@@ -1,4 +1,4 @@
-import SubmittedEvents from "@/app/pages/administration/submitted-events/SubmittedEvents";
+import Submittions from "@/app/pages/administration/submittions/Submittions";
 
 const SubmittedEventsPage = async () => {
   try {
@@ -8,10 +8,10 @@ const SubmittedEventsPage = async () => {
     );
     const { submissions } = await response.json();
 
-    return <SubmittedEvents submissions={submissions || []} />;
+    return <Submittions submissions={submissions || []} type="event" />;
   } catch (error) {
     console.error("Error fetching event submissions:", error);
-    return <SubmittedEvents submissions={[]} />;
+    return <Submittions submissions={[]} type="event" />;
   }
 };
 

@@ -1,16 +1,29 @@
-import AllEventsPage from "@/app/pages/events-page/AllEventsPage";
+import AllEventsPage from "@/app/pages/events/event-page/AllEventsPage";
+import { cookies } from "next/headers";
 
 export const metadata = {
-  title: "DJDB | Events",
+  title: "DJDB | Upcoming Events",
   description: "events page",
 };
 
 const EventsPage = async () => {
   try {
-    const response = await fetch(`${process.env.PROJECT_URL}/api/events`, {
-      cache: "no-store",
-      headers: { "Content-Type": "application/json" },
-    });
+    const cookieStore = await cookies();
+    const cookieHeader = cookieStore
+      .getAll()
+      .map(({ name, value }) => `${name}=${value}`)
+      .join("; ");
+
+    const response = await fetch(
+      `${process.env.PROJECT_URL}/api/events/events-page-route?limit=20&offset=0`,
+      {
+        cache: "no-store",
+        headers: {
+          "Content-Type": "application/json",
+          Cookie: cookieHeader,
+        },
+      }
+    );
 
     if (!response.ok) {
       const err = await response.json().catch(() => ({}));

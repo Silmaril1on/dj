@@ -10,18 +10,14 @@ export async function GET() {
     const cookieStore = await cookies();
     const supabase = await createSupabaseServerClient(cookieStore);
 
-    // Get current user
     const { user, error: userError } = await getServerUser(cookieStore);
 
-    console.log("////////////////////", user);
-
-    // Fetch events
     const { data: events, error } = await supabase
       .from("events")
       .select("*")
       .eq("status", "approved")
       .order("created_at", { ascending: false })
-      .limit(15);
+      .limit(7);
 
     if (error) {
       return NextResponse.json(
@@ -34,7 +30,6 @@ export async function GET() {
       return NextResponse.json({ success: true, data: [] });
     }
 
-    // Fetch likes for all events in one go
     const eventIds = events.map((e) => e.id);
 
     const { data: likesData } = await supabase
@@ -42,7 +37,6 @@ export async function GET() {
       .select("event_id, user_id")
       .in("event_id", eventIds);
 
-    // Build enriched events
     const enrichedEvents = events.map((event) => {
       const likesForEvent =
         likesData?.filter((l) => l.event_id === event.id) || [];
@@ -86,6 +80,7 @@ export async function POST(request) {
     // ---- Extract fields ----
     const fields = {
       event_name: formData.get("event_name"),
+      venue_name: formData.get("venue_name"),
       event_type: formData.get("event_type"),
       country: formData.get("country"),
       city: formData.get("city"),
@@ -98,6 +93,7 @@ export async function POST(request) {
       links: formData.get("links"),
     };
     const event_image = formData.get("event_image");
+    const club_id = formData.get("club_id") || null;
 
     // ---- Validate required fields ----
     const required = [
@@ -197,6 +193,7 @@ export async function POST(request) {
       ...fields,
       artists,
       event_image: eventImageUrl,
+      club_id,
       created_at: new Date().toISOString(),
     };
 
@@ -207,7 +204,6 @@ export async function POST(request) {
       .single();
 
     if (insertError) {
-      console.error("Insert error:", insertError);
       return NextResponse.json(
         { success: false, error: "Failed to create event" },
         { status: 500 }
@@ -235,7 +231,108 @@ export async function POST(request) {
       data: event,
     });
   } catch (err) {
-    console.error("Unexpected error in POST:", err);
+    return NextResponse.json(
+      { success: false, error: "Internal server error" },
+      { status: 500 }
+    );
+  }
+}
+
+export async function PATCH(request) {
+  try {
+    const cookieStore = await cookies();
+    const { user, error: userError } = await getServerUser(cookieStore);
+
+    if (userError || !user) {
+      return NextResponse.json(
+        { success: false, error: "User not authenticated" },
+        { status: 401 }
+      );
+    }
+
+    const supabase = await createSupabaseServerClient(cookieStore);
+    const formData = await request.formData();
+
+    const eventId = formData.get("eventId");
+    if (!eventId) {
+      return NextResponse.json(
+        { success: false, error: "Missing eventId" },
+        { status: 400 }
+      );
+    }
+
+    // Build update object
+    const updateFields = {};
+    for (const [key, value] of formData.entries()) {
+      if (key !== "eventId" && value !== undefined && value !== null) {
+        // Handle arrays (artists, links, etc) if needed
+        if (["artists", "links"].includes(key)) {
+          try {
+            updateFields[key] = JSON.parse(value);
+          } catch {
+            updateFields[key] = value;
+          }
+        } else {
+          updateFields[key] = value;
+        }
+      }
+    }
+
+    // Handle image upload if a new file is provided
+    const event_image = formData.get("event_image");
+    let eventImageUrl = null;
+    if (event_image instanceof File) {
+      const fileExtension = event_image.name.split(".").pop();
+      const fileName = `event_${eventId}_${Date.now()}.${fileExtension}`;
+      if (!event_image.type.startsWith("image/")) {
+        return NextResponse.json(
+          { success: false, error: "Invalid file type. Only images are allowed." },
+          { status: 400 }
+        );
+      }
+      if (event_image.size > 5 * 1024 * 1024) {
+        return NextResponse.json(
+          { success: false, error: "File too large. Max 5MB allowed." },
+          { status: 400 }
+        );
+      }
+      const { error: uploadError } = await supabase.storage
+        .from("event_images")
+        .upload(fileName, event_image, { cacheControl: "3600", upsert: true });
+      if (uploadError) {
+        return NextResponse.json(
+          { success: false, error: "Failed to upload image" },
+          { status: 500 }
+        );
+      }
+      const { data } = supabase.storage
+        .from("event_images")
+        .getPublicUrl(fileName);
+      eventImageUrl = data.publicUrl;
+      updateFields.event_image = eventImageUrl;
+    }
+
+    // Update the event
+    const { data: updated, error: updateError } = await supabase
+      .from("events")
+      .update(updateFields)
+      .eq("id", eventId)
+      .select()
+      .single();
+
+    if (updateError) {
+      return NextResponse.json(
+        { success: false, error: "Failed to update event" },
+        { status: 500 }
+      );
+    }
+
+    return NextResponse.json({
+      success: true,
+      message: "Event updated successfully",
+      data: updated,
+    });
+  } catch (err) {
     return NextResponse.json(
       { success: false, error: "Internal server error" },
       { status: 500 }

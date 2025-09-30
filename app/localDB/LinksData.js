@@ -8,6 +8,7 @@ import {
   MdStar,
   MdOutlineLocalActivity,
   MdEvent,
+  MdEventAvailable,
 } from "react-icons/md";
 
 export const userProfileLinks = [
@@ -38,13 +39,18 @@ export const userProfileLinks = [
     dropdownItems: [
       {
         href: "/my-profile/activities/reviews",
-        text: "My Reviews",
+        text: "Reviews",
         icon: <MdReviews />,
       },
       {
         href: "/my-profile/activities/ratings",
-        text: "My Ratings",
+        text: "Ratings",
         icon: <MdStar />,
+      },
+      {
+        href: "/my-profile/activities/my-events",
+        text: "Events",
+        icon: <MdEventAvailable />,
       },
     ],
   },
@@ -66,6 +72,7 @@ export const addProductLinks = [
     text: "Add Event",
     icon: <MdEvent />,
   },
+
 ];
 
 export const administrationLinks = [
@@ -83,5 +90,10 @@ export const administrationLinks = [
     href: "/administration/submitted-events",
     text: "Events",
     icon: <MdOutlineTrackChanges />,
+  },
+  {
+    href: "/administration/reports",
+    text: "Bugs and Feedbacks",
+    icon: <MdEvent />,
   },
 ];

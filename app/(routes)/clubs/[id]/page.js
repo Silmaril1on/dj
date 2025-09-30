@@ -1,0 +1,26 @@
+import ClubProfile from '@/app/pages/club/club-profile-page/ClubProfile'
+import { cookies } from "next/headers";
+
+const ClubProfilePage = async ({ params }) => {
+  const { id } = await params;
+  const cookieStore = await cookies();
+  const cookieHeader = cookieStore
+    .getAll()
+    .map(({ name, value }) => `${name}=${value}`)
+    .join("; ");
+
+  const res = await fetch(`${process.env.PROJECT_URL}/api/club/${id}`, {
+    headers: {
+      Cookie: cookieHeader,
+    },
+    cache: "no-store",
+  });
+  const { club, currentUserId, clubSchedule } = await res.json();
+
+
+  return (
+    <ClubProfile club={club} currentUserId={currentUserId} clubSchedule={clubSchedule} />
+  );
+}
+
+export default ClubProfilePage;

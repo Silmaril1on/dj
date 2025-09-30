@@ -5,7 +5,12 @@ const AdministrationLayout = ({ children }) => {
   return (
     <div className="min-h-screen bg-black">
       <PageNavigation linksData={administrationLinks} />
-      <div>{children}</div>
+      <div className="flex gap-3">
+        <div className="w-[70%]">{children}</div>
+      <div className="p-3">
+        <h1>hello side</h1>
+      </div>
+      </div>
     </div>
   );
 };

@@ -3,10 +3,11 @@
    [x] User Sign in
    [ ] Reset Password
    [x] User can update profile information
-   [X] User can SUBMIT and EDIT artist profile (one submit maybe more edit)
-   [X] User can add DATES / ROUTES to his artist profile
-   [ ] User can SUBMIT and EDIT club
-   [ ] User can SUBMIT and EDIT event
+   [X] User can SUBMIT and EDIT artist profile 
+   [X] User can add DATES to his artist profile
+   [X] User can SUBMIT and EDIT club
+   [X] User can add event to his own club
+   [X] User can SUBMIT and EDIT event
    [ ] User has 10 recently viewed ID data
    [X] Users can LIKE artists
    [X] Users can REVIEW artists
@@ -25,3 +26,6 @@
    [x] Send welcome notification to user after register
    [X] Send notification to user after approval or denial ARTIST/CLUB/EVENT
    [ ] Send notification on successfull ARTIST update
+
+4. ADMINISTRATION
+   [X] submitted EVENTS/CLUBS/ARTISTS goes to admin panel first with APPROVE/DECLINE scenario

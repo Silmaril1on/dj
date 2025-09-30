@@ -6,13 +6,13 @@ const MyLink = ({
     icon,
     onClick,
     target,
-    className = "",
+    className = "center",
     size = "md",
     color = "black"
 }) => {
     const sizeClasses = {
-        sm: "text-sm gap-1",
-        md: "text-base gap-2",
+        sm: "text-sm",
+        md: "text-base",
     };
 
     const colorClasses = {
@@ -26,7 +26,7 @@ const MyLink = ({
             target={target}
             onClick={onClick}
             href={href}
-            className={`${className} center duration-300 w-fit ${sizeClasses[size]} ${colorClasses[color]}`}
+            className={`${className} gap-1 duration-300 w-fit ${sizeClasses[size]} ${colorClasses[color]}`}
         >
             <span className="flex items-center">{icon}</span>
             <span>{text}</span>

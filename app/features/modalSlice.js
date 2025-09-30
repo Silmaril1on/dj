@@ -78,3 +78,4 @@ export const selectIsDarkMode = (state) => state.modal.isDarkMode;
 export const selectError = (state) => state.modal.error;
 export const selectErrorType = (state) => state.modal.errorType;
 export const selectGlobalModal = (state) => state.modal.globalModal;
+export const selectAddEventModal = (state) => state.modal.addEventModal;

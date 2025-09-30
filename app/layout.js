@@ -5,6 +5,7 @@ import AuthProvider from "@/app/lib/store/AuthProvider";
 import ErrorMsg from "./components/ui/ErrorMsg";
 import NavigationWrapper from "./layout/navigation/NavigationWrapper";
 import GlobalModal from "./components/containers/GlobalModal";
+import Footer from "./layout/footer/Footer";
 
 const rationale = Rationale({
   variable: "--font-rationale",
@@ -35,7 +36,7 @@ export default function RootLayout({ children }) {
             {children}
             <ErrorMsg />
             <GlobalModal />
-            <h1>hello footer</h1>
+            <Footer />
           </AuthProvider>
         </StoreProvider>
       </body>

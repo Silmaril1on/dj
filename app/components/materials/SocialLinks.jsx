@@ -1,4 +1,4 @@
-import React from 'react'
+"use client"
 import { FaFacebook, FaGlobe, FaInstagram, FaSoundcloud, FaSpotify, FaTwitter, FaYoutube } from 'react-icons/fa'
 import { motion } from 'framer-motion'
 import Icon from '@/app/components/ui/Icon'

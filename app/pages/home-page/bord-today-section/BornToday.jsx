@@ -1,42 +1,43 @@
-'use client'
-import React, { useState, useEffect } from 'react'
-import Image from 'next/image'
-import Link from 'next/link'
-import { motion } from 'framer-motion'
-import { slideTop } from '@/app/framer-motion/motionValues'
-import Title from '@/app/components/ui/Title'
-import Paragraph from '@/app/components/ui/Paragraph'
-import Spinner from '@/app/components/ui/Spinner'
-import ArtistName from '@/app/components/materials/ArtistName'
-import SectionContainer from '@/app/components/containers/SectionContainer'
-import { fakeBornData } from '@/app/localDB/fakeBornData'
+"use client";
+import React, { useState, useEffect } from "react";
+import Image from "next/image";
+import Link from "next/link";
+import { motion } from "framer-motion";
+import { slideTop } from "@/app/framer-motion/motionValues";
+import Title from "@/app/components/ui/Title";
+import Paragraph from "@/app/components/ui/Paragraph";
+import Spinner from "@/app/components/ui/Spinner";
+import ArtistName from "@/app/components/materials/ArtistName";
+import SectionContainer from "@/app/components/containers/SectionContainer";
+import SliderContainer from "@/app/components/containers/SliderContainer";
+import { fakeBornData } from "@/app/localDB/fakeBornData";
 
 const BornToday = () => {
-  const [artists, setArtists] = useState([])
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState(null)
+  const [artists, setArtists] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
-    fetchArtistsBornToday()
-  }, [])
+    fetchArtistsBornToday();
+  }, []);
 
   const fetchArtistsBornToday = async () => {
     try {
-      setLoading(true)
-      const response = await fetch('/api/artists/born-today')
-      const data = await response.json()
+      setLoading(true);
+      const response = await fetch("/api/artists/born-today");
+      const data = await response.json();
 
       if (response.ok) {
-        setArtists(data.data || [])
+        setArtists(data.data || []);
       } else {
-        setError(data.error || 'Failed to fetch artists')
+        setError(data.error || "Failed to fetch artists");
       }
     } catch (err) {
-      setError('Network error while fetching artists')
+      setError("Network error while fetching artists");
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   if (loading) {
     return (
@@ -46,7 +47,7 @@ const BornToday = () => {
           <Spinner />
         </div>
       </div>
-    )
+    );
   }
 
   if (error) {
@@ -55,68 +56,32 @@ const BornToday = () => {
         <Title text="Born Today" size="lg" className="mb-4" />
         <Paragraph text={`Error: ${error}`} className="text-red-500" />
       </div>
-    )
+    );
   }
 
-  if (!artists || artists.length === 0) {
-    return (
-      <SectionContainer title="Born Today" description="Browse our artists">
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-8 gap-4 w-full">
-          {fakeBornData.map((artist, index) => (
-            <motion.div
-              key={artist.id}
-              variants={slideTop}
-              initial="hidden"
-              animate="visible"
-              transition={{ delay: index * 0.1 }}
-              className="group cursor-pointer"
-            >
-              <Link href={`/artists/${artist.id}`}>
-                <div className="bg-stone-900 border border-gold/20 rounded-lg p-2 hover:border-gold/40 transition-colors duration-300">
-                  <div className="relative w-full h-32 mb-3 overflow-hidden rounded-lg">
-                    <Image
-                      src={artist.artist_image}
-                      alt={artist.stage_name || artist.name}
-                      fill
-                      className="object-cover brightness-90 group-hover:brightness-100 duration-300"
-                    />
-                  </div>
-                  <div className="text-center">
-                    <ArtistName size="md" artistName={artist} />
-                    <p className="text-cream text-xs secondary font-light">
-                      Turns {artist.age} today
-                    </p>
-                  </div>
-                </div>
-              </Link>
-            </motion.div>
-          ))}
-        </div>
-      </SectionContainer>
-    )
-  }
+  const artistList = artists && artists.length > 0 ? artists : fakeBornData;
 
   return (
-
-    <SectionContainer title="Born Today" description="Browse our artists">
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 w-full">
-        {artists.map((artist, index) => (
-          <motion.div
+    <SectionContainer
+      title="Born Today"
+      description="Discover artists celebrating their birthday today."
+    >
+      <SliderContainer items={artistList} itemsPerPage={5} cardWidth={280}>
+        {artistList.map((artist) => (
+          <div
             key={artist.id}
-            variants={slideTop}
-            initial="hidden"
-            animate="visible"
-            transition={{ delay: index * 0.1 }}
             className="group cursor-pointer"
+            style={{ minWidth: 280, margin: "0 8px" }}
           >
             <Link href={`/artists/${artist.id}`}>
-              <div className="bg-stone-900 border border-gold/20 rounded-lg p-2 hover:border-gold/40 transition-colors duration-300">
-                <div className="relative w-full h-32 mb-3 overflow-hidden rounded-lg">
+              <div className="bg-stone-900 bordered p-2 transition-colors duration-300">
+                <div className="relative w-full h-52 mb-3 overflow-hidden">
                   <Image
                     src={artist.artist_image}
                     alt={artist.stage_name || artist.name}
-                    fill
-                    className="object-cover brightness-90 group-hover:brightness-100 duration-300"
+                    width={300}
+                    height={300}
+                    className="object-cover brightness w-full h-full"
                   />
                 </div>
                 <div className="text-center">
@@ -127,11 +92,14 @@ const BornToday = () => {
                 </div>
               </div>
             </Link>
-          </motion.div>
+          </div>
         ))}
-      </div>
+      </SliderContainer>
     </SectionContainer>
-  )
-}
+  );
+};
 
-export default BornToday
+export default BornToday;
+
+
+

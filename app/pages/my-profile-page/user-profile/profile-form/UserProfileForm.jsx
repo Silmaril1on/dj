@@ -66,16 +66,19 @@ const UserProfileFrom = ({ profile, error, onCancel }) => {
   return (
     <FormContainer
       maxWidth="max-w-4xl"
-      title="My Profile" description="Update your personal information and avatar">
+      title="My Profile"
+      description="Update your personal information and avatar"
+    >
       <SubmissionForm
         formConfig={formConfig}
         onSubmit={handleSubmit}
         isLoading={isLoading}
         error={globalError}
         submitButtonText="Update Profile"
+        showGoogle={false}
       />
     </FormContainer>
-  )
+  );
 }
 
 export default UserProfileFrom

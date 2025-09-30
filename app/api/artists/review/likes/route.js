@@ -50,25 +50,10 @@ export async function POST(request) {
 
     const supabase = await createSupabaseServerClient(cookieStore);
 
-    // Get current review data WITH joined user and artist data
+    // First, get the basic review data without joins to avoid RLS issues
     const { data: review, error: fetchError } = await supabase
       .from("artist_reviews")
-      .select(
-        `
-        *,
-        users!inner(
-          id,
-          userName,
-          user_avatar
-        ),
-        artists!inner(
-          name,
-          stage_name,
-          artist_image,
-          genres
-        )
-      `
-      )
+      .select("*")
       .eq("id", reviewId)
       .single();
 
@@ -124,18 +109,42 @@ export async function POST(request) {
       );
     }
 
-    // Return the complete review with updated likes/dislikes and preserved joined data
-    const updatedReview = {
-      ...review,
-      likes: newLikes,
-      dislikes: newDislikes,
-      updated_at: new Date().toISOString(),
-    };
+    // Now get the complete review with joined data for the response
+    const { data: completeReview, error: completeError } = await supabase
+      .from("artist_reviews")
+      .select(
+        `
+        *,
+        users(
+          id,
+          userName,
+          user_avatar
+        ),
+        artists(
+          name,
+          stage_name,
+          artist_image,
+          genres
+        )
+      `
+      )
+      .eq("id", reviewId)
+      .single();
+
+    // If the joined query fails, return the basic review data
+    const finalReview = completeError
+      ? {
+          ...review,
+          likes: newLikes,
+          dislikes: newDislikes,
+          updated_at: new Date().toISOString(),
+        }
+      : completeReview;
 
     return NextResponse.json({
       success: true,
       message: `Review ${action} updated successfully`,
-      review: updatedReview,
+      review: finalReview,
       likesCount: newLikes.length,
       dislikesCount: newDislikes.length,
       userLiked: newLikes.includes(user.id),

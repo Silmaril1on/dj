@@ -29,7 +29,7 @@ const SectionContainer = ({
   };
 
   return (
-    <div className={`w-full flex items-start justify-start flex-col space-y-2 pt-3 ${className}`}>
+    <div className={`w-full flex items-start justify-start flex-col space-y-2 pt-3 overflow-hidden ${className}`}>
       <FlexBox type="column-start">
         <Motion animation="left" stagger className="w-full overflow-hidden pl-4">
           <h1 className={`font-bold ${getTitleSize(size)} leading-none text-gold`}>{title}</h1>

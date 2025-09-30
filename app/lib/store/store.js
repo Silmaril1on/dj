@@ -5,6 +5,8 @@ import { reviewsReducer } from "@/app/features/reviewsSlice";
 import { ratingReducer } from "@/app/features/ratingSlice";
 import successReducer from "@/app/features/successSlice";
 import evaluationReducer from "@/app/features/evaluationSlice";
+import editProductReducer from "@/app/features/editProductSlice";
+import reportsReducer from "@/app/features/reportsSlice";
 
 export const store = configureStore({
   reducer: {
@@ -14,5 +16,7 @@ export const store = configureStore({
     rating: ratingReducer,
     success: successReducer,
     evaluation: evaluationReducer,
+    editProduct: editProductReducer,
+    reports: reportsReducer,
   },
 });

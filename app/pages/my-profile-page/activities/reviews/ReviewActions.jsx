@@ -32,7 +32,6 @@ const ReviewActions = ({ review, onDelete, onUpdate }) => {
       const response = await fetch(`/api/users/review-stats/user-reviews?reviewId=${review.id}`, {
         method: 'DELETE',
       });
-
       if (response.ok) {
         dispatch(setError({ message: 'Review deleted successfully!', type: 'success' }));
         onDelete(review.id); // Remove from the list immediately

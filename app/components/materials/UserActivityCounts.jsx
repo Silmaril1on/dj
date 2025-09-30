@@ -1,12 +1,13 @@
 'use client'
 import { useState, useEffect } from 'react'
-import { FaHeart, FaStar, FaComment } from 'react-icons/fa'
+import { FaHeart, FaStar, FaComment, FaCalendarAlt } from 'react-icons/fa'
 
 const UserActivityCounts = ({ showStats = true, className = "" }) => {
     const [stats, setStats] = useState({
         totalReviews: 0,
         totalRatings: 0,
-        totalLikes: 0
+        totalLikes: 0,
+        totalEvents: 0,
     });
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
@@ -36,7 +37,8 @@ const UserActivityCounts = ({ showStats = true, className = "" }) => {
                 setStats({
                     totalReviews: 0,
                     totalRatings: 0,
-                    totalLikes: 0
+                    totalLikes: 0,
+                    totalEvents: 0,
                 });
             } finally {
                 setLoading(false);
@@ -55,41 +57,51 @@ const UserActivityCounts = ({ showStats = true, className = "" }) => {
     }
 
     return (
-        <div className={`flex gap-3 mt-6 ${className}`}>
-            <div className="flex items-center gap-2 bg-stone-800/50 px-4 py-2 rounded-lg border border-gold/20">
-                <FaComment className="text-gold" size={16} />
-                <span className="text-gold font-bold">
-                    {loading ? '...' : stats.totalReviews}
-                </span>
-                <span className="text-stone-400 text-sm">Reviews</span>
-            </div>
-
-            <div className="flex items-center gap-2 bg-stone-800/50 px-4 py-2 rounded-lg border border-gold/20">
-                <FaStar className="text-gold" size={16} />
-                <span className="text-gold font-bold">
-                    {loading ? '...' : stats.totalRatings}
-                </span>
-                <span className="text-stone-400 text-sm">Ratings</span>
-            </div>
-
-            <div className="flex items-center gap-2 bg-stone-800/50 px-4 py-2 rounded-lg border border-gold/20">
-                <FaHeart className="text-gold" size={16} />
-                <span className="text-gold font-bold">
-                    {loading ? '...' : stats.totalLikes}
-                </span>
-                <span className="text-stone-400 text-sm">Likes</span>
-            </div>
-
-            {/* Error Message */}
-            {error && (
-                <div className="mt-4 p-3 bg-red-900/30 border border-red-500/50 rounded-lg">
-                    <p className="text-red-300 text-sm">
-                        Failed to load activity stats: {error}
-                    </p>
-                </div>
-            )}
+      <div className={`flex gap-1 ${className}`}>
+        <div className="flex items-center gap-2 bg-stone-900/80 px-4 py-2 rounded-lg border border-gold/20">
+          <FaComment className="text-gold" size={16} />
+          <span className="text-gold font-bold">
+            {loading ? "..." : stats.totalReviews}
+          </span>
+          <span className="text-stone-400 text-sm">Reviews</span>
         </div>
-    )
+
+        <div className="flex items-center gap-2 bg-stone-900/80 px-4 py-2 rounded-lg border border-gold/20">
+          <FaStar className="text-gold" size={16} />
+          <span className="text-gold font-bold">
+            {loading ? "..." : stats.totalRatings}
+          </span>
+          <span className="text-stone-400 text-sm">Ratings</span>
+        </div>
+
+        <div className="flex items-center gap-2 bg-stone-900/80 px-4 py-2 rounded-lg border border-gold/20">
+          <FaHeart className="text-gold" size={16} />
+          <span className="text-gold font-bold">
+            {loading ? "..." : stats.totalLikes}
+          </span>
+          <span className="text-stone-400 text-sm">Likes</span>
+        </div>
+
+        {stats.totalEvents > 0 && (
+          <div className="flex items-center gap-2 bg-stone-900/80 px-4 py-2 rounded-lg border border-gold/20">
+            <FaCalendarAlt className="text-gold" size={16} />
+            <span className="text-gold font-bold">
+              {loading ? "..." : stats.totalEvents}
+            </span>
+            <span className="text-stone-400 text-sm">Submitted Events</span>
+          </div>
+        )}
+
+        {/* Error Message */}
+        {error && (
+          <div className="mt-4 p-3 bg-red-900/30 border border-red-500/50 rounded-lg">
+            <p className="text-red-300 text-sm">
+              Failed to load activity stats: {error}
+            </p>
+          </div>
+        )}
+      </div>
+    );
 }
 
 export default UserActivityCounts

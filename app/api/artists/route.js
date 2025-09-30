@@ -11,7 +11,6 @@ export async function GET() {
     const cookieStore = await cookies();
     const { user, error: userError } = await getServerUser(cookieStore);
 
-    // User authentication is optional for this route (public artists list)
     let userId = null;
     if (user && !userError) {
       userId = user.id;
@@ -19,12 +18,10 @@ export async function GET() {
 
     const supabase = await createSupabaseServerClient(cookieStore);
 
-    // Get all artists
-    const { data: artists, error: artistsError } = await supabase
-      .from("artists")
-      .select("id, name, stage_name, artist_image, country, city, rating_stats")
-      .eq("status", "approved")
-      .limit(16);
+const { data: artists, error: artistsError } = await supabase
+  .rpc("get_random_artists", { limit_count: 18 })
+  .select("id, name, stage_name, artist_image, country, city, rating_stats")
+  .eq("status", "approved");
 
     if (artistsError) {
       return NextResponse.json(

@@ -1,3 +1,4 @@
+import Security from "@/app/pages/my-profile-page/security/Security";
 import React from "react";
 
 export const metadata = {
@@ -7,13 +8,8 @@ export const metadata = {
 
 const SecurityPage = () => {
   return (
-    <div className="text-center py-8">
-      <h1 className="text-2xl font-bold text-gray-900 dark:text-gold mb-4">
-        Security Settings
-      </h1>
-      <p className="text-gray-600 dark:text-gray-400">
-        Security features coming soon...
-      </p>
+    <div className="text-center py-4">
+     <Security />
     </div>
   );
 };

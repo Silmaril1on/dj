@@ -107,30 +107,21 @@ export async function POST(request) {
       );
     }
 
-    // Create welcome notification (non-blocking)
-    try {
-      const notificationData = {
+    // Create welcome notification directly (non-blocking)
+    supabaseAdmin
+      .from("notifications")
+      .insert({
         user_id: userData.id,
         userName: userData.userName,
         email: userData.email,
         message:
           "Welcome to the platform. You can now login to your account and start using the platform.",
-      };
-
-      // Don't await this - let it run in background
-      fetch(`${process.env.PROJECT_URL}/api/notifications`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(notificationData),
-      }).catch((notificationError) => {
-        console.warn(
-          "Failed to create welcome notification:",
-          notificationError
-        );
+      })
+      .then(({ error }) => {
+        if (error) {
+          console.warn("Failed to create welcome notification:", error);
+        }
       });
-    } catch (notificationError) {
-      console.warn("Failed to create welcome notification:", notificationError);
-    }
 
     // If email confirmation is disabled, user will be automatically signed in
     // If email confirmation is enabled, user needs to confirm email first

@@ -1,10 +1,12 @@
-import { MdPerson, MdSecurity } from 'react-icons/md'
+import { MdPerson, MdSecurity, MdEventAvailable } from "react-icons/md";
+import { IoMusicalNotes } from "react-icons/io5";
 import PopUpBox from '@/app/components/containers/PopUpBox'
 import Button from '@/app/components/buttons/Button'
 import SpanText from '@/app/components/ui/SpanText'
 import FlexBox from '@/app/components/containers/FlexBox'
 import MyLink from '@/app/components/ui/MyLink'
 import ProfilePicture from '@/app/components/materials/ProfilePicture'
+import { FaHouse } from "react-icons/fa6";
 
 const UserSettings = ({ onLogout, isOpen, toggleSettings, avatar_url, user }) => {
 
@@ -38,11 +40,41 @@ const SettingsHeader = ({ avatar_url }) => {
 const SettingsOption = ({ toggleSettings, user }) => {
   return (
     <div className="space-y-1">
-      <MyLink href="/my-profile/personal-information" text="My Profile" icon={<MdPerson />} onClick={toggleSettings} />
-      <MyLink href="/my-profile/security" text="Security" icon={<MdSecurity />} onClick={toggleSettings} />
-      <MyLink href={`/artists/${user.submitted_artist_id}`} text="Artist Profile" icon={<MdSecurity />} onClick={toggleSettings} />
+      <MyLink
+        href="/my-profile/personal-information"
+        text="My Profile"
+        icon={<MdPerson />}
+        onClick={toggleSettings}
+      />
+      {user.submitted_artist_id && (
+        <MyLink
+          href={`/artists/${user.submitted_artist_id}`}
+          text="My Artist Profile"
+          icon={<IoMusicalNotes />}
+          onClick={toggleSettings}
+        /> )}
+      {user.submitted_club_id && (
+        <MyLink
+          href={`/clubs/${user.submitted_club_id}`}
+          text="My Club Profile"
+          icon={<FaHouse />}
+          onClick={toggleSettings}
+        />
+      )}
+      <MyLink
+        href={`/my-profile/activities/my-events`}
+        text="My Events"
+        icon={<MdEventAvailable />}
+        onClick={toggleSettings}
+      />
+      <MyLink
+        href="/my-profile/security"
+        text="Security"
+        icon={<MdSecurity />}
+        onClick={toggleSettings}
+      />
     </div>
-  )
+  );
 }
 
 export default UserSettings

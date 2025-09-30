@@ -1,7 +1,7 @@
 "use client";
 import { AnimatePresence, motion } from "framer-motion";
 import { useState, useEffect } from "react";
-import { FaLink } from "react-icons/fa6";
+import { FaLink, FaUsers } from "react-icons/fa6";
 import Title from "@/app/components/ui/Title";
 import ArtistCountry from "@/app/components/materials/ArtistCountry";
 import FlexBox from "@/app/components/containers/FlexBox";
@@ -10,11 +10,12 @@ import Paragraph from "@/app/components/ui/Paragraph";
 import Image from "next/image";
 import MyLink from "@/app/components/ui/MyLink";
 import LikeButton from "@/app/components/buttons/LikeButton";
+import SpanText from "@/app/components/ui/SpanText";
+import { FaArrowRight } from "react-icons/fa";
+import SectionContainer from "@/app/components/containers/SectionContainer";
 
 const Events = ({ events = [] }) => {
   const [open, setOpen] = useState(null);
-
-  console.log(events);
 
   useEffect(() => {
     if (events.length > 0 && open === null) {
@@ -31,14 +32,24 @@ const Events = ({ events = [] }) => {
   }
 
   return (
-    <section className="p-4 w-full h-screen">
-      <div className="flex flex-col lg:flex-row h-fit lg:h-[550px] w-full overflow-hidden  ">
-        {events.map((event) => {
-          return (
-            <Panel key={event.id} open={open} setOpen={setOpen} event={event} />
-          );
-        })}
-      </div>
+    <section className="w-full h-screen">
+      <SectionContainer
+        title="Upcomming Events"
+        description="Stay tuned for the hottest upcoming events. Don't miss out!"
+      >
+        <div className="flex flex-col lg:flex-row h-fit lg:h-[550px] w-full overflow-hidden">
+          {events.map((event) => {
+            return (
+              <Panel
+                key={event.id}
+                open={open}
+                setOpen={setOpen}
+                event={event}
+              />
+            );
+          })}
+        </div>
+      </SectionContainer>
     </section>
   );
 };
@@ -47,10 +58,23 @@ const Panel = ({ open, setOpen, event }) => {
   const { width } = useWindowSize();
   const isOpen = open === event.id;
 
+  // Local state for real-time like updates
+  const [likesCount, setLikesCount] = useState(event.likesCount || 0);
+  const [isLiked, setIsLiked] = useState(event.isLiked || false);
+
+  // Handler for LikeButton
+  const handleLikeChange = (liked, newLikesCount) => {
+    setIsLiked(liked);
+    setLikesCount(newLikesCount);
+  };
+
   return (
     <>
       {!isOpen && (
-        <div
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.5 }}
           className="bg-stone-900 mx-1 hover:bg-gold/50 cursor-pointer border border-gold/30 hover:border-gold/50 duration-300 flex flex-row-reverse lg:flex-col justify-end items-center gap-4 relative group"
           onClick={() => setOpen(event.id)}
         >
@@ -58,6 +82,7 @@ const Panel = ({ open, setOpen, event }) => {
             src={event.event_image}
             alt={event.event_name}
             fill
+            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
             className="object-cover relative z-0"
           />
           <div className="bg-black/60 relative z-[2] w-full h-full p-5 backdrop-blur-xs flex justify-start">
@@ -73,7 +98,7 @@ const Panel = ({ open, setOpen, event }) => {
               {event.event_name}
             </span>
           </div>
-        </div>
+        </motion.div>
       )}
 
       <AnimatePresence>
@@ -90,6 +115,7 @@ const Panel = ({ open, setOpen, event }) => {
               src={event.event_image}
               alt={event.event_name}
               fill
+              sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
               className="object-cover"
             />
             <motion.div
@@ -97,26 +123,35 @@ const Panel = ({ open, setOpen, event }) => {
               initial="closed"
               animate="open"
               exit="closed"
-              className="relative w-full h-full flex flex-col justify-between items-start bg-gradient-to-t from-black  to-black/10 to-50%  "
+              className="relative w-full h-full flex flex-col justify-between items-start bg-black/50 "
             >
-              <MyLink
-                href={event.links}
-                target="_blank"
-                text="Check Event"
-                icon={<FaLink />}
-                className="p-4"
-              />
-              <div className="p-4">
-                <LikeButton
-                  desc="Interested"
-                  className="absolute top-5 right-5"
-                  artist={{
-                    id: event.id,
-                    isLiked: event.isLiked,
-                    likesCount: event.likesCount,
-                  }} // <-- use event.isLiked
-                  type="event"
+              <div className="p-4 space-y-1">
+                <MyLink
+                  href={event.links}
+                  target="_blank"
+                  text="Check Event"
+                  icon={<FaLink />}
                 />
+                <MyLink href={`events/${event.id}`} text="View Details" icon={<FaArrowRight />} />
+              </div>
+              <div className="p-4">
+                <div className="absolute center space-x-2 top-4 right-4">
+                  <SpanText
+                    icon={<FaUsers />}
+                    size="xs"
+                    text={`${likesCount} Interested`}
+                    className="ml-2 secondary pointer-events-none"
+                  />
+                  <LikeButton
+                    type="event"
+                    artist={{
+                      id: event.id,
+                      isLiked: isLiked,
+                      likesCount: likesCount,
+                    }}
+                    onLikeChange={handleLikeChange}
+                  />
+                </div>
                 <Title
                   size="xxl"
                   className="uppercase"

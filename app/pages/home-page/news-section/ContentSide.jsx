@@ -1,0 +1,68 @@
+"use client";
+import FlexBox from "@/app/components/containers/FlexBox";
+import MyLink from "@/app/components/ui/MyLink";
+import Paragraph from "@/app/components/ui/Paragraph";
+import Title from "@/app/components/ui/Title";
+import { truncateString } from "@/app/helpers/utils";
+import { motion } from "framer-motion";
+import { FaLink } from "react-icons/fa";
+
+ const contentVariants = {
+         initial: {
+           x: "100%",
+           opacity: 0,
+         },
+         animate: {
+           x: 0,
+           opacity: 1,
+           transition: {
+             duration: 0.6,
+             ease: [0.25, 0.1, 0.25, 1],
+           },
+         },
+         exit: {
+           x: "100%",
+           opacity: 0,
+           transition: {
+             duration: 0.4,
+             ease: [0.25, 0.1, 0.25, 1],
+           },
+         },
+       };
+
+
+const ContentSide = ({  currentNews }) => {
+
+  return (
+    <motion.article
+      className="left-clip bg-stone-900 absolute right-30 top-0 w-2/4 h-full"
+      variants={contentVariants}
+      initial="initial"
+      animate="animate"
+      exit="exit"
+    >
+      <div className="pl-30 h-full flex flex-col items-end justify-between p-5">
+        <FlexBox type="column-end" className="max-w-[70%]">
+          <Title
+            text={currentNews.news_title}
+            color="gold"
+            className="text-end"
+          />
+        </FlexBox>
+        <div className="flex items-end flex-col"> 
+          <Paragraph
+            className="text-end"
+            text={truncateString(currentNews.news_content, 700)}
+          />
+          <MyLink
+            href={currentNews.news_link}
+            text="Read more..."
+            icon={<FaLink />}
+          />
+        </div>
+      </div>
+    </motion.article>
+  );
+}
+
+export default ContentSide

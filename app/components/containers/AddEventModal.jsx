@@ -6,7 +6,6 @@ import { showSuccess } from '@/app/features/successSlice'
 import Button from '@/app/components/buttons/Button'
 import Close from '@/app/components/buttons/Close'
 import Title from '@/app/components/ui/Title'
-import Paragraph from '@/app/components/ui/Paragraph'
 import { MdEvent, MdLocationOn, MdAccessTime, MdCalendarToday } from 'react-icons/md'
 
 const AddEventModal = () => {

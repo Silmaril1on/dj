@@ -8,8 +8,11 @@ import SelectInput from './SelectInput'
 import AdditionalInput from './AdditionalInput'
 import PasswordStrengthIndicator from './PasswordStrengthIndicator'
 import { checkPasswordStrength } from '@/app/helpers/validatePwd'
+import GoogleAuth from '../buttons/GoogleAuth'
+import FlexBox from '../containers/FlexBox'
 
 const SubmissionForm = ({
+  showGoogle = true,
   formConfig,
   onSubmit,
   isLoading = false,
@@ -31,11 +34,9 @@ const SubmissionForm = ({
   // Initialize form data when config changes
   useEffect(() => {
     setFormData(formConfig.initialData || {})
-    // Check if there's an existing image in the initial data
     if (formConfig.imageField && formConfig.initialData[formConfig.imageField]) {
       setExistingImage(formConfig.initialData[formConfig.imageField])
     }
-    // Also check for user_avatar specifically (for user profile)
     if (formConfig.initialData?.user_avatar) {
       setExistingImage(formConfig.initialData.user_avatar)
     }
@@ -363,13 +364,15 @@ const SubmissionForm = ({
           className="hidden"
         />
       )}
-
-      <Button
+     <FlexBox type="row-between" className='mb-5'>
+       <Button
         type="submit"
         text={isLoading ? "Submitting..." : submitButtonText}
         loading={isLoading}
         disabled={isLoading}
       />
+       {showGoogle && <GoogleAuth />}
+      </FlexBox>
     </form>
   )
 }

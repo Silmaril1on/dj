@@ -34,9 +34,48 @@ body {
   .center {
     @apply flex items-center justify-center;
   }
+
+  .bordered { 
+    @apply border border-gold/30 hover:border-gold/50 duration-300
+  }
+
+  .brightness {
+    @apply brightness-90 hover:brightness-100 duration-300;
+  }
+
+  option { 
+    @apply bg-stone-900 text-gold;
+  }
+
   input,
   textarea,
   select {
     @apply appearance-none rounded-none relative block w-full px-2 py-1 lg:px-3 lg:py-2 border border-orange/40 placeholder-gold/40 text-gold bg-gold/20 focus:outline-none focus:ring-2 focus:ring-orange duration-300;
   }
+}
+
+::-webkit-scrollbar {
+  width: 8px;
+  background: #222; /* or your preferred color */
+}
+::-webkit-scrollbar-thumb {
+  background: #444; /* or your preferred color */
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #666;
+}
+
+/* For Firefox */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: #595b5c transparent;
+}
+
+.right-clip {
+  clip-path: polygon(0 0, 100% 0, 70% 100%, 0% 100%);
+}
+
+.left-clip {
+  clip-path: polygon(30% 0, 100% 0, 100% 100%, 0% 100%);
 }

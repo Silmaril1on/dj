@@ -17,9 +17,11 @@ const ActionButtons = ({ submission, loadingStates, submissionsList, setLoadingS
       : '/api/admin/submitted-artists'
 
   const handleView = (submission) => {
-    // Pass through the entity type so the modal can decide how to load
     dispatch(openEvaluationModal({ ...submission, __type: entityType }))
   }
+
+  console.log(submission, "/////////");
+  
 
   const handleAction = async (entityId, action) => {
     const loadingKey = `${entityId}_${action}`

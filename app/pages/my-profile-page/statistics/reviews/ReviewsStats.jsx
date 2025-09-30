@@ -25,7 +25,7 @@ const ReviewsStats = ({ data, error }) => {
       >
         <ErrorCode
           title="No reviews yet"
-          description="Start reviewing artists to see your statistics!"
+          description="Start reviewing artists to see your review statistics!"
         />
       </SectionContainer>
     );

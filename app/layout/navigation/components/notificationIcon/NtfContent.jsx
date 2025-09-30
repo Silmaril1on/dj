@@ -1,14 +1,12 @@
 import FlexBox from '@/app/components/containers/FlexBox'
 import Paragraph from '@/app/components/ui/Paragraph'
 import SpanText from '@/app/components/ui/SpanText'
-import Spinner from '@/app/components/ui/Spinner'
 import { formatTime } from '@/app/helpers/utils'
 import { IoIosNotifications } from 'react-icons/io'
 
 const NtfContent = ({ loading, error, notifications }) => {
   return (
     <div className="max-h-96 overflow-y-auto">
-      {loading && <Spinner />}
       {error && <Paragraph text={error} />}
       {!loading && <NotificationItem notifications={notifications} />}
     </div>

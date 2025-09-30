@@ -37,7 +37,8 @@ export async function GET() {
       .from("notifications")
       .select("*")
       .eq("user_id", user.id)
-      .order("created_at", { ascending: false });
+      .order("created_at", { ascending: false })
+      .limit(10);
 
     if (error) {
       return NextResponse.json({ error: error.message }, { status: 400 });
@@ -84,7 +85,7 @@ export async function POST(req) {
 
     const supabase = await createSupabaseServerClient(cookieStore);
     const body = await req.json();
-    const { action, message } = body;
+    const { action, message, user_id, userName, email } = body;
 
     // Handle different POST actions
     if (action === "mark-all-read") {
@@ -119,12 +120,13 @@ export async function POST(req) {
 
     // This should be admin-only functionality, so we'll keep supabaseAdmin here
     const { supabaseAdmin } = await import("@/app/lib/config/supabaseServer");
+
     const { data, error } = await supabaseAdmin
       .from("notifications")
       .insert({
-        user_id: user.id,
-        userName: user.userName,
-        email: user.email,
+        user_id,
+        userName,
+        email,
         message,
       })
       .select()

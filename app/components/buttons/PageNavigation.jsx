@@ -41,7 +41,7 @@ const PageNavigation = ({ linksData, className = " " }) => {
                   href={item.href}
                   text={item.text}
                   icon={item.icon}
-                  className='py-2 px-4 font-bold hover:bg-gold hover:text-neutral-800'
+                  className='py-2 px-4 center font-bold hover:bg-gold hover:text-neutral-800'
                 />
               )}
 
@@ -67,7 +67,7 @@ const PageNavigation = ({ linksData, className = " " }) => {
                           href={dropdownItem.href}
                           text={dropdownItem.text}
                           icon={dropdownItem.icon}
-                          className="py-3 px-4 font-bold text-sm text-gold gap-2 hover:bg-gold hover:text-neutral-800 duration-300 w-full flex items-center"
+                          className="py-3 px-4 font-bold  text-sm text-gold gap-2 hover:bg-gold hover:text-neutral-800 duration-300 w-full flex items-center "
                         />
                       </div>
                     ))}

@@ -34,36 +34,24 @@ export async function GET() {
     const supabase = await createSupabaseServerClient(cookieStore);
 
     // Fetch all counts in parallel
-    const [reviewsResult, ratingsResult, likesResult] = await Promise.all([
-      // Get total reviews count
+    const [reviewsResult, ratingsResult, likesResult, eventsResult] = await Promise.all([
       supabase
         .from("artist_reviews")
         .select("*", { count: "exact", head: true })
         .eq("user_id", user.id),
-
-      // Get total ratings count
       supabase
         .from("artist_ratings")
         .select("*", { count: "exact", head: true })
         .eq("user_id", user.id),
-
-      // Get total likes count
       supabase
         .from("artist_likes")
         .select("*", { count: "exact", head: true })
         .eq("user_id", user.id),
+      supabase
+        .from("events")
+        .select("*", { count: "exact", head: true })
+        .eq("user_id", user.id), // adjust field if needed
     ]);
-
-    // Check for errors
-    if (reviewsResult.error) {
-      console.error("Error fetching reviews count:", reviewsResult.error);
-    }
-    if (ratingsResult.error) {
-      console.error("Error fetching ratings count:", ratingsResult.error);
-    }
-    if (likesResult.error) {
-      console.error("Error fetching likes count:", likesResult.error);
-    }
 
     return NextResponse.json({
       success: true,
@@ -71,10 +59,10 @@ export async function GET() {
         totalReviews: reviewsResult.count || 0,
         totalRatings: ratingsResult.count || 0,
         totalLikes: likesResult.count || 0,
+        totalEvents: eventsResult.count || 0,
       },
     });
   } catch (error) {
-    console.error("Error in activity-stats API:", error);
     return NextResponse.json(
       {
         success: false,

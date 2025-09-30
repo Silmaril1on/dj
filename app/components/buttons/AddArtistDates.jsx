@@ -5,7 +5,7 @@ import { setError } from '@/app/features/modalSlice'
 import { openAddEventModal } from '@/app/features/modalSlice'
 import { MdEvent } from 'react-icons/md'
 
-const AddEvent = ({ className, artist, desc, userSubmittedArtistId }) => {
+const AddArtistDates = ({ className, artist, desc, userSubmittedArtistId }) => {
   const dispatch = useDispatch()
   const user = useSelector(selectUser)
 
@@ -26,7 +26,6 @@ const AddEvent = ({ className, artist, desc, userSubmittedArtistId }) => {
     dispatch(openAddEventModal({ artist }))
   }
 
-  // Only render if user can add events for this artist
   if (!canAddEvent) {
     return null
   }
@@ -42,4 +41,4 @@ const AddEvent = ({ className, artist, desc, userSubmittedArtistId }) => {
   )
 }
 
-export default AddEvent
+export default AddArtistDates

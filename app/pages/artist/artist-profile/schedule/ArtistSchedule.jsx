@@ -5,8 +5,10 @@ import ArtistCountry from '@/app/components/materials/ArtistCountry'
 import SectionContainer from '@/app/components/containers/SectionContainer'
 import Title from '@/app/components/ui/Title'
 import MyLink from '@/app/components/ui/MyLink'
+import Link from 'next/link'
+import FlexBox from '@/app/components/containers/FlexBox'
 
-const ArtistSchedule = ({ data }) => {
+const ArtistSchedule = ({ data, title = "Upcoming Dates", description = "Stay updated with upcoming dates" }) => {
   if (!data || data.length === 0) {
     return null
   }
@@ -20,12 +22,9 @@ const ArtistSchedule = ({ data }) => {
     })
   }
 
-
-
   return (
-
-    <SectionContainer title="Upcoming Dates" description="Stay updated with upcoming dates" className='mt-10'>
-      <div className="w-[70%] space-y-4">
+    <SectionContainer title={title} description={description} className="mt-10">
+      <div className="w-[70%] space-y-4 my-5">
         {data.map((schedule, index) => (
           <motion.div
             key={schedule.id}
@@ -33,7 +32,7 @@ const ArtistSchedule = ({ data }) => {
             whileInView={{ opacity: 1, x: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.6, delay: index * 0.1 }}
-            className="bg-stone-900 border border-gold/20 py-2 px-4 hover:border-gold/40 hover:scale-105  duration-300"
+            className="bg-stone-900  py-2 px-4 bordered hover:scale-105  "
           >
             <div className="grid grid-cols-4">
               {/* Date */}
@@ -55,7 +54,7 @@ const ArtistSchedule = ({ data }) => {
                 <ArtistCountry
                   artistCountry={{
                     country: schedule.country,
-                    city: schedule.city
+                    city: schedule.city,
                   }}
                 />
               </div>
@@ -63,19 +62,32 @@ const ArtistSchedule = ({ data }) => {
               {/* Club/Venue Name */}
               <div className="flex flex-col items-end">
                 <Title text={schedule.club_name} />
-                {schedule.event_link && (
-                  <MyLink color="chino" icon={<MdEvent />} href={schedule.event_link} text="View Event" />
-                )}
+                <FlexBox type="row-center" className="gap-4">
+                  {schedule.event_link && (
+                    <MyLink
+                      color="chino"
+                      icon={<MdEvent />}
+                      href={schedule.event_link}
+                      text="View Event"
+                      target="_blank"
+                    />
+                  )}
+                  {schedule.id && (
+                    <MyLink
+                      color="chino"
+                      icon={<MdEvent />}
+                      href={`/events/${schedule.id}`}
+                      text="View Event Page"
+                    />
+                  )}
+                </FlexBox>
               </div>
             </div>
-
-
-
           </motion.div>
         ))}
       </div>
     </SectionContainer>
-  )
+  );
 }
 
 export default ArtistSchedule

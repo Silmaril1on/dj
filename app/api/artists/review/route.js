@@ -142,8 +142,12 @@ export async function GET(request) {
     if (artistError) {
       return NextResponse.json({ error: "Artist not found" }, { status: 404 });
     }
-    // Fetch all reviews for the specific artist with user information only
-    const { data: reviews, error: fetchError } = await supabaseAdmin
+    const page = parseInt(searchParams.get("page")) || 1;
+    const limit = parseInt(searchParams.get("limit")) || 20;
+    const offset = (page - 1) * limit;
+
+    // Fetch paginated reviews for the specific artist
+    const { data: reviews, error: fetchError, count: totalReviews } = await supabaseAdmin
       .from("artist_reviews")
       .select(
         `
@@ -153,13 +157,14 @@ export async function GET(request) {
           userName,
           user_avatar
         )
-      `
+      `,
+        { count: "exact" }
       )
       .eq("artist_id", artistId)
-      .order("created_at", { ascending: false });
+      .order("created_at", { ascending: false })
+      .range(offset, offset + limit - 1);
 
     if (fetchError) {
-      console.error("Error fetching reviews:", fetchError);
       return NextResponse.json(
         { error: "Failed to fetch reviews" },
         { status: 500 }
@@ -202,7 +207,15 @@ export async function GET(request) {
       success: true,
       artist: artist,
       reviews: reviewsWithRatings,
-      count: reviewsWithRatings.length,
+      count: totalReviews || 0,
+      pagination: {
+        page,
+        limit,
+        total: totalReviews || 0,
+        totalPages: Math.ceil((totalReviews || 0) / limit),
+        hasNext: page < Math.ceil((totalReviews || 0) / limit),
+        hasPrev: page > 1,
+      },
     });
   } catch (error) {
     console.error("Error in GET reviews API:", error);

@@ -169,7 +169,6 @@ export const eventsTermsAndConditionsData = {
   },
 };
 
-// Legacy export for backward compatibility
 export const termsAndConditionsData = {
   artist: artistTermsAndConditionsData,
   club: clubsTermsAndConditionsData,

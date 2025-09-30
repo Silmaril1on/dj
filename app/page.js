@@ -2,10 +2,9 @@ import HomePage from "./pages/home-page/HomePage";
 import { cookies } from "next/headers";
 
 export default async function Home() {
-  // Fetch events data using SSR
   let events = [];
   try {
-    const cookieStore = cookies();
+    const cookieStore = await cookies();
     const cookieHeader = cookieStore
       .getAll()
       .map(({ name, value }) => `${name}=${value}`)

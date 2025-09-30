@@ -10,6 +10,7 @@ import { motion } from 'framer-motion'
 import Image from 'next/image'
 import ActionButtons from './ActionButtons'
 import Title from '@/app/components/ui/Title'
+import { truncateString } from '@/app/helpers/utils'
 
 const SubmittionCard = ({ submissions, type = 'artist' }) => {
   const [loadingStates, setLoadingStates] = useState({})
@@ -18,7 +19,7 @@ const SubmittionCard = ({ submissions, type = 'artist' }) => {
   const isEvent = type === 'event'
 
   return (
-    <div className="gap-5 grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 w-[70%] overflow-hidden">
+    <div className="gap-5 grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 overflow-hidden">
       {submissionsList?.map((submission, index) => (
         <motion.div
           key={submission.id}
@@ -26,9 +27,9 @@ const SubmittionCard = ({ submissions, type = 'artist' }) => {
           initial="hidden"
           animate="visible"
           transition={{ delay: index * 0.1 }}
-          className="bg-gold/10 border border-gold/30 hover:border-gold/50 duration-300 rounded-sm p-2 group space-y-3"
+          className="bg-stone-900 bordered p-2 group space-y-3"
         >
-          <div className="relative w-full h-48 mb-4 overflow-hidden rounded-lg shadow-lg">
+          <div className="relative w-full h-48 mb-4 overflow-hidden shadow-lg">
             <Image
               src={submission.artist_image}
               alt={submission.name}
@@ -37,7 +38,7 @@ const SubmittionCard = ({ submissions, type = 'artist' }) => {
             />
           </div>
           <div>
-            {isClub || isEvent ? <Title className='uppercase' text={submission.name} /> : <ArtistName artistName={submission} />}
+            {isClub || isEvent ? <Title className='uppercase' text={truncateString(submission.name, 20)} /> : <ArtistName artistName={submission} />}
             <ArtistCountry artistCountry={submission} />
             {isClub && submission.capacity && (
               <div className="mt-2">

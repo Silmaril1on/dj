@@ -1,4 +1,4 @@
-import SubmittedClubs from "@/app/pages/administration/submitted-clubs/SubmittedClubs";
+import Submittions from "@/app/pages/administration/submittions/Submittions";
 
 const SubmittedClubsPage = async () => {
   try {
@@ -8,10 +8,10 @@ const SubmittedClubsPage = async () => {
     );
     const { submissions } = await response.json();
 
-    return <SubmittedClubs submissions={submissions || []} />;
+    return <Submittions submissions={submissions || []} type="club" />;
   } catch (error) {
     console.error("Error fetching club submissions:", error);
-    return <SubmittedClubs submissions={[]} />;
+    return <Submittions submissions={[]} type="club" />;
   }
 };
 

@@ -55,14 +55,55 @@ export async function PUT(request) {
     // Handle file upload if present
     const user_avatar = formData.get("user_avatar");
     if (user_avatar && user_avatar.size > 0) {
+      // Get current user data to check for existing avatar
+      const { data: currentUser, error: fetchError } = await supabase
+        .from("users")
+        .select("user_avatar")
+        .eq("id", user.id)
+        .single();
+
+      if (fetchError) {
+        console.error("Fetch user error:", fetchError);
+        return NextResponse.json(
+          { error: "Failed to fetch user data" },
+          { status: 500 }
+        );
+      }
+
+      // Delete existing avatar if it exists
+      if (currentUser?.user_avatar) {
+        try {
+          // Extract filename from the existing URL
+          const existingUrl = currentUser.user_avatar;
+          const urlParts = existingUrl.split("/");
+          const existingFileName = urlParts[urlParts.length - 1];
+
+          // Only delete if it's actually a file in our bucket (not a default image URL)
+          if (existingFileName && existingUrl.includes("profile_images")) {
+            const { error: deleteError } = await supabase.storage
+              .from("profile_images")
+              .remove([existingFileName]);
+
+            if (deleteError) {
+              console.warn("Failed to delete existing avatar:", deleteError);
+              // Don't return error here, continue with upload
+            }
+          }
+        } catch (deleteErr) {
+          console.warn("Error processing existing avatar deletion:", deleteErr);
+          // Continue with upload even if deletion fails
+        }
+      }
+
+      // Upload new avatar with consistent filename
       const fileExt = user_avatar.name.split(".").pop();
-      const fileName = `${user.id}-${Date.now()}.${fileExt}`;
+      const fileName = `${user.id}.${fileExt}`;
 
       const { data: uploadData, error: uploadError } = await supabase.storage
         .from("profile_images")
         .upload(fileName, user_avatar, {
           cacheControl: "3600",
-          upsert: false,
+          upsert: true, // This will overwrite existing files with same name
         });
 
       if (uploadError) {

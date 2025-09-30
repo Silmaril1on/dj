@@ -251,11 +251,15 @@ export const formConfigs = {
       country: "",
       city: "",
       capacity: "",
+      address: "",
       description: "",
       social_links: [""],
+      residents: [""],
+      location_url: "", 
+      venue_email: "", 
     },
     imageField: "club_image",
-    arrayFields: ["social_links"],
+    arrayFields: ["social_links", "residents"],
     fields: {
       club_image: {
         type: "image",
@@ -268,6 +272,12 @@ export const formConfigs = {
         required: true,
         label: "Club Name",
         placeholder: "Enter club name",
+      },
+      address: {
+        type: "text",
+        required: true,
+        label: "Address",
+        placeholder: "Enter club address",
       },
       country: {
         type: "select",
@@ -303,6 +313,24 @@ export const formConfigs = {
         placeholder:
           "Enter social media URL (e.g., https://instagram.com/clubname)",
       },
+      residents: {
+        type: "additional",
+        required: false,
+        label: "Residents",
+        placeholder: "Enter resident DJ name",
+      },
+      location_url: {
+        type: "text",
+        required: false,
+        label: "Location URL",
+        placeholder: "https://maps.google.com/...",
+      },
+      venue_email: {
+        type: "email",
+        required: false,
+        label: "Venue Email",
+        placeholder: "Enter venue email",
+      },
     },
     sections: [
       {
@@ -317,13 +345,13 @@ export const formConfigs = {
       },
       {
         title: "Capacity & Description",
-        fields: ["capacity", "description"],
+        fields: ["capacity", "address", "description"],
         gridClass: "grid grid-cols-1 md:grid-cols-2 gap-4",
       },
       {
         title: "Social Media",
-        fields: ["social_links"],
-        gridClass: "space-y-4",
+        fields: ["social_links", "residents", "location_url, venue_email"], 
+        gridClass: "space-y-4 grid md:grid-cols-2 gap-4",
       },
     ],
   },
@@ -331,6 +359,7 @@ export const formConfigs = {
   // Event Form
   addEvent: {
     initialData: {
+      venue_name: "",
       event_name: "",
       event_type: "",
       country: "",
@@ -353,6 +382,12 @@ export const formConfigs = {
         required: true,
         label: "Event Name",
         placeholder: "Enter event name",
+      },
+      venue_name: {
+        type: "text",
+        required: true,
+        label: "Venue name",
+        placeholder: "Enter Venue name",
       },
       event_type: {
         type: "text",
@@ -436,7 +471,7 @@ export const formConfigs = {
       },
       {
         title: "Event Information",
-        fields: ["event_name", "event_type", "name"],
+        fields: ["event_name", "event_type", "venue_name"],
         gridClass: "grid grid-cols-1 md:grid-cols-3 gap-4",
       },
       {

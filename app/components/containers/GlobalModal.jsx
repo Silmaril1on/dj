@@ -1,7 +1,8 @@
 'use client'
-import { selectGlobalModal } from '@/app/features/modalSlice';
+import { selectAddEventModal, selectGlobalModal } from '@/app/features/modalSlice';
 import { selectSuccess } from '@/app/features/successSlice';
 import { selectEvaluationModal } from '@/app/features/evaluationSlice';
+import { selectReportsModal } from '@/app/features/reportsSlice';
 import { useSelector } from 'react-redux'
 import { AnimatePresence, motion } from 'framer-motion'
 import RatingModal from './RatingModal'
@@ -9,16 +10,18 @@ import ReviewModal from './ReviewModal'
 import SuccessOnSubmit from '@/app/components/materials/SuccessOnSubmit'
 import ViewSubmittedInfo from '@/app/components/materials/ViewSubmittedInfo';
 import AddEventModal from './AddEventModal';
+import ReportForm from '../forms/ReportForm';
 
 const GlobalModal = ({ children, className = "" }) => {
   const globalModal = useSelector(selectGlobalModal);
   const successModal = useSelector(selectSuccess);
   const evaluationModal = useSelector(selectEvaluationModal);
-  const addEventModal = useSelector(state => state.modal.addEventModal);
+  const addEventModal = useSelector(selectAddEventModal);
+  const reportsModal = useSelector(selectReportsModal);
 
   return (
     <AnimatePresence>
-      {(globalModal.isOpen || successModal.isOpen || evaluationModal || addEventModal?.isOpen) && (
+      {(globalModal.isOpen || successModal.isOpen || evaluationModal || addEventModal?.isOpen || reportsModal?.isOpen) && (
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
@@ -32,6 +35,7 @@ const GlobalModal = ({ children, className = "" }) => {
             {successModal.isOpen && <SuccessOnSubmit />}
             {evaluationModal && <ViewSubmittedInfo />}
             {addEventModal?.isOpen && <AddEventModal />}
+            {reportsModal?.isOpen && <ReportForm type={reportsModal.type} />}
           </div>
           {children}
         </motion.div>
