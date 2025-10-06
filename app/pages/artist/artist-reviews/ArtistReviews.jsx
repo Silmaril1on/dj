@@ -5,6 +5,7 @@ import Paragraph from '@/app/components/ui/Paragraph';
 import ReviewHeader from './ReviewHeader';
 import ReviewList from './review-list/ReviewList';
 import ReviewFooter from './ReviewFooter';
+import Button from "@/app/components/buttons/Button";
 
 const ArtistReviews = ({ artist, data = [], error = null, pagination, artistId }) => {
   const [reviews, setReviews] = useState(data);
@@ -48,18 +49,17 @@ const ArtistReviews = ({ artist, data = [], error = null, pagination, artistId }
   }
 
   return (
-    <div className="px-5 py-10 space-y-10 h-full flex flex-col">
+    <div className="px-5 space-y-10 h-full flex flex-col">
       <ReviewHeader artist={artist} data={reviews} />
       <ReviewList data={reviews} artist={artist} setReviews={setReviews} />
       {hasMore && (
         <div className="flex justify-center mt-6">
-          <button
+          <Button
+            text={loading ? "Loading..." : "Load More"}
             onClick={handleLoadMore}
+            loading={loading}
             disabled={loading}
-            className="bg-gold text-stone-900 px-6 py-2 rounded font-bold hover:bg-yellow-400"
-          >
-            {loading ? "Loading..." : "Load More"}
-          </button>
+          />
         </div>
       )}
       <ReviewFooter artist={artist} onReviewAdd={handleAddReview} />

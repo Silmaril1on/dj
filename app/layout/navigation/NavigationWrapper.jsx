@@ -9,7 +9,9 @@ export default function NavigationWrapper() {
         pathname?.includes("/(routes)/(auth)") ||
 
         pathname === "/sign-in" ||
-        pathname === "/sign-up";
+        pathname === "/sign-up" || 
+        pathname === "/reset-password" ||
+        pathname === "/reset-password/update-password";
 
     if (isAuthRoute) {
         return null;

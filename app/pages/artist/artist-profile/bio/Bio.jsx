@@ -13,7 +13,7 @@ const Bio = ({ data }) => {
 
   return (
     <SectionContainer title="Artist Biography" className="bg-stone-900" description={`Born • ${formatBirthdate(data.birth)}`}>
-      <div className="px-[15%] py-10 text-cream bg-stone-900 space-y-3">
+      <div className="px-5 lg:px-[15%] py-10 text-cream bg-stone-900 space-y-3">
         <div
           className="secondary pointer-events-none text-[10px] lg:text-sm pr-4"
           dangerouslySetInnerHTML={{

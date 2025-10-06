@@ -34,7 +34,7 @@ const ReviewsStats = ({ data, error }) => {
   return (
     <SectionContainer
       size="sm"
-      title="My Reviews"
+      title="Reviews"
       description="My Review Statistics"
       className="bg-stone-900"
     >

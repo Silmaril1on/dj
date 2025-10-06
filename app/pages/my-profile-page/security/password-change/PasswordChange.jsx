@@ -60,7 +60,7 @@ const PasswordChange = () => {
     <SectionContainer
       className="bg-stone-900"
       title="Change Password"
-      description="Update your password settings."
+      description="Update your password settings.efew fef324t3fg3 "
     >
       <div className="grid grid-cols-1 md:grid-cols-2 gap-3 w-full">
         <form onSubmit={handleSubmit} className="space-y-4 ">

@@ -1,6 +1,11 @@
 import ClubProfile from '@/app/pages/club/club-profile-page/ClubProfile'
 import { cookies } from "next/headers";
 
+export const metadata = {
+  title: "Soundfolio | Club Details", 
+  description: "Club details page",
+}
+
 const ClubProfilePage = async ({ params }) => {
   const { id } = await params;
   const cookieStore = await cookies();

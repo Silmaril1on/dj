@@ -34,7 +34,7 @@ const UserInformation = ({ profile }) => {
     </FlexBox>
   )
   return (
-    <div className="p-8 bg-stone-800 w-2/4">
+    <div className="p-8 bg-stone-900 w-2/4">
       {/* Personal Information */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
         <div className="space-y-6">

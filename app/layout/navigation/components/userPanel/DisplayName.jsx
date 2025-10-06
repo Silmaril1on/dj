@@ -3,10 +3,12 @@ import { MdKeyboardArrowDown, MdKeyboardArrowUp } from "react-icons/md"
 import UserSettings from "./UserSettings"
 import ProfilePicture from "@/app/components/materials/ProfilePicture"
 import NotificationIcon from "../NotificationIcon"
+import MessageIcon from "../MessageIcon"
 
 const DisplayName = ({ user, isSettingsOpen, settingsRef, toggleSettings, handleLogout }) => {
 
     return <div className="relative center gap-2" ref={settingsRef}>
+        <MessageIcon />
         <NotificationIcon />
         <button
             onClick={toggleSettings}

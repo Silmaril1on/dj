@@ -255,8 +255,8 @@ export const formConfigs = {
       description: "",
       social_links: [""],
       residents: [""],
-      location_url: "", 
-      venue_email: "", 
+      location_url: "",
+      venue_email: "",
     },
     imageField: "club_image",
     arrayFields: ["social_links", "residents"],
@@ -350,7 +350,7 @@ export const formConfigs = {
       },
       {
         title: "Social Media",
-        fields: ["social_links", "residents", "location_url, venue_email"], 
+        fields: ["social_links", "residents", "location_url, venue_email"],
         gridClass: "space-y-4 grid md:grid-cols-2 gap-4",
       },
     ],
@@ -487,6 +487,198 @@ export const formConfigs = {
       {
         title: "Additional Information",
         fields: ["description", "links"],
+        gridClass: "grid grid-cols-1 gap-4",
+      },
+    ],
+  },
+
+  // News Form
+  addNews: {
+    initialData: {
+      title: "",
+      content: "",
+      description: "",
+      news_image: "",
+      link: "",
+    },
+    imageField: "news_image",
+    fields: {
+      news_image: {
+        type: "image",
+        required: true,
+        label: "News Image",
+        helpText: "Upload a news image (max 2MB).",
+      },
+      title: {
+        type: "text",
+        required: true,
+        label: "Title",
+        placeholder: "Enter news title",
+      },
+      description: {
+        type: "textarea",
+        required: true,
+        label: "Content",
+        placeholder: "Enter the main content of the news article",
+      },
+      content: {
+        type: "text",
+        required: false,
+        label: "Sub-title",
+        placeholder: "Enter a sub-title",
+      },
+      link: {
+        type: "text",
+        required: false,
+        label: "External Link",
+        placeholder: "https://...",
+      },
+    },
+    sections: [
+      {
+        title: "News Image",
+        fields: ["news_image"],
+        gridClass: "space-y-4",
+      },
+      {
+        title: "News Details",
+        fields: ["title", "link", "content", "description"],
+        gridClass: "grid grid-cols-2 gap-4",
+      },
+    ],
+  },
+
+  // Password Reset Forms
+  resetPassword: {
+    initialData: { email: "" },
+    fields: {
+      email: {
+        type: "email",
+        required: true,
+        label: "Email",
+        placeholder: "Enter your email",
+        icon: "email",
+      },
+    },
+    sections: [
+      {
+        title: "Reset Password",
+        fields: ["email"],
+        gridClass: "",
+      },
+    ],
+  },
+  updatePassword: {
+    initialData: { password: "", confirmPassword: "" },
+    fields: {
+      password: {
+        type: "password",
+        required: true,
+        label: "New Password",
+        placeholder: "Enter your new password",
+        icon: "lock",
+      },
+      confirmPassword: {
+        type: "password",
+        required: true,
+        label: "Confirm Password",
+        placeholder: "Confirm your new password",
+        icon: "lock",
+      },
+    },
+    sections: [
+      {
+        title: "Set New Password",
+        fields: ["password", "confirmPassword"],
+        gridClass: "",
+      },
+    ],
+  },
+
+  // Book DJ Form
+  bookDj: {
+    initialData: {
+      event_name: "",
+      venue_name: "",
+      event_date: "",
+      country: "",
+      address: "",
+      location_url: "",
+      city: "",
+      time: "",
+      lineup: "",
+    },
+    fields: {
+      event_name: {
+        type: "text",
+        required: true,
+        label: "Event Name",
+        placeholder: "Enter event name",
+      },
+      venue_name: {
+        type: "text",
+        required: true,
+        label: "Venue Name",
+        placeholder: "Enter venue name",
+      },
+      address: {
+        type: "text",
+        required: false,
+        label: "Address",
+        placeholder: "Enter full address (optional)",
+      },
+      location_url: {
+        type: "url",
+        required: false,
+        label: "Location URL",
+        placeholder: "Enter location URL (optional)",
+      },
+      event_date: {
+        type: "date",
+        required: true,
+        label: "Event Date",
+      },
+      country: {
+        type: "select",
+        required: true,
+        label: "Country",
+        options: countries,
+        searchable: true,
+        showFlags: true,
+      },
+      city: {
+        type: "text",
+        required: true,
+        label: "City",
+        placeholder: "Enter city name",
+      },
+      time: {
+        type: "text",
+        required: false,
+        label: "Event Time",
+        placeholder: "e.g., 10:00 PM - 3:00 AM",
+      },
+      lineup: {
+        type: "textarea",
+        required: false,
+        label: "Lineup Details",
+        placeholder: "Describe the event lineup, other artists, etc.",
+      },
+    },
+    sections: [
+      {
+        title: "Event Information",
+        fields: ["event_name", "venue_name", "event_date", "time"],
+        gridClass: "grid grid-cols-1 md:grid-cols-4 gap-4",
+      },
+      {
+        title: "Location",
+        fields: ["country", "city", "address", "location_url"],
+        gridClass: "grid grid-cols-1 md:grid-cols-4 gap-4",
+      },
+      {
+        title: "Additional Details",
+        fields: ["lineup"],
         gridClass: "grid grid-cols-1 gap-4",
       },
     ],

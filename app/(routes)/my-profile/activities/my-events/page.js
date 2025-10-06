@@ -2,7 +2,7 @@ import MyEvents from '@/app/pages/my-profile-page/activities/events/MyEvents'
 import { cookies } from "next/headers";
 
 export const metadata = {
-  title: "DJDB | My Events",
+  title: "My Profile | Events",
   description: "my events"
 }
 

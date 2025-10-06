@@ -56,7 +56,7 @@ const SliderContainer = ({
             className="flex flex-row relative z-[5]"
             variants={animate ? slideTop : undefined}
             initial={animate ? "hidden" : undefined}
-            animate={animate ? "visible" : undefined}
+            whileInView={animate ? "visible" : undefined}
             exit={animate ? "exit" : undefined}
           >
             {children}

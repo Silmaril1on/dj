@@ -29,9 +29,9 @@ const SectionContainer = ({
   };
 
   return (
-    <div className={`w-full flex items-start justify-start flex-col space-y-2 pt-3 overflow-hidden ${className}`}>
+    <div className={`w-full flex flex-col space-y-2 pt-3 overflow-hidden ${className}`}>
       <FlexBox type="column-start">
-        <Motion animation="left" stagger className="w-full overflow-hidden pl-4">
+        <Motion animation="left" stagger className="w-full overflow-hidden pl-4 flex flex-col items-start">
           <h1 className={`font-bold ${getTitleSize(size)} leading-none text-gold`}>{title}</h1>
           <p className={`${getDescriptionSize(size)} text-cream secondary leading-none`}>{description}</p>
         </Motion>

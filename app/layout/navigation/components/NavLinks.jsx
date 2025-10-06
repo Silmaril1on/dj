@@ -7,10 +7,11 @@ const NavLinks = () => {
 
 
     return (
-        <div className='flex items-center gap-2 mx-10 w-fit font-bold uppercase *:text-chino *:hover:text-cream *:duration-300'>
+        <div className='flex items-center gap-2 w-fit font-bold uppercase *:text-chino *:hover:text-cream *:duration-300'>
             {user?.is_admin && <Link href="/administration/submitted-artists">Admin</Link>}
             <Link href="/events">Events</Link>
             <Link href="/clubs">Clubs</Link>
+            <Link href="/news">News</Link>
         </div>
     )
 }

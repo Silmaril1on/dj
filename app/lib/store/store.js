@@ -7,6 +7,8 @@ import successReducer from "@/app/features/successSlice";
 import evaluationReducer from "@/app/features/evaluationSlice";
 import editProductReducer from "@/app/features/editProductSlice";
 import reportsReducer from "@/app/features/reportsSlice";
+import bookingReducer from "@/app/features/bookingSlice";
+import acceptBookingReducer from "@/app/features/bookingSlice";
 
 export const store = configureStore({
   reducer: {
@@ -18,5 +20,7 @@ export const store = configureStore({
     evaluation: evaluationReducer,
     editProduct: editProductReducer,
     reports: reportsReducer,
+    booking: bookingReducer,
+    acceptBooking: acceptBookingReducer,
   },
 });

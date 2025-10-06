@@ -5,7 +5,7 @@ import { createSupabaseServerClient } from "@/app/lib/config/supabaseServer";
 export async function GET(request) {
   try {
     const { searchParams } = new URL(request.url);
-    const limit = parseInt(searchParams.get("limit") || "20", 10);
+    const limit = parseInt(searchParams.get("limit") || "15", 10);
     const offset = parseInt(searchParams.get("offset") || "0", 10);
 
     const cookieStore = await cookies();

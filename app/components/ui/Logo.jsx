@@ -1,14 +1,26 @@
-import Link from 'next/link';
+import Image from "next/image";
+import Link from "next/link";
 
-const Logo = () => {
+const Logo = ({ size = "sm" }) => {
+  const sizeClasses = {
+    sm: "w-14 h-14",
+    md: "w-22 h-22",
+    lg: "w-26 h-26",
+  };
+
   return (
-    <Link
-      href="/"
-      className="text-2xl font-bold italic hover:tracking-wide duration-300"
-    >
-      DJDB
+    <Link href="/">
+      <div className={`relative ${sizeClasses[size]}`}>
+        <Image
+          className="sepia w-full h-full"
+          src="/assets/elivagar-logo.png"
+          alt="DJDB Logo"
+          width={150}
+          height={150}
+        />
+      </div>
     </Link>
   );
-}
+};
 
-export default Logo
+export default Logo;

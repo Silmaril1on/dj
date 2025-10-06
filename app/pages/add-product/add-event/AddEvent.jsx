@@ -129,7 +129,8 @@ const AddEvent = () => {
             description="Create a new event and share it with the community"
           >
             <SubmissionForm
-              formConfig={formConfig}
+                        formConfig={formConfig}
+                        showGoogle={false}
               onSubmit={handleSubmit}
               isLoading={isSubmitting}
               submitButtonText={isEditMode ? "Update Event" : "Create Event"}

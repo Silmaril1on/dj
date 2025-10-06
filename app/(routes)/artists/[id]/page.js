@@ -13,7 +13,7 @@ export const generateMetadata = async ({ params }) => {
     const { artist } = await response.json();
     const artistName = capitalizeTitle(artist.stage_name || artist.name);
     return {
-      title: `DJDB | ${artistName}`,
+      title: `Soundfolio | ${artistName}`,
     };
   } catch (error) {
     return { title: "DJDB - Artist" };

@@ -2,8 +2,8 @@ import AllEventsPage from "@/app/pages/events/event-page/AllEventsPage";
 import { cookies } from "next/headers";
 
 export const metadata = {
-  title: "DJDB | Upcoming Events",
-  description: "events page",
+  title: "Soundfolio | Upcoming Events",
+  description: "Soundfolio events page",
 };
 
 const EventsPage = async () => {
@@ -15,7 +15,7 @@ const EventsPage = async () => {
       .join("; ");
 
     const response = await fetch(
-      `${process.env.PROJECT_URL}/api/events/events-page-route?limit=20&offset=0`,
+      `${process.env.PROJECT_URL}/api/events/events-page-route?limit=15&offset=0`,
       {
         cache: "no-store",
         headers: {

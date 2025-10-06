@@ -112,8 +112,9 @@ export async function POST(request) {
       .from("notifications")
       .insert({
         user_id: userData.id,
-        userName: userData.userName,
-        email: userData.email,
+        type: "welcome",
+        read: false, 
+        title: "Welcome to Soundfolio",
         message:
           "Welcome to the platform. You can now login to your account and start using the platform.",
       })

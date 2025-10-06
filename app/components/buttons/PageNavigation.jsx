@@ -19,7 +19,7 @@ const PageNavigation = ({ linksData, className = " " }) => {
 
 
   return (
-    <div className={`bg-stone-800 ${className}`}>
+    <div className={`bg-stone-900 ${className}`}>
       <div className="max-w-6xl mx-auto px-4">
         <nav className="flex relative">
           {linksData.map((item, index) => (

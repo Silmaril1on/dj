@@ -2,8 +2,6 @@
 import React, { useState, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { motion } from "framer-motion";
-import { slideTop } from "@/app/framer-motion/motionValues";
 import Title from "@/app/components/ui/Title";
 import Paragraph from "@/app/components/ui/Paragraph";
 import Spinner from "@/app/components/ui/Spinner";
@@ -66,12 +64,12 @@ const BornToday = () => {
       title="Born Today"
       description="Discover artists celebrating their birthday today."
     >
-      <SliderContainer items={artistList} itemsPerPage={5} cardWidth={280}>
+      <SliderContainer items={artistList} itemsPerPage={8} cardWidth={175}>
         {artistList.map((artist) => (
           <div
             key={artist.id}
             className="group cursor-pointer"
-            style={{ minWidth: 280, margin: "0 8px" }}
+            style={{ minWidth: 175, margin: "0 8px" }}
           >
             <Link href={`/artists/${artist.id}`}>
               <div className="bg-stone-900 bordered p-2 transition-colors duration-300">
@@ -85,7 +83,7 @@ const BornToday = () => {
                   />
                 </div>
                 <div className="text-center">
-                  <ArtistName artistName={artist} />
+                  <ArtistName size="sm" artistName={artist} />
                   <p className="text-cream text-xs secondary font-light">
                     Turns {artist.age} today
                   </p>

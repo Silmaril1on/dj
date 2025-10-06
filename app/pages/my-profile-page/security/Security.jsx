@@ -4,7 +4,7 @@ import PasswordChange from './password-change/PasswordChange'
 
 const Security = () => {
   return (
-      <div className='grid grid-cols-2 px-4'>
+      <div className='grid grid-cols-2 px-4 gap-4'>
           <Authenticator2Fa />
           <PasswordChange />
     </div>

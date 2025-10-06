@@ -7,7 +7,7 @@ const ArtistInsight = ({ ratingInsights }) => {
 
     return (
 
-        <div className='grid grid-cols-2 gap-4 p-4 w-full'>
+        <div className='grid grid-cols-1 lg:grid-cols-2 gap-4 p-3 w-full'>
             <RatingsStats
                 data={ratingInsights}
                 error={ratingInsights.error}

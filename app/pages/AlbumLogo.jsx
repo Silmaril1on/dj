@@ -18,24 +18,12 @@ const AlbumLogo = () => {
               className="object-cover absolute p-10"
             />
             {/* Border overlay for smooth transition */}
-            <div className="absolute inset-0">
-              <Image
-                src="/assets/border.png"
-                alt="Border"
-                fill
-                sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-                className="object-cover drop-shadow-2xl"
-                style={{
-                  filter:
-                    "drop-shadow(0 15px 15px rgba(0, 0, 0, 0.4)) drop-shadow(0 10px 5px rgba(0, 0, 0, 0.5))",
-                }}
-              />
-            </div>
+         
           </div>
 
-          <div className="absolute -top-5  w-44 h-44 -left-12 s">
+          <div className="absolute -top-5  w-44 h-44 -left-12">
             <Image
-              src="/assets/raven.png"
+              src="/assets/elivagar-logo.png"
               alt="Album Cover"
               sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
               fill

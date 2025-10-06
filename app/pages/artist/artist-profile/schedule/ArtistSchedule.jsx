@@ -5,12 +5,14 @@ import ArtistCountry from '@/app/components/materials/ArtistCountry'
 import SectionContainer from '@/app/components/containers/SectionContainer'
 import Title from '@/app/components/ui/Title'
 import MyLink from '@/app/components/ui/MyLink'
-import Link from 'next/link'
 import FlexBox from '@/app/components/containers/FlexBox'
+import ErrorCode from '@/app/components/ui/ErrorCode'
 
 const ArtistSchedule = ({ data, title = "Upcoming Dates", description = "Stay updated with upcoming dates" }) => {
   if (!data || data.length === 0) {
-    return null
+    return <div className='w-full center py-20'> 
+      <ErrorCode title="No Upcoming Dates" description="There are no upcoming dates available at the moment." />
+    </div>
   }
 
   const formatDate = (dateString) => {

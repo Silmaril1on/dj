@@ -10,6 +10,11 @@ const SignIn = () => {
             footerHref="/sign-up"
         >
             <SignInForm />
+            <div className="flex justify-end my-3">
+                <a href="/reset-password" className=" text-gold hover:text-cream font-bold duration-300">
+                    Forgot password?
+                </a>
+            </div>
         </FormContainer>
     )
 }

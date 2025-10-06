@@ -20,11 +20,6 @@ const AddArtist = () => {
   const [artistData, setArtistData] = useState(null)
   const [loading, setLoading] = useState(false)
 
-  console.log(user?.submitted_artist_id, "/////");
-
-
-
-
   // Create form config with initial data for edit mode
   const formConfig = {
     ...formConfigs.addArtist,
@@ -116,7 +111,7 @@ const AddArtist = () => {
   return (
     <div className="flex flex-col lg:flex-row gap-6 items-start">
       {user?.submitted_artist_id && !isEditMode ? (
-        <div className="flex-1 w-full">
+        <div className="flex-1 w-full h-98 center">
           <ErrorCode
             title="You have already submitted an artist"
             description="You can only submit one artist profile. To edit your submission, use the edit link or contact support."

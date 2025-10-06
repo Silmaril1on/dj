@@ -8,15 +8,17 @@ import ArtistCountry from '@/app/components/materials/ArtistCountry'
 import Dot from '@/app/components/ui/Dot'
 import { FaUsers } from 'react-icons/fa'
 
+// Add capacity to the component props
 const ProductCard = ({
   id,
   image,
   name,
-  date,
   country,
   city,
   artists = [],
+  date,
   likesCount,
+  capacity, // Add this prop
   href,
   animation = "fade",
   delay = 0,
@@ -27,7 +29,7 @@ const ProductCard = ({
     layout
     animation={animation}
     delay={delay}
-    className={`relative border border-gold/30 hover:border-gold/50 bg-stone-900 p-2 group cursor-pointer ${className}`}
+    className={`relative bordered bg-stone-900 p-2 group cursor-pointer ${className}`}
   >
     <Link href={href || "#"}>
       <div className="h-80 brightness">
@@ -40,9 +42,15 @@ const ProductCard = ({
         />
       </div>
       <div className="flex flex-col">
-        <Title size="sm" color="cream" className="uppercase" text={name} />
+        <Title size="sm" color="cream" className="uppercase text-start" text={name} />
         {date && <p className="text-chino uppercase font-bold">{date}</p>}
         <ArtistCountry artistCountry={{ country, city }} />
+        {/* Add capacity display here */}
+        {capacity && (
+          <p className="text-chino text-sm">
+            Capacity: {capacity.toLocaleString()}
+          </p>
+        )}
       </div>
       {artists.length > 0 && (
         <div className="flex flex-wrap">

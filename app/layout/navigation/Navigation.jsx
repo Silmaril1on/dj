@@ -2,16 +2,18 @@ import FlexBox from '../../components/containers/FlexBox'
 import UserPanel from './components/userPanel/UserPanel'
 import NavLinks from './components/NavLinks'
 import Logo from '@/app/components/ui/Logo'
+import SearchBar from '@/app/components/forms/SearchBar'
 
 const Navigation = () => {
 
   return (
-    <div className="flex items-center justify-between px-4 py-2 ">
-      <FlexBox>
+    <div className="grid grid-cols-2 px-4 items-center py-2">
+      <div className='flex items-center space-x-5 justify-start'>
         <Logo />
         <NavLinks />
-      </FlexBox>
-      <FlexBox type="row-center" className="gap-2 py-1">
+        <SearchBar />
+      </div>
+      <FlexBox type="row-center" className="justify-end">
         <UserPanel />
       </FlexBox>
     </div>

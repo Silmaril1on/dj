@@ -11,16 +11,12 @@ import FlexBox from "@/app/components/containers/FlexBox";
 import { useRouter } from "next/navigation";
 import ArtistSchedule from "@/app/pages/artist/artist-profile/schedule/ArtistSchedule";
 import { FaUpload } from "react-icons/fa";
-import SpanText from "@/app/components/ui/SpanText";
 import EmailTag from "@/app/components/ui/EmailTag";
 
 const ClubProfile = ({ club, currentUserId, clubSchedule }) => {
   if (!club) return null;
   const isOwner = currentUserId && club.user_id === currentUserId;
   const router = useRouter();
-
-  console.log(clubSchedule, "////");
-  
 
   const handleAddEvent = () => {
     const params = new URLSearchParams({
@@ -35,7 +31,7 @@ const ClubProfile = ({ club, currentUserId, clubSchedule }) => {
   };
 
   return (
-    <div className="flex flex-col ">
+    <div className="flex flex-col">
       <div className="p-4 flex justify-between items-center">
         {isOwner && (
           <FlexBox type="row=start" className="gap-2">
@@ -53,7 +49,7 @@ const ClubProfile = ({ club, currentUserId, clubSchedule }) => {
       {club.residents && (
         <Lineup title="Venue Residents" data={club.residents} />
       )}
-      <div className="flex">
+      <div className="grid grid-cols-1 lg:grid-cols-2">
         <article className="flex flex-1 justify-between items-start flex-col bg-stone-900 p-4">
           <div>
             <Title size="xl" text={club.name} />

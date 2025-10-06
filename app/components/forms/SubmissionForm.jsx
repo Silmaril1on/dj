@@ -327,9 +327,9 @@ const SubmissionForm = ({
   }
 
   return (
-    <form onSubmit={handleSubmit} noValidate className={`space-y-6 w-full ${className}`}>
+    <form onSubmit={handleSubmit} noValidate className={`space-y-2 w-full ${className}`}>
       {formConfig.sections?.map((section, sectionIndex) => (
-        <div key={sectionIndex} className="space-y-4">
+        <div key={sectionIndex} className="space-y-2">
           {section.title && <Title text={section.title} />}
           <div className={section.gridClass || "grid grid-cols-1 md:grid-cols-1 gap-4"}>
             {section.fields?.map((fieldName) => {
@@ -364,7 +364,7 @@ const SubmissionForm = ({
           className="hidden"
         />
       )}
-     <FlexBox type="row-between" className='mb-5'>
+     <FlexBox type="row-between" className='mt-4'>
        <Button
         type="submit"
         text={isLoading ? "Submitting..." : submitButtonText}

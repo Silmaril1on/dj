@@ -25,7 +25,7 @@ const SubmittedEvents = ({ data, error }) => {
     }
 
     return (
-        <SectionContainer size="sm" title="My Submitted Events" description="My Submitted Events Statistics" className="bg-stone-900">
+        <SectionContainer size="sm" title="Submitted Events" description="My Submitted Events Statistics" className="bg-stone-900">
             <div className="w-full flex flex-col justify-between h-full space-y-2">
                 {/* HEADER */}
                 <div className='w-full flex justify-start gap-3'>

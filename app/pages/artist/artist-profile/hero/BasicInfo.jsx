@@ -28,7 +28,7 @@ const BasicInfo = ({ data }) => {
     <div className='py-10 h-full overflow-hidden space-y-5 flex flex-col'>
       <Actions data={updatedData} userRating={userRating} onLikeChange={handleLikeChange} />
       <div className='*:leading-none'>
-        <Title name={name} stage_name={stage_name} />
+        <Title  name={name} stage_name={stage_name} />
         <Genres genres={genres} />
       </div>
       <Country country={country} city={city} />
@@ -67,7 +67,7 @@ const Title = ({ name, stage_name }) => {
       initial={{ opacity: 0, x: -20 }}
       animate={{ opacity: 1, x: 0 }}
       transition={{ duration: 0.6, delay: 0.2 }}
-      className="font-bold text-6xl lg:text-7xl uppercase"
+      className="font-bold text-5xl md:text-6xl lg:text-7xl uppercase"
     >
       {stage_name || name}
     </motion.h1>

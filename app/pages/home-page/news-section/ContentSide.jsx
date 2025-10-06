@@ -43,19 +43,15 @@ const ContentSide = ({  currentNews }) => {
     >
       <div className="pl-30 h-full flex flex-col items-end justify-between p-5">
         <FlexBox type="column-end" className="max-w-[70%]">
-          <Title
-            text={currentNews.news_title}
-            color="gold"
-            className="text-end"
-          />
+          <Title text={currentNews.title} color="gold" className="text-end" />
         </FlexBox>
-        <div className="flex items-end flex-col"> 
+        <div className="flex items-end flex-col">
           <Paragraph
             className="text-end"
-            text={truncateString(currentNews.news_content, 700)}
+            text={truncateString(currentNews.content, 500)}
           />
           <MyLink
-            href={currentNews.news_link}
+            href={`/news/${currentNews.id}`}
             text="Read more..."
             icon={<FaLink />}
           />

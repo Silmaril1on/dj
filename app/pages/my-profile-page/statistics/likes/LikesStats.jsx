@@ -34,7 +34,7 @@ const LikesStats = ({ data, error }) => {
   }
 
   return (
-    <SectionContainer size="sm" title="My Likes" description="My Like Statistics" className="bg-stone-900">
+    <SectionContainer size="sm" title="Likes" description="My Like Statistics" className="bg-stone-900">
       <div className="w-full flex flex-col justify-between h-full space-y-2">
         {/* HEADER */}
         <div className='w-full flex justify-start gap-3'>

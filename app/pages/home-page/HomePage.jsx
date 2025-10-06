@@ -1,4 +1,5 @@
 import AlbumLogo from "../AlbumLogo";
+import AppDataStats from "./app-data-stats/AppDataStats";
 import ArtistsSection from "./artists-section/ArtistsSection";
 import BornToday from "./bord-today-section/BornToday";
 import Events from "./events-section/Events";
@@ -13,7 +14,8 @@ const HomePage = ({ events = [] }) => {
             <ArtistsSection />
             <SubmitSection />
             <BornToday />
-            <AlbumLogo />
+            <AppDataStats />
+            {/* <AlbumLogo /> */}
         </div>
     )
 }

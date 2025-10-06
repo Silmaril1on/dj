@@ -1,7 +1,7 @@
 "use client"
 import { useEffect, useState } from "react";
 import { useSelector } from "react-redux";
-import { BsSoundwave } from "react-icons/bs";
+import { IoMdNotificationsOutline } from "react-icons/io";
 import Icon from "@/app/components/ui/Icon";
 import useClick from "@/app/lib/hooks/useClick";
 import NotificationModal from "./notificationIcon/NotificationModal";
@@ -60,8 +60,12 @@ const NotificationIcon = () => {
   return (
     <div className="relative" ref={clickRef}>
       <div>
-        <Icon onClick={handleClick} icon={<BsSoundwave />} color="gold" />
-       <StatusDot hasUnread={hasUnread} />
+        <Icon
+          onClick={handleClick}
+          icon={<IoMdNotificationsOutline />}
+          color="gold"
+        />
+        <StatusDot hasUnread={hasUnread} />
       </div>
       <NotificationModal
         isOpen={isClicked}

@@ -5,7 +5,7 @@ import { MdLocationPin } from "react-icons/md";
 const Location = ({ address, location_url, className = "" }) => {
   if (!address) return null;
   return (
-    <div className={className}>
+    <div className={`${className} w-fit`}>
       {location_url ? (
         <Link href={location_url} target="_blank" rel="noopener noreferrer">
           <SpanText

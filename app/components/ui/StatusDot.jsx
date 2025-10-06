@@ -9,7 +9,7 @@ const StatusDot = ({ hasUnread }) => {
           <motion.div
             className=" w-full h-full rounded-full bg-cream"
             initial={{ scale: 1, opacity: 0 }}
-            animate={{ scale: [1, 2, 1], opacity: [0.6] }}
+            animate={{ scale: [1, 2, 1], opacity: [0.5] }}
             transition={{
               duration: 3,
               repeat: Infinity,

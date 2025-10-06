@@ -5,7 +5,7 @@ import MotionCount from '@/app/components/ui/MotionCount';
 import Paragraph from '@/app/components/ui/Paragraph';
 import ErrorCode from '@/app/components/ui/ErrorCode';
 
-const RatingsStats = ({ data, error, title = "My Insights", description = "My Rating Statistics", descriptionText = "Your rating stats at a glance, plus a quick breakdown of how you've scored artists." }) => {
+const RatingsStats = ({ data, error, title = "Ratings", description = "My Rating Statistics", descriptionText = "Your rating stats at a glance, plus a quick breakdown of how you've scored artists." }) => {
 
   if (error) {
     return (

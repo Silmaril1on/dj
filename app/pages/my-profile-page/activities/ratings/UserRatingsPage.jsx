@@ -10,6 +10,7 @@ import Link from "next/link";
 import ArtistName from "@/app/components/materials/ArtistName";
 import Motion from "@/app/components/containers/Motion";
 import ErrorCode from "@/app/components/ui/ErrorCode";
+import Button from "@/app/components/buttons/Button";
 
 const UserRatingsPage = ({ ratingsData, error, currentPage = 1 }) => {
   const [ratings, setRatings] = useState(ratingsData?.ratings || []);
@@ -106,13 +107,12 @@ const UserRatingsPage = ({ ratingsData, error, currentPage = 1 }) => {
       </div>
       {hasNext && (
         <div className="flex justify-center mt-8">
-          <button
+          <Button
+            text={loadingMore ? "Loading..." : "Load More"}
             onClick={handleLoadMore}
             disabled={loadingMore}
-            className="bg-gold/30 hover:bg-gold/40 text-gold px-6 py-2 rounded font-bold text-lg cursor-pointer"
-          >
-            {loadingMore ? "Loading..." : "Load More"}
-          </button>
+            loading={loadingMore}
+          />
         </div>
       )}
     </div>

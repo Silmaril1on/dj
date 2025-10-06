@@ -7,8 +7,10 @@ import { formatBirthdate } from '@/app/helpers/utils'
 import { useState, useMemo } from 'react'
 import { filterConfigs } from '@/app/helpers/filterSearch/filterConfig'
 import { AnimatePresence } from 'framer-motion'
+import PageHeadline from '@/app/components/containers/PageHeadline';
+import Button from '@/app/components/buttons/Button';
 
-const EVENTS_LIMIT = 20;
+const EVENTS_LIMIT = 15;
 
 const AllEventsPage = ({ events: initialEvents = [], error }) => {
   const [events, setEvents] = useState(initialEvents);
@@ -108,13 +110,14 @@ const AllEventsPage = ({ events: initialEvents = [], error }) => {
   }
 
   return (
-    <div>
+    <div className='space-y-3 px-4'>
+      <PageHeadline title="Upcomming events" description="Find the latest events happening near you." />
       <FilterBar
         config={dynamicFilterConfig}
         values={filters}
         onChange={handleFilterChange}
       />
-      <div className="grid grid-cols-5 gap-4 p-4">
+      <div className="grid grid-cols-5 gap-4">
         <AnimatePresence>
           {filteredEvents.map((event, idx) => (
             <ProductCard
@@ -136,13 +139,12 @@ const AllEventsPage = ({ events: initialEvents = [], error }) => {
       </div>
       {hasMore && (
         <div className="flex justify-center my-4">
-          <button
-            className="bg-gold text-black px-6 py-2 rounded font-bold"
+          <Button
+            text={loading ? "Loading..." : "Load More"}
             onClick={loadMore}
             disabled={loading}
-          >
-            {loading ? "Loading..." : "Load More"}
-          </button>
+            loading={loading}
+          />
         </div>
       )}
     </div>

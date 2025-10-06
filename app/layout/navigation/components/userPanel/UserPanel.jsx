@@ -7,6 +7,7 @@ import { useState, useRef, useEffect } from 'react';
 import { removeUserCookie } from '@/app/helpers/cookieUtils';
 import { supabaseClient } from '@/app/lib/config/supabaseClient';
 import DisplayName from './DisplayName';
+import { useRouter, useSearchParams } from 'next/navigation';
 
 const UserPanel = () => {
   const user = useSelector(selectUser);
@@ -14,6 +15,8 @@ const UserPanel = () => {
   const dispatch = useDispatch();
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const settingsRef = useRef(null);
+  const router = useRouter();
+    const searchParams = useSearchParams();
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -30,11 +33,24 @@ const UserPanel = () => {
       await supabaseClient.auth.signOut();
       dispatch(clearUser());
       dispatch(clearAllRatings());
+      setIsSettingsOpen(false); 
       removeUserCookie();
+       router.push("/");
     } catch (error) {
+       router.push("/");
       console.error('Logout error:', error);
     }
+
   };
+
+    useEffect(() => {
+      if (isAuthenticated) {
+        const redirect = searchParams.get("redirect");
+        if (redirect && redirect !== "/sign-in" && redirect !== "/sign-up") {
+          router.push(redirect);
+        }
+      }
+    }, [isAuthenticated, searchParams, router]);
 
   const toggleSettings = () => {
     setIsSettingsOpen(!isSettingsOpen);

@@ -41,9 +41,10 @@ export async function POST(request) {
     // Send notification
     await supabase.from("notifications").insert([{
       user_id: user.id,
-      userName: user.user_metadata?.userName || user.email,
-      email: user.email,
       message: "Your password was changed. If this wasn't you, please contact support immediately.",
+      type: "security",
+      title: "Password Changed",
+      read: false,
     }]);
 
     return NextResponse.json({ success: true });

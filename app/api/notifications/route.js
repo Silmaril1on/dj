@@ -85,7 +85,7 @@ export async function POST(req) {
 
     const supabase = await createSupabaseServerClient(cookieStore);
     const body = await req.json();
-    const { action, message, user_id, userName, email } = body;
+    const { action, message, user_id, title, type, email } = body;
 
     // Handle different POST actions
     if (action === "mark-all-read") {
@@ -125,9 +125,11 @@ export async function POST(req) {
       .from("notifications")
       .insert({
         user_id,
-        userName,
-        email,
+        title,
+        type,
         message,
+        read: false,
+        created_at: new Date().toISOString()
       })
       .select()
       .single();

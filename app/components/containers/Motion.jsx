@@ -55,7 +55,6 @@ const Motion = ({
     };
 
     const animationVariantBase = getAnimationVariant();
-    // Apply per-instance delay without mutating the shared variant objects
     const animationVariant = animationVariantBase
         ? {
             hidden: { ...animationVariantBase.hidden },

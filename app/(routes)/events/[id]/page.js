@@ -1,21 +1,10 @@
 import EventProfile from "@/app/pages/events/event-profile-page/EventProfile";
 import { cookies } from "next/headers";
 
-export const generateMetadata = async ({ params }) => {
-  const { id } = await params;
-  try {
-    const response = await fetch(
-      `${process.env.PROJECT_URL}/api/events/single-event${id}`,
-      { cache: "no-store" }
-    );
-    const  event  = await response.json();
-    return {
-      title: `Event |  ${capitalizeFirstLetter(event.data.name)} `,
-    };
-  } catch (error) {
-    return { title: "Event Not Found" };
-  }
-};
+export const metadata = {
+  title: "Soundfolio | Event Profile",
+  description: "Event profile page",
+}
 
 const EventProfilePage = async ({ params }) => {
   const cookieStore = await cookies();

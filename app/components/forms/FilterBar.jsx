@@ -84,49 +84,48 @@ const CustomSelect = ({ value, onChange, options, placeholder = "All" }) => {
 };
 
 const FilterBar = ({ config = [], values = {}, onChange }) => {
+  const getPlaceholder = (field) => {
+    // Use field label as placeholder, or fallback to field name
+    return field.label || field.name.toUpperCase();
+  };
+
   return (
-    <div className="flex gap-4 px-4">
+    <div className="flex gap-4">
       {config.map((field) => {
         if (field.type === "select") {
           return (
-            <div key={field.name} className="flex flex-col">
-              <label>{field.label}</label>
-              <CustomSelect
-                value={values[field.name] || ""}
-                onChange={(value) => onChange(field.name, value)}
-                options={field.options}
-                placeholder="All"
-              />
-            </div>
+            <CustomSelect
+              key={field.name}
+              value={values[field.name] || ""}
+              onChange={(value) => onChange(field.name, value)}
+              options={field.options}
+              placeholder={getPlaceholder(field)}
+            />
           );
         }
 
         if (field.type === "date") {
           return (
-            <div key={field.name} className="flex flex-col ">
-              <label>{field.label}</label>
-              <input
-                type="date"
-                value={values[field.name] || ""}
-                onChange={(e) => onChange(field.name, e.target.value)}
-                className="appearance-none rounded-none relative block w-full px-2 py-1 lg:px-3 lg:py-2 border border-orange/40 placeholder-gold/40 text-gold bg-gold/20 focus:outline-none focus:ring-2 focus:ring-orange duration-300"
-              />
-            </div>
+            <input
+              key={field.name}
+              type="date"
+              value={values[field.name] || ""}
+              onChange={(e) => onChange(field.name, e.target.value)}
+              className="appearance-none rounded-none relative block w-44 px-2 py-1 lg:px-3 lg:py-2 border border-orange/40 placeholder-gold/40 text-gold bg-gold/20 focus:outline-none focus:ring-2 focus:ring-orange duration-300"
+            />
           );
         }
 
         // Default to text input
         return (
-          <div key={field.name} className="flex flex-col">
-            <label>{field.label}</label>
-            <input
-              type="text"
-              placeholder={field.placeholder || ""}
-              value={values[field.name] || ""}
-              onChange={(e) => onChange(field.name, e.target.value)}
-              className="appearance-none rounded-none relative block w-full px-2 py-1 lg:px-3 border border-orange/40 placeholder-gold/40 text-gold bg-gold/20 focus:outline-none focus:ring-2 focus:ring-orange duration-300"
-            />
-          </div>
+          <input
+            key={field.name}
+            type="text"
+            placeholder={field.placeholder || getPlaceholder(field)}
+            value={values[field.name] || ""}
+            onChange={(e) => onChange(field.name, e.target.value)}
+            className="appearance-none rounded-none relative block w-44 px-2 py-1 lg:px-3 border border-orange/40 placeholder-gold/40 text-gold bg-gold/20 focus:outline-none focus:ring-2 focus:ring-orange duration-300"
+          />
         );
       })}
     </div>

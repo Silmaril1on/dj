@@ -6,10 +6,10 @@ import {
   MdOutlineTrackChanges,
   MdReviews,
   MdStar,
-  MdOutlineLocalActivity,
   MdEvent,
   MdEventAvailable,
 } from "react-icons/md";
+import { FiActivity } from "react-icons/fi";
 
 export const userProfileLinks = [
   {
@@ -22,11 +22,11 @@ export const userProfileLinks = [
     text: "Security",
     icon: <MdSecurity />,
   },
-  {
-    href: "/my-profile/billing",
-    text: "Billing & Payment",
-    icon: <MdPayment />,
-  },
+  // {
+  //   href: "/my-profile/billing",
+  //   text: "Billing & Payment",
+  //   icon: <MdPayment />,
+  // },
   {
     href: "/my-profile/statistics",
     text: "Statistics",
@@ -34,7 +34,7 @@ export const userProfileLinks = [
   },
   {
     text: "Activities",
-    icon: <MdOutlineLocalActivity />,
+    icon: <FiActivity />,
     hasDropdown: true,
     dropdownItems: [
       {
@@ -71,6 +71,12 @@ export const addProductLinks = [
     href: "/add-product/add-event",
     text: "Add Event",
     icon: <MdEvent />,
+  },
+  {
+    href: "/add-product/add-news",
+    text: "Add News",
+    icon: <MdEvent />,
+    access: "admin",
   },
 
 ];

@@ -5,7 +5,7 @@ import UserActivityCounts from '@/app/components/materials/UserActivityCounts'
 
 const ActivityHeader = ({
   title = "My Activities",
-  description = "Track your reviews, ratings, and interactions with artists",
+  description = "Track your reviews, ratings, and interactions throughout the platform.",
   showStats = true,
   className = ""
 }) => {

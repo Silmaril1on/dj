@@ -150,11 +150,10 @@ export async function POST(request) {
       );
     }
 
-    // Generate unique filename
+    // Generate unique filename with random ID to avoid title issues
+    const randomId = Math.random().toString(36).substring(2, 15);
     const fileExtension = artist_image.name.split(".").pop();
-    const fileName = `${name
-      .toLowerCase()
-      .replace(/\s+/g, "")}_${Date.now()}.${fileExtension}`;
+    const fileName = `artist_${Date.now()}_${randomId}.${fileExtension}`;
 
     // Upload image to Supabase storage
     const { data: uploadData, error: uploadError } = await supabaseAdmin.storage
@@ -196,7 +195,7 @@ export async function POST(request) {
       )
       .map((labelItem) => labelItem.trim());
 
-    // Prepare artist data with status: pending
+    // Prepare artist data with status: pending and submitter user_id
     const artistData = {
       name,
       artist_image: publicUrl,
@@ -211,6 +210,7 @@ export async function POST(request) {
       genres: filteredGenres.length > 0 ? filteredGenres : [],
       social_links: filteredSocialLinks.length > 0 ? filteredSocialLinks : [],
       status: "pending",
+      user_id: user.id, 
     };
 
     // Insert artist into database
@@ -251,3 +251,5 @@ export async function POST(request) {
     );
   }
 }
+
+

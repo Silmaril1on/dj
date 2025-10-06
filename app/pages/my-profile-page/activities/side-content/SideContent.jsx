@@ -2,6 +2,10 @@
 import { FaArrowUp, FaArrowDown, FaMinus } from "react-icons/fa";
 import SectionContainer from "@/app/components/containers/SectionContainer";
 import ArtistName from "@/app/components/materials/ArtistName";
+import ProfilePicture from "@/app/components/materials/ProfilePicture";
+import SpanText from "@/app/components/ui/SpanText";
+import Motion from "@/app/components/containers/Motion";
+import Title from "@/app/components/ui/Title";
 
 const getChangeIcon = (changeType) => {
   if (changeType === "up")
@@ -15,20 +19,28 @@ const getChangeIcon = (changeType) => {
 
 const SideContent = ({ thisWeek = [], previousWeek = [] }) => {
 
+  console.log(thisWeek);
+  
+
   return (
-    <SectionContainer size="sm" title="Top Weekly Artists" description="Weekly comparison chart for artists rating" className=" bg-stone-900">
+    <SectionContainer
+      size="sm"
+      title="Top Weekly Artists"
+      description="Weekly comparison chart for artists rating"
+      className=" bg-stone-900"
+    >
       <div className="w-full">
         <div className="space-y-2">
+          <Title text="Current Week" size="xs" color="cream" />
           {thisWeek.map((artist, idx) => (
-            <div key={artist.id} className="flex items-center gap-3">
-              <div className="w-12 h-12 rounded overflow-hidden bg-stone-800 flex-shrink-0">
-                <img
-                  src={artist.artist_image}
-                  alt={artist.stage_name || artist.name}
-                  className="object-cover w-full h-full"
-                />
-              </div>
-              <div className="flex-1">
+            <Motion
+              animation="fade"
+              delay={idx * 0.07}
+              key={artist.id}
+              className="flex items-center gap-2 px-2 py-1 bg-stone-950/40"
+            >
+              <ProfilePicture avatar_url={artist.artist_image} />
+              <div className="grid grid-cols-3 w-full">
                 <ArtistName artistName={artist} size="xs" />
                 <div className="flex items-center gap-2 mt-1">
                   <span className="ml-2 text-xs text-gold">
@@ -51,39 +63,36 @@ const SideContent = ({ thisWeek = [], previousWeek = [] }) => {
                     <span className="ml-1 text-xs text-yellow-400">New</span>
                   )}
                 </div>
-                <div className="flex gap-2 mt-1 text-xs text-stone-400">
-                  <span>
-                    Rating: 
-                    <span className="text-gold">{artist.allTimeAverage}</span>
-                  </span>
-                  <span>
-                    Total ratings:{" "}
-                    <span className="text-gold">{artist.allTimeTotal}</span>
-                  </span>
+                <div className="flex flex-col items-end">
+                  <SpanText text="Rating:" size="xs">
+                    <span className="text-chino font-bold">
+                      {artist.allTimeAverage}
+                    </span>
+                  </SpanText>
+                  <SpanText text="Total ratings:" size="xs">
+                    <span className="text-chino font-bold">
+                      {artist.allTimeTotal}
+                    </span>
+                  </SpanText>
                 </div>
               </div>
-            </div>
+            </Motion>
           ))}
         </div>
-        <div className="mt-8">
-          <h4 className="text-chino text-md mb-2">Previous Week</h4>
-          <div className="space-y-4">
+        <div className=" space-y-3 mt-5">
+          <Title text="Previous Week" size="xs" color="cream" />
+          <div className="space-y-2">
             {previousWeek.map((artist, idx) => (
-              <div key={artist.id} className="flex items-center gap-3">
-                <div className="w-8 h-8 rounded overflow-hidden bg-stone-800 flex-shrink-0">
-                  <img
-                    src={artist.artist_image}
-                    alt={artist.stage_name || artist.name}
-                    className="object-cover w-full h-full"
-                  />
-                </div>
-                <div className="flex-1">
-                  <span className="font-bold text-chino text-xs">
-                    {artist.stage_name || artist.name}
-                  </span>
-                  <span className="ml-2 text-xs text-chino">
-                    {artist.weeklyAverage}
-                  </span>
+              <Motion
+                animation="fade"
+                delay={idx * 0.07}
+                key={artist.id}
+                className="flex items-center gap-2 bg-stone-950/40 px-2 py-1"
+              >
+                <ProfilePicture avatar_url={artist.artist_image} />
+                <div className="flex-1 grid grid-cols-3">
+                  <ArtistName artistName={artist} size="xs" />
+                 <SpanText text={artist.weeklyAverage} size="xs" />
                   <span className="ml-2 text-xs text-stone-400">
                     ({artist.weeklyRatingCount} ratings)
                   </span>
@@ -91,7 +100,7 @@ const SideContent = ({ thisWeek = [], previousWeek = [] }) => {
                 <div className="ml-2 text-xs text-stone-400">
                   #{artist.rank}
                 </div>
-              </div>
+              </Motion>
             ))}
           </div>
         </div>

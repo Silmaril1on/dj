@@ -4,7 +4,6 @@ import Image from 'next/image'
 
 const Avatar = ({ data }) => {
 
-
   return (
     <motion.div
       className="relative group"
@@ -14,7 +13,7 @@ const Avatar = ({ data }) => {
     >
       <div className="relative overflow-hidden shadow-2xl">
         <motion.div
-          className="relative w-full h-[600px] lg:h-[700px]"
+          className="relative w-full h-[400px] lg:h-[700px]"
           whileHover={{ scale: 1.02 }}
           transition={{ duration: 0.6, ease: "easeInOut" }}
         >
@@ -29,7 +28,7 @@ const Avatar = ({ data }) => {
         </motion.div>
       </div>
     </motion.div>
-  )
+  );
 }
 
 export default Avatar

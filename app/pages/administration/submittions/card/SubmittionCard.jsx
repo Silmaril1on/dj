@@ -52,15 +52,15 @@ const SubmittionCard = ({ submissions, type = 'artist' }) => {
             <Paragraph text="Submitted by:" />
             <FlexBox type="row-start" className="gap-2 items-center">
               <ProfilePicture
-                avatar_url={submission.submitter.user_avatar}
+                avatar_url={submission?.submitter?.user_avatar}
                 type="icon"
               />
               <div className="flex-1 text-xs min-w-0">
                 <p className="text-gold ">
-                  {submission.submitter.userName}
+                  {submission.submitter?.userName}
                 </p>
                 <p className=" text-gold/60">
-                  {submission.submitter.email}
+                  {submission.submitter?.email}
                 </p>
               </div>
             </FlexBox>

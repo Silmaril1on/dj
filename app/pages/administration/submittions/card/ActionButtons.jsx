@@ -20,9 +20,6 @@ const ActionButtons = ({ submission, loadingStates, submissionsList, setLoadingS
     dispatch(openEvaluationModal({ ...submission, __type: entityType }))
   }
 
-  console.log(submission, "/////////");
-  
-
   const handleAction = async (entityId, action) => {
     const loadingKey = `${entityId}_${action}`
     setLoadingStates(prev => ({ ...prev, [loadingKey]: true }))
@@ -70,7 +67,8 @@ const ActionButtons = ({ submission, loadingStates, submissionsList, setLoadingS
         },
         body: JSON.stringify({
           user_id: submitter.id,
-          userName: submitter.userName,
+          type: "submission approve", 
+          title: "Submission Approved",
           email: submitter.email,
           message: message
         })

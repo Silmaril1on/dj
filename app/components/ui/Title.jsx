@@ -1,12 +1,12 @@
 const Title = ({
     text,
-    size = "md",
+    size = "",
     color = "gold",
     className = "",
     onClick,
     onMouseEnter,
     onMouseLeave,
-    showLive = true // New prop to control LIVE text display
+    showLive = true 
 }) => {
     const sizeClasses = {
         xs: "text-sm md:text-base",
@@ -30,7 +30,6 @@ const Title = ({
     const titleSize = sizeClasses[size] || sizeClasses.md
     const titleColor = colorClasses[color] || colorClasses.default
 
-    // Parse text to separate "LIVE" text
     const artistName = showLive ? text.replace(/\s+live$/i, '').trim() : text;
     const hasLive = showLive && /\s+live$/i.test(text);
 

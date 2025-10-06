@@ -25,13 +25,9 @@ const StatisticsLayout = ({
         {submittedClubSlot}
       </div>
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 p-3">
-        <div className="border">
-          <h1>some content</h1>
-        </div>
+      
         {submittedEventsSlot}
-        <div className="border">
-          <h1>some content</h1>
-        </div>
+       
       </div>
     </div>
   );
