@@ -1,12 +1,13 @@
 import SideContent from "@/app/pages/my-profile-page/activities/side-content/SideContent";
 import React from "react";
 
+export const dynamic = "force-dynamic";
+
 export default async function DefaultSideSection() {
   const res = await fetch(
     `${process.env.PROJECT_URL}/api/users/side-top-stats`,
     {
       cache: "no-store",
-      next: { revalidate: 0 }, 
     }
   );
 

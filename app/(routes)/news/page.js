@@ -1,5 +1,7 @@
 import AllNews from '@/app/pages/news/AllNews'
 
+export const dynamic = "force-dynamic";
+
 export const metadata = { 
   title: "Soundfolio | News",
   description: "Stay updated with the latest news and updates from Soundfolio. Explore articles, announcements, and insights about our platform and the music industry."

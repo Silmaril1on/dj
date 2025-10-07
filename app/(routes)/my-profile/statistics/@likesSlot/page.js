@@ -1,6 +1,8 @@
 import LikesStats from "@/app/pages/my-profile-page/statistics/likes/LikesStats";
 import { cookies } from "next/headers";
 
+export const dynamic = "force-dynamic";
+
 const LikesStatsSlot = async () => {
   try {
     const cookieStore = await cookies();

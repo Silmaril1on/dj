@@ -1,5 +1,6 @@
 import AllEventsPage from "@/app/pages/events/event-page/AllEventsPage";
 import { cookies } from "next/headers";
+export const dynamic = "force-dynamic";
 
 export const metadata = {
   title: "Soundfolio | Upcoming Events",

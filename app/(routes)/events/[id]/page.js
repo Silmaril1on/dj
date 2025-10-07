@@ -1,5 +1,6 @@
 import EventProfile from "@/app/pages/events/event-profile-page/EventProfile";
 import { cookies } from "next/headers";
+export const dynamic = "force-dynamic";
 
 export const metadata = {
   title: "Soundfolio | Event Profile",

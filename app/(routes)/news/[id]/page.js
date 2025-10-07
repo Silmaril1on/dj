@@ -1,5 +1,7 @@
 import SingleNews from "@/app/pages/news/single-news-page/SingleNews";
 
+export const dynamic = "force-dynamic";
+
 export const metadata = {
   title: "Soundfolio | News",
   description:

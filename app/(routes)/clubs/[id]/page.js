@@ -1,6 +1,8 @@
 import ClubProfile from '@/app/pages/club/club-profile-page/ClubProfile'
 import { cookies } from "next/headers";
 
+export const dynamic = "force-dynamic";
+
 export const metadata = {
   title: "Soundfolio | Club Details", 
   description: "Club details page",

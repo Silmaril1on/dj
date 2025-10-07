@@ -1,6 +1,8 @@
 import SubmittedEvents from "@/app/pages/my-profile-page/statistics/submitted-events/SubmittedEvents";
 import { cookies } from "next/headers";
 
+export const dynamic = "force-dynamic";
+
 const SubmittedEventsSlot = async () => {
   try {
     const cookieStore = await cookies();

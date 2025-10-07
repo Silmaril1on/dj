@@ -1,6 +1,8 @@
 import MyEvents from '@/app/pages/my-profile-page/activities/events/MyEvents'
 import { cookies } from "next/headers";
 
+export const dynamic = "force-dynamic";
+
 export const metadata = {
   title: "My Profile | Events",
   description: "my events"

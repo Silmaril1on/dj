@@ -1,7 +1,7 @@
 'use client'
-import { useSearchParams } from 'next/navigation'
 import { useEffect, useState } from 'react'
 import { useDispatch } from 'react-redux'
+import { useRouter } from 'next/navigation'
 import { setError } from '@/app/features/modalSlice'
 import { showSuccess } from '@/app/features/successSlice'
 import { formConfigs } from '@/app/helpers/formData/formConfigs'
@@ -9,9 +9,9 @@ import SubmissionForm from '@/app/components/forms/SubmissionForm'
 import FormContainer from '@/app/components/forms/FormContainer'
 import TermsAndConditions from '@/app/components/materials/TermsAndConditions'
 
-const AddEvent = () => {
+const AddEvent = ({ searchParams = {} }) => {
     const dispatch = useDispatch()
-    const searchParams = useSearchParams()
+    const router = useRouter()
     const [isSubmitting, setIsSubmitting] = useState(false)
     const [isEditMode, setIsEditMode] = useState(false)
     const [eventData, setEventData] = useState(null)
@@ -19,22 +19,24 @@ const AddEvent = () => {
     const [prefill, setPrefill] = useState({})
 
     useEffect(() => {
-        const edit = searchParams.get('edit');
-        const eventId = searchParams.get('eventId');
+        // Get URL parameters directly from window.location
+        const urlParams = new URLSearchParams(window.location.search)
+        const edit = urlParams.get('edit')
+        const eventId = urlParams.get('eventId')
+        
         if (edit === 'true' && eventId) {
-            setIsEditMode(true);
-            fetchEventData(eventId);
+            setIsEditMode(true)
+            fetchEventData(eventId)
         }
-    }, [searchParams]);
 
-    useEffect(() => {
-        // Read club data from query params
-        const club_id = searchParams.get('club_id');
-        const venue_name = searchParams.get('venue_name');
-        const address = searchParams.get('address');
-        const location_url = searchParams.get('location_url');
-        const country = searchParams.get('country');
-        const city = searchParams.get('city');
+        // Read club data from URL params
+        const club_id = urlParams.get('club_id')
+        const venue_name = urlParams.get('venue_name')
+        const address = urlParams.get('address')
+        const location_url = urlParams.get('location_url')
+        const country = urlParams.get('country')
+        const city = urlParams.get('city')
+        
         setPrefill({
             club_id,
             venue_name,
@@ -42,8 +44,8 @@ const AddEvent = () => {
             location_url,
             country,
             city,
-        });
-    }, [searchParams]);
+        })
+    }, [])
 
     // Create form config with initial data for edit mode
     const formConfig = {
@@ -58,50 +60,50 @@ const AddEvent = () => {
                 ])
             )
             : { ...formConfigs.addEvent.initialData, ...prefill }
-    };
+    }
 
     const fetchEventData = async (eventId) => {
-        setLoading(true);
+        setLoading(true)
         try {
-            const response = await fetch(`/api/events/${eventId}`);
+            const response = await fetch(`/api/events/${eventId}`)
             if (response.ok) {
-                const data = await response.json();
-                setEventData(data);
+                const data = await response.json()
+                setEventData(data)
             } else {
-                dispatch(setError({ message: 'Failed to fetch event data', type: 'error' }));
+                dispatch(setError({ message: 'Failed to fetch event data', type: 'error' }))
             }
         } catch (error) {
-            dispatch(setError({ message: 'Error fetching event data', type: 'error' }));
+            dispatch(setError({ message: 'Error fetching event data', type: 'error' }))
         } finally {
-            setLoading(false);
+            setLoading(false)
         }
-    };
+    }
 
     const handleSubmit = async (formData) => {
         setIsSubmitting(true)
         dispatch(setError(''))
 
         try {
-            let url = '/api/events';
-            let method = 'POST';
+            let url = '/api/events'
+            let method = 'POST'
 
             if (isEditMode && eventData) {
-                url = '/api/events';
-                method = 'PATCH';
-                formData.append('eventId', eventData.id);
+                url = '/api/events'
+                method = 'PATCH'
+                formData.append('eventId', eventData.id)
             }
 
             const response = await fetch(url, {
                 method,
                 body: formData,
-            });
+            })
 
             if (!response.ok) {
-                const errorData = await response.json();
-                throw new Error(errorData.error || (isEditMode ? 'Failed to update event' : 'Failed to create event'));
+                const errorData = await response.json()
+                throw new Error(errorData.error || (isEditMode ? 'Failed to update event' : 'Failed to create event'))
             }
 
-            const result = await response.json();
+            const result = await response.json()
             dispatch(showSuccess({
                 type: 'event',
                 image: result.data?.event_image || '',
@@ -112,36 +114,36 @@ const AddEvent = () => {
                 description: result.data?.description || '',
                 date: result.data?.date || '',
                 promoter: result.data?.promoter || ''
-            }));
+            }))
         } catch (err) {
-            dispatch(setError({ message: err.message, type: 'error' }));
+            dispatch(setError({ message: err.message, type: 'error' }))
         } finally {
-            setIsSubmitting(false);
+            setIsSubmitting(false)
         }
     }
 
     return (
-      <div className="flex flex-col lg:flex-row gap-6 items-start">
-        <div className="flex-1 w-full">
-          <FormContainer
-            maxWidth="w-full"
-            title="Add Event"
-            description="Create a new event and share it with the community"
-          >
-            <SubmissionForm
+        <div className="flex flex-col lg:flex-row gap-6 items-start">
+            <div className="flex-1 w-full">
+                <FormContainer
+                    maxWidth="w-full"
+                    title="Add Event"
+                    description="Create a new event and share it with the community"
+                >
+                    <SubmissionForm
                         formConfig={formConfig}
                         showGoogle={false}
-              onSubmit={handleSubmit}
-              isLoading={isSubmitting}
-              submitButtonText={isEditMode ? "Update Event" : "Create Event"}
-            />
-          </FormContainer>
+                        onSubmit={handleSubmit}
+                        isLoading={isSubmitting}
+                        submitButtonText={isEditMode ? "Update Event" : "Create Event"}
+                    />
+                </FormContainer>
+            </div>
+            <div className="w-full lg:w-[35%] lg:min-w-[400px]">
+                <TermsAndConditions type="event" />
+            </div>
         </div>
-        <div className="w-full lg:w-[35%] lg:min-w-[400px]">
-          <TermsAndConditions type="event" />
-        </div>
-      </div>
-    );
+    )
 }
 
 export default AddEvent

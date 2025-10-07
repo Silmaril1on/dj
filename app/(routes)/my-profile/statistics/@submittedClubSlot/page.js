@@ -1,6 +1,8 @@
 import SubmittedClub from "@/app/pages/my-profile-page/statistics/submitted-club/SubmitttedClub";
 import { cookies } from "next/headers";
 
+export const dynamic = "force-dynamic";
+
 const SubmittedClubsSlot = async () => {
   try {
     const cookieStore = await cookies();

@@ -1,6 +1,8 @@
 import Booking from '@/app/pages/bookings-page/Booking'
 import { cookies } from 'next/headers'
 
+export const dynamic = "force-dynamic";
+
 const BookingsPage = async () => {
   let chatUsers = []
   let error = null

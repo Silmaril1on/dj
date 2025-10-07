@@ -1,5 +1,7 @@
 import Reports from "@/app/pages/administration/reports/Reports";
 
+export const dynamic = "force-dynamic";
+
 export default async function BugsSlot() {
   let reports = [];
   try {

@@ -1,6 +1,8 @@
 import SubmittedArtist from "@/app/pages/my-profile-page/statistics/submitted-artist/SubmittedArtist";
 import { cookies } from "next/headers";
 
+export const dynamic = "force-dynamic";
+
 const SubmittedArtistsSlot = async () => {
   try {
     const cookieStore = await cookies();

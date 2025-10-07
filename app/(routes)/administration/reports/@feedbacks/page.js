@@ -1,5 +1,7 @@
 import Reports from '@/app/pages/administration/reports/Reports';
 
+export const dynamic = "force-dynamic";
+
 const FeedbacksSlot = async () => {
   let feedbacks = [];
   try {

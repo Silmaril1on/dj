@@ -1,6 +1,8 @@
 import RatingsStats from "@/app/pages/my-profile-page/statistics/ratings/RatingsStats";
 import { headers, cookies } from "next/headers";
 
+export const dynamic = "force-dynamic";
+
 const RatingsStatsSlot = async () => {
   try {
     const cookieStore = await cookies();

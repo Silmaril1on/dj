@@ -1,6 +1,8 @@
 import UsersReviewPage from "@/app/pages/my-profile-page/activities/reviews/UsersReviewPage";
 import { cookies } from "next/headers";
 
+export const dynamic = "force-dynamic";
+
 export const metadata = {
   title: "My Profile | Reviews",
   description: "My Reviews",

@@ -1,7 +1,7 @@
 'use client'
 import { useState, useEffect } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
-import { useSearchParams } from 'next/navigation'
+import { useRouter } from 'next/navigation'
 import { setError } from '@/app/features/modalSlice'
 import { showSuccess } from '@/app/features/successSlice'
 import { formConfigs } from '@/app/helpers/formData/formConfigs'
@@ -14,7 +14,7 @@ import ErrorCode from '@/app/components/ui/ErrorCode'
 
 const AddClub = () => {
     const dispatch = useDispatch()
-    const searchParams = useSearchParams()
+    const router = useRouter()
     const user = useSelector(selectUser)
     const [isSubmitting, setIsSubmitting] = useState(false)
     const [isEditMode, setIsEditMode] = useState(false)
@@ -39,14 +39,15 @@ const AddClub = () => {
 
     // Check if we're in edit mode
     useEffect(() => {
-        const edit = searchParams.get('edit')
-        const clubId = searchParams.get('clubId')
+        const urlParams = new URLSearchParams(window.location.search)
+        const edit = urlParams.get('edit')
+        const clubId = urlParams.get('clubId')
 
         if (edit === 'true' && clubId) {
             setIsEditMode(true)
             fetchClubData(clubId)
         }
-    }, [searchParams])
+    }, [])
 
     const fetchClubData = async (clubId) => {
         setLoading(true)
@@ -103,44 +104,44 @@ const AddClub = () => {
     }
 
     return (
-      <div className="flex flex-col lg:flex-row gap-6 items-start">
-        {user?.submitted_club_id && !isEditMode ? (
-          <div className="flex-1 w-full h-98 center">
-            <ErrorCode
-              title="You have already submitted a club"
-              description="You can only submit one club profile. To edit your submission, use the edit link or contact support."
-            />
-          </div>
-        ) : (
-          <div className="flex-1 w-full">
-            <FormContainer
-              maxWidth="w-full"
-              title={isEditMode ? "Edit Club" : "Add Club"}
-              description={
-                isEditMode
-                  ? "Update your club information"
-                  : "Submit a new club to our platform"
-              }
-            >
-              {loading ? (
-                <Spinner />
-              ) : (
-                <SubmissionForm
-                  showGoogle={false}
-                  formConfig={formConfig}
-                  onSubmit={handleSubmit}
-                  isLoading={isSubmitting}
-                  submitButtonText={isEditMode ? "Update Club" : "Submit Club"}
-                />
-              )}
-            </FormContainer>
-          </div>
-        )}
-        <div className="w-full lg:w-[35%] lg:min-w-[400px]">
-          <TermsAndConditions type="club" />
+        <div className="flex flex-col lg:flex-row gap-6 items-start">
+            {user?.submitted_club_id && !isEditMode ? (
+                <div className="flex-1 w-full h-98 center">
+                    <ErrorCode
+                        title="You have already submitted a club"
+                        description="You can only submit one club profile. To edit your submission, use the edit link or contact support."
+                    />
+                </div>
+            ) : (
+                <div className="flex-1 w-full">
+                    <FormContainer
+                        maxWidth="w-full"
+                        title={isEditMode ? "Edit Club" : "Add Club"}
+                        description={
+                            isEditMode
+                                ? "Update your club information"
+                                : "Submit a new club to our platform"
+                        }
+                    >
+                        {loading ? (
+                            <Spinner />
+                        ) : (
+                            <SubmissionForm
+                                showGoogle={false}
+                                formConfig={formConfig}
+                                onSubmit={handleSubmit}
+                                isLoading={isSubmitting}
+                                submitButtonText={isEditMode ? "Update Club" : "Submit Club"}
+                            />
+                        )}
+                    </FormContainer>
+                </div>
+            )}
+            <div className="w-full lg:w-[35%] lg:min-w-[400px]">
+                <TermsAndConditions type="club" />
+            </div>
         </div>
-      </div>
-    );
+    )
 }
 
 export default AddClub

@@ -1,6 +1,8 @@
 import ReviewsStats from "@/app/pages/my-profile-page/statistics/reviews/ReviewsStats";
 import { cookies } from "next/headers";
 
+export const dynamic = "force-dynamic";
+
 const ReviewsStatsSlot = async () => {
   try {
     const cookieStore = await cookies();

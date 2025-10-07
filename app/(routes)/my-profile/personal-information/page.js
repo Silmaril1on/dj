@@ -2,6 +2,8 @@ import { getServerUser } from "@/app/lib/config/supabaseServer";
 import { cookies } from "next/headers";
 import MyProfile from "@/app/pages/my-profile-page/user-profile/MyProfile";
 
+export const dynamic = "force-dynamic";
+
 export const metadata = {
   title: "My Profile | Personal Information",
   description: "Personal Information",

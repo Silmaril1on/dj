@@ -1,5 +1,7 @@
 import Submittions from "@/app/pages/administration/submittions/Submittions";
 
+export const dynamic = "force-dynamic";
+
 const SubmittedEventsPage = async () => {
   try {
     const response = await fetch(
