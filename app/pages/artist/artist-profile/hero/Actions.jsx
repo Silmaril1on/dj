@@ -22,7 +22,7 @@ const Actions = ({ data, userRating, onLikeChange }) => {
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6, delay: 1.5 }}
-        className="grid grid-cols-3 md:grid-cols-6 lg:grid-cols-3 xl:grid-cols-6 *:w-full gap-2"
+        className="grid grid-cols-3 md:grid-cols-6 lg:grid-cols-3 xl:grid-cols-6 border *:w-full gap-2 justify-end items-end"
       >
         {data?.user_id && (
           <button
@@ -30,7 +30,7 @@ const Actions = ({ data, userRating, onLikeChange }) => {
             onClick={handleBookDj}
           >
             <FaHouse size={18} />
-           <h1>Book</h1>
+            <h1>Book</h1>
           </button>
         )}
         <AddArtistDates

@@ -6,21 +6,24 @@ const BookingsPage = async () => {
   let error = null
 
   try {
-    const response = await fetch(`${process.env.PROJECT_URL}/api/booking-requests/booking-users`, {
+    const cookieStore = await cookies()
+    
+    const response = await fetch(`${process.env.PROJECT_URL}/api/booking-requests/user-requests`, {
       headers: {
-        'Cookie': (await cookies()).toString()
-      }
+        'Cookie': cookieStore.toString()
+      },
+      cache: 'no-store' 
     })
     
     const data = await response.json()
     
     if (response.ok) {
-      chatUsers = data.chatUsers || []
+      chatUsers = data.bookingRequests || []
     } else {
       error = data.error
     }
   } catch (err) {
-    error = 'Failed to fetch chat users'
+    error = 'Failed to fetch booking requests'
     console.error('Server-side fetch error:', err)
   }
 

@@ -1,9 +1,8 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { formatTime } from "@/app/helpers/utils";
 import SpanText from "@/app/components/ui/SpanText";
 import ProfilePicture from "@/app/components/materials/ProfilePicture";
-import FlexBox from "@/app/components/containers/FlexBox";
 import SectionContainer from "@/app/components/containers/SectionContainer";
 import Title from "@/app/components/ui/Title";
 import EmailTag from "@/app/components/ui/EmailTag";
@@ -16,57 +15,115 @@ const ChatUsers = ({
   const [chatUsers, setChatUsers] = useState(initialChatUsers);
   const [selectedId, setSelectedId] = useState(null);
 
+  useEffect(() => {
+    setChatUsers(initialChatUsers);
+  }, [initialChatUsers]);
+
+  if (initialError) {
+    return (
+      <div className="w-[30%] flex">
+        <SectionContainer title="Error" className="bg-stone-900">
+          <SpanText text={initialError} color="red" />
+        </SectionContainer>
+      </div>
+    );
+  }
+
+  if (!chatUsers.length) {
+    return (
+      <div className="w-[30%] flex">
+        <SectionContainer title="No Booking Requests" className="bg-stone-900">
+          <SpanText text="You don't have any booking requests yet" />
+        </SectionContainer>
+      </div>
+    );
+  }
+
   return (
-    <div className="w-[30%] flex ">
+    <div className="w-[30%] flex" >
       <SectionContainer
         title="Booking Requests"
-        className=" bg-stone-900"
+        className="bg-stone-900"
         description={`${chatUsers.length} request${
           chatUsers.length !== 1 ? "s" : ""
         }`}
       >
         <div className="overflow-y-auto h-full w-full">
-          {chatUsers.map((chatUser) => (
-            <div
-              key={chatUser.id}
-              className={`p-2 cursor-pointer duration-300 hover:bg-stone-800 ${
-                selectedId === chatUser.id ? "bg-stone-900" : "bg-stone-950"
-              }`}
-              onClick={() => {
-                setSelectedId(chatUser.id);
-                if (onSelectBooking) {
-                  onSelectBooking(chatUser.id);
-                }
-              }}
-            >
-              <FlexBox className="gap-2">
+          {chatUsers.map((chatUser) => {
+            return (
+              <div
+                key={chatUser.id}
+                className={`p-2 relative  flex gap-2 cursor-pointer items-center duration-300 hover:bg-stone-800 ${
+                  selectedId === chatUser.id ? "bg-stone-950" : "bg-stone-950"
+                }`}
+                onClick={() => {
+                  setSelectedId(chatUser.id);
+                  if (onSelectBooking) {
+                    onSelectBooking(chatUser.id);
+                  }
+                }}
+              >
                 <ProfilePicture
-                  avatar_url={chatUser.requester?.user_avatar}
+                  avatar_url={chatUser.display_user?.avatar}
                   size="md"
                 />
                 <div className="flex-1 min-w-0">
-                  <FlexBox type="column-start">
-                    <Title
-                      text={
-                        chatUser.requester?.full_name ||
-                        chatUser.requester?.userName ||
-                        "Unknown User"
-                      }
+                  <Title
+                    text={
+                      chatUser.display_user?.full_name ||
+                      chatUser.display_user?.userName
+                    }
+                    size="xs"
+                  />
+                  <SpanText
+                    size="xs"
+                    color="cream"
+                    text={
+                      chatUser.user_role === "requester"
+                        ? `Booking ${
+                            chatUser.display_user?.full_name || "Artist"
+                          }`
+                        : `Request from ${
+                            chatUser.display_user?.full_name || "User"
+                          }`
+                    }
+                  />
+                  {chatUser.display_user?.email && (
+                    <EmailTag email={chatUser.display_user.email} />
+                  )}
+                  <div className="flex justify-between items-center w-full">
+                    <SpanText
+                      text={chatUser.event_name}
                       size="xs"
+                      className="text-stone-300 mb-1"
                     />
-                    <div className="flex flex-col lg:flex-row justify-between items-center w-full">
-                      <EmailTag email={chatUser.requester?.email} />
-                      <SpanText
-                        size="xs"
-                        color="cream"
-                        text={formatTime(chatUser.created_at)}
-                      />
-                    </div>
-                  </FlexBox>
+                    <SpanText
+                      size="xs"
+                      color="cream"
+                      text={formatTime(chatUser.created_at)}
+                    />
+                  </div>
+                  <SpanText
+                    text={chatUser.response || chatUser.status || "pending"}
+                    size="xs"
+                    className={`uppercase absolute font-bold top-2 right-2 ${
+                      chatUser.status === "unopened"
+                        ? "text-blue-400"
+                        : chatUser.status === "opened"
+                        ? "text-yellow-400"
+                        : chatUser.status === "seen"
+                        ? "text-purple-400"
+                        : chatUser.response === "pending"
+                        ? "text-yellow-400"
+                        : chatUser.response === "success"
+                        ? "text-green-400"
+                        : "text-stone-400"
+                    }`}
+                  />
                 </div>
-              </FlexBox>
-            </div>
-          ))}
+              </div>
+            );
+          })}
         </div>
       </SectionContainer>
     </div>

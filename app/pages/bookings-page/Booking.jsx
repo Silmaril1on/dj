@@ -1,5 +1,5 @@
 "use client"
-import React, { useState } from 'react'
+import { useState } from 'react'
 import ChatUsers from './ChatUsers'
 import BookingsConversation from './converstaion/BookingsConversation'
 
@@ -11,15 +11,15 @@ const Booking = ({ initialChatUsers, initialError }) => {
   }
 
   return (
-    <div className='min-h-screen p-4 flex gap-4'>
+    <div className="gap-4 h-full flex min-h-screen">
       <ChatUsers 
-        initialChatUsers={initialChatUsers} 
-        initialError={initialError}
+        initialChatUsers={initialChatUsers || []}
         onSelectBooking={handleSelectBooking}
+        initialError={initialError}
       />
       <BookingsConversation 
-        selectedBookingId={selectedBookingId} 
-        initialChatUsers={initialChatUsers}
+        selectedBookingId={selectedBookingId}
+        initialChatUsers={initialChatUsers || []}
       />
     </div>
   )

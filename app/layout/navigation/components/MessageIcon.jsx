@@ -15,13 +15,13 @@ const MessageIcon = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
-  // Fetch booking requests
+  // Fetch booking requests for both receiver and requester
   const fetchBookingRequests = async () => {
     if (!user?.id) return;
     setLoading(true);
     setError(null);
     try {
-      const response = await fetch(`/api/booking-requests?user_id=${user.id}`);
+      const response = await fetch(`/api/booking-requests/user-requests?user_id=${user.id}`);
       const data = await response.json();
       if (!response.ok) throw new Error(data.error || "Failed to fetch booking requests");
       setBookingRequests(data.bookingRequests || []);
@@ -53,9 +53,12 @@ const MessageIcon = () => {
 
   const handleClose = () => {
     closeClick();
-    };
+  };
 
-  const hasUnread = bookingRequests.some(request => request.status === "unopened");
+  const hasUnread = bookingRequests.some(request => 
+    request.status === "unopened" || 
+    (request.response === "pending" && request.unread_messages > 0)
+  );
 
   return (
     <div className="relative" ref={clickRef}>

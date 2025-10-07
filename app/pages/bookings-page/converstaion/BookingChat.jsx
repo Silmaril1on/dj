@@ -1,0 +1,217 @@
+"use client"
+import React, { useState, useEffect, useRef } from 'react';
+import { useSelector } from 'react-redux';
+import { selectUser } from '@/app/features/userSlice';
+import { capitalizeFirst, formatTime } from '@/app/helpers/utils';
+import SpanText from '@/app/components/ui/SpanText';
+import ProfilePicture from '@/app/components/materials/ProfilePicture';
+import FlexBox from '@/app/components/containers/FlexBox';
+import Button from '@/app/components/buttons/Button';
+import Title from '@/app/components/ui/Title';
+import Image from 'next/image';
+
+const BookingChat = ({ bookingId, bookingData }) => {
+  const user = useSelector(selectUser);
+  const [messages, setMessages] = useState([]);
+  const [newMessage, setNewMessage] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [sending, setSending] = useState(false);
+  const [error, setError] = useState(null);
+  const messagesEndRef = useRef(null);
+
+  // Determine who is the requester (for chat purposes)
+  const requesterId = bookingData?.requester_id || bookingData?.requester?.id;
+
+  // Fetch chat messages
+  const fetchMessages = async () => {
+    if (!bookingId) {
+      return;
+    }
+    
+    setLoading(true);
+    setError(null);
+    
+    try {
+      const response = await fetch(`/api/booking-requests/chat?booking_id=${bookingId}`);
+      const data = await response.json();
+      
+      if (response.ok) {
+        setMessages(data.messages || []);
+      } else {
+        console.error('Failed to fetch messages:', data.error);
+        setError(data.error || 'Failed to fetch messages');
+      }
+    } catch (error) {
+      console.error('Error fetching messages:', error);
+      setError('Failed to load messages');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Send new message
+  const sendMessage = async (e) => {
+    e.preventDefault();
+    if (!newMessage.trim() || !bookingId || !requesterId) {
+      return;
+    }
+
+    setSending(true);
+    try {
+      const response = await fetch('/api/booking-requests/chat', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          message: newMessage.trim(),
+          booking_id: bookingId,
+          requester_id: requesterId,
+        }),
+      });
+
+      const data = await response.json();
+      
+      if (response.ok) {
+        setMessages(prev => [...prev, data.data]);
+        setNewMessage('');
+        scrollToBottom();
+      } else {
+        console.error('Failed to send message:', data.error);
+        setError(data.error || 'Failed to send message');
+      }
+    } catch (error) {
+      console.error('Error sending message:', error);
+      setError('Failed to send message');
+    } finally {
+      setSending(false);
+    }
+  };
+
+  // Auto-scroll to bottom
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  };
+
+  useEffect(() => {
+    if (bookingId) {
+      fetchMessages();
+    }
+  }, [bookingId]);
+
+  useEffect(() => {
+    scrollToBottom();
+  }, [messages]);
+
+  // Check if there are messages to show chat
+  const shouldShowChat = bookingData?.response === 'pending' || messages.length > 0;
+
+  if (!shouldShowChat) {
+    return null;
+  }
+
+  if (loading) {
+    return (
+      <div className="bg-stone-950 rounded-sm p-4 mt-5">
+        <div className="flex items-center justify-center py-8">
+          <SpanText text="Loading conversation..." className="text-stone-400" />
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="bg-stone-950 rounded-sm p-4 space-y-4">
+      {/* Chat Header */}
+      <div className="border-b border-gold/30 pb-3">
+        <Title text="Booking Discussion" size="md" />
+      </div>
+
+      {/* Messages Container */}
+      <div className="max-h-96 overflow-y-auto pr-3 relative">
+        {/* Background Logo */}
+        <div className="w-52 h-52 overflow-hidden z-0 opacity-10 blur-sm absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 sepia rotate-45">
+          <Image
+            src="/assets/elivagar-logo.png"
+            className="w-full h-full object-contain scale-200 "
+            alt="Elivagar Logo"
+            width={128}
+            height={128}
+          />
+        </div>
+
+        {/* Messages */}
+        <div className="space-y-3 py-2">
+          {messages.length === 0 ? (
+            <div className="text-center py-8 relative z-10">
+              <SpanText
+                text="No messages yet. Start the conversation!"
+                className="text-stone-400"
+              />
+            </div>
+          ) : (
+            messages.map((message) => {
+              const isCurrentUser = message.sender_id === user?.id;
+              return (
+                <div
+                  key={message.id}
+                  className={`flex flex-col relative z-10 ${
+                    isCurrentUser ? "items-end" : "items-start"
+                  }`}
+                >
+                  <div
+                    className={`max-w-[70%] flex items-center gap-2 ${
+                      isCurrentUser ? "flex-row" : "flex-row-reverse"
+                    }`}
+                  >
+                    <div
+                      className={`p-3 text-cream ${
+                        isCurrentUser ? "bg-gold/30" : "bg-cream/20"
+                      }`}
+                    >
+                      <div className="whitespace-pre-wrap font-secondary text-xs">
+                        {capitalizeFirst(message.message)}
+                      </div>
+                    </div>
+
+                    <ProfilePicture
+                      avatar_url={message.sender?.user_avatar}
+                      size="xs"
+                    />
+                  </div>
+                  <SpanText
+                    text={formatTime(message.created_at)}
+                    size="xs"
+                    className="text-gold mt-1"
+                  />
+                </div>
+              );
+            })
+          )}
+          <div ref={messagesEndRef} />
+        </div>
+      </div>
+
+      {/* Message Input */}
+      <form onSubmit={sendMessage} className="space-y-3">
+        <textarea
+          value={newMessage}
+          onChange={(e) => setNewMessage(e.target.value)}
+          placeholder="Type your message..."
+          rows={3}
+          disabled={sending}
+        />
+        <FlexBox className="justify-end">
+          <Button
+            type="submit"
+            text={sending ? "Sending..." : "Send Message"}
+            disabled={!newMessage.trim() || sending}
+            loading={sending}
+          />
+        </FlexBox>
+      </form>
+    </div>
+  );
+};
+
+export default BookingChat;

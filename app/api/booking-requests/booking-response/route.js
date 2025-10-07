@@ -28,14 +28,14 @@ export async function POST(request) {
     } = body;
 
     // Validate required fields
-    if (!title || !requester_id || !booking_request_id) {
+    if (!content || !requester_id || !booking_request_id) {
       return NextResponse.json(
-        { error: "Missing required fields: title, requester_id, booking_request_id" }, 
+        { error: "Missing required fields: content, requester_id, booking_request_id" }, 
         { status: 400 }
       );
     }
 
-    // 1. Verify that the current user is the receiver of this booking request AND get artist_id
+    // 1. Verify that the current user is the receiver of this booking request
     const { data: bookingRequest, error: bookingError } = await supabase
       .from("booking_requests")
       .select("id, receiver_id, requester_id, event_name, artist_id") 
@@ -57,7 +57,7 @@ export async function POST(request) {
       );
     }
 
-    // 1.5. Fetch artist name and stage_name for professional notification
+    // 2. Fetch artist name for professional notification
     const { data: artistData, error: artistError } = await supabase
       .from("artists")
       .select("name, stage_name")
@@ -72,14 +72,15 @@ export async function POST(request) {
       (artistData.stage_name || artistData.name || "The DJ") : 
       "The DJ";
 
-    // 2. Insert booking response
+    // 3. Insert initial chat message using the new booking_chat table
     const { data: response, error: responseError } = await supabase
-      .from("booking_response")
+      .from("booking_chat")
       .insert({
-        title,
-        content: content || null,
-        responser_id: user.id, 
+        message: `${title ? title + '\n\n' : ''}${content}`, // Combine title and content into message
+        sender_id: user.id,
         requester_id: requester_id,
+        booking_id: booking_request_id,
+        seen: false
       })
       .select()
       .single();
@@ -91,7 +92,7 @@ export async function POST(request) {
       );
     }
 
-    // 3. Update booking request response to 'pending'
+    // 4. Update booking request response to 'pending'
     const { error: updateError } = await supabase
       .from("booking_requests")
       .update({ 
@@ -102,10 +103,9 @@ export async function POST(request) {
 
     if (updateError) {
       console.error("Failed to update booking request status:", updateError.message);
-      // Don't fail the entire request if status update fails
     }
 
-    // 4. Send professional notification to the requester
+    // 5. Send professional notification to the requester
     const { error: notificationError } = await supabase
       .from("notifications")
       .insert({
@@ -119,10 +119,7 @@ export async function POST(request) {
 
     if (notificationError) {
       console.error("Failed to send notification:", notificationError.message);
-      // Don't fail the entire request if notification fails
     }
-      
-    // 5. send email to requester about the response (using a Supabase function)
 
     return NextResponse.json({
       success: true,
