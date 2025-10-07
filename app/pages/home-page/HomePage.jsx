@@ -8,16 +8,16 @@ import SubmitSection from "./submit-section/SubmitSection";
 
 const HomePage = ({ events = [] }) => {
     return (
-        <div className="flex-1 center flex-col space-y-10 ">
-            <Events events={events} />
-            <News />
-            <ArtistsSection />
-            <SubmitSection />
-            <BornToday />
-            <AppDataStats />
-            {/* <AlbumLogo /> */}
-        </div>
-    )
+      <div className="flex-1 center flex-col space-y-10 ">
+        <Events events={events} />
+        <News />
+        <ArtistsSection />
+        <SubmitSection />
+        <BornToday />
+        <AppDataStats />
+        {/* <AlbumLogo /> */}
+      </div>
+    );
 }
 
 export default HomePage
