@@ -1,6 +1,8 @@
 import Clubs from "@/app/pages/club/clubs-page/Clubs";
 import { cookies } from "next/headers";
 
+export const dynamic = "force-dynamic";
+
 export const metadata = { 
   title: "Soundfolio | Clubs", 
   description: "Discover and explore various clubs on Soundfolio. Join communities that share your musical interests and connect with like-minded individuals." 
