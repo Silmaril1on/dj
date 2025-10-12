@@ -1,7 +1,6 @@
 'use client';
 import { useEffect, useState } from 'react';
 import { motion, useMotionValue, animate } from 'framer-motion';
-import FlexBox from '../containers/FlexBox';
 
 const MotionCount = ({ data, title }) => {
   const [displayedCount, setDisplayedCount] = useState(0);

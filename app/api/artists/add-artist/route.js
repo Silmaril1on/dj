@@ -238,6 +238,30 @@ export async function POST(request) {
       // Don't fail the request if user update fails, just log it
     }
 
+    // Create notification for the user
+    try {
+      const notificationData = {
+        user_id: user.id,
+        title: "Your DJ Profile Has Been Submitted",
+        message: `Thank you for submitting your DJ profile "${stage_name || name}". Our team will review your submission and notify you once it's approved. You can view and edit your submission in your profile dashboard.`,
+        type: "submit",
+        read: false,
+        created_at: new Date().toISOString()
+      };
+
+      const { error: notificationError } = await supabaseAdmin
+        .from("notifications")
+        .insert(notificationData);
+
+      if (notificationError) {
+        console.error("Error creating notification:", notificationError);
+        // Don't fail the whole request if notification fails
+      }
+    } catch (notificationError) {
+      console.error("Failed to create notification:", notificationError);
+      // Continue with the response even if notification fails
+    }
+
     return NextResponse.json({
       success: true,
       message: "Artist submitted successfully and is pending approval",

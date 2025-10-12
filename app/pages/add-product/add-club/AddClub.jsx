@@ -34,6 +34,8 @@ const AddClub = () => {
             social_links: clubData.social_links || [''],
             residents: clubData.residents || [''],
             capacity: clubData.capacity || '',
+            location_url: clubData.location_url || '',
+            venue_email: clubData.venue_email || '',
         } : formConfigs.addClub.initialData
     }
 

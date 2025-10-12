@@ -7,22 +7,15 @@ import Title from '@/app/components/ui/Title'
 import MyLink from '@/app/components/ui/MyLink'
 import FlexBox from '@/app/components/containers/FlexBox'
 import ErrorCode from '@/app/components/ui/ErrorCode'
+import { formatTime } from '@/app/helpers/utils'
 
 const ArtistSchedule = ({ data, title = "Upcoming Dates", description = "Stay updated with upcoming dates" }) => {
   if (!data || data.length === 0) {
-    return <div className='w-full center py-20'> 
+    return <div className='w-auto center py-20 bg-stone-900 mt-4 mx-4 '> 
       <ErrorCode title="No Upcoming Dates" description="There are no upcoming dates available at the moment." />
     </div>
   }
 
-  const formatDate = (dateString) => {
-    const date = new Date(dateString)
-    return date.toLocaleDateString('en-US', {
-      month: 'short',
-      day: 'numeric',
-      year: 'numeric'
-    })
-  }
 
   return (
     <SectionContainer title={title} description={description} className="mt-10">
@@ -41,7 +34,7 @@ const ArtistSchedule = ({ data, title = "Upcoming Dates", description = "Stay up
               <div className="flex items-center gap-2 text-gold pointer-events-none">
                 <MdCalendarToday size={18} />
                 <span className="font-semibold text-lg">
-                  {formatDate(schedule.date)}
+                  {formatTime(schedule.date)}
                 </span>
               </div>
 

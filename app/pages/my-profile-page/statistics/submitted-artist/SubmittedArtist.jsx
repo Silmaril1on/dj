@@ -28,6 +28,7 @@ const SubmittedArtist = ({ data, error }) => {
       <SectionContainer
         size="sm"
         title="My Artist Profile"
+        className='bg-stone-900'
         description="Update your artist profile"
       >
         <ErrorCode

@@ -5,11 +5,11 @@ import MotionCount from '@/app/components/ui/MotionCount';
 import Paragraph from '@/app/components/ui/Paragraph';
 import ErrorCode from '@/app/components/ui/ErrorCode';
 
-const RatingsStats = ({ data, error, title = "Ratings", description = "My Rating Statistics", descriptionText = "Your rating stats at a glance, plus a quick breakdown of how you've scored artists." }) => {
+const RatingsStats = ({ data, error, title = "Ratings", description = "My Rating Statistics",  }) => {
 
   if (error) {
     return (
-      <SectionContainer size="sm" title={title} description={description}>
+      <SectionContainer className="bg-stone-900" size="sm" title={title} description={description}>
         <ErrorCode
           title="Error loading rating statistics"
           description={error}
@@ -33,6 +33,7 @@ const RatingsStats = ({ data, error, title = "Ratings", description = "My Rating
       <SectionContainer
         size="sm"
         title={title}
+        className="bg-stone-900"
         description={description}
       >
         <ErrorCode
@@ -49,7 +50,7 @@ const RatingsStats = ({ data, error, title = "Ratings", description = "My Rating
         {/* HEADER */}
         <div className='w-full flex justify-start gap-3'>
           <MotionCount data={totalRatings} />
-          <Paragraph text={descriptionText} />
+          <Paragraph text={description} />
         </div>
 
         {/* CONTENT - Takes full height */}

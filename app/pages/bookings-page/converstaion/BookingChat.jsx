@@ -1,49 +1,60 @@
-"use client"
-import React, { useState, useEffect, useRef } from 'react';
-import { useSelector } from 'react-redux';
-import { selectUser } from '@/app/features/userSlice';
-import { capitalizeFirst, formatTime } from '@/app/helpers/utils';
-import SpanText from '@/app/components/ui/SpanText';
-import ProfilePicture from '@/app/components/materials/ProfilePicture';
-import FlexBox from '@/app/components/containers/FlexBox';
-import Button from '@/app/components/buttons/Button';
-import Title from '@/app/components/ui/Title';
-import Image from 'next/image';
+"use client";
+import { useState, useEffect, useRef } from "react";
+import { useSelector } from "react-redux";
+import { selectUser } from "@/app/features/userSlice";
+import { capitalizeFirst, formatTime } from "@/app/helpers/utils";
+import SpanText from "@/app/components/ui/SpanText";
+import ProfilePicture from "@/app/components/materials/ProfilePicture";
+import Button from "@/app/components/buttons/Button";
+import Title from "@/app/components/ui/Title";
+import UpdateBooking from "./UpdateBooking";
+import Image from "next/image";
 
-const BookingChat = ({ bookingId, bookingData }) => {
+const BookingChat = ({ bookingId, bookingData: initialBookingData, onBookingUpdate }) => {
   const user = useSelector(selectUser);
   const [messages, setMessages] = useState([]);
-  const [newMessage, setNewMessage] = useState('');
+  const [newMessage, setNewMessage] = useState("");
   const [loading, setLoading] = useState(false);
   const [sending, setSending] = useState(false);
   const [error, setError] = useState(null);
+  const [bookingData, setBookingData] = useState(initialBookingData);
   const messagesEndRef = useRef(null);
 
-  // Determine who is the requester (for chat purposes)
-  const requesterId = bookingData?.requester_id || bookingData?.requester?.id;
+  // Handle booking data updates
+  const handleBookingUpdate = (updatedBooking) => {
+    setBookingData(prevData => ({
+      ...prevData,
+      ...updatedBooking
+    }));
+    
+    // Pass update to parent component
+    if (onBookingUpdate) {
+      onBookingUpdate(updatedBooking);
+    }
+  };
 
   // Fetch chat messages
   const fetchMessages = async () => {
     if (!bookingId) {
       return;
     }
-    
+
     setLoading(true);
     setError(null);
-    
+
     try {
-      const response = await fetch(`/api/booking-requests/chat?booking_id=${bookingId}`);
+      const url = `/api/booking-requests/chat?booking_id=${bookingId}`;
+      const response = await fetch(url);
       const data = await response.json();
-      
+
       if (response.ok) {
+        console.log("Messages received:", data.messages?.length || 0);
         setMessages(data.messages || []);
       } else {
-        console.error('Failed to fetch messages:', data.error);
-        setError(data.error || 'Failed to fetch messages');
+        setError(data.error || "Failed to fetch messages");
       }
     } catch (error) {
-      console.error('Error fetching messages:', error);
-      setError('Failed to load messages');
+      setError("Failed to load messages");
     } finally {
       setLoading(false);
     }
@@ -52,37 +63,36 @@ const BookingChat = ({ bookingId, bookingData }) => {
   // Send new message
   const sendMessage = async (e) => {
     e.preventDefault();
-    if (!newMessage.trim() || !bookingId || !requesterId) {
+    if (!newMessage.trim() || !bookingId) {
       return;
     }
 
     setSending(true);
     try {
-      const response = await fetch('/api/booking-requests/chat', {
-        method: 'POST',
+      const payload = {
+        message: newMessage.trim(),
+        booking_id: bookingId,
+      };
+
+      const response = await fetch("/api/booking-requests/chat", {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
-        body: JSON.stringify({
-          message: newMessage.trim(),
-          booking_id: bookingId,
-          requester_id: requesterId,
-        }),
+        body: JSON.stringify(payload),
       });
 
       const data = await response.json();
-      
+
       if (response.ok) {
-        setMessages(prev => [...prev, data.data]);
-        setNewMessage('');
+        setMessages((prev) => [...prev, data.data]);
+        setNewMessage("");
         scrollToBottom();
       } else {
-        console.error('Failed to send message:', data.error);
-        setError(data.error || 'Failed to send message');
+        setError(data.error || "Failed to send message");
       }
     } catch (error) {
-      console.error('Error sending message:', error);
-      setError('Failed to send message');
+      setError("Failed to send message");
     } finally {
       setSending(false);
     }
@@ -90,7 +100,7 @@ const BookingChat = ({ bookingId, bookingData }) => {
 
   // Auto-scroll to bottom
   const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   };
 
   useEffect(() => {
@@ -104,7 +114,8 @@ const BookingChat = ({ bookingId, bookingData }) => {
   }, [messages]);
 
   // Check if there are messages to show chat
-  const shouldShowChat = bookingData?.response === 'pending' || messages.length > 0;
+  const shouldShowChat =
+    bookingData?.response === "pending" || messages.length > 0;
 
   if (!shouldShowChat) {
     return null;
@@ -127,8 +138,15 @@ const BookingChat = ({ bookingId, bookingData }) => {
         <Title text="Booking Discussion" size="md" />
       </div>
 
+      {/* Error Display */}
+      {error && (
+        <div className="bg-red-900/20 border border-red-500 rounded p-3">
+          <SpanText text={error} className="text-red-400" />
+        </div>
+      )}
+
       {/* Messages Container */}
-      <div className="max-h-96 overflow-y-auto pr-3 relative">
+      <div className="h-96 overflow-y-auto pr-3 relative">
         {/* Background Logo */}
         <div className="w-52 h-52 overflow-hidden z-0 opacity-10 blur-sm absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 sepia rotate-45">
           <Image
@@ -200,15 +218,22 @@ const BookingChat = ({ bookingId, bookingData }) => {
           placeholder="Type your message..."
           rows={3}
           disabled={sending}
+          className="w-full p-3 bg-stone-800 border border-stone-700 rounded-sm text-cream placeholder-stone-400 focus:border-gold focus:outline-none resize-none"
         />
-        <FlexBox className="justify-end">
+        <div className="w-full flex justify-between items-center">
+          <UpdateBooking 
+            bookingId={bookingId}
+            bookingData={bookingData}
+            user={user}
+            onBookingUpdate={handleBookingUpdate}
+          />
           <Button
             type="submit"
             text={sending ? "Sending..." : "Send Message"}
             disabled={!newMessage.trim() || sending}
             loading={sending}
           />
-        </FlexBox>
+        </div>
       </form>
     </div>
   );

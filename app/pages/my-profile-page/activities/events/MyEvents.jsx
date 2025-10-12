@@ -13,7 +13,7 @@ const MyEvents = ({ events = [] }) => {
 
   if (events.length === 0 || !events) {
    return (
-     <div className="w-[60%] mx-auto p-8 text-center">
+     <div className=" bg-stone-900 center w-full h-full p-8 text-center">
        <ErrorCode
          title="No Submitted events"
          description="Are you a promoter? submitted events will be appear here"

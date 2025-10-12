@@ -51,20 +51,11 @@ const UserRatingsPage = ({ ratingsData, error, currentPage = 1 }) => {
     );
   }
 
-  if (!ratingsData) {
-    return (
-      <div className="w-[60%] mx-auto p-8 text-center">
-        <div className="bg-stone-800 border border-gold/20 rounded-lg p-6">
-          <Title text="Loading Ratings..." size="lg" className="text-gold" />
-        </div>
-      </div>
-    );
-  }
 
   if (!ratings.length) {
     return (
-      <div className="w-[60%] mx-auto p-8 text-center">
-       <ErrorCode title="No Ratings Yet" description="You haven't rated any artists yet." />
+      <div className="h-full center bg-stone-900 w-full  p-8 text-center">
+        <ErrorCode title="No Ratings Yet" description="You haven't rated any artists yet." />
       </div>
     );
   }
@@ -120,3 +111,4 @@ const UserRatingsPage = ({ ratingsData, error, currentPage = 1 }) => {
 };
 
 export default UserRatingsPage;
+

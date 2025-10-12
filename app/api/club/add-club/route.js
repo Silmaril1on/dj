@@ -27,6 +27,10 @@ export async function POST(request) {
     const description = formData.get("description");
     const club_image = formData.get("club_image");
     const address = formData.get("address");
+    // Add the new fields
+    const location_url = formData.get("location_url");
+    const venue_email = formData.get("venue_email");
+    
     let residents = [];
     let social_links = [];
 
@@ -122,6 +126,29 @@ export async function POST(request) {
       );
     }
 
+    // Validate email format if provided
+    if (venue_email && venue_email.trim() !== "") {
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(venue_email)) {
+        return NextResponse.json(
+          { error: "Please provide a valid email address" },
+          { status: 400 }
+        );
+      }
+    }
+
+    // Validate URL format if provided
+    if (location_url && location_url.trim() !== "") {
+      try {
+        new URL(location_url);
+      } catch {
+        return NextResponse.json(
+          { error: "Please provide a valid location URL" },
+          { status: 400 }
+        );
+      }
+    }
+
     // Generate unique filename
     const fileExtension = club_image.name.split(".").pop();
     const fileName = `${name
@@ -157,7 +184,7 @@ export async function POST(request) {
       .filter((res) => res && typeof res === "string" && res.trim() !== "")
       .map((r) => r.trim());
 
-    // Prepare club data with status: pending
+    // Prepare club data with status: pending and new fields
     const clubData = {
       user_id: user.id,
       name,
@@ -170,6 +197,8 @@ export async function POST(request) {
       status: "pending",
       club_image: publicUrl,
       address,
+      location_url: location_url && location_url.trim() !== "" ? location_url.trim() : null,
+      venue_email: venue_email && venue_email.trim() !== "" ? venue_email.trim() : null,
     };
 
     // Insert club into database
@@ -195,6 +224,30 @@ export async function POST(request) {
     if (userUpdateError) {
       console.error("Error updating user:", userUpdateError);
       // Don't fail the request if user update fails, just log it
+    }
+
+    // Create notification for the user
+    try {
+      const notificationData = {
+        user_id: user.id,
+        title: "Your Club Has Been Submitted",
+        message: `Thank you for submitting "${name}" club profile. Our team will review your submission and notify you once it's approved. You can view and edit your submission in your profile dashboard.`,
+        type: "submit",
+        read: false,
+        created_at: new Date().toISOString(),
+      };
+
+      const { error: notificationError } = await supabaseAdmin
+        .from("notifications")
+        .insert(notificationData);
+
+      if (notificationError) {
+        console.error("Error creating notification:", notificationError);
+        // Don't fail the whole request if notification fails
+      }
+    } catch (notificationError) {
+      console.error("Failed to create notification:", notificationError);
+      // Continue with the response even if notification fails
     }
 
     return NextResponse.json({
@@ -256,9 +309,36 @@ export async function PATCH(request) {
     const capacity = formData.get("capacity");
     const description = formData.get("description");
     const address = formData.get("address");
+    // Add the new fields
+    const location_url = formData.get("location_url");
+    const venue_email = formData.get("venue_email");
+    
     let club_image = formData.get("club_image");
     let residents = [];
     let social_links = [];
+
+    // Validate email format if provided
+    if (venue_email && venue_email.trim() !== "") {
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(venue_email)) {
+        return NextResponse.json(
+          { error: "Please provide a valid email address" },
+          { status: 400 }
+        );
+      }
+    }
+
+    // Validate URL format if provided
+    if (location_url && location_url.trim() !== "") {
+      try {
+        new URL(location_url);
+      } catch {
+        return NextResponse.json(
+          { error: "Please provide a valid location URL" },
+          { status: 400 }
+        );
+      }
+    }
 
     // Handle social_links parsing
     try {
@@ -369,7 +449,7 @@ export async function PATCH(request) {
       publicUrl = uploadedUrl;
     }
 
-    // Prepare update object
+    // Prepare update object with new fields
     const updateData = {
       name,
       country,
@@ -380,6 +460,8 @@ export async function PATCH(request) {
       residents: filteredResidents,
       social_links: filteredSocialLinks,
       club_image: publicUrl,
+      location_url: location_url && location_url.trim() !== "" ? location_url.trim() : null,
+      venue_email: venue_email && venue_email.trim() !== "" ? venue_email.trim() : null,
       updated_at: new Date().toISOString(),
     };
 

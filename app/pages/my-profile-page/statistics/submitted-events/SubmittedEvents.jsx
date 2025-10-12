@@ -18,9 +18,17 @@ const SubmittedEvents = ({ data, error }) => {
 
     if (totalSubmittedEvents === 0 || !recentEvents || recentEvents.length === 0) {
         return (
-            <SectionContainer size="sm" title="My Submitted Events" description="My Submitted Events Statistics">
-                <ErrorCode title="No submitted events yet" description="Submit events to see your statistics!" />
-            </SectionContainer>
+          <SectionContainer
+            className="bg-stone-900"
+            size="sm"
+            title="My Submitted Events"
+            description="My Submitted Events Statistics"
+          >
+            <ErrorCode
+              title="No submitted events yet"
+              description="Submit events to see your statistics!"
+            />
+          </SectionContainer>
         );
     }
 

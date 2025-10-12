@@ -6,39 +6,18 @@ import ProfilePicture from '@/app/components/materials/ProfilePicture';
 import Link from 'next/link';
 
 const BookingContent = ({ bookingRequests }) => {
-  console.log("BookingContent - received data:", bookingRequests);
 
   if (!bookingRequests || bookingRequests.length === 0) {
     return (
-      <div className="p-4">
-        <Paragraph text="No booking requests found" />
+      <div className="p-4 bg-stone-900 m-2 center pointer-events-none">
+        <Paragraph text="No booking requests found yet" />
       </div>
     );
   }
 
-  const getStatusText = (request) => {
-    if (request.user_role === 'requester') {
-      // For requesters, show response status
-      if (request.response === 'pending') return 'Response Received';
-      if (request.response === 'success') return 'Accepted';
-      if (request.response === 'declined') return 'Declined';
-      return 'Pending Response';
-    } else {
-      // For receivers, show request status
-      switch (request.status) {
-        case "unopened": return "New";
-        case "opened": return "Opened";
-        case "seen": return "Seen";
-        case "accepted": return "Accepted";
-        case "declined": return "Declined";
-        default: return "Unknown";
-      }
-    }
-  };
-
   const getUserDisplayText = (request) => {
-    const displayName = request.display_user?.full_name || 
-                       request.display_user?.userName || 
+    const displayName = request.display_user?.userName || 
+                       request.display_user?.full_name || 
                        'Unknown User';
     
     if (request.user_role === 'requester') {
@@ -51,9 +30,6 @@ const BookingContent = ({ bookingRequests }) => {
   return (
     <div className="space-y-2">
       {bookingRequests.map((request) => {
-        console.log("Rendering request:", request);
-        console.log("Display user:", request.display_user);
-        
         return (
           <Link
             href="/bookings"
@@ -82,19 +58,6 @@ const BookingContent = ({ bookingRequests }) => {
                     text={formatTime(request.created_at)}
                   />
                 </FlexBox>
-                <SpanText
-                  size="xs"
-                  text={getStatusText(request)}
-                  className={`
-                    ${request.status === 'unopened' ? 'text-blue-400' :
-                      request.status === 'opened' ? 'text-yellow-400' :
-                      request.status === 'seen' ? 'text-purple-400' :
-                      request.response === 'pending' ? 'text-yellow-400' :
-                      request.response === 'success' ? 'text-green-400' :
-                      'text-stone-400'
-                    }
-                  `}
-                />
               </div>
             </div>
           </Link>

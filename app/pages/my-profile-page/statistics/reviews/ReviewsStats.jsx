@@ -21,6 +21,7 @@ const ReviewsStats = ({ data, error }) => {
       <SectionContainer
         size="sm"
         title="My Reviews"
+        className="bg-stone-900"
         description="My Review Statistics"
       >
         <ErrorCode

@@ -30,65 +30,87 @@ export async function GET(request) {
 
     const supabase = await createSupabaseServerClient(cookieStore);
 
-    // 1. Verify user has access to this booking
+    // 1. Verify user has access to this booking - with better error logging
     const { data: booking, error: bookingError } = await supabase
       .from("booking_requests")
       .select("id, requester_id, receiver_id")
       .eq("id", bookingId)
-      .or(`requester_id.eq.${user.id},receiver_id.eq.${user.id}`)
       .single();
 
-    if (bookingError || !booking) {
+    if (bookingError) {
+      console.error("Booking fetch error:", bookingError);
       return NextResponse.json(
-        { error: "Booking not found or unauthorized" },
+        {
+          error: "Booking not found",
+          details: bookingError.message,
+        },
         { status: 404 }
       );
     }
 
-    // 2. Fetch all chat messages for this booking (without complex relationships)
+    if (!booking) {
+      return NextResponse.json(
+        {
+          error: "Booking not found",
+        },
+        { status: 404 }
+      );
+    }
+
+    // Check if user is either requester or receiver
+    const isRequester = user.id === booking.requester_id;
+    const isReceiver = user.id === booking.receiver_id;
+
+    if (!isRequester && !isReceiver) {
+      return NextResponse.json(
+        {
+          error: "Access denied",
+          debug: {
+            userId: user.id,
+            requesterId: booking.requester_id,
+            receiverId: booking.receiver_id,
+          },
+        },
+        { status: 403 }
+      );
+    }
+
+    // 2. Fetch ALL chat messages for this booking_id
     const { data: messages, error: messagesError } = await supabase
       .from("booking_chat")
-      .select("id, message, sender_id, requester_id, seen, created_at")
+      .select("id, message, sender_id, booking_id, created_at")
       .eq("booking_id", bookingId)
       .order("created_at", { ascending: true });
 
     if (messagesError) {
-      console.error("Messages fetch error:", messagesError);
       return NextResponse.json(
-        { error: `Failed to fetch messages: ${messagesError.message}` },
+        { error: "Failed to fetch messages" },
         { status: 500 }
       );
     }
 
-    console.log("Raw messages from DB:", messages);
+    // 3. Get unique sender IDs from messages
+    const senderIds = [...new Set(messages?.map((msg) => msg.sender_id) || [])];
 
-    if (!messages || messages.length === 0) {
+    if (senderIds.length === 0) {
       return NextResponse.json({
         success: true,
         messages: [],
-        booking_id: bookingId
       });
     }
 
-    // 3. Get unique user IDs from messages
-    const userIds = [...new Set([
-      ...messages.map(msg => msg.sender_id),
-      ...messages.map(msg => msg.requester_id)
-    ])].filter(Boolean);
-
-    console.log("User IDs to fetch:", userIds);
-
-    // 4. Fetch user data separately
+    // 4. Fetch user data for all senders
     const { data: users, error: usersError } = await supabase
       .from("users")
-      .select("id, userName, user_avatar, first_name, last_name")
-      .in("id", userIds);
+      .select("id, userName, user_avatar")
+      .in("id", senderIds);
 
     if (usersError) {
-      console.error("Users fetch error:", usersError);
+      return NextResponse.json(
+        { error: "Failed to fetch user data" },
+        { status: 500 }
+      );
     }
-
-    console.log("Fetched users:", users);
 
     // 5. Create user lookup map
     const userMap = (users || []).reduce((acc, user) => {
@@ -96,46 +118,33 @@ export async function GET(request) {
         id: user.id,
         userName: user.userName,
         user_avatar: user.user_avatar,
-        first_name: user.first_name,
-        last_name: user.last_name,
-        display_name: `${user.first_name || ''} ${user.last_name || ''}`.trim() || user.userName
       };
       return acc;
     }, {});
 
-    // 6. Format messages with user data
-    const formattedMessages = messages.map(msg => ({
-      id: msg.id,
-      message: msg.message,
-      sender_id: msg.sender_id,
-      requester_id: msg.requester_id,
-      seen: msg.seen,
-      created_at: msg.created_at,
-      sender: userMap[msg.sender_id] || {
-        id: msg.sender_id,
-        userName: 'Unknown User',
+    // 6. Combine messages with user data
+    const messagesWithUsers = (messages || []).map((message) => ({
+      id: message.id,
+      message: message.message,
+      sender_id: message.sender_id,
+      booking_id: message.booking_id,
+      created_at: message.created_at,
+      sender: userMap[message.sender_id] || {
+        id: message.sender_id,
+        userName: "Unknown User",
         user_avatar: null,
-        display_name: 'Unknown User'
       },
-      requester: userMap[msg.requester_id] || {
-        id: msg.requester_id,
-        userName: 'Unknown User',
-        user_avatar: null,
-        display_name: 'Unknown User'
-      }
     }));
-
-    console.log("Final formatted messages:", formattedMessages);
 
     return NextResponse.json({
       success: true,
-      messages: formattedMessages,
-      booking_id: bookingId
+      messages: messagesWithUsers,
     });
-
   } catch (err) {
-    console.error("Chat fetch error:", err);
-    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
+    return NextResponse.json(
+      { error: "Internal server error", details: err.message },
+      { status: 500 }
+    );
   }
 }
 
@@ -154,19 +163,13 @@ export async function POST(request) {
 
     const supabase = await createSupabaseServerClient(cookieStore);
     const body = await request.json();
-    
-    const { 
-      message,
-      booking_id,
-      requester_id
-    } = body;
 
-    console.log("Received chat message data:", body);
+    const { message, booking_id } = body;
 
     // Validate required fields
-    if (!message || !booking_id || !requester_id) {
+    if (!message || !booking_id) {
       return NextResponse.json(
-        { error: "Missing required fields: message, booking_id, requester_id" }, 
+        { error: "Missing required fields: message, booking_id" },
         { status: 400 }
       );
     }
@@ -176,14 +179,42 @@ export async function POST(request) {
       .from("booking_requests")
       .select("id, requester_id, receiver_id")
       .eq("id", booking_id)
-      .or(`requester_id.eq.${user.id},receiver_id.eq.${user.id}`)
       .single();
 
-    if (bookingError || !booking) {
-      console.error("Booking verification error:", bookingError);
+    if (bookingError) {
       return NextResponse.json(
-        { error: "Booking not found or unauthorized" },
+        {
+          error: "Booking not found",
+          details: bookingError.message,
+        },
         { status: 404 }
+      );
+    }
+
+    if (!booking) {
+      return NextResponse.json(
+        {
+          error: "Booking not found",
+        },
+        { status: 404 }
+      );
+    }
+
+    // Check if user is either requester or receiver
+    const isRequester = user.id === booking.requester_id;
+    const isReceiver = user.id === booking.receiver_id;
+
+    if (!isRequester && !isReceiver) {
+      return NextResponse.json(
+        {
+          error: "Access denied",
+          debug: {
+            userId: user.id,
+            requesterId: booking.requester_id,
+            receiverId: booking.receiver_id,
+          },
+        },
+        { status: 403 }
       );
     }
 
@@ -193,42 +224,23 @@ export async function POST(request) {
       .insert({
         message: message.trim(),
         sender_id: user.id,
-        requester_id: requester_id,
         booking_id: booking_id,
-        seen: false
+        created_at: new Date().toISOString(),
       })
-      .select("id, message, sender_id, requester_id, seen, created_at")
+      .select("id, message, sender_id, booking_id, created_at")
       .single();
 
     if (messageError) {
-      console.error("Message insert error:", messageError);
       return NextResponse.json(
-        { error: `Failed to send message: ${messageError.message}` },
+        { error: "Failed to send message" },
         { status: 500 }
       );
     }
 
-    console.log("Message inserted successfully:", chatMessage);
-
-    // 3. Update booking request response to 'pending' if it's the first message from DJ
-    if (user.id === booking.receiver_id) {
-      const { error: updateError } = await supabase
-        .from("booking_requests")
-        .update({ 
-          response: 'pending',
-          updated_at: new Date().toISOString()
-        })
-        .eq("id", booking_id);
-
-      if (updateError) {
-        console.error("Failed to update booking request status:", updateError.message);
-      }
-    }
-
-    // 4. Get sender user data for response
+    // 3. Get the sender's user data
     const { data: senderUser, error: senderError } = await supabase
       .from("users")
-      .select("id, userName, user_avatar, first_name, last_name")
+      .select("id, userName, user_avatar")
       .eq("id", user.id)
       .single();
 
@@ -236,37 +248,40 @@ export async function POST(request) {
       console.error("Sender fetch error:", senderError);
     }
 
-    // 5. Format response message
-    const formattedMessage = {
-      id: chatMessage.id,
-      message: chatMessage.message,
-      sender_id: chatMessage.sender_id,
-      requester_id: chatMessage.requester_id,
-      seen: chatMessage.seen,
-      created_at: chatMessage.created_at,
-      sender: senderUser ? {
-        id: senderUser.id,
-        userName: senderUser.userName,
-        user_avatar: senderUser.user_avatar,
-        first_name: senderUser.first_name,
-        last_name: senderUser.last_name,
-        display_name: `${senderUser.first_name || ''} ${senderUser.last_name || ''}`.trim() || senderUser.userName
-      } : {
+    // 4. Combine message with sender data
+    const messageWithUser = {
+      ...chatMessage,
+      sender: senderUser || {
         id: user.id,
-        userName: 'You',
+        userName: "Unknown User",
         user_avatar: null,
-        display_name: 'You'
-      }
+      },
     };
+
+    // 5. Update booking request response to 'pending' if it's the first message from receiver
+    if (isReceiver) {
+      const { error: updateError } = await supabase
+        .from("booking_requests")
+        .update({
+          response: "pending",
+          updated_at: new Date().toISOString(),
+        })
+        .eq("id", booking_id);
+
+      if (updateError) {
+        console.error("Failed to update booking request status:", updateError);
+      }
+    }
 
     return NextResponse.json({
       success: true,
-      message: "Message sent successfully",
-      data: formattedMessage
+      data: messageWithUser,
     });
-
   } catch (err) {
     console.error("Chat send error:", err);
-    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
+    return NextResponse.json(
+      { error: "Internal server error", details: err.message },
+      { status: 500 }
+    );
   }
 }

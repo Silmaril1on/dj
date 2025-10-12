@@ -25,19 +25,25 @@ const SubmittedClub = ({ data, error }) => {
 
     if (!data || data.length === 0) {
         return (
-            <SectionContainer
-                size="sm"
-                title="My Club Profile"
-                description="Update your club profile"
-            >
-                <ErrorCode
-                    title="Your club profile is not yet submitted"
-                    description="Do you have a club profile? Please submit it to see your profile here."
-                    action={
-                        <Link className=' text-blue hover:text-blue-600 transition-colors duration-200' href="/add-product/add-club">Submit Club Profile</Link>
-                    }
-                />
-            </SectionContainer>
+          <SectionContainer
+            size="sm"
+            title="My Club Profile"
+            className="bg-stone-900"
+            description="Update your club profile"
+          >
+            <ErrorCode
+              title="Your club profile is not yet submitted"
+              description="Do you have a club profile? Please submit it to see your profile here."
+              action={
+                <Link
+                  className=" text-blue hover:text-blue-600 transition-colors duration-200"
+                  href="/add-product/add-club"
+                >
+                  Submit Club Profile
+                </Link>
+              }
+            />
+          </SectionContainer>
         );
     }
 

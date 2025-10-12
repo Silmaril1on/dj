@@ -350,7 +350,7 @@ export const formConfigs = {
       },
       {
         title: "Social Media",
-        fields: ["social_links", "residents", "location_url, venue_email"],
+        fields: ["social_links", "residents", "location_url", "venue_email"],
         gridClass: "space-y-4 grid md:grid-cols-2 gap-4",
       },
     ],

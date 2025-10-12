@@ -24,6 +24,7 @@ const LikesStats = ({ data, error }) => {
         size="sm"
         title="My Likes"
         description="My Like Statistics"
+        className='bg-stone-900'
       >
         <ErrorCode
           title="No likes yet"

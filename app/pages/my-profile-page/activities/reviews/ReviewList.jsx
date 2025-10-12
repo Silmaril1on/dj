@@ -71,7 +71,7 @@ const ReviewList = ({ reviewsData, onReviewUpdate }) => {
 
   if (!reviews.length) {
     return (
-      <div className="w-[60%] mx-auto p-8 text-center">
+      <div className="bg-stone-900 w-full h-full p-8 center">
        <ErrorCode title="No Reviews Yet" description="You haven't written any reviews yet." />
       </div>
     );

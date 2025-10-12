@@ -58,6 +58,7 @@ const SliderContainer = ({
             initial={animate ? "hidden" : undefined}
             whileInView={animate ? "visible" : undefined}
             exit={animate ? "exit" : undefined}
+            viewport={{ once: true, amount: 0.2 }}
           >
             {children}
           </motion.div>
@@ -65,15 +66,21 @@ const SliderContainer = ({
       </div>
       <>
         {isLeftVisible && (
-          <Left onClick={slidePrev} className='absolute z-10 top-1/2 -translate-y-1/2 left-4 group opacity-0 group-hover/slider:opacity-100 duration-300' />
+          <Left
+            onClick={slidePrev}
+            className="absolute z-10 top-1/2 -translate-y-1/2 left-4 group opacity-0 group-hover/slider:opacity-100 duration-300"
+          />
         )}
 
         {isRightVisible && (
-          <Right onClick={slideNext} className='absolute z-10 top-1/2 -translate-y-1/2 right-4 group opacity-0 group-hover/slider:opacity-100 duration-300' />
+          <Right
+            onClick={slideNext}
+            className="absolute z-10 top-1/2 -translate-y-1/2 right-4 group opacity-0 group-hover/slider:opacity-100 duration-300"
+          />
         )}
       </>
     </div>
-  )
+  );
 }
 
 export default SliderContainer

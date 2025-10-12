@@ -4,10 +4,10 @@ import Bio from './bio/Bio';
 import ArtistSchedule from './schedule/ArtistSchedule';
 import ArtistInsight from './artist-insights/ArtistInsight';
 
-const ArtistProfile = ({ data, ratingInsights }) => {
-
+const ArtistProfile = ({ data, ratingInsights , reviewsData}) => {
   const scheduleData = data?.artist_schedule;
-
+  const artistId = data?.id
+  
   return (
     <div className="min-h-screen">
       <div className="grid lg:grid-cols-2 gap-2 lg:gap-5 items-center min-h-[80vh] p-3 lg:p-5 relative">
@@ -17,7 +17,7 @@ const ArtistProfile = ({ data, ratingInsights }) => {
       </div>
       <Bio data={data} />
       <ArtistSchedule data={scheduleData} />
-      <ArtistInsight ratingInsights={ratingInsights} />
+      <ArtistInsight ratingInsights={ratingInsights} reviewsData={reviewsData} artistId={artistId} />
     </div>
   )
 }

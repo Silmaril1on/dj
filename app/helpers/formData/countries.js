@@ -165,4 +165,6 @@ export const countries = [
   "South Georgia and the South Sandwich Islands",
   "Bouvet Island",
   "Antarctica",
+  "Ukraine", 
+  "russia",
 ];

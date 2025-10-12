@@ -170,6 +170,7 @@ export const getCountryCode = (countryName) => {
         "south georgia and the south sandwich islands": "GS",
         "bouvet island": "BV",
         antarctica: "AQ",
+        russia: "RU",
     };
 
     return countryMap[countryName.toLowerCase()] || "US";
@@ -190,3 +191,5 @@ export const CountryFlags = ({ countryName, className, style }) => {
         />
     );
 };
+
+

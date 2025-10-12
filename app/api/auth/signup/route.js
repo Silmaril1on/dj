@@ -113,10 +113,10 @@ export async function POST(request) {
       .insert({
         user_id: userData.id,
         type: "welcome",
-        read: false, 
+        read: false,
         title: "Welcome to Soundfolio",
         message:
-          "Welcome to the platform. You can now login to your account and start using the platform.",
+          "Your account has been created successfully. You can now access your dashboard and start exploring all available features.",
       })
       .then(({ error }) => {
         if (error) {

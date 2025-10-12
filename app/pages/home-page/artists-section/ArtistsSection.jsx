@@ -50,7 +50,9 @@ const ArtistsSection = () => {
       description="Browse profiles, drop reviews, track and rate top talents."
     >
       {loading ? (
-        <Spinner />
+        <div className="center h-80 w-full">
+           <Spinner />
+       </div>
       ) : (
         <SliderContainer items={artists} animate={true} itemsPerPage={6}>
           {artists?.map((artist) => (

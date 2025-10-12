@@ -14,17 +14,17 @@ const StatisticsLayout = ({
   submittedEventsSlot,
 }) => {
   return (
-    <div>
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 p-3">
+    <div className="grid gap-4 p-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {reviewsSlot}
         {ratingsSlot}
         {likesSlot}
       </div>
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 p-3">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {submittedArtistSlot}
         {submittedClubSlot}
       </div>
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 p-3">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
       
         {submittedEventsSlot}
        

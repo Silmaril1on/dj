@@ -48,13 +48,21 @@ const ChatUsers = ({
           chatUsers.length !== 1 ? "s" : ""
         }`}
       >
-        <div className="overflow-y-auto h-full w-full">
+        <div className="overflow-y-auto h-full w-full space-y-2">
           {chatUsers.map((chatUser) => {
+            // Check if booking is confirmed
+            const isConfirmed = chatUser.response === "confirmed";
+            const isSelected = selectedId === chatUser.id;
+            
             return (
               <div
                 key={chatUser.id}
-                className={`p-2 relative  flex gap-2 cursor-pointer items-center duration-300 hover:bg-stone-800 ${
-                  selectedId === chatUser.id ? "bg-stone-950" : "bg-stone-950"
+                className={`p-2 relative flex gap-2 cursor-pointer items-center duration-300  ${
+                  isConfirmed
+                    ? "bg-green-500/20 border border-green-500/30"
+                    : isSelected
+                    ? "bg-stone-800 hover:bg-stone-900"
+                    : "bg-stone-950 hover:bg-stone-800"
                 }`}
                 onClick={() => {
                   setSelectedId(chatUser.id);
@@ -63,25 +71,43 @@ const ChatUsers = ({
                   }
                 }}
               >
+                {/* Confirmed indicator */}
+                {isConfirmed && (
+                  <div className="absolute top-2 right-2">
+                    <div className="w-2 h-2 bg-green-500 animate-pulse rounded-full"></div>
+                  </div>
+                )}
+
                 <ProfilePicture
                   avatar_url={chatUser.display_user?.avatar}
                   size="md"
                 />
                 <div className="flex-1 min-w-0">
-                  <Title
-                    text={
-                      chatUser.display_user?.full_name ||
-                      chatUser.display_user?.userName
-                    }
-                    size="xs"
-                  />
+                  <div className="flex items-center gap-2">
+                    <Title
+                      text={
+                        chatUser.display_user?.userName ||
+                        chatUser.display_user?.full_name
+                      }
+                      size="xs"
+                    />
+                    {isConfirmed && (
+                      <SpanText
+                        text="Confirmed"
+                        size="xs"
+                        className="text-green-400 font-medium"
+                      />
+                    )}
+                  </div>
+
                   <SpanText
                     size="xs"
                     color="cream"
                     text={
                       chatUser.user_role === "requester"
                         ? `Booking ${
-                            chatUser.display_user?.full_name || "Artist"
+                            chatUser.display_user?.userName ||
+                            chatUser.display_user?.full_name
                           }`
                         : `Request from ${
                             chatUser.display_user?.full_name || "User"
@@ -103,23 +129,6 @@ const ChatUsers = ({
                       text={formatTime(chatUser.created_at)}
                     />
                   </div>
-                  <SpanText
-                    text={chatUser.response || chatUser.status || "pending"}
-                    size="xs"
-                    className={`uppercase absolute font-bold top-2 right-2 ${
-                      chatUser.status === "unopened"
-                        ? "text-blue-400"
-                        : chatUser.status === "opened"
-                        ? "text-yellow-400"
-                        : chatUser.status === "seen"
-                        ? "text-purple-400"
-                        : chatUser.response === "pending"
-                        ? "text-yellow-400"
-                        : chatUser.response === "success"
-                        ? "text-green-400"
-                        : "text-stone-400"
-                    }`}
-                  />
                 </div>
               </div>
             );

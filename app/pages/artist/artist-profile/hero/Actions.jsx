@@ -1,5 +1,5 @@
 'use client'
-import { useDispatch } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { openBookingModal } from '@/app/features/bookingSlice'; 
 import AddArtistDates from '@/app/components/buttons/AddArtistDates'
 import EditProduct from '@/app/components/buttons/EditProduct.'
@@ -8,14 +8,20 @@ import RatingButton from '@/app/components/buttons/RatingButton'
 import ReviewButton from '@/app/components/buttons/ReviewButton'
 import { motion } from 'framer-motion'
 import { FaHouse } from 'react-icons/fa6';
+import { selectUser } from '@/app/features/userSlice';
 
 const Actions = ({ data, userRating, onLikeChange }) => {
-    const dispatch = useDispatch(); 
-    const userSubmittedArtistId = data.userSubmittedArtistId;
+  const dispatch = useDispatch(); 
+    const user = useSelector(selectUser);
+  const userSubmittedArtistId = data.userSubmittedArtistId;
+  
 
     const handleBookDj = () => {
       dispatch(openBookingModal(data));
   };  
+
+   const shouldRenderBookButton =
+     data?.user_id && user?.id && data.user_id !== user.id;
   
     return (
       <motion.div
@@ -24,7 +30,7 @@ const Actions = ({ data, userRating, onLikeChange }) => {
         transition={{ duration: 0.6, delay: 1.5 }}
         className="grid grid-cols-3 md:grid-cols-6 lg:grid-cols-3 xl:flex xl:justify-end gap-2 xl:*:px-2"
       >
-        {data?.user_id && (
+        {shouldRenderBookButton && (
           <button
             className="bg-gold/30 hover:bg-gold/40 gap-1 text-gold w-fit secondary center cursor-pointer duration-300 p-1 rounded-xs text-[10px] lg:text-sm font-bold"
             onClick={handleBookDj}

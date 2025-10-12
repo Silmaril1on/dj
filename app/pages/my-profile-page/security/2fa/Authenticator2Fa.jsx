@@ -9,7 +9,7 @@ const Authenticator2Fa = () => {
       description="Use an authenticator app to generate time-based one-time passwords"
     >
       <div>
-        <h1>hello</h1>
+        <h1>Comming soon</h1>
      </div>
     </SectionContainer>
   );
