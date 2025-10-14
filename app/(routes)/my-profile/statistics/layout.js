@@ -12,6 +12,7 @@ const StatisticsLayout = ({
   submittedArtistSlot,
   submittedClubSlot,
   submittedEventsSlot,
+  bookingSlot
 }) => {
   return (
     <div className="grid gap-4 p-4">
@@ -25,9 +26,8 @@ const StatisticsLayout = ({
         {submittedClubSlot}
       </div>
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-      
         {submittedEventsSlot}
-       
+        {bookingSlot}
       </div>
     </div>
   );

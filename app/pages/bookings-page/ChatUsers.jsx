@@ -50,20 +50,27 @@ const ChatUsers = ({
       >
         <div className="overflow-y-auto h-full w-full space-y-2">
           {chatUsers.map((chatUser) => {
-            // Check if booking is confirmed
+            // Check booking status
             const isConfirmed = chatUser.response === "confirmed";
+            const isDeclined = chatUser.response === "declined";
             const isSelected = selectedId === chatUser.id;
+            
+            // Determine styling based on status
+            let containerClass = "";
+            if (isConfirmed) {
+              containerClass = "bg-green-500/20 border border-green-500/30";
+            } else if (isDeclined) {
+              containerClass = "bg-red-500/20 border border-red-500/30";
+            } else if (isSelected) {
+              containerClass = "bg-stone-800 hover:bg-stone-900";
+            } else {
+              containerClass = "bg-stone-950 hover:bg-stone-800";
+            }
             
             return (
               <div
                 key={chatUser.id}
-                className={`p-2 relative flex gap-2 cursor-pointer items-center duration-300  ${
-                  isConfirmed
-                    ? "bg-green-500/20 border border-green-500/30"
-                    : isSelected
-                    ? "bg-stone-800 hover:bg-stone-900"
-                    : "bg-stone-950 hover:bg-stone-800"
-                }`}
+                className={`p-2 relative flex gap-2 cursor-pointer items-center duration-300 ${containerClass}`}
                 onClick={() => {
                   setSelectedId(chatUser.id);
                   if (onSelectBooking) {
@@ -71,10 +78,15 @@ const ChatUsers = ({
                   }
                 }}
               >
-                {/* Confirmed indicator */}
+                {/* Status indicators */}
                 {isConfirmed && (
                   <div className="absolute top-2 right-2">
                     <div className="w-2 h-2 bg-green-500 animate-pulse rounded-full"></div>
+                  </div>
+                )}
+                {isDeclined && (
+                  <div className="absolute top-2 right-2">
+                    <div className="w-2 h-2 bg-red-500 animate-pulse rounded-full"></div>
                   </div>
                 )}
 
@@ -96,6 +108,13 @@ const ChatUsers = ({
                         text="Confirmed"
                         size="xs"
                         className="text-green-400 font-medium"
+                      />
+                    )}
+                    {isDeclined && (
+                      <SpanText
+                        text="Declined"
+                        size="xs"
+                        className="text-red-400 font-medium"
                       />
                     )}
                   </div>

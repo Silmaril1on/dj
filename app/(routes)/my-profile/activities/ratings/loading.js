@@ -2,8 +2,8 @@ import Spinner from "@/app/components/ui/Spinner";
 
 const loading = () => {
   return (
-    <div>
-      <Spinner />
+    <div className="center h-screen">
+      <Spinner type="logo" />
     </div>
   );
 };

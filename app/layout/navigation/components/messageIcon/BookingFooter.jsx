@@ -6,7 +6,7 @@ const BookingFooter = () => {
 
   return (
     <FlexBox type="row-between" className="border-t border-gold/30">
-      <Button size="small" type="bold" text="View All" />
+      <Button href="/bookings" size="small" type="bold" text="View All" />
     </FlexBox>
   )
 }

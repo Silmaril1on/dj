@@ -6,9 +6,7 @@ import Paragraph from '@/app/components/ui/Paragraph';
 import SpanText from '@/app/components/ui/SpanText';
 import Title from '@/app/components/ui/Title';
 import { capitalizeFirst, formatBirthdate } from '@/app/helpers/utils';
-import Link from 'next/link';
 import { FaCalendar, FaLink } from 'react-icons/fa';
-import { MdLocationPin } from 'react-icons/md';
 
 const BasicInfo = ({ event }) => {
   return (
@@ -17,13 +15,14 @@ const BasicInfo = ({ event }) => {
         <MyLink
           icon={<FaLink />}
           text="Check Event"
-          href={`/events/${event.id}`}
+          target="_blank"
+          href={`${event.links}`}
         />
         <SpanText
           className="secondary"
           size="xs"
           color="cream"
-          text={`Promoter:  ${capitalizeFirst(event.promoter)}`}
+          text={`Promoter: ${capitalizeFirst(event.promoter)}`}
         />
       </Motion>
       <div className="space-y-3">
@@ -53,3 +52,4 @@ const BasicInfo = ({ event }) => {
 }
 
 export default BasicInfo
+

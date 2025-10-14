@@ -7,7 +7,7 @@ const FooterSide = ({ currentIndex, handleDotClick, newsData}) => {
         <button
           key={index}
           onClick={() => handleDotClick(index)}
-          className={`w-3 h-3 duration-300 cursor-pointer ${
+          className={`w-2 lg:w-3 h-2 lg:h-3 duration-300 cursor-pointer ${
             index === currentIndex
               ? "bg-yellow-500 scale-110"
               : "bg-chino hover:bg-cream"

@@ -35,21 +35,20 @@ const ContentSide = ({  currentNews }) => {
 
   return (
     <motion.article
-      className="left-clip bg-stone-900 absolute right-30 top-0 w-2/4 h-full"
+      className="left-clip bg-stone-900 absolute right-[7.5%] lg:right-30 top-0 w-2/4 h-full"
       variants={contentVariants}
       initial="initial"
       animate="animate"
       exit="exit"
     >
-      <div className="pl-30 h-full flex flex-col items-end justify-between p-5">
-        <FlexBox type="column-end" className="max-w-[70%]">
-          <Title text={currentNews.title} color="gold" className="text-end" />
+      <div className="pl-15 lg:pl-30 h-full flex flex-col items-end justify-between p-5">
+        <FlexBox type="column-end" className="w-full lg:max-w-[70%]">
+          <Title text={currentNews.title} color="gold" className="text-end text-xs" />
         </FlexBox>
         <div className="flex items-end flex-col">
-          <Paragraph
-            className="text-end"
-            text={truncateString(currentNews.content, 500)}
-          />
+          <p className="text-[9px] lg:text-sm text-cream secondary text-end">
+            {truncateString(currentNews.content, 150)}
+          </p>
           <MyLink
             href={`/news/${currentNews.id}`}
             text="Read more..."

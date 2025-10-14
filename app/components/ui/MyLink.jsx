@@ -12,7 +12,7 @@ const MyLink = ({
 }) => {
     const sizeClasses = {
         sm: "text-sm",
-        md: "text-base",
+        md: "text-xs lg:text-base",
     };
 
     const colorClasses = {

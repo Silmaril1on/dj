@@ -14,7 +14,7 @@ const SectionContainer = ({
         return "text-sm lg:text-lg";
       case "md":
       default:
-        return "text-2xl lg:text-3xl";
+        return "text-xl lg:text-3xl";
     }
   };
 
@@ -24,7 +24,7 @@ const SectionContainer = ({
         return "text-[11px]";
       case "md":
       default:
-        return "text-xs";
+        return "text-[10px] lg:text-xs";
     }
   };
 

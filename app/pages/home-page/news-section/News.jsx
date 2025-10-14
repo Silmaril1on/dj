@@ -46,12 +46,12 @@ const News = () => {
   }
 
   return (
-    <div className="w-full flex flex-col items-center">
+    <div className="w-full flex flex-col items-center  mt-20 lg:mt-0">
       <div className="leading-none center flex-col mb-5">
         <Title text="Latest News" />
         <Paragraph text="Catch the latest stories, trends, and highlights—all in one place." />
       </div>
-      <div className="w-full relative h-[400px] overflow-hidden">
+      <div className="w-full relative h-[200px] lg:h-[400px] overflow-hidden">
         <AnimatePresence>
           <ImageSide
             key={`image-${currentIndex}`}

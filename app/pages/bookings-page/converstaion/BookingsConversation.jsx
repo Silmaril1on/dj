@@ -94,7 +94,7 @@ const BookingsConversation = ({ selectedBookingId, initialChatUsers = [] }) => {
   if (loading || checkingMessages) {
     return (
       <div className="w-[70%] flex items-center justify-center">
-       <Spinner />
+       <Spinner type="logo" />
       </div>
     );
   }
@@ -118,17 +118,8 @@ const BookingsConversation = ({ selectedBookingId, initialChatUsers = [] }) => {
     );
   }
 
-  // Determine when to show different components
   const isBookingConfirmed = booking?.response === "confirmed";
   const shouldShowChat = hasMessages && !isBookingConfirmed;
-
-  console.log('🔍 Chat Display Logic:', {
-    bookingId: booking.id,
-    hasMessages,
-    isBookingConfirmed,
-    shouldShowChat,
-    response: booking.response
-  });
 
   return (
     <div className="w-[70%]">

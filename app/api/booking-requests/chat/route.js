@@ -30,49 +30,20 @@ export async function GET(request) {
 
     const supabase = await createSupabaseServerClient(cookieStore);
 
-    // 1. Verify user has access to this booking - with better error logging
+    // 1. Verify user has access to this booking
     const { data: booking, error: bookingError } = await supabase
       .from("booking_requests")
       .select("id, requester_id, receiver_id")
       .eq("id", bookingId)
       .single();
 
-    if (bookingError) {
-      console.error("Booking fetch error:", bookingError);
-      return NextResponse.json(
-        {
-          error: "Booking not found",
-          details: bookingError.message,
-        },
-        { status: 404 }
-      );
-    }
-
-    if (!booking) {
-      return NextResponse.json(
-        {
-          error: "Booking not found",
-        },
-        { status: 404 }
-      );
+    if (bookingError || !booking) {
+      return NextResponse.json({ error: "Booking not found" }, { status: 404 });
     }
 
     // Check if user is either requester or receiver
-    const isRequester = user.id === booking.requester_id;
-    const isReceiver = user.id === booking.receiver_id;
-
-    if (!isRequester && !isReceiver) {
-      return NextResponse.json(
-        {
-          error: "Access denied",
-          debug: {
-            userId: user.id,
-            requesterId: booking.requester_id,
-            receiverId: booking.receiver_id,
-          },
-        },
-        { status: 403 }
-      );
+    if (user.id !== booking.requester_id && user.id !== booking.receiver_id) {
+      return NextResponse.json({ error: "Access denied" }, { status: 403 });
     }
 
     // 2. Fetch ALL chat messages for this booking_id
@@ -83,6 +54,7 @@ export async function GET(request) {
       .order("created_at", { ascending: true });
 
     if (messagesError) {
+      console.error("Messages fetch error:", messagesError);
       return NextResponse.json(
         { error: "Failed to fetch messages" },
         { status: 500 }
@@ -90,7 +62,7 @@ export async function GET(request) {
     }
 
     // 3. Get unique sender IDs from messages
-    const senderIds = [...new Set(messages?.map((msg) => msg.sender_id) || [])];
+    const senderIds = [...new Set((messages || []).map(msg => msg.sender_id))];
 
     if (senderIds.length === 0) {
       return NextResponse.json({
@@ -106,6 +78,7 @@ export async function GET(request) {
       .in("id", senderIds);
 
     if (usersError) {
+      console.error("Users fetch error:", usersError);
       return NextResponse.json(
         { error: "Failed to fetch user data" },
         { status: 500 }
@@ -117,13 +90,13 @@ export async function GET(request) {
       acc[user.id] = {
         id: user.id,
         userName: user.userName,
-        user_avatar: user.user_avatar,
+        user_avatar: user.user_avatar
       };
       return acc;
     }, {});
 
     // 6. Combine messages with user data
-    const messagesWithUsers = (messages || []).map((message) => ({
+    const messagesWithUsers = (messages || []).map(message => ({
       id: message.id,
       message: message.message,
       sender_id: message.sender_id,
@@ -132,8 +105,8 @@ export async function GET(request) {
       sender: userMap[message.sender_id] || {
         id: message.sender_id,
         userName: "Unknown User",
-        user_avatar: null,
-      },
+        user_avatar: null
+      }
     }));
 
     return NextResponse.json({
@@ -141,8 +114,9 @@ export async function GET(request) {
       messages: messagesWithUsers,
     });
   } catch (err) {
+    console.error("Chat fetch error:", err);
     return NextResponse.json(
-      { error: "Internal server error", details: err.message },
+      { error: "Internal server error" },
       { status: 500 }
     );
   }
@@ -151,8 +125,15 @@ export async function GET(request) {
 // POST: Send a new chat message
 export async function POST(request) {
   try {
+    console.log("🚀 Chat POST request received");
+    
     const cookieStore = await cookies();
     const { user, error: userError } = await getServerUser(cookieStore);
+
+    console.log("👤 User authentication:", { 
+      userId: user?.id, 
+      userError: userError?.message 
+    });
 
     if (userError || !user) {
       return NextResponse.json(
@@ -164,75 +145,70 @@ export async function POST(request) {
     const supabase = await createSupabaseServerClient(cookieStore);
     const body = await request.json();
 
+    console.log("📨 Request body:", body);
+
     const { message, booking_id } = body;
 
     // Validate required fields
     if (!message || !booking_id) {
+      console.error("❌ Missing required fields:", { message: !!message, booking_id: !!booking_id });
       return NextResponse.json(
         { error: "Missing required fields: message, booking_id" },
         { status: 400 }
       );
     }
 
+    console.log("🔍 Validating booking access for:", { booking_id, user_id: user.id });
+
     // 1. Verify user has access to this booking
     const { data: booking, error: bookingError } = await supabase
       .from("booking_requests")
-      .select("id, requester_id, receiver_id")
+      .select("id, requester_id, receiver_id, response")
       .eq("id", booking_id)
       .single();
 
-    if (bookingError) {
-      return NextResponse.json(
-        {
-          error: "Booking not found",
-          details: bookingError.message,
-        },
-        { status: 404 }
-      );
-    }
+    console.log("📋 Booking data:", { booking, bookingError: bookingError?.message });
 
-    if (!booking) {
-      return NextResponse.json(
-        {
-          error: "Booking not found",
-        },
-        { status: 404 }
-      );
+    if (bookingError || !booking) {
+      console.error("❌ Booking not found:", bookingError);
+      return NextResponse.json({ error: "Booking not found" }, { status: 404 });
     }
 
     // Check if user is either requester or receiver
-    const isRequester = user.id === booking.requester_id;
-    const isReceiver = user.id === booking.receiver_id;
-
-    if (!isRequester && !isReceiver) {
-      return NextResponse.json(
-        {
-          error: "Access denied",
-          debug: {
-            userId: user.id,
-            requesterId: booking.requester_id,
-            receiverId: booking.receiver_id,
-          },
-        },
-        { status: 403 }
-      );
+    if (user.id !== booking.requester_id && user.id !== booking.receiver_id) {
+      console.error("❌ Access denied:", { 
+        userId: user.id, 
+        requesterId: booking.requester_id, 
+        receiverId: booking.receiver_id 
+      });
+      return NextResponse.json({ error: "Access denied" }, { status: 403 });
     }
 
-    // 2. Insert new chat message
+    console.log("✅ User has access to booking");
+
+    // 2. Insert new chat message WITH requester_id
+    const messageData = {
+      message: message.trim(),
+      sender_id: user.id,
+      booking_id: booking_id,
+      requester_id: booking.requester_id, // 🔧 Add this field
+      created_at: new Date().toISOString(),
+    };
+
+    console.log("💾 Inserting message:", messageData);
+
     const { data: chatMessage, error: messageError } = await supabase
       .from("booking_chat")
-      .insert({
-        message: message.trim(),
-        sender_id: user.id,
-        booking_id: booking_id,
-        created_at: new Date().toISOString(),
-      })
-      .select("id, message, sender_id, booking_id, created_at")
+      .insert(messageData)
+      .select("id, message, sender_id, booking_id, requester_id, created_at")
       .single();
 
+    console.log("💾 Message insert result:", { chatMessage, messageError: messageError?.message });
+
     if (messageError) {
+      console.error("❌ Message insert error:", messageError);
       return NextResponse.json(
-        { error: "Failed to send message" },
+        { error: `Failed to send message: ${messageError.message}` },
         { status: 500 }
       );
     }
@@ -245,7 +221,7 @@ export async function POST(request) {
       .single();
 
     if (senderError) {
-      console.error("Sender fetch error:", senderError);
+      console.error("⚠️ Sender fetch error:", senderError);
     }
 
     // 4. Combine message with sender data
@@ -254,12 +230,14 @@ export async function POST(request) {
       sender: senderUser || {
         id: user.id,
         userName: "Unknown User",
-        user_avatar: null,
-      },
+        user_avatar: null
+      }
     };
 
-    // 5. Update booking request response to 'pending' if it's the first message from receiver
-    if (isReceiver) {
+    // 5. Update booking request response to 'pending' if it's null
+    if (booking.response === null) {
+      console.log("📝 Updating booking response to pending");
+      
       const { error: updateError } = await supabase
         .from("booking_requests")
         .update({
@@ -269,18 +247,22 @@ export async function POST(request) {
         .eq("id", booking_id);
 
       if (updateError) {
-        console.error("Failed to update booking request status:", updateError);
+        console.error("⚠️ Failed to update booking request status:", updateError);
+      } else {
+        console.log("✅ Booking response updated to pending");
       }
     }
+
+    console.log("✅ Chat message sent successfully");
 
     return NextResponse.json({
       success: true,
       data: messageWithUser,
     });
   } catch (err) {
-    console.error("Chat send error:", err);
+    console.error("❌ Chat send error:", err);
     return NextResponse.json(
-      { error: "Internal server error", details: err.message },
+      { error: `Internal server error: ${err.message}` },
       { status: 500 }
     );
   }

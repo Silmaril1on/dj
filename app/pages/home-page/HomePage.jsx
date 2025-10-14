@@ -1,3 +1,4 @@
+import Spinner from "@/app/components/ui/Spinner";
 import AlbumLogo from "../AlbumLogo";
 import AppDataStats from "./app-data-stats/AppDataStats";
 import ArtistsSection from "./artists-section/ArtistsSection";
@@ -15,6 +16,9 @@ const HomePage = ({ events = [] }) => {
         <SubmitSection />
         <BornToday />
         <AppDataStats />
+        <div className="h-screen center w-full">
+          <Spinner type="logo" />
+        </div>
         {/* <AlbumLogo /> */}
       </div>
     );

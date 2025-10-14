@@ -27,7 +27,7 @@ import { motion } from "framer-motion";
 const ImageSide = ({ currentNews }) => {
   return (
     <motion.div
-      className="right-clip h-full w-2/4 left-30 top-0 absolute"
+      className="right-clip h-full w-2/4 left-[7.5%] lg:left-30 top-0 absolute"
       variants={imageVariants}
       initial="initial"
       animate="animate"

@@ -45,18 +45,15 @@ const AcceptBookingModal = () => {
     try {
       const responseData = {
         message: formData.content.trim(), 
-        requester_id: bookingData.requester_id || bookingData.requester?.id,
         booking_id: bookingData.id 
       }
-
-      console.log("Sending data:", responseData);
-
       const response = await fetch('/api/booking-requests/chat', { 
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(responseData),
       })
       const result = await response.json()
+      
       if (!response.ok) {
         throw new Error(result.error || 'Failed to send booking response')
       }
@@ -66,7 +63,7 @@ const AcceptBookingModal = () => {
       }))
       dispatch(closeAcceptBookingModal())
       setFormData({ content: '' })
-      router.push("/")
+      router.push('/')
     } catch (error) {
       dispatch(setAcceptBookingError(error.message))
     } finally {
@@ -95,7 +92,7 @@ const AcceptBookingModal = () => {
       <form onSubmit={handleSubmit} className="space-y-6">
         {/* Content Input */}
         <div>
-          <label>Message</label>
+          <label className="block text-cream text-sm font-medium mb-2">Message</label>
           <textarea
             name="content"
             value={formData.content}
@@ -113,6 +110,7 @@ const AcceptBookingModal = () => {
             <div>Venue: {bookingData.venue_name}</div>
             <div>Date: {new Date(bookingData.event_date).toLocaleDateString()}</div>
             <div>Requester: {bookingData.requester?.full_name || bookingData.requester?.userName || 'Unknown'}</div>
+            <div className="text-xs text-stone-400 mt-2">Booking ID: {bookingData.id}</div>
           </div>
         </div>
 

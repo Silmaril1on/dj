@@ -52,7 +52,8 @@ const SettingsOption = ({ toggleSettings, user }) => {
           text="My Artist Profile"
           icon={<IoMusicalNotes />}
           onClick={toggleSettings}
-        /> )}
+        />
+      )}
       {user.submitted_club_id && (
         <MyLink
           href={`/clubs/${user.submitted_club_id}`}
@@ -61,12 +62,14 @@ const SettingsOption = ({ toggleSettings, user }) => {
           onClick={toggleSettings}
         />
       )}
-      <MyLink
-        href={`/my-profile/activities/my-events`}
-        text="My Events"
-        icon={<MdEventAvailable />}
-        onClick={toggleSettings}
-      />
+      {user.submitted_event_id && (
+        <MyLink
+          href={`/my-profile/activities/my-events`}
+          text="My Events"
+          icon={<MdEventAvailable />}
+          onClick={toggleSettings}
+        />
+      )}
       <MyLink
         href="/my-profile/security"
         text="Security"

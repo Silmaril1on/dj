@@ -3,7 +3,6 @@ import { useState } from 'react'
 import { motion } from 'framer-motion'
 import Left from '../buttons/Left'
 import Right from '../buttons/Right'
-import { slideTop } from '@/app/framer-motion/motionValues'
 
 const SliderContainer = ({
   children,
@@ -16,7 +15,24 @@ const SliderContainer = ({
 }) => {
   const [currentIndex, setCurrentIndex] = useState(0);
 
-  // Dynamically calculate container width
+  if (!items || items.length === 0) {
+    return <div className="text-red-500 p-4">No items in SliderContainer</div>;
+  }
+
+  const containerVariants = {
+    hidden: { opacity: 0, y: 50 },
+    visible: {
+      opacity: 1,
+      y: 0,
+      transition: {
+        duration: 0.6,
+        ease: "easeOut",
+        staggerChildren: 0.1, 
+        delayChildren: 0.2 
+      }
+    }
+  };
+
   const containerWidth = itemsPerPage * (cardWidth + 2 * cardMargin);
 
   const wrapperStyle = {
@@ -25,19 +41,23 @@ const SliderContainer = ({
     display: "flex",
     alignItems: "center",
     width: `${containerWidth}px`,
+    minHeight: "300px",
   };
 
   const innerStyles = {
     style: {
       transform: `translateX(-${currentIndex * (cardWidth + 2 * cardMargin)}px)`,
-      width: `${(cardWidth + 2 * cardMargin) * items?.length}px`,
+      width: `${(cardWidth + 2 * cardMargin) * items.length}px`,
       transition: "transform 1000ms ease-in-out",
+      display: "flex",
+      alignItems: "center",
+      minHeight: "280px",
     },
   }
 
   const slideNext = () => {
     setCurrentIndex((prevIndex) =>
-      Math.min(prevIndex + itemsPerPage, items?.length - itemsPerPage)
+      Math.min(prevIndex + itemsPerPage, items.length - itemsPerPage)
     )
   }
 
@@ -46,36 +66,40 @@ const SliderContainer = ({
   }
 
   const isLeftVisible = currentIndex > 0
-  const isRightVisible = currentIndex + itemsPerPage < items?.length
+  const isRightVisible = currentIndex + itemsPerPage < items.length
 
   return (
-    <div className={`relative flex-center flex-col group/slider ${className}`}>
+    <div className={`relative flex flex-col items-center group/slider ${className}`}>
       <div style={wrapperStyle}>
         <div {...innerStyles}>
           <motion.div
-            className="flex flex-row relative z-[5]"
-            variants={animate ? slideTop : undefined}
+            className="flex flex-row gap-0"
+            style={{ 
+              minHeight: "280px",
+              width: "100%"
+            }}
+            variants={animate ? containerVariants : undefined}
             initial={animate ? "hidden" : undefined}
             whileInView={animate ? "visible" : undefined}
-            exit={animate ? "exit" : undefined}
             viewport={{ once: true, amount: 0.2 }}
           >
             {children}
           </motion.div>
         </div>
       </div>
+      
       <>
         {isLeftVisible && (
           <Left
             onClick={slidePrev}
-            className="absolute z-10 top-1/2 -translate-y-1/2 left-4 group opacity-0 group-hover/slider:opacity-100 duration-300"
+            className="absolute z-20 top-1/2 -translate-y-1/2 left-4 opacity-0 group-hover/slider:opacity-100 duration-300"
           />
         )}
 
         {isRightVisible && (
           <Right
             onClick={slideNext}
-            className="absolute z-10 top-1/2 -translate-y-1/2 right-4 group opacity-0 group-hover/slider:opacity-100 duration-300"
+            className="absolute z-20 top-1/2 -translate-y-1/2 right-4 opacity-0 group-hover/slider:opacity-100 duration-300"
           />
         )}
       </>

@@ -18,7 +18,6 @@ const BookingChat = ({ bookingId, bookingData: initialBookingData, onBookingUpda
   const [sending, setSending] = useState(false);
   const [error, setError] = useState(null);
   const [bookingData, setBookingData] = useState(initialBookingData);
-  const messagesEndRef = useRef(null);
 
   // Handle booking data updates
   const handleBookingUpdate = (updatedBooking) => {
@@ -87,7 +86,6 @@ const BookingChat = ({ bookingId, bookingData: initialBookingData, onBookingUpda
       if (response.ok) {
         setMessages((prev) => [...prev, data.data]);
         setNewMessage("");
-        scrollToBottom();
       } else {
         setError(data.error || "Failed to send message");
       }
@@ -98,20 +96,11 @@ const BookingChat = ({ bookingId, bookingData: initialBookingData, onBookingUpda
     }
   };
 
-  // Auto-scroll to bottom
-  const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  };
-
   useEffect(() => {
     if (bookingId) {
       fetchMessages();
     }
   }, [bookingId]);
-
-  useEffect(() => {
-    scrollToBottom();
-  }, [messages]);
 
   // Check if there are messages to show chat
   const shouldShowChat =
@@ -206,7 +195,6 @@ const BookingChat = ({ bookingId, bookingData: initialBookingData, onBookingUpda
               );
             })
           )}
-          <div ref={messagesEndRef} />
         </div>
       </div>
 
@@ -218,7 +206,6 @@ const BookingChat = ({ bookingId, bookingData: initialBookingData, onBookingUpda
           placeholder="Type your message..."
           rows={3}
           disabled={sending}
-          className="w-full p-3 bg-stone-800 border border-stone-700 rounded-sm text-cream placeholder-stone-400 focus:border-gold focus:outline-none resize-none"
         />
         <div className="w-full flex justify-between items-center">
           <UpdateBooking 

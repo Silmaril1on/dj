@@ -51,10 +51,15 @@ const ArtistsSection = () => {
     >
       {loading ? (
         <div className="center h-80 w-full">
-           <Spinner />
-       </div>
+          <Spinner type="logo" />
+        </div>
       ) : (
-        <SliderContainer items={artists} animate={true} itemsPerPage={6}>
+        <SliderContainer
+          items={artists}
+          animate={true}
+          cardWidth={236}
+          itemsPerPage={6}
+        >
           {artists?.map((artist) => (
             <ArtistCard key={artist.id} artist={artist} />
           ))}

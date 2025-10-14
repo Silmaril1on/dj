@@ -16,6 +16,16 @@ const BookingContent = ({ bookingRequests }) => {
   }
 
   const getUserDisplayText = (request) => {
+    // Check if booking is confirmed
+    if (request.response === "confirmed") {
+      return "Booking confirmed";
+    }
+    
+    // Check if booking is declined
+    if (request.response === "declined") {
+      return "Booking was declined";
+    }
+
     const displayName = request.display_user?.userName || 
                        request.display_user?.full_name || 
                        'Unknown User';
@@ -25,6 +35,16 @@ const BookingContent = ({ bookingRequests }) => {
     } else {
       return `Booking request from ${displayName}`;
     }
+  };
+
+  const getStatusStyle = (request) => {
+    if (request.response === "confirmed") {
+      return "text-green-500";
+    }
+    if (request.response === "declined") {
+      return "text-red-500";
+    }
+    return ""; // Default styling for pending/null
   };
 
   return (
@@ -49,7 +69,7 @@ const BookingContent = ({ bookingRequests }) => {
                 <FlexBox type="row-between">
                   <SpanText
                     size="xs"
-                    className="capitalize"
+                    className={`capitalize ${getStatusStyle(request)}`}
                     text={getUserDisplayText(request)}
                   />
                   <SpanText
