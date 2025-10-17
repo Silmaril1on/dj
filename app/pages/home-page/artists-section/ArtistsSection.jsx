@@ -6,6 +6,7 @@ import SectionContainer from "@/app/components/containers/SectionContainer";
 import Spinner from "@/app/components/ui/Spinner";
 import SliderContainer from "@/app/components/containers/SliderContainer";
 import ArtistCard from "./ArtistCard";
+import Swiper from "@/app/components/containers/Swiper";
 
 const ArtistsSection = () => {
   const [artists, setArtists] = useState([]);
@@ -51,19 +52,24 @@ const ArtistsSection = () => {
     >
       {loading ? (
         <div className="center h-80 w-full">
-          <Spinner type="logo" />
+          <Spinner />
         </div>
       ) : (
-        <SliderContainer
-          items={artists}
-          animate={true}
-          cardWidth={236}
-          itemsPerPage={6}
-        >
-          {artists?.map((artist) => (
-            <ArtistCard key={artist.id} artist={artist} />
-          ))}
-        </SliderContainer>
+        <>
+          <div className="hidden lg:block">
+            <SliderContainer
+              items={artists}
+              animate={true}
+              cardWidth={236}
+              itemsPerPage={6}
+            >
+              {artists?.map((artist) => (
+                <ArtistCard key={artist.id} artist={artist} />
+              ))}
+            </SliderContainer>
+          </div>
+          <Swiper animate={true} items={artists} />
+        </>
       )}
     </SectionContainer>
   );

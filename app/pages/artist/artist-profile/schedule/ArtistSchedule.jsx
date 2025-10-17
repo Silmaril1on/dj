@@ -11,7 +11,7 @@ import { formatTime } from '@/app/helpers/utils'
 
 const ArtistSchedule = ({ data, title = "Upcoming Dates", description = "Stay updated with upcoming dates" }) => {
   if (!data || data.length === 0) {
-    return <div className='w-auto center py-20 bg-stone-900 mt-4 mx-4 '> 
+    return <div className='w-auto center py-20 bg-stone-900 mt-4 mx-3 '> 
       <ErrorCode title="No Upcoming Dates" description="There are no upcoming dates available at the moment." />
     </div>
   }

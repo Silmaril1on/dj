@@ -31,7 +31,7 @@ const ChatUsers = ({
 
   if (!chatUsers.length) {
     return (
-      <div className="w-[30%] flex">
+      <div className="w-full lg:w-[30%] flex">
         <SectionContainer title="No Booking Requests" className="bg-stone-900">
           <SpanText text="You don't have any booking requests yet" />
         </SectionContainer>
@@ -40,7 +40,7 @@ const ChatUsers = ({
   }
 
   return (
-    <div className="w-[30%] flex" >
+    <div className="w-full lg:w-[30%] flex" >
       <SectionContainer
         title="Booking Requests"
         className="bg-stone-900"
@@ -48,14 +48,12 @@ const ChatUsers = ({
           chatUsers.length !== 1 ? "s" : ""
         }`}
       >
-        <div className="overflow-y-auto h-full w-full space-y-2">
+        <div className="overflow-y-auto h-[330px] lg:h-full w-full space-y-2">
           {chatUsers.map((chatUser) => {
-            // Check booking status
             const isConfirmed = chatUser.response === "confirmed";
             const isDeclined = chatUser.response === "declined";
             const isSelected = selectedId === chatUser.id;
             
-            // Determine styling based on status
             let containerClass = "";
             if (isConfirmed) {
               containerClass = "bg-green-500/20 border border-green-500/30";

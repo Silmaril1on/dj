@@ -1,5 +1,5 @@
 "use client";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { openReportModal } from "@/app/features/reportsSlice";
 import { setError } from "@/app/features/modalSlice"; // ✅ import setError
 import { appSocialLinks } from "@/app/localDB/pageInfoData";
@@ -7,8 +7,10 @@ import SocialLinks from "@/app/components/materials/SocialLinks";
 import Paragraph from "@/app/components/ui/Paragraph";
 import FlexBox from "@/app/components/containers/FlexBox";
 import Logo from "@/app/components/ui/Logo";
+import { selectUser } from "@/app/features/userSlice";
 
-const Footer = ({ user }) => {
+const Footer = () => {
+ const user = useSelector(selectUser) 
   const dispatch = useDispatch();
 
   const handleOpen = (type) => {

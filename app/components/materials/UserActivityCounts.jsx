@@ -57,7 +57,7 @@ const UserActivityCounts = ({ showStats = true, className = "" }) => {
     }
 
     return (
-      <div className={`flex gap-1 ${className}`}>
+      <div className={`grid grid-cols-2 lg:grid-cols-4 gap-1 ${className}`}>
         <div className="flex items-center gap-2 bg-stone-900/80 px-4 py-2 rounded-lg border border-gold/20">
           <FaComment className="text-gold" size={16} />
           <span className="text-gold font-bold">

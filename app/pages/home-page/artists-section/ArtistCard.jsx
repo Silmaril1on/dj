@@ -9,9 +9,7 @@ import MetaScore from '@/app/components/materials/MetaScore'
 import LikeButton from '@/app/components/buttons/LikeButton'
 import FlexBox from '@/app/components/containers/FlexBox'
 
-const ArtistCard = ({ artist, cardWidth = 236, cardMargin = 8, animate = true }) => {
-  console.log(artist, "/artist card");
-
+const ArtistCard = ({ artist, cardWidth = 236, cardMargin = 8, animate}) => {
   const [likesCount, setLikesCount] = useState(artist?.likesCount || 0);
   const userRating = artist?.userRating || null;
 
@@ -50,7 +48,7 @@ const ArtistCard = ({ artist, cardWidth = 236, cardMargin = 8, animate = true })
       className='border border-gold/30 hover:border-gold/50 bg-gold/20 duration-300 p-1 group relative'
     >
       <Link href={`/artists/${artist.id}`}>
-        <div className="w-full h-64 overflow-hidden rounded-sm">
+        <div className="w-full h-44 lg:h-64 overflow-hidden rounded-sm">
           <Image
             className="brightness-90 group-hover:brightness-100 duration-300 w-full h-full object-cover"
             src={artist.artist_image}
@@ -58,10 +56,6 @@ const ArtistCard = ({ artist, cardWidth = 236, cardMargin = 8, animate = true })
             height={500}
             alt={artist.name}
             priority
-            onError={(e) => {
-              console.error('Image failed to load:', artist.artist_image);
-              e.target.style.display = 'none';
-            }}
           />
         </div>
         <article className='w-full mt-1'>

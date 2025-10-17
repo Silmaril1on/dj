@@ -14,7 +14,7 @@ const DisplayName = ({ user, isSettingsOpen, settingsRef, toggleSettings, handle
             onClick={toggleSettings}
             className="flex items-center gap-2 cursor-pointer"
         >
-            <span className="text-sm text-gray-300 flex items-end flex-col leading-none">
+            <span className="text-sm text-gray-300 hidden lg:flex items-end flex-col leading-none">
                 <i className='text-xs'>Hi,</i> <strong className='text-gold'>{user?.userName}</strong>
             </span>
             <ProfilePicture avatar_url={user?.user_avatar} />

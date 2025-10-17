@@ -20,7 +20,7 @@ const PageNavigation = ({ linksData, className = " " }) => {
 
   return (
     <div className={`bg-stone-900 ${className}`}>
-      <div className="max-w-6xl mx-auto px-4">
+      <div className="max-w-6xl mx-auto">
         <nav className="flex relative">
           {linksData.map((item, index) => (
             <div
@@ -31,9 +31,9 @@ const PageNavigation = ({ linksData, className = " " }) => {
             >
               {item.hasDropdown ? (
                 <div
-                  className="py-2 px-4 font-bold  cursor-pointer flex items-center gap-1">
+                  className="py-2 px-3 font-bold cursor-pointer flex items-center gap-1">
                   {item.icon}
-                  <span>{item.text}</span>
+                  <span className='text-xs lg:text-sm'>{item.text}</span>
                   <span className="text-xs">▼</span>
                 </div>
               ) : (

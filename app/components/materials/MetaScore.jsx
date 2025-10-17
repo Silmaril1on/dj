@@ -10,7 +10,7 @@ const MetaScore = ({ scoreData, artistId }) => {
   const { average_score, total_ratings } = stats;
 
   return (
-    <div className='mb-1 *:space-x-1 secondary text-xs font-normal items-center *:flex text-gold'>
+    <div className='*:space-x-1 secondary text-xs font-normal items-center *:flex text-gold'>
       {total_ratings > 0 ?
         <Score average_score={average_score} total_ratings={total_ratings} />
         :

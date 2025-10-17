@@ -94,3 +94,25 @@ export const slideTop = {
     },
   },
 };
+
+export const slideBottom = {
+  hidden: {
+    y: " -100%",
+  },
+  visible: {
+    y: 0,
+    transition: {
+      duration: 0.3,
+      staggerChildren: 0.1,
+      delayChildren: 0.1,
+    },
+  },
+  exit: {
+    y: "-100%",
+    transition: {
+      duration: 0.3,
+      staggerChildren: 0.2,
+      delayChildren: 0.1,
+    },
+  },
+};

@@ -43,19 +43,37 @@ const SubmittedArtist = ({ data, error }) => {
   }
 
   return (
-    <SectionContainer size="sm" title="My Artist Profile" description="Your artist profile" className="bg-stone-900">
-      <FlexBox type="row-start" className="gap-4 w-full pb-4 px-4">
-        <ProfilePicture type="avatar" avatar_url={data[0]?.artist_image} />
-        <div className='flex items-start justify-center  flex-col'>
-          <Title size="xl" className='uppercase' text={data[0]?.stage_name || data[0]?.name} />
-          <span className='text-cream secondary text-sm'>Submitted: {formatTime(data[0]?.created_at)}</span>
-          <ArtistCountry artistCountry={data[0]} />
+    <SectionContainer
+      size="sm"
+      title="My Artist Profile"
+      description="Your artist profile"
+      className="bg-stone-900"
+    >
+      <section className="w-full space-y-2 lg:space-y-0">
+        <div className='flex gap-2 lg:gap-5 w-full'>
+          <ProfilePicture type="avatar" avatar_url={data[0]?.artist_image} />
+          <div className="flex items-start justify-center  flex-col ">
+            <Title
+              size="xl"
+              className="uppercase"
+              text={data[0]?.stage_name || data[0]?.name}
+            />
+            <span className="text-cream secondary text-xs lg:text-sm">
+              Submitted: {formatTime(data[0]?.created_at)}
+            </span>
+            <ArtistCountry artistCountry={data[0]} />
+          </div>
         </div>
-        <div className='center flex-1 space-x-2'>
+        <div className="center flex-1 space-x-2">
           <StatusIndicator status={data[0]?.status} />
-          <Button icon={<MdVisibility />} type="success" text="View Profile" href={`/artists/${data[0]?.id}`} />
+          <Button
+            icon={<MdVisibility />}
+            type="success"
+            text="View Profile"
+            href={`/artists/${data[0]?.id}`}
+          />
         </div>
-      </FlexBox>
+      </section>
     </SectionContainer>
   );
 };

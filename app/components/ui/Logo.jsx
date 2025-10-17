@@ -1,7 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 
-const Logo = ({ size = "sm" }) => {
+const Logo = ({ size = "sm", className }) => {
   const sizeClasses = {
     sm: "w-14 h-14",
     md: "w-22 h-22",
@@ -10,7 +10,7 @@ const Logo = ({ size = "sm" }) => {
 
   return (
     <Link href="/">
-      <div className={`relative ${sizeClasses[size]}`}>
+      <div className={`${className} ${sizeClasses[size]}`}>
         <Image
           className="sepia w-full h-full"
           src="/assets/elivagar-logo.png"

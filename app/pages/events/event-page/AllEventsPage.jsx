@@ -110,14 +110,14 @@ const AllEventsPage = ({ events: initialEvents = [], error }) => {
   }
 
   return (
-    <div className='space-y-3 px-4'>
+    <div className='space-y-3 px-3 lg:px-4'>
       <PageHeadline title="Upcomming events" description="Find the latest events happening near you." />
       <FilterBar
         config={dynamicFilterConfig}
         values={filters}
         onChange={handleFilterChange}
       />
-      <div className="grid grid-cols-5 gap-4">
+      <div className="grid grid-cols-2 lg:grid-cols-4 xl:grid-cols-5 gap-2 lg:gap-4">
         <AnimatePresence>
           {filteredEvents.map((event, idx) => (
             <ProductCard

@@ -80,7 +80,7 @@ const Mybookings = ({ data, error }) => {
         {stats.total > 0 && (
           <div className="p-3 bg-stone-800/50 rounded-sm">
             <Title text="Summary" size="sm" />
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
+            <div className="grid grid-cols-3 gap-4 text-xs">
               <div>
                 <SpanText text="Success Rate:" color="chino" font="secondary" size="xs" />
                 <SpanText
@@ -91,7 +91,7 @@ const Mybookings = ({ data, error }) => {
                 />
               </div>
               <div>
-                <SpanText text="Pending Response:" color="chino" font="secondary" size="xs" />
+                <SpanText text="Pending" color="chino" font="secondary" size="xs" />
                 <SpanText
                   text={` ${stats.pending} requests`}
                   className="text-gold font-bold"

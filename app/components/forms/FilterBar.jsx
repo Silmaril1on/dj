@@ -30,15 +30,15 @@ const CustomSelect = ({ value, onChange, options, placeholder = "All" }) => {
   };
 
   return (
-    <div ref={selectRef} className="relative w-44">
+    <div ref={selectRef} className="relative w-full lg:w-44">
       <div
-        className="appearance-none relative px-2 py-1 border border-gold/40 text-gold bg-gold/20 focus:outline-none focus:ring-2 focus:ring-orange duration-300 cursor-pointer"
+        className="appearance-none relative px-3 py-2 border border-gold/40 text-gold bg-gold/20 focus:outline-none focus:ring-2 focus:ring-orange duration-300 cursor-pointer"
         onClick={() => setIsOpen(!isOpen)}
       >
         <div className="flex items-center justify-between">
-          <span>{getDisplayText()}</span>
+          <span className="text-sm lg:text-base truncate">{getDisplayText()}</span>
           <svg
-            className={`w-4 h-4 transition-transform duration-200 ${
+            className={`w-4 h-4 transition-transform duration-200 flex-shrink-0 ml-2 ${
               isOpen ? "rotate-180" : ""
             }`}
             fill="none"
@@ -58,7 +58,7 @@ const CustomSelect = ({ value, onChange, options, placeholder = "All" }) => {
       {isOpen && (
         <div className="absolute top-full left-0 right-0 bg-stone-900 border border-orange/40 border-t-0 z-50 max-h-60 overflow-y-auto">
           <div
-            className="px-2 py-1 lg:px-3 lg:py-2 text-gold hover:bg-gold hover:text-stone-900 cursor-pointer transition-colors duration-300"
+            className="px-3 py-2 text-sm lg:text-base text-gold hover:bg-gold hover:text-stone-900 cursor-pointer transition-colors duration-300"
             onClick={() => handleOptionClick("")}
           >
             {placeholder}
@@ -70,7 +70,7 @@ const CustomSelect = ({ value, onChange, options, placeholder = "All" }) => {
             return (
               <div
                 key={`${optionValue}-${index}`}
-                className="px-2 py-1 lg:px-3 lg:py-2 text-gold hover:bg-gold hover:text-stone-900 cursor-pointer transition-colors duration-200 border-t border-orange/20"
+                className="px-3 py-2 text-sm lg:text-base text-gold hover:bg-gold hover:text-stone-900 cursor-pointer transition-colors duration-200 border-t border-orange/20"
                 onClick={() => handleOptionClick(optionValue)}
               >
                 {optionLabel}
@@ -90,7 +90,7 @@ const FilterBar = ({ config = [], values = {}, onChange }) => {
   };
 
   return (
-    <div className="flex gap-4">
+    <div className="grid grid-cols-2 lg:flex gap-2 lg:gap-4">
       {config.map((field) => {
         if (field.type === "select") {
           return (
@@ -111,7 +111,7 @@ const FilterBar = ({ config = [], values = {}, onChange }) => {
               type="date"
               value={values[field.name] || ""}
               onChange={(e) => onChange(field.name, e.target.value)}
-              className="appearance-none rounded-none relative block w-44 px-2 py-1 lg:px-3 lg:py-2 border border-orange/40 placeholder-gold/40 text-gold bg-gold/20 focus:outline-none focus:ring-2 focus:ring-orange duration-300"
+              className="appearance-none rounded-none relative block w-full lg:w-44 px-3 py-2 text-sm lg:text-base border border-orange/40 placeholder-gold/40 text-gold bg-gold/20 focus:outline-none focus:ring-2 focus:ring-orange duration-300"
             />
           );
         }
@@ -124,7 +124,7 @@ const FilterBar = ({ config = [], values = {}, onChange }) => {
             placeholder={field.placeholder || getPlaceholder(field)}
             value={values[field.name] || ""}
             onChange={(e) => onChange(field.name, e.target.value)}
-            className="appearance-none rounded-none relative block w-44 px-2 py-1 lg:px-3 border border-orange/40 placeholder-gold/40 text-gold bg-gold/20 focus:outline-none focus:ring-2 focus:ring-orange duration-300"
+            className="appearance-none rounded-none relative block w-full lg:w-44 px-3 py-2 text-sm lg:text-base border border-orange/40 placeholder-gold/40 text-gold bg-gold/20 focus:outline-none focus:ring-2 focus:ring-orange duration-300 col-span-2"
           />
         );
       })}

@@ -14,7 +14,7 @@ import { FiActivity } from "react-icons/fi";
 export const userProfileLinks = [
   {
     href: "/my-profile/personal-information",
-    text: "My Profile",
+    text: "Profile",
     icon: <MdPerson />,
   },
   {

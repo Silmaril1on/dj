@@ -60,7 +60,7 @@ const EditProduct = ({ className, data, type = "artist", desc }) => {
   return (
     <div
       onClick={handleEdit}
-      className={`bg-gold/30 hover:bg-gold/40 text-gold w-fit secondary center gap-1 cursor-pointer duration-300 p-1 rounded-xs text-[10px] lg:text-sm font-bold ${className}`}
+      className={`bg-gold/30 hover:bg-gold/40 text-gold w-fit secondary center gap-1 cursor-pointer duration-300 p-1 rounded-xs text-sm font-bold ${className}`}
     >
       <MdEdit size={20} />
       {desc && <h1>{desc}</h1>}

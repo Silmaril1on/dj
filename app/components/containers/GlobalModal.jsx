@@ -30,6 +30,7 @@ const GlobalModal = ({ children, }) => {
     if (addEventModal?.isOpen) return "max-w-3xl";
     if (globalModal.content === "rating") return "w-lg";
     if (globalModal.content === "review") return "w-xl";
+    if (reportsModal?.isOpen) return "w-xl";
     return "max-w-2xl"; 
   };
 
@@ -47,7 +48,7 @@ const GlobalModal = ({ children, }) => {
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           transition={{ duration: 0.3, ease: "easeInOut" }}
-          className={`fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center `}
+          className={`fixed inset-0 bg-black/50 backdrop-blur-sm px-3 z-50 flex items-center justify-center `}
         >
           <div
             className={`bg-black border border-gold/50 p-5 relative ${getModalWidth()}`}

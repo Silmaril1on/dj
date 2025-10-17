@@ -85,7 +85,7 @@ const LikeButton = ({
   return (
     <div
       onClick={handleLike}
-      className={`bg-gold/30 hover:bg-gold/40 text-gold w-fit secondary center cursor-pointer duration-300 p-1 rounded-xs text-[10px] lg:text-sm font-bold ${className}`}
+      className={`bg-gold/30 hover:bg-gold/40 text-gold w-fit secondary center cursor-pointer duration-300 p-1 rounded-xs text-sm font-bold ${className}`}
     >
       {isLoading ? (
         <Spinner />

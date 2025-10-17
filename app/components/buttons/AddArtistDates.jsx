@@ -33,7 +33,7 @@ const AddArtistDates = ({ className, artist, desc, userSubmittedArtistId }) => {
   return (
     <div
       onClick={handleAddEvent}
-      className={`bg-gold/30 hover:bg-gold/40 text-gold w-fit secondary center gap-1 cursor-pointer duration-300 p-1 rounded-xs text-[10px] lg:text-sm font-bold ${className}`}
+      className={`bg-gold/30 hover:bg-gold/40 text-gold w-fit secondary center gap-1 cursor-pointer duration-300 p-1 rounded-xs text-sm font-bold ${className}`}
     >
       <MdEvent size={20} />
       {desc && <h1>{desc}</h1>}

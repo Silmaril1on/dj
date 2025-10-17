@@ -60,18 +60,18 @@ const AppDataStats = () => {
 
   return (
     <div className="w-full px-4 py-8 grid grid-cols-1 lg:grid-cols-2 gap-2">
-      <div className="grid grid-cols-1 md:grid-cols-2 h-80 gap-2">
+      <div className="grid grid-cols-2 h-80 gap-2">
         {statItems.map((item, index) => (
           <Motion
             animation="fade"
             delay={index * 0.03}
             key={item.key}
-            className="bg-gold/40 p-6 text-center hover:bg-gold/30 duration-300 group"
+            className="bg-gold/40 p-6 text-center hover:bg-gold/30 duration-300 group relative"
           >
             <Link href={item.link}>
               <div className="grid grid-cols-2">
                 <div className="text-gold font-bold text-4xl">{item.label}</div>
-                <div className="text-8xl text-cream font-bold group-hover:scale-120 group-hover:rotate-[10deg] duration-300">
+                <div className="text-5xl absolute lg:static bottom-5 right-5 lg:text-8xl text-cream font-bold group-hover:scale-120 group-hover:rotate-[10deg] duration-300">
                   {stats?.[item.key] || 0}
                 </div>
               </div>

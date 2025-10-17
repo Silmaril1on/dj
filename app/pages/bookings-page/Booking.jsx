@@ -11,7 +11,7 @@ const Booking = ({ initialChatUsers, initialError }) => {
   }
 
   return (
-    <div className="gap-4 h-full flex min-h-screen">
+    <div className="gap-4 h-full flex flex-col lg:flex-row min-h-screen">
       <ChatUsers 
         initialChatUsers={initialChatUsers || []}
         onSelectBooking={handleSelectBooking}

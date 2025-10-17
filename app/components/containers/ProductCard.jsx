@@ -8,7 +8,6 @@ import ArtistCountry from '@/app/components/materials/ArtistCountry'
 import Dot from '@/app/components/ui/Dot'
 import { FaUsers } from 'react-icons/fa'
 
-// Add capacity to the component props
 const ProductCard = ({
   id,
   image,
@@ -18,7 +17,7 @@ const ProductCard = ({
   artists = [],
   date,
   likesCount,
-  capacity, // Add this prop
+  capacity, 
   href,
   animation = "fade",
   delay = 0,
@@ -29,10 +28,10 @@ const ProductCard = ({
     layout
     animation={animation}
     delay={delay}
-    className={`relative bordered bg-stone-900 p-2 group cursor-pointer ${className}`}
+    className={`relative bordered bg-stone-900 p-1 group cursor-pointer ${className}`}
   >
     <Link href={href || "#"}>
-      <div className="h-80 brightness">
+      <div className="h-44 lg:h-80 brightness">
         <Image
           src={image}
           alt={name}
@@ -42,8 +41,8 @@ const ProductCard = ({
         />
       </div>
       <div className="flex flex-col">
-        <Title size="sm" color="cream" className="uppercase text-start" text={name} />
-        {date && <p className="text-chino uppercase font-bold">{date}</p>}
+        <Title color="cream" className="uppercase text-start text-[12px] lg:text-lg xl:text-2xl" text={name} />
+        {date && <p className="text-chino uppercase font-bold text-[10px] lg:text-sm">{date}</p>}
         <ArtistCountry artistCountry={{ country, city }} />
         {/* Add capacity display here */}
         {capacity && (
@@ -56,7 +55,7 @@ const ProductCard = ({
         <div className="flex flex-wrap">
           {artists.slice(0, 5).map((artist, idx) => (
             <div className="flex mr-2 space-x-1" key={idx}>
-              <Title color="chino" className="uppercase" text={artist} />
+              <Title color="chino" className="uppercase text-[12px] lg:text-lg" text={artist} />
               {idx < artists.length - 1 && <Dot />}
             </div>
           ))}

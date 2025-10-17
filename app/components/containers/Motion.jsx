@@ -1,6 +1,6 @@
 "use client"
 import { motion } from "framer-motion";
-const { slideLeft, fadeIn, popup, slideTop } = require("../../framer-motion/motionValues");
+const { slideLeft, fadeIn, popup, slideTop, slideBottom } = require("../../framer-motion/motionValues");
 
 const Motion = ({
     children,
@@ -20,14 +20,15 @@ const Motion = ({
         left: "slideLeft",
         fade: "fadeIn",
         pop: "popup",
-        top: "slideTop"
+        top: "slideTop",
+        bottom: "slideBottom"
     };
 
     const getAnimationVariant = () => {
         if (!animation) return null;
         const variantName = motionVariants[animation];
         if (!variantName) return null;
-        return { slideLeft, fadeIn, popup, slideTop }[variantName];
+        return { slideLeft, fadeIn, popup, slideTop, slideBottom }[variantName];
     };
 
     const getChildVariants = (animationType) => {

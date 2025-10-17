@@ -82,7 +82,7 @@ const BookingsConversation = ({ selectedBookingId, initialChatUsers = [] }) => {
 
   if (!currentBookingId || initialChatUsers.length === 0) {
     return (
-      <div className="w-[70%] flex items-center justify-center">
+      <div className="w-full lg:w-[70%] flex items-center justify-center">
         <div className="text-center">
           <Title text="No Booking Requests" />
           <Paragraph text="You don't have any booking requests at the moment" className="text-stone-400 mt-2" />
@@ -93,7 +93,7 @@ const BookingsConversation = ({ selectedBookingId, initialChatUsers = [] }) => {
 
   if (loading || checkingMessages) {
     return (
-      <div className="w-[70%] flex items-center justify-center">
+      <div className="w-full lg:w-[70%] flex items-center justify-center">
        <Spinner type="logo" />
       </div>
     );
@@ -101,7 +101,7 @@ const BookingsConversation = ({ selectedBookingId, initialChatUsers = [] }) => {
 
   if (error) {
     return (
-      <div className="w-[70%] flex items-center justify-center">
+      <div className="w-full lg:w-[70%] flex items-center justify-center">
         <div className="text-center">
           <Title text="Error" className="text-red-400" />
           <Paragraph text={error} className="text-stone-400 mt-2" />
@@ -112,7 +112,7 @@ const BookingsConversation = ({ selectedBookingId, initialChatUsers = [] }) => {
 
   if (!booking) {
     return (
-      <div className="w-[70%] flex items-center justify-center">
+      <div className="w-full lg:w-[70%] flex items-center justify-center">
        <ErrorCode text="Booking details not found." description='No booking information is available for this request.'/>
       </div>
     );
@@ -122,7 +122,7 @@ const BookingsConversation = ({ selectedBookingId, initialChatUsers = [] }) => {
   const shouldShowChat = hasMessages && !isBookingConfirmed;
 
   return (
-    <div className="w-[70%]">
+    <div className="w-full lg:w-[70%]">
       <SectionContainer
         title="Booking Details"
         description="booking information"

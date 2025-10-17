@@ -1,8 +1,9 @@
 "use client"
 import { useState, useRef } from "react";
 import { useRouter } from "next/navigation";
-import Spinner from "../ui/Spinner";
 import { FaSearch } from "react-icons/fa";
+import {motion} from "framer-motion"
+import Spinner from "../ui/Spinner";
 
 const SearchBar = () => {
   const [query, setQuery] = useState("");
@@ -42,7 +43,7 @@ const SearchBar = () => {
   };
 
   return (
-    <div className="relative center w-full">
+    <motion.div initial={{ y: "-100px"}} animate={{y: 0}} transition={{duration: 0.4, delay: 0.7}} className="relative center w-full">
       <div className="relative w-full">
         <input
           type="text"
@@ -108,7 +109,7 @@ const SearchBar = () => {
           ))}
         </div>
       )}
-    </div>
+    </motion.div>
   );
 };
 

@@ -128,7 +128,7 @@ const Clubs = ({ clubs: initialClubs = [], error }) => {
   }
 
   return (
-    <div className="space-y-3 px-4">
+    <div className="space-y-3 px-3 lg:px-4">
       <PageHeadline 
         title="All Clubs" 
         description="Discover the best clubs around the world." 
@@ -138,7 +138,7 @@ const Clubs = ({ clubs: initialClubs = [], error }) => {
         values={filters}
         onChange={handleFilterChange}
       />
-      <div className="grid grid-cols-3 gap-4">
+      <div className="grid grid-cols-2 lg:grid-cols-3 gap-2 lg:gap-4">
         <AnimatePresence>
           {filteredClubs.map((club, idx) => (
             <ProductCard

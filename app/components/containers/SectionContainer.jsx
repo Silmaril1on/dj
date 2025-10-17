@@ -36,7 +36,7 @@ const SectionContainer = ({
           <p className={`${getDescriptionSize(size)} text-cream secondary leading-none`}>{description}</p>
         </Motion>
       </FlexBox>
-      <div className='w-full border-t border-gold p-4 grow-1 flex justify-center items-center'>
+      <div className='w-full border-t border-gold p-3 lg:p-4 grow-1 flex justify-center items-center'>
         {children}
       </div>
     </div>

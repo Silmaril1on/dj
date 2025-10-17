@@ -44,7 +44,7 @@ const Title = ({
                 {artistName}
             </h1>
             {hasLive && (
-                <div className={`text-sm uppercase ${className} ${titleColor}`}>
+                <div className={`text-[7px] md:text-[10px] uppercase ${titleColor}`}>
                     <span>LIVE</span>
                 </div>
             )}

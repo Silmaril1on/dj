@@ -96,9 +96,9 @@ const handleSubmit = (type) => {
       <Motion animation="fade" delay={1} className="absolute w-98 h-98 -right-10 sepia -bottom-22 rotate-[65deg] -z-[1] brightness-20 blur-[2px]">
         <Image src="/assets/elivagar-logo.png" alt="Elivagar Logo" width={300} height={300} className="w-full h-full"/>
       </Motion>
-      <div className="w-full center flex-col mb-10">
+      <div className="w-full center flex-col mb-5">
         <Title text="Submit New Content" />
-        <Paragraph  text="Contribute to our community by adding new artists, clubs, or events. Your submissions help keep our platform vibrant and up-to-date." />
+        <Paragraph className="text-center" text="Contribute to our community by adding new artists, clubs, or events. Your submissions help keep our platform vibrant and up-to-date." />
       </div>
       <div className="w-full grid grid-cols-1 md:grid-cols-3 gap-6 px-[10%] overflow-hidden">
         {cards.map(({ type, title, description, icon: Icon }, index) => (

@@ -1,7 +1,6 @@
 import { CountryFlags } from './CountryFlags'
 import FlexBox from '../containers/FlexBox'
 import Dot from '../ui/Dot'
-import { truncateString } from '@/app/helpers/utils'
 
 const ArtistCountry = ({ artistCountry }) => {
   return (
@@ -12,11 +11,11 @@ const ArtistCountry = ({ artistCountry }) => {
       />
       <FlexBox
         type="row-start"
-        className="secondary text-xs gap-1 pl-1 capitalize items-center *:leading-none"
+        className="secondary text-[9px] md:text-xs gap-1 pl-1 capitalize items-center *:leading-none"
       >
         {artistCountry.country && <p>{artistCountry.country}</p>}
         {artistCountry.city && <Dot />}
-        {artistCountry.city && <p>{truncateString(artistCountry.city, 12)}</p>}
+        {artistCountry.city && <p>{artistCountry.city}</p>}
       </FlexBox>
     </FlexBox>
   );

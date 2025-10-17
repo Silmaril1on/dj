@@ -28,7 +28,7 @@ const Actions = ({ data, userRating, onLikeChange }) => {
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6, delay: 1.5 }}
-        className="grid grid-cols-3 md:grid-cols-6 lg:grid-cols-3 xl:flex xl:justify-end gap-2 xl:*:px-2"
+        className="flex justify-end flex-wrap gap-2 xl:px-2"
       >
         {shouldRenderBookButton && (
           <button
