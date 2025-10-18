@@ -63,8 +63,13 @@ const ArtistsSection = () => {
               cardWidth={236}
               itemsPerPage={6}
             >
-              {artists?.map((artist) => (
-                <ArtistCard key={artist.id} artist={artist} />
+              {artists?.map((artist, idx) => (
+                <ArtistCard
+                  key={artist.id}
+                  artist={artist}
+                  animate={true}
+                  delay={idx * 0.1} 
+                />
               ))}
             </SliderContainer>
           </div>

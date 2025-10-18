@@ -92,8 +92,8 @@ const UpdateBooking = ({ bookingId, bookingData, user, onBookingUpdate }) => {
   }
 
   return (
-    <div className="flex flex-col items-start space-y-2">
-      <Button 
+    <div className="flex flex-col items-start space-y-2 relative">
+      <Button
         text={buttonText}
         type={isWaitingForOtherUser ? "disabled" : "success"}
         onClick={handleConfirmBooking}
@@ -101,48 +101,46 @@ const UpdateBooking = ({ bookingId, bookingData, user, onBookingUpdate }) => {
         loading={isConfirming}
         icon={isWaitingForOtherUser ? <FaCheck /> : null}
       />
-      
-      {/* Status messages */}
-      {isWaitingForOtherUser ? (
-        <div>
-          <SpanText
-            text="✅ You have confirmed the deal. Waiting for the other party to confirm."
-            color="yellow-300"
-            size="xs"
-          />
-          <SpanText
-            text="Once both parties confirm, the booking will be finalized."
-            color="cream"
-            size="xs"
-          />
-        </div>
-      ) : isWaitingForCurrentUser ? (
-        <div >
-          <SpanText
-            text="⏳ The other party has confirmed. Click to complete the deal!"
-            color="green-300"
-            size="xs"
-          />
-          <SpanText
-            text="By clicking Confirm Deal, both parties acknowledge mutual agreement to the booking terms."
-            color="cream"
-            size="xs"
-          />
-        </div>
-      ) : (
-        <div>
-          <SpanText
-            text="Made a deal? Update the booking status to keep things on track."
-            color="cream"
-            size="xs"
-          />
-          <SpanText
-            text="By clicking Confirm Deal, both parties acknowledge mutual agreement to the booking terms discussed in this chat."
-            color="cream"
-            size="xs"
-          />
-        </div>
-      )}
+        {isWaitingForOtherUser ? (
+          <div>
+            <SpanText
+              text="✅ You have confirmed the deal. Waiting for the other party to confirm."
+              color="yellow-300"
+              size="xs"
+            />
+            <SpanText
+              text="Once both parties confirm, the booking will be finalized."
+              color="cream"
+              size="xs"
+            />
+          </div>
+        ) : isWaitingForCurrentUser ? (
+          <div>
+            <SpanText
+              text="⏳ The other party has confirmed. Click to complete the deal!"
+              color="green-300"
+              size="xs"
+            />
+            <SpanText
+              text="By clicking Confirm Deal, both parties acknowledge mutual agreement to the booking terms."
+              color="cream"
+              size="xs"
+            />
+          </div>
+        ) : (
+          <div>
+            <SpanText
+              text="Made a deal? Update the booking status to keep things on track."
+              color="cream"
+              size="xs"
+            />
+            <SpanText
+              text="By clicking Confirm Deal, both parties acknowledge mutual agreement to the booking terms discussed in this chat."
+              color="cream"
+              size="xs"
+            />
+          </div>
+        )}
 
       {/* Error display */}
       {error && (

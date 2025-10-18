@@ -1,6 +1,5 @@
 'use client'
 import { useState } from 'react'
-import { motion } from 'framer-motion'
 import Left from '../buttons/Left'
 import Right from '../buttons/Right'
 
@@ -10,7 +9,6 @@ const SliderContainer = ({
   itemsPerPage = 6,
   cardWidth = 236,
   cardMargin = 8,
-  animate = false,
   className = ""
 }) => {
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -18,20 +16,6 @@ const SliderContainer = ({
   if (!items || items.length === 0) {
     return <div className="text-red-500 p-4">No items in SliderContainer</div>;
   }
-
-  const containerVariants = {
-    hidden: { opacity: 0, y: 50 },
-    visible: {
-      opacity: 1,
-      y: 0,
-      transition: {
-        duration: 0.6,
-        ease: "easeOut",
-        staggerChildren: 0.1, 
-        delayChildren: 0.2 
-      }
-    }
-  };
 
   const containerWidth = itemsPerPage * (cardWidth + 2 * cardMargin);
 
@@ -72,19 +56,9 @@ const SliderContainer = ({
     <div className={`relative flex flex-col items-center group/slider ${className}`}>
       <div style={wrapperStyle}>
         <div {...innerStyles}>
-          <motion.div
-            className="flex flex-row gap-0"
-            style={{ 
-              minHeight: "280px",
-              width: "100%"
-            }}
-            variants={animate ? containerVariants : undefined}
-            initial={animate ? "hidden" : undefined}
-            whileInView={animate ? "visible" : undefined}
-            viewport={{ once: true, amount: 0.2 }}
-          >
+          <div className="flex flex-row gap-0" style={{ minHeight: "280px", width: "100%" }}>
             {children}
-          </motion.div>
+          </div>
         </div>
       </div>
       

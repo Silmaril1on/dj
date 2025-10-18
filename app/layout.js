@@ -6,6 +6,8 @@ import ErrorMsg from "./components/ui/ErrorMsg";
 import NavigationWrapper from "./layout/navigation/NavigationWrapper";
 import GlobalModal from "./components/containers/GlobalModal";
 import Footer from "./layout/footer/Footer";
+import MobileNavBar from "./layout/navigation/MobileNavBar";
+import SmoothScroll from "./components/containers/SmoothScroll";
 
 const rationale = Rationale({
   variable: "--font-rationale",
@@ -28,15 +30,18 @@ export default function RootLayout({ children }) {
   return (
     <html lang="en">
       <body
-        className={`${rationale.variable} ${montserratAlternates.variable} min-h-screen relative flex flex-col duration-300 bg-black text-gold`}
+        className={`${rationale.variable} ${montserratAlternates.variable} min-h-screen mb-10 lg:mb-0 relative flex flex-col duration-300 bg-black text-gold`}
       >
         <StoreProvider>
           <AuthProvider>
+            <SmoothScroll>
             <NavigationWrapper />
             {children}
             <ErrorMsg />
             <GlobalModal />
+            <MobileNavBar />
             <Footer />
+            </SmoothScroll>
           </AuthProvider>
         </StoreProvider>
       </body>

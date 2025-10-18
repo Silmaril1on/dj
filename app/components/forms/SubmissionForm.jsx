@@ -171,9 +171,9 @@ const SubmissionForm = ({
     // Get icon component
     const getIcon = () => {
       switch (icon) {
-        case 'email': return <MdEmail className="absolute left-3 top-2.5 h-5 w-5" />
-        case 'lock': return <MdLock className="absolute left-3 top-2.5 h-5 w-5" />
-        case 'person': return <MdPerson className="absolute left-3 top-2.5 h-5 w-5" />
+        case 'email': return <MdEmail className="absolute left-3 top-1.5 h-5 w-5" />
+        case 'lock': return <MdLock className="absolute left-3 top-1.5 h-5 w-5" />
+        case 'person': return <MdPerson className="absolute left-3 top-1.5 h-5 w-5" />
         default: return null
       }
     }

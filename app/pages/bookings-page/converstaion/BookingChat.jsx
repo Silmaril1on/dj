@@ -180,11 +180,12 @@ const BookingChat = ({ bookingId, bookingData: initialBookingData, onBookingUpda
                         {capitalizeFirst(message.message)}
                       </div>
                     </div>
-
-                    <ProfilePicture
-                      avatar_url={message.sender?.user_avatar}
-                      size="xs"
-                    />
+                    <div>
+                      <ProfilePicture
+                        avatar_url={message.sender?.user_avatar}
+                        size="xs"
+                      />
+                    </div>
                   </div>
                   <SpanText
                     text={formatTime(message.created_at)}
@@ -208,12 +209,6 @@ const BookingChat = ({ bookingId, bookingData: initialBookingData, onBookingUpda
           disabled={sending}
         />
         <div className="w-full flex justify-between items-center">
-          <UpdateBooking 
-            bookingId={bookingId}
-            bookingData={bookingData}
-            user={user}
-            onBookingUpdate={handleBookingUpdate}
-          />
           <Button
             type="submit"
             text={sending ? "Sending..." : "Send Message"}
@@ -221,6 +216,12 @@ const BookingChat = ({ bookingId, bookingData: initialBookingData, onBookingUpda
             loading={sending}
           />
         </div>
+          <UpdateBooking 
+            bookingId={bookingId}
+            bookingData={bookingData}
+            user={user}
+            onBookingUpdate={handleBookingUpdate}
+          />
       </form>
     </div>
   );

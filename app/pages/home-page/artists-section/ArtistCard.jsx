@@ -9,7 +9,13 @@ import MetaScore from '@/app/components/materials/MetaScore'
 import LikeButton from '@/app/components/buttons/LikeButton'
 import FlexBox from '@/app/components/containers/FlexBox'
 
-const ArtistCard = ({ artist, cardWidth = 236, cardMargin = 8, animate}) => {
+const ArtistCard = ({
+  artist,
+  cardWidth = 236,
+  cardMargin = 8,
+  animate,
+  delay = 0,
+}) => {
   const [likesCount, setLikesCount] = useState(artist?.likesCount || 0);
   const userRating = artist?.userRating || null;
 
@@ -18,23 +24,20 @@ const ArtistCard = ({ artist, cardWidth = 236, cardMargin = 8, animate}) => {
     margin: `0 ${cardMargin}px`,
     minWidth: `${cardWidth}px`,
     flexShrink: 0,
-  }
+  };
 
   const cardVariants = {
-    hidden: { 
-      opacity: 0, 
-      y: 30,
-      scale: 0.9
-    },
-    visible: { 
-      opacity: 1, 
+    hidden: { opacity: 0, y: 30, scale: 0.9 },
+    visible: (delay) => ({
+      opacity: 1,
       y: 0,
       scale: 1,
       transition: {
         duration: 0.5,
-        ease: "easeOut"
-      }
-    }
+        ease: "easeOut",
+        delay, // individual delay passed as prop
+      },
+    }),
   };
 
   const handleLikeChange = (isLiked, newLikesCount) => {
@@ -45,7 +48,10 @@ const ArtistCard = ({ artist, cardWidth = 236, cardMargin = 8, animate}) => {
     <motion.div
       style={cardStyle}
       variants={animate ? cardVariants : undefined}
-      className='border border-gold/30 hover:border-gold/50 bg-gold/20 duration-300 p-1 group relative'
+      initial="hidden"
+      animate="visible"
+      custom={delay} // 👈 pass delay into variants
+      className="border border-gold/30 hover:border-gold/50 bg-gold/20 duration-300 p-1 group relative"
     >
       <Link href={`/artists/${artist.id}`}>
         <div className="w-full h-44 lg:h-64 overflow-hidden rounded-sm">
@@ -58,8 +64,9 @@ const ArtistCard = ({ artist, cardWidth = 236, cardMargin = 8, animate}) => {
             priority
           />
         </div>
-        <article className='w-full mt-1'>
-          <ArtistName size="lg" artistName={artist} className='leading-5' />
+
+        <article className="w-full mt-1">
+          <ArtistName size="lg" artistName={artist} className="leading-5" />
           <ArtistCountry artistCountry={artist} />
           <MetaScore scoreData={artist?.rating_stats} artistId={artist.id} />
           <FlexBox type="row-start" className="gap-1">
@@ -68,15 +75,13 @@ const ArtistCard = ({ artist, cardWidth = 236, cardMargin = 8, animate}) => {
               ratingStats={artist.rating_stats}
               userRating={userRating}
             />
-            <LikeButton
-              artist={artist}
-              onLikeChange={handleLikeChange}
-            />
+            <LikeButton artist={artist} onLikeChange={handleLikeChange} />
           </FlexBox>
         </article>
       </Link>
     </motion.div>
-  )
-}
+  );
+};
+
 
 export default ArtistCard

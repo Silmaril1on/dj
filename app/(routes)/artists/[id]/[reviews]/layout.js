@@ -15,9 +15,9 @@ const ArtistReviewsLayout = async ({ children }) => {
 
   const { data } = await res.json();
   return (
-    <div className="flex dark:bg-stone-900 min-h-screen">
-      <div className="w-[70%]">{children}</div>
-      <div className="w-[30%] h-fit sticky top-0 overflow-hidden">
+    <div className="flex flex-col gap-3 lg:flex-row dark:bg-stone-900 min-h-screen">
+      <div className="w-full lg:w-[70%]">{children}</div>
+      <div className="w-full lg:w-[30%] hidden lg:block h-fit sticky top-0 overflow-hidden">
         <SideContent
           thisWeek={data.thisWeek}
           previousWeek={data.previousWeek}

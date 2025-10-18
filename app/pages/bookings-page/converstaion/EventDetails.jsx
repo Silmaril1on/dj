@@ -8,7 +8,7 @@ const EventDetails = ({ booking }) => {
   return (
     <div className="bg-stone-950 rounded-sm p-3">
       <title text="Event Information" size="sm" className="mb-4 text-gold" />
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-2 lg:gap-4">
         <div>
           <SpanText text="Event Name" size="xs" />
           <SpanText

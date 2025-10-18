@@ -5,7 +5,8 @@ import { MdPerson2 } from "react-icons/md";
 const ProfilePicture = ({ avatar_url, type = "icon" }) => {
     const typeClasses = {
         icon: "w-8 h-8 rounded-sm",
-        avatar: "w-33 h-33 rounded-full border-5 border-gold/80"
+        avatar: "w-33 h-33 rounded-full border-5 border-gold/80",
+        mobile: "rounded-full w-9 h-9"
     };
 
     return (

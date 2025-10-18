@@ -15,7 +15,7 @@ const ReviewHeader = ({ artist, data }) => {
           className="w-full h-full object-cover"
         />
       </div>
-      <div className='flex gap-5 bg-black/30 w-full h-full py-10 pl-5'>
+      <div className='flex flex-col md:flex-row gap-5 bg-black/30 w-full h-full py-10 pl-5'>
         <ProfilePicture avatar_url={artist.artist_image} type="avatar" />
         <div className="space-y-2">
           <MyLink

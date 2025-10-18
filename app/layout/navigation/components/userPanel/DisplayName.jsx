@@ -1,37 +1,85 @@
-"use client"
-import { MdKeyboardArrowDown, MdKeyboardArrowUp } from "react-icons/md"
-import UserSettings from "./UserSettings"
-import ProfilePicture from "@/app/components/materials/ProfilePicture"
-import NotificationIcon from "../NotificationIcon"
-import MessageIcon from "../MessageIcon"
+"use client";
+import { useState, useRef, useEffect } from "react";
+import { useDispatch } from "react-redux";
+import { clearUser } from "@/app/features/userSlice";
+import { clearAllRatings } from "@/app/features/ratingSlice";
+import { removeUserCookie } from "@/app/helpers/cookieUtils";
+import { supabaseClient } from "@/app/lib/config/supabaseClient";
+import { useRouter } from "next/navigation";
+import { FaChevronDown } from "react-icons/fa";
+import ProfilePicture from "@/app/components/materials/ProfilePicture";
+import MessageIcon from "../MessageIcon";
+import NotificationIcon from "../NotificationIcon";
+import UserSettings from "./UserSettings";
 
-const DisplayName = ({ user, isSettingsOpen, settingsRef, toggleSettings, handleLogout }) => {
+const DisplayName = ({ user, type }) => {
+  const dispatch = useDispatch();
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  const settingsRef = useRef(null);
+  const router = useRouter();
 
-    return <div className="relative center gap-2" ref={settingsRef}>
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (settingsRef.current && !settingsRef.current.contains(event.target)) {
+        setIsSettingsOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  const handleLogout = async () => {
+    try {
+      await supabaseClient.auth.signOut();
+      dispatch(clearUser());
+      dispatch(clearAllRatings());
+      setIsSettingsOpen(false);
+      removeUserCookie();
+      router.push("/");
+    } catch (error) {
+      router.push("/");
+      console.error("Logout error:", error);
+    }
+  };
+
+  const toggleSettings = () => {
+    setIsSettingsOpen(!isSettingsOpen);
+  };
+
+  return (
+    <div className="relative" ref={settingsRef}>
+      <div className="flex items-center gap-2">
         <MessageIcon />
         <NotificationIcon />
         <button
-            onClick={toggleSettings}
-            className="flex items-center gap-2 cursor-pointer"
+          onClick={toggleSettings}
+          className="flex items-center gap-2 text-cream hover:text-gold duration-300 cursor-pointer"
         >
-            <span className="text-sm text-gray-300 hidden lg:flex items-end flex-col leading-none">
-                <i className='text-xs'>Hi,</i> <strong className='text-gold'>{user?.userName}</strong>
-            </span>
-            <ProfilePicture avatar_url={user?.user_avatar} />
-            {isSettingsOpen ? (
-                <MdKeyboardArrowUp size={20} />
-            ) : (
-                <MdKeyboardArrowDown size={20} />
-            )}
-        </button>
-        <UserSettings
-            user={user}
+          <ProfilePicture
             avatar_url={user?.user_avatar}
-            isOpen={isSettingsOpen}
-            onLogout={handleLogout}
-            toggleSettings={toggleSettings}
-        />
+            size="sm"
+            type={type}
+          />
+          <span className="text-sm text-gray-300 hidden lg:flex items-end flex-col leading-none">
+            <i className="text-xs">Hi,</i>{" "}
+            <strong className="text-gold">{user?.userName}</strong>
+          </span>
+          <FaChevronDown
+            className={`text-xs transition-transform duration-300 ${
+              isSettingsOpen ? "rotate-180" : ""
+            }`}
+          />
+        </button>
+      </div>
+      <UserSettings
+        user={user}
+        avatar_url={user?.user_avatar}
+        isOpen={isSettingsOpen}
+        onLogout={handleLogout}
+        toggleSettings={toggleSettings}
+      />
     </div>
-}
+  );
+};
 
-export default DisplayName
+export default DisplayName;
