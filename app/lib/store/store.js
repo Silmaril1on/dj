@@ -9,6 +9,7 @@ import editProductReducer from "@/app/features/editProductSlice";
 import reportsReducer from "@/app/features/reportsSlice";
 import bookingReducer from "@/app/features/bookingSlice";
 import acceptBookingReducer from "@/app/features/bookingSlice";
+import welcomeReducer from "@/app/features/welcomeSlice";
 
 export const store = configureStore({
   reducer: {
@@ -22,5 +23,6 @@ export const store = configureStore({
     reports: reportsReducer,
     booking: bookingReducer,
     acceptBooking: acceptBookingReducer,
+    welcome: welcomeReducer,
   },
 });

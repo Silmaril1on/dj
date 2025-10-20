@@ -55,15 +55,15 @@ const DisplayName = ({ user, type }) => {
           onClick={toggleSettings}
           className="flex items-center gap-2 text-cream hover:text-gold duration-300 cursor-pointer"
         >
+          <span className="text-sm text-gray-300 hidden lg:flex items-end flex-col leading-none">
+            <i className="text-xs">Hi,</i>{" "}
+            <strong className="text-gold">{user?.userName}</strong>
+          </span>
           <ProfilePicture
             avatar_url={user?.user_avatar}
             size="sm"
             type={type}
           />
-          <span className="text-sm text-gray-300 hidden lg:flex items-end flex-col leading-none">
-            <i className="text-xs">Hi,</i>{" "}
-            <strong className="text-gold">{user?.userName}</strong>
-          </span>
           <FaChevronDown
             className={`text-xs transition-transform duration-300 ${
               isSettingsOpen ? "rotate-180" : ""

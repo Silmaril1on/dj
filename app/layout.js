@@ -8,6 +8,7 @@ import GlobalModal from "./components/containers/GlobalModal";
 import Footer from "./layout/footer/Footer";
 import MobileNavBar from "./layout/navigation/MobileNavBar";
 import SmoothScroll from "./components/containers/SmoothScroll";
+import WelcomeUser from "./components/materials/WelcomeUser";
 
 const rationale = Rationale({
   variable: "--font-rationale",
@@ -39,7 +40,8 @@ export default function RootLayout({ children }) {
             {children}
             <ErrorMsg />
             <GlobalModal />
-            <MobileNavBar />
+              <MobileNavBar />
+              <WelcomeUser />
             <Footer />
             </SmoothScroll>
           </AuthProvider>

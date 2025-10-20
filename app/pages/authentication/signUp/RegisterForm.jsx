@@ -8,6 +8,7 @@ import { useState } from 'react'
 import { useDispatch } from 'react-redux'
 import { setError } from '@/app/features/modalSlice'
 import { setUser } from '@/app/features/userSlice'
+import { openWelcomeModal } from '@/app/features/welcomeSlice' // Add this
 import { setUserCookie } from '@/app/helpers/cookieUtils'
 import { formConfigs } from '@/app/helpers/formData/formConfigs'
 
@@ -86,8 +87,12 @@ const RegisterForm = ({ }) => {
       }
       dispatch(setUser(data.user))
       setUserCookie(data.user)
-      dispatch(setError({ message: 'Account created successfully!', type: 'success' }))
-      router.push('/')
+      
+      dispatch(openWelcomeModal({
+        userName: formDataObj.userName,
+        email: formDataObj.email
+      }))
+      
     } catch (error) {
       const userFriendlyError = handleAuthError(error)
       dispatch(setError({ message: userFriendlyError, type: 'error' }))

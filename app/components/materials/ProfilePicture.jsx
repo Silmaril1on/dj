@@ -11,7 +11,7 @@ const ProfilePicture = ({ avatar_url, type = "icon" }) => {
 
     return (
         <div
-            className={`${typeClasses[type]} overflow-hidden `}
+            className={`${typeClasses[type]} overflow-hidden center`}
         >
             {avatar_url ? <Image
                 className="w-full h-full object-cover brightness-80 hover:brightness-100 duration-300"
@@ -19,7 +19,7 @@ const ProfilePicture = ({ avatar_url, type = "icon" }) => {
                 alt="Profile Picture"
                 width={100}
                 height={100}
-            /> : <Icon icon={<MdPerson2 />} color="gold" />}
+            /> : <Icon icon={<MdPerson2 />} color="gold" size="xs" />}
         </div>
     );
 };
