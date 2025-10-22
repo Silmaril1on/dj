@@ -11,18 +11,17 @@ import { FaHouse } from "react-icons/fa6";
 const UserSettings = ({ onLogout, isOpen, toggleSettings, avatar_url, user }) => {
 
   return (
-    <PopUpBox isOpen={isOpen} className="absolute -top-[215px] lg:top-full right-0 mt-4 w-64 bg-stone-800 shadow-xl border border-gold/30 z-50 *:p-3">
+    <PopUpBox
+      isOpen={isOpen}
+      className="absolute bottom-full mb-2 lg:bottom-auto lg:top-full right-0 lg:mt-2 w-64 bg-stone-800 shadow-xl border border-gold/30 z-50 *:p-3"
+    >
       <SettingsHeader avatar_url={avatar_url} />
       <SettingsOption toggleSettings={toggleSettings} user={user} />
       <div className="border-t border-gold/30">
-        <Button
-          size="small"
-          text="Logout"
-          onClick={onLogout}
-        />
+        <Button size="small" text="Logout" onClick={onLogout} />
       </div>
     </PopUpBox>
-  )
+  );
 }
 
 const SettingsHeader = ({ avatar_url }) => {

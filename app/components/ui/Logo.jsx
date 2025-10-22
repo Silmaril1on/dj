@@ -3,6 +3,7 @@ import Link from "next/link";
 
 const Logo = ({ size = "sm", className }) => {
   const sizeClasses = {
+    xs: "w-10 h-10",
     sm: "w-14 h-14",
     md: "w-22 h-22",
     lg: "w-26 h-26",

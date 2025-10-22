@@ -32,8 +32,6 @@ export const faqData = [
 export const appSocialLinks = [ 
   "https://www.facebook.com/djdbapp",
   "https://www.instagram.com/djdbapp",
-  "https://www.youtube.com/@djdbapp",
   "https://www.twitter.com/djdbapp",
-  "https://www.tiktok.com/@djdbapp",
 ]
 

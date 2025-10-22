@@ -35,7 +35,7 @@ export default function RootLayout({ children }) {
       >
         <StoreProvider>
           <AuthProvider>
-            <SmoothScroll>
+            {/* <SmoothScroll> */}
             <NavigationWrapper />
             {children}
             <ErrorMsg />
@@ -43,7 +43,7 @@ export default function RootLayout({ children }) {
               <MobileNavBar />
               <WelcomeUser />
             <Footer />
-            </SmoothScroll>
+            {/* </SmoothScroll> */}
           </AuthProvider>
         </StoreProvider>
       </body>

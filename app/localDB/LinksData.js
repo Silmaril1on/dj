@@ -59,22 +59,22 @@ export const userProfileLinks = [
 export const addProductLinks = [
   {
     href: "/add-product/add-artist",
-    text: "Add Artist",
+    text: "Artist",
     icon: <MdPerson />,
   },
   {
     href: "/add-product/add-club",
-    text: "Register Club",
+    text: "Club",
     icon: <MdPerson />,
   },
   {
     href: "/add-product/add-event",
-    text: "Add Event",
+    text: "Event",
     icon: <MdEvent />,
   },
   {
     href: "/add-product/add-news",
-    text: "Add News",
+    text: "News",
     icon: <MdEvent />,
     access: "admin",
   },

@@ -60,13 +60,14 @@ const PasswordChange = () => {
     <SectionContainer
       className="bg-stone-900"
       title="Change Password"
-      description="Update your password settings.efew fef324t3fg3 "
+      description="Update your password"
     >
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-3 w-full">
-        <form onSubmit={handleSubmit} className="space-y-4 ">
+      <div className="grid grid-cols-1 w-full">
+        <form onSubmit={handleSubmit} className="space-y-4">
           {/* Current Password */}
           <div className="relative">
             <input
+            id="current-password"
               type={showPassword.current ? "text" : "password"}
               placeholder="Current Password"
               value={currentPassword}
@@ -85,6 +86,7 @@ const PasswordChange = () => {
           {/* New Password */}
           <div className="relative">
             <input
+              id="new-password"
               type={showPassword.new ? "text" : "password"}
               placeholder="New Password"
               value={newPassword}
@@ -110,6 +112,7 @@ const PasswordChange = () => {
           {/* Confirm Password */}
           <div className="relative">
             <input
+            id="confirm-new-password"
               type={showPassword.confirm ? "text" : "password"}
               placeholder="Confirm New Password"
               value={confirmPassword}

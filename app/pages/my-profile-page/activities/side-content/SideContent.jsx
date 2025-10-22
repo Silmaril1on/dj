@@ -19,9 +19,6 @@ const getChangeIcon = (changeType) => {
 
 const SideContent = ({ thisWeek = [], previousWeek = [] }) => {
 
-  console.log(thisWeek);
-  
-
   return (
     <SectionContainer
       size="sm"

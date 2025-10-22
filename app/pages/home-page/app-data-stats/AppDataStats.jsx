@@ -64,7 +64,7 @@ const AppDataStats = () => {
         {statItems.map((item, index) => (
           <Motion
             animation="fade"
-            delay={index * 0.03}
+            // delay={index * 0.03}
             key={item.key}
             className="bg-gold/40 p-6 text-center hover:bg-gold/30 duration-300 group relative"
           >

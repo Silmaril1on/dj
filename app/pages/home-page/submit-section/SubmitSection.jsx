@@ -77,14 +77,14 @@ const handleSubmit = (type) => {
     },
     {
       type: "club",
-      title: "Add Club",
+      title: "Register Club",
       description:
         "Add a new venue or club to our directory. Share the best spots for electronic music events.",
       icon: <SiNeteasecloudmusic/>,
     },
     {
       type: "event",
-      title: "Add Event",
+      title: "Submit Event",
       description:
         "Create and manage your upcoming events. Connect with fans and promote your shows.",
       icon: <MdEvent />,
@@ -103,8 +103,8 @@ const handleSubmit = (type) => {
       <div className="w-full grid grid-cols-1 md:grid-cols-3 gap-6 px-[10%] overflow-hidden">
         {cards.map(({ type, title, description, icon: Icon }, index) => (
           <Motion
-            animation="top"
-            delay={index * 0.05}
+            animation="fade"
+            delay={index* 0.2}
             key={type}
             onClick={() => handleSubmit(type)}
             className="group relative bg-gradient-to-br from-gold/20 to-gold/10 border border-gold/30 rounded-lg p-6 cursor-pointer hover:border-gold/60 hover:bg-gradient-to-br hover:from-gold/30 hover:to-gold/20 transition-all duration-300"

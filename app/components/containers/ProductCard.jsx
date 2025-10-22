@@ -30,7 +30,7 @@ const ProductCard = ({
     delay={delay}
     className={`relative bordered bg-stone-900 p-1 group cursor-pointer ${className}`}
   >
-    <Link href={href || "#"}>
+    <Link href={href}>
       <div className="h-44 lg:h-80 brightness">
         <Image
           src={image}

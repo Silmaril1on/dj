@@ -64,12 +64,12 @@ const BornToday = () => {
       title="Born Today"
       description="Discover artists celebrating their birthday today."
     >
-      <SliderContainer items={artistList} itemsPerPage={8} cardWidth={175}>
+      <SliderContainer items={artistList} itemsPerPage={4} cardWidth={260}>
         {artistList.map((artist) => (
           <div
             key={artist.id}
             className="group cursor-pointer"
-            style={{ minWidth: 175, margin: "0 8px" }}
+            style={{ minWidth: 260, margin: "0 8px" }}
           >
             <Link href={`/artists/${artist.id}`}>
               <div className="bg-stone-900 bordered p-2 transition-colors duration-300">

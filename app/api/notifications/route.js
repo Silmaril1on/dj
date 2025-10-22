@@ -97,7 +97,6 @@ export async function POST(req) {
         .select();
 
       if (error) {
-        console.error("❌ [NOTIFICATIONS] Mark-all-read error:", error);
         return NextResponse.json({ error: error.message }, { status: 400 });
       }
 
@@ -143,7 +142,6 @@ export async function POST(req) {
       { status: 201 }
     );
   } catch (err) {
-    console.error("❌ [NOTIFICATIONS] Unexpected error:", err);
     return NextResponse.json(
       { error: "Internal server error" },
       { status: 500 }

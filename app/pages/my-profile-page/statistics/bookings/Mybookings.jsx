@@ -5,7 +5,6 @@ import Paragraph from '@/app/components/ui/Paragraph';
 import SpanText from '@/app/components/ui/SpanText';
 
 const Mybookings = ({ data, error }) => {
-  console.log("📊 Mybookings data:", data);
 
   if (error) {
     return (
@@ -108,17 +107,6 @@ const Mybookings = ({ data, error }) => {
           </div>
         )}
       </section>
-
-      {/* Empty State */}
-      {stats.total === 0 && (
-        <div className="text-center py-12">
-          <Title text="No Bookings Yet" className="text-stone-400 mb-2" />
-          <Paragraph
-            text="You haven't received any booking requests yet."
-            className="text-stone-500"
-          />
-        </div>
-      )}
     </SectionContainer>
   );
 };

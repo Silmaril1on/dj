@@ -35,7 +35,7 @@ const ArtistCard = ({
       transition: {
         duration: 0.5,
         ease: "easeOut",
-        delay, // individual delay passed as prop
+        delay, 
       },
     }),
   };
@@ -49,8 +49,8 @@ const ArtistCard = ({
       style={cardStyle}
       variants={animate ? cardVariants : undefined}
       initial="hidden"
-      animate="visible"
-      custom={delay} // 👈 pass delay into variants
+      whileInView="visible"
+      custom={delay}
       className="border border-gold/30 hover:border-gold/50 bg-gold/20 duration-300 p-1 group relative"
     >
       <Link href={`/artists/${artist.id}`}>

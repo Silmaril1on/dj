@@ -32,7 +32,7 @@ const ArtistReviews = ({ data, artistId }) => {
         title="Artist Reviews"
         description="Read what others are saying about this artist."
       >
-        <div className='h-full w-full flex flex-col items-center'>
+        <div className='h-full w-full flex flex-col items-center space-y-2'>
           <div className="grid grid-cols-2 lg:grid-cols-3 lg:grid-rows-2 gap-3 w-full h-full">
             {data.map((item, idx) => {
               return (

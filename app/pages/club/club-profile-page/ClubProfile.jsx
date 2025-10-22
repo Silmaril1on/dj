@@ -12,11 +12,14 @@ import { useRouter } from "next/navigation";
 import ArtistSchedule from "@/app/pages/artist/artist-profile/schedule/ArtistSchedule";
 import { FaUpload } from "react-icons/fa";
 import EmailTag from "@/app/components/ui/EmailTag";
+import useRecentlyViewed from "@/app/lib/hooks/useRecentlViewed";
 
 const ClubProfile = ({ club, currentUserId, clubSchedule }) => {
   if (!club) return null;
   const isOwner = currentUserId && club.user_id === currentUserId;
   const router = useRouter();
+
+   useRecentlyViewed("club", club.id);
 
   const handleAddEvent = () => {
     const params = new URLSearchParams({

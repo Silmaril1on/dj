@@ -17,7 +17,7 @@ const ReviewHeader = ({ artist, data }) => {
       </div>
       <div className='flex flex-col md:flex-row gap-5 bg-black/30 w-full h-full py-10 pl-5'>
         <ProfilePicture avatar_url={artist.artist_image} type="avatar" />
-        <div className="space-y-2">
+        <div className="lg:space-y-2">
           <MyLink
             href={`/artists/${artist.id}`}
             text="Go to Artist Profile"
@@ -25,8 +25,7 @@ const ReviewHeader = ({ artist, data }) => {
           />
           <ArtistName
             artistName={artist}
-            size="xxl"
-            className="leading-10 mt-5 uppercase"
+            className="leading-12 lg:leading-10 text-3xl lg:text-6xl lg:mt-5 uppercase"
           />
           <ArtistGenres genres={artist?.genres} />
           <Paragraph

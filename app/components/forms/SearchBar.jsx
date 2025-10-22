@@ -46,6 +46,7 @@ const SearchBar = () => {
     <motion.div initial={{ y: "-100px"}} animate={{y: 0}} transition={{duration: 0.4, delay: 0.7}} className="relative center w-full">
       <div className="relative w-full">
         <input
+        id="search-bar"
           type="text"
           value={query}
           onChange={handleChange}

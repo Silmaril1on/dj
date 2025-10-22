@@ -1,6 +1,5 @@
 import ProfileHeader from "./ProfileHeader"
 import UserInformation from "./UserInformation"
-import VerifyAccount from "./VerifyAccount"
 
 const UserProfile = ({ profile, onUpdateClick, isEditing }) => {
 
@@ -9,7 +8,6 @@ const UserProfile = ({ profile, onUpdateClick, isEditing }) => {
       <ProfileHeader profile={profile} onUpdateClick={onUpdateClick} isEditing={isEditing} />
       <div className="flex">
         <UserInformation profile={profile} />
-        <VerifyAccount />
       </div>
     </div>
   )

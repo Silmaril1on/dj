@@ -48,25 +48,40 @@ const SubmittedClub = ({ data, error }) => {
     }
 
     return (
-        <SectionContainer size="sm" title="My Club Profile" description="Your club profile" className="bg-stone-900">
-            <FlexBox type="row-start" className="gap-4 w-full pb-4 px-4">
-                <ProfilePicture type="avatar" avatar_url={data[0]?.club_image} />
-                <div className='flex items-start justify-center  flex-col'>
-                    <Title size="xl" className='uppercase' text={data[0]?.name} />
-                    <span className='text-cream secondary text-sm'>Submitted: {formatTime(data[0]?.created_at)}</span>
-                    <ArtistCountry artistCountry={data[0]} />
-                    {data[0]?.capacity && (
-                        <span className='text-gold/80 text-sm font-medium mt-1'>
-                            Capacity: <span className="text-cream">{data[0].capacity}</span>
-                        </span>
-                    )}
-                </div>
-                <div className='center flex-1 space-x-2'>
-                    <StatusIndicator status={data[0]?.status} />
-                    <Button icon={<MdVisibility />} type="success" text="View Profile" href={`/clubs/${data[0]?.id}`} />
-                </div>
-            </FlexBox>
-        </SectionContainer>
+      <SectionContainer
+        size="sm"
+        title="My Club Profile"
+        description="Your club profile"
+        className="bg-stone-900"
+      >
+        <section className="gap-4 w-full pb-4 px-4 flex flex-col lg:flex-row">
+          <div className="flex gap-2">
+            <ProfilePicture type="avatar" avatar_url={data[0]?.club_image} />
+            <div className="flex items-start justify-center  flex-col">
+              <Title size="xl" className="uppercase" text={data[0]?.name} />
+              <span className="text-cream secondary text-[10px] lg:text-sm">
+                Submitted: {formatTime(data[0]?.created_at)}
+              </span>
+              <ArtistCountry artistCountry={data[0]} />
+              {data[0]?.capacity && (
+                <span className="text-gold/80 text-sm font-medium mt-1">
+                  Capacity:{" "}
+                  <span className="text-cream">{data[0].capacity}</span>
+                </span>
+              )}
+            </div>
+          </div>
+          <div className="flex flex-col flex-1 gap-2 justify-center xl:flex-row xl:items-center">
+            <StatusIndicator status={data[0]?.status} />
+            <Button
+              icon={<MdVisibility />}
+              type="success"
+              text="View Profile"
+              href={`/clubs/${data[0]?.id}`}
+            />
+          </div>
+        </section>
+      </SectionContainer>
     );
 };
 

@@ -32,7 +32,8 @@ const RecentActivityCard = ({
           <Image
             src={imageUrl}
             alt={imageAlt}
-            fill
+            width={100}
+            height={100}
             className="object-cover"
           />
         </div>

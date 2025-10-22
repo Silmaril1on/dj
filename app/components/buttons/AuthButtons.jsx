@@ -2,7 +2,7 @@
 import { motion } from 'framer-motion'
 import Button from './Button';
 
-const AuthButtons = () => {
+const AuthButtons = ({size}) => {
     return (
         <motion.div
           initial={{ opacity: 0 }}
@@ -11,8 +11,8 @@ const AuthButtons = () => {
           viewport={{ once: true }}
           className="space-x-3 flex"
         >
-          <Button text="Sign In" href="/sign-in" />
-          <Button text="Sign Up" href="/sign-up" />
+          <Button size={size} text="Sign In" href="/sign-in" />
+          <Button size={size} text="Sign Up" href="/sign-up" />
         </motion.div>
     );
 }

@@ -10,11 +10,7 @@ const Icon = ({ icon, size = "sm", color = "gold", className, onClick, onMouseEn
 
     const colorClasses = {
         gold: "text-gold bg-gold/20 hover:bg-gold/30",
-        emperor: "text-emperor/70 hover:text-emperor bg-emperor/20 hover:bg-emperor/40",
         crimson: "text-crimson/70 hover:text-crimson bg-crimson/20 hover:bg-crimson/40",
-        blue: "text-blue/70 hover:text-blue bg-blue/20 hover:bg-blue/40",
-        violet: "text-violet/70 hover:text-violet bg-violet/20 hover:bg-violet/40",
-        pink: "text-pink/70 hover:text-pink bg-pink/20 hover:bg-pink/40",
         chino: "text-chino/70 hover:text-chino bg-chino/20 hover:bg-chino/40",
         choco: "text-choco/70 hover:text-choco bg-choco/20 hover:bg-choco/40",
         simple: "text-emperor/70 hover:text-emperor dark:text-gold/70 dark:hover:text-gold",

@@ -38,7 +38,6 @@ const DisplayName = ({ user, type }) => {
       router.push("/");
     } catch (error) {
       router.push("/");
-      console.error("Logout error:", error);
     }
   };
 
@@ -50,7 +49,9 @@ const DisplayName = ({ user, type }) => {
     <div className="relative" ref={settingsRef}>
       <div className="flex items-center gap-2">
         <MessageIcon />
+        {type === "mobile" && <div className="h-4 w-[1.5px] bg-gold/40" />}
         <NotificationIcon />
+        {type === "mobile" && <div className="h-4 w-[1.5px] bg-gold/40" />}
         <button
           onClick={toggleSettings}
           className="flex items-center gap-2 text-cream hover:text-gold duration-300 cursor-pointer"

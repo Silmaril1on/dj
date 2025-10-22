@@ -1,13 +1,17 @@
+"use client"
 import Avatar from './hero/Avatar'
 import BasicInfo from './hero/BasicInfo';
 import Bio from './bio/Bio';
 import ArtistSchedule from './schedule/ArtistSchedule';
 import ArtistInsight from './artist-insights/ArtistInsight';
+import useRecentlyViewed from '@/app/lib/hooks/useRecentlViewed';
 
 const ArtistProfile = ({ data, ratingInsights , reviewsData}) => {
   const scheduleData = data?.artist_schedule;
   const artistId = data?.id
   
+useRecentlyViewed("artist", artistId);
+
   return (
     <div className="min-h-screen">
       <div className="grid lg:grid-cols-2 gap-2 lg:gap-5 items-center min-h-[80vh] p-3 lg:p-5 relative">

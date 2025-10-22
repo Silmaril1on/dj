@@ -1,3 +1,5 @@
+"use client"
+import useRecentlyViewed from "@/app/lib/hooks/useRecentlViewed";
 import Actions from "./hero-components/Actions";
 import BasicInfo from "./hero-components/BasicInfo";
 import LineUp from "./hero-components/LineUp";
@@ -5,6 +7,9 @@ import PosterSide from "./hero-components/PosterSide";
 
 const EventProfile = ({ event }) => {
   if (!event) return null;
+
+  useRecentlyViewed("event", event.id);
+
 
   return (
     <div className="flex flex-col space-y-2">

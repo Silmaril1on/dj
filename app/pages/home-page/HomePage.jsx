@@ -3,6 +3,7 @@ import ArtistsSection from "./artists-section/ArtistsSection";
 import BornToday from "./bord-today-section/BornToday";
 import Events from "./events-section/Events";
 import News from "./news-section/News";
+import MyRecentlyViews from "./recently-viewd-section/MyRecentlyViews";
 import SubmitSection from "./submit-section/SubmitSection";
 
 const HomePage = ({ events = [] }) => {
@@ -12,8 +13,9 @@ const HomePage = ({ events = [] }) => {
         <News />
         <ArtistsSection />
         <SubmitSection />
-        <BornToday />
+        {/* <BornToday /> */}
         <AppDataStats />
+        <MyRecentlyViews />
       </div>
     );
 }

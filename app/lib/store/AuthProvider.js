@@ -28,7 +28,7 @@ const AuthProvider = ({ children }) => {
         data: { session },
         error,
       } = await supabase.auth.getSession();
-
+    
       if (session?.user && !user) {
         // Fetch user profile
         const response = await fetch("/api/auth/profile");

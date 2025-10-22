@@ -50,7 +50,7 @@ const SubmittedArtist = ({ data, error }) => {
       className="bg-stone-900"
     >
       <section className="w-full space-y-2 lg:space-y-0">
-        <div className='flex gap-2 lg:gap-5 w-full'>
+        <div className="flex gap-2 lg:gap-5 w-full">
           <ProfilePicture type="avatar" avatar_url={data[0]?.artist_image} />
           <div className="flex items-start justify-center  flex-col ">
             <Title
@@ -64,7 +64,7 @@ const SubmittedArtist = ({ data, error }) => {
             <ArtistCountry artistCountry={data[0]} />
           </div>
         </div>
-        <div className="center flex-1 space-x-2">
+        <div className="flex flex-col flex-1 gap-2 justify-center xl:flex-row xl:items-center">
           <StatusIndicator status={data[0]?.status} />
           <Button
             icon={<MdVisibility />}

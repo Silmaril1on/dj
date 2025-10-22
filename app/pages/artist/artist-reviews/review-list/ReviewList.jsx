@@ -43,7 +43,7 @@ const ReviewList = ({ data,  setReviews }) => {
           className="bg-stone-800/50 p-4 bordered"
         >
           <ListHeader review={review} userScore={userScore} />
-          <div className="bg-stone-900 rounded-sm p-6 border border-stone-700/30">
+          <div className="bg-stone-900 rounded-sm p-3 lg:p-6 border border-stone-700/30">
             <Paragraph text={review.review_text} className='whitespace-pre-wrap' />
           </div>
           <ListFooter review={review} onUpdate={handleReviewUpdate} />
