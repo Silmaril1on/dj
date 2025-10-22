@@ -53,7 +53,7 @@ const ClubProfile = ({ club, currentUserId, clubSchedule }) => {
         <Lineup title="Venue Residents" data={club.residents} />
       )}
       <div className="grid grid-cols-1 lg:grid-cols-2">
-        <article className="flex flex-1 justify-between items-start flex-col bg-stone-900 p-4">
+        <article className="flex flex-1 space-y-3 justify-between items-start flex-col bg-stone-900 p-4">
           <div>
             <Title size="xl" text={club.name} />
             <ArtistCountry artistCountry={club} />

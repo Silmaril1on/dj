@@ -31,7 +31,7 @@ const Footer = () => {
       <section className="w-full grid grid-cols-2 bg-black p-3 lg:p-5">
         <div className=" relative w-fit">
           <Logo size="md" />
-          <h1 className="absolute bottom-[20%] -right-27 text-4xl font-bold tracking-tight">SoundFolio</h1>
+          <h1 className="absolute bottom-[20%] hidden lg:block -right-27 text-4xl font-bold tracking-tight">SoundFolio</h1>
         </div>
         <div className="flex flex-col items-end *:w-fit *:text-2xl *:text-gold *:hover:text-cream *:duration-300 *:cursor-pointer font-bold uppercase">
           <h1>contact us</h1>

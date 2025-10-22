@@ -21,7 +21,7 @@ const Avatar = ({ data }) => {
             src={data.artist_image}
             alt={data.name}
             fill
-            className="object-cover transition-transform duration-700 group-hover:scale-110"
+            className="object-cover w-full h-full transition-transform duration-700 group-hover:scale-110"
             priority
           />
           <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent"></div>

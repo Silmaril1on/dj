@@ -80,6 +80,7 @@ const Panel = ({ open, setOpen, event }) => {
             src={event.event_image}
             alt={event.event_name}
             fill
+            priority
             sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
             className="object-cover relative z-0"
           />

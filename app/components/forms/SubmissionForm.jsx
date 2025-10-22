@@ -301,7 +301,7 @@ const SubmissionForm = ({
               <button
                 type="button"
                 onClick={() => fileInputRef.current?.click()}
-                className="px-4 py-2 bg-gold/30 text-gold border border-gold/30 rounded-md transition-colors flex items-center gap-2"
+                className="px-2 py-1 bg-gold/30 text-gold border border-gold/30 rounded-md transition-colors flex items-center gap-2"
               >
                 <MdUpload size={20} />
                 {imagePreview ? "Change Image" : "Upload Image"}
@@ -330,7 +330,7 @@ const SubmissionForm = ({
       case "additional":
         return (
           <AdditionalInput
-            id={fieldName}
+            id={fieldName} 
             name={fieldName}
             fields={formData[fieldName] || [""]}
             onChange={(index, value) =>
@@ -401,8 +401,8 @@ const SubmissionForm = ({
 
               return (
                 <div key={fieldName}>
-                  {/* Always render label except for image type */}
-                  {fieldConfig.type !== "image" && (
+                  {/* Render label for all types except image and additional */}
+                  {fieldConfig.type !== "image" && fieldConfig.type !== "additional" && (
                     <label htmlFor={fieldName}>
                       {fieldConfig.label ||
                         fieldName
@@ -413,6 +413,22 @@ const SubmissionForm = ({
                       )}
                     </label>
                   )}
+                  
+                  {/* For additional type, render label without htmlFor */}
+                  {fieldConfig.type === "additional" && (
+                    <div className="mb-2">
+                      <span className="text-sm font-medium text-cream">
+                        {fieldConfig.label ||
+                          fieldName
+                            .replace(/_/g, " ")
+                            .replace(/\b\w/g, (l) => l.toUpperCase())}
+                        {fieldConfig.required && (
+                          <span className="text-red-500 ml-1">*</span>
+                        )}
+                      </span>
+                    </div>
+                  )}
+                  
                   {renderField(fieldName, fieldConfig)}
                   {fieldName === "password" &&
                     formData[fieldName] &&

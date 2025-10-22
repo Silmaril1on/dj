@@ -128,7 +128,7 @@ const Clubs = ({ clubs: initialClubs = [], error }) => {
   }
 
   return (
-    <div className="space-y-3 px-3 lg:px-4">
+    <div className="space-y-3 px-3 lg:px-4 pb-5">
       <PageHeadline 
         title="All Clubs" 
         description="Discover the best clubs around the world." 

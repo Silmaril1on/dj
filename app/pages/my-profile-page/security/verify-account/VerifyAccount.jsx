@@ -77,31 +77,13 @@ const VerifyAccount = () => {
             )}
           </div>
         </div>
-
-        {/* Verification Message */}
-        {!user?.email_verified && (
-          <div className="p-4 bg-orange-500/10 border border-orange-500/30">
-            <SpanText
-              text="Your email address is not verified. Verify your email to:"
-              className="text-cream mb-2 block"
-            />
-            <ul className="list-disc list-inside space-y-1 text-cream/80 text-sm">
-              <li>Receive important account notifications</li>
-              <li>Reset your password if needed</li>
-              <li>Access all platform features</li>
-              <li>Increase your account security</li>
-            </ul>
-          </div>
-        )}
-
         {/* Send Verification Button */}
         {!user?.email_verified && (
           <motion.button
-            whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.98 }}
             onClick={handleSendVerification}
             disabled={loading}
-            className={`w-full bg-gold text-black font-bold py-3 px-6 hover:bg-gold/90 duration-300 flex items-center justify-center gap-2 ${
+            className={`w-full bg-gold/50 text-black font-bold py-3 px-6 hover:bg-gold/70 cursor-pointer duration-300 flex items-center justify-center gap-2 ${
               loading ? "opacity-50 cursor-not-allowed" : ""
             }`}
           >

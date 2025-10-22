@@ -69,7 +69,7 @@ const ArtistCard = ({
           <ArtistName size="lg" artistName={artist} className="leading-5" />
           <ArtistCountry artistCountry={artist} />
           <MetaScore scoreData={artist?.rating_stats} artistId={artist.id} />
-          <FlexBox type="row-start" className="gap-1">
+          <FlexBox type="row-start" className="gap-1 mt-1">
             <RatingButton
               artist={artist}
               ratingStats={artist.rating_stats}

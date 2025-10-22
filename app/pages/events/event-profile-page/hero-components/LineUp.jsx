@@ -5,7 +5,7 @@ import Title from '@/app/components/ui/Title';
 import React from 'react'
 
 const Lineup = ({ title = "Lineup", data = [] }) => (
-  <div className="px-4">
+  <div className="lg:px-4">
     <Title text={title} size="sm" color="chino" className='font-normal' />
     <FlexBox type="row-start" className="flex-wrap gap-2 items-center">
       {data.map((artist, index) => (

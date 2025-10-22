@@ -2,13 +2,13 @@
 import { motion } from "framer-motion";
 import Image from "next/image";
 
-const PosterSide = ({ src, alt, className = "" }) => (
+const PosterSide = ({ src, className = "" }) => (
   
   <motion.div
     initial={{ opacity: 0, scale: 0 }}
     animate={{ opacity: 1, scale: 1 }}
     transition={{ duration: 0.3, delay: 0.3 }}
-    className={`h-[450px] w-auto overflow-hidden ${className}`}
+    className={`lg:h-[450px] w-auto overflow-hidden ${className}`}
   >
     <Image
       src={src}
