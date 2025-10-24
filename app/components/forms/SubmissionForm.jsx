@@ -322,7 +322,7 @@ const SubmissionForm = ({
             value={fieldValue}
             onChange={(e) => handleInputChange(fieldName, e.target.value)}
             placeholder={placeholder}
-            className="h-40"
+            className="h-28lg:h-40"
             {...otherProps}
           />
         );

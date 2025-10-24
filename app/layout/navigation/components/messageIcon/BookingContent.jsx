@@ -5,7 +5,7 @@ import { formatTime } from '@/app/helpers/utils'
 import ProfilePicture from '@/app/components/materials/ProfilePicture';
 import Link from 'next/link';
 
-const BookingContent = ({ bookingRequests }) => {
+const BookingContent = ({ bookingRequests, onClose }) => {
 
   if (!bookingRequests || bookingRequests.length === 0) {
     return (
@@ -54,6 +54,7 @@ const BookingContent = ({ bookingRequests }) => {
           <Link
             href="/bookings"
             key={request.id}
+            onClick={onClose}
             className="flex flex-col p-2 cursor-pointer duration-300 hover:bg-black bg-stone-900 space-y-2"
           >
             <div className="flex items-center justify-between">

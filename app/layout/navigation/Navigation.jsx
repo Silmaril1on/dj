@@ -14,15 +14,13 @@ const Navigation = () => {
   return (
     <div className=" flex justify-between px-3 py-2 items-center relative">
       <BurgerMenu />
-      <div className='lg:hidden'>
-        {user ? (
-          <div className="absolute right-0 top-0 flex lg:hidden">
+       <div className='block lg:hidden'>
+         {user ? (
             <Logo size="xs"  />
-          </div>
         ) : (
           <AuthButtons size="small" />
         )}
-      </div>
+       </div>
       <div className="hidden lg:flex items-center space-x-5 justify-start w-2/4">
         <Logo />
         <NavLinks />

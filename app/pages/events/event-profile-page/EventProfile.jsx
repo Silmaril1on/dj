@@ -12,7 +12,7 @@ const EventProfile = ({ event }) => {
 
 
   return (
-    <div className="flex flex-col space-y-2">
+    <div className="flex flex-col space-y-2 pb-5">
       <div className="flex flex-col px-3 lg::px-5 lg:flex-row justify-between items-start lg:items-center pr-4 gap-2">
        <LineUp data={event.artists} />
        <Actions event={event} />

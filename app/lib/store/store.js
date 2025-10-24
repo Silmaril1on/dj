@@ -10,6 +10,7 @@ import reportsReducer from "@/app/features/reportsSlice";
 import bookingReducer from "@/app/features/bookingSlice";
 import acceptBookingReducer from "@/app/features/bookingSlice";
 import welcomeReducer from "@/app/features/welcomeSlice";
+import { privacyTermsReducer } from "@/app/features/privacyTermsSlice";
 
 export const store = configureStore({
   reducer: {
@@ -24,5 +25,6 @@ export const store = configureStore({
     booking: bookingReducer,
     acceptBooking: acceptBookingReducer,
     welcome: welcomeReducer,
+    privacyTerms: privacyTermsReducer,
   },
 });

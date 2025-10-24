@@ -8,7 +8,6 @@ const AdministrationLayout = ({ children }) => {
       <div className="flex gap-3">
         <div className="w-[70%]">{children}</div>
       <div className="p-3">
-        <h1>hello side</h1>
       </div>
       </div>
     </div>

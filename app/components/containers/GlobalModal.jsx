@@ -4,6 +4,7 @@ import { selectSuccess } from '@/app/features/successSlice';
 import { selectEvaluationModal } from '@/app/features/evaluationSlice';
 import { selectReportsModal } from '@/app/features/reportsSlice';
 import { selectBookingModal, selectAcceptBookingModal } from '@/app/features/bookingSlice'; 
+import { selectPrivacyTermsModal } from '@/app/features/privacyTermsSlice';
 import { useSelector } from 'react-redux'
 import { AnimatePresence, motion } from 'framer-motion'
 import RatingModal from './RatingModal'
@@ -14,6 +15,7 @@ import AddEventModal from './AddEventModal';
 import ReportForm from '../forms/ReportForm';
 import BookingForm from '../forms/BookingForm';
 import AcceptBookingModal from './AcceptBookingModal';
+import PrivacyAndTermsModal from './PrivacyAndTermsModal';
 
 const GlobalModal = ({ children, }) => {
   const globalModal = useSelector(selectGlobalModal);
@@ -23,14 +25,16 @@ const GlobalModal = ({ children, }) => {
   const reportsModal = useSelector(selectReportsModal);
   const bookingModal = useSelector(selectBookingModal);
   const acceptBookingModal = useSelector(selectAcceptBookingModal); 
+  const privacyTermsModal = useSelector(selectPrivacyTermsModal);
 
   const getModalWidth = () => {
     if (acceptBookingModal?.isOpen) return "w-2xl";
-    if (bookingModal?.isOpen) return "w-[60%]"; 
+    if (bookingModal?.isOpen) return "w-full lg:w-[60%]"; 
     if (addEventModal?.isOpen) return "max-w-3xl";
     if (globalModal.content === "rating") return "w-lg";
     if (globalModal.content === "review") return "w-xl";
     if (reportsModal?.isOpen) return "w-xl";
+    if (privacyTermsModal?.isOpen) return "max-w-4xl";
     return "max-w-2xl"; 
   };
 
@@ -42,7 +46,8 @@ const GlobalModal = ({ children, }) => {
         addEventModal?.isOpen ||
         reportsModal?.isOpen ||
         bookingModal?.isOpen ||
-        acceptBookingModal?.isOpen) && (
+        acceptBookingModal?.isOpen ||
+        privacyTermsModal?.isOpen) && (
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
@@ -65,6 +70,7 @@ const GlobalModal = ({ children, }) => {
             {reportsModal?.isOpen && <ReportForm type={reportsModal.type} />}
             {bookingModal?.isOpen && <BookingForm />}
             {acceptBookingModal?.isOpen && <AcceptBookingModal />}
+            {privacyTermsModal?.isOpen && <PrivacyAndTermsModal />}
           </div>
           {children}
         </motion.div>

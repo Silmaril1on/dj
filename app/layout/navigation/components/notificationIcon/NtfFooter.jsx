@@ -38,7 +38,7 @@ const NtfFooter = ({ userId, notifications, onNotificationsUpdate }) => {
         onClick={handleMarkAllAsRead}
         disabled={!notifications || notifications.length === 0}
       />
-      <Button size="small" type="bold" text="View All" />
+      {/* <Button size="small" type="bold" text="View All" /> */}
     </FlexBox>
   )
 }

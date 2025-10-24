@@ -34,9 +34,9 @@ const ClubProfile = ({ club, currentUserId, clubSchedule }) => {
   };
 
   return (
-    <div className="flex flex-col">
-      <div className="p-4 flex justify-between items-center">
+    <div className="flex flex-col pb-5">
         {isOwner && (
+      <div className="p-4 flex justify-between items-center">
           <FlexBox type="row=start" className="gap-2">
             <EditProduct desc="Edit Club Info" data={club} type="club" />
             <button
@@ -47,14 +47,14 @@ const ClubProfile = ({ club, currentUserId, clubSchedule }) => {
               <span>Add Event</span>
             </button>
           </FlexBox>
-        )}
       </div>
+        )}
       {club.residents && (
         <Lineup title="Venue Residents" data={club.residents} />
       )}
       <div className="grid grid-cols-1 lg:grid-cols-2">
         <article className="flex flex-1 space-y-3 justify-between items-start flex-col bg-stone-900 p-4">
-          <div>
+          <div >
             <Title size="xl" text={club.name} />
             <ArtistCountry artistCountry={club} />
           </div>

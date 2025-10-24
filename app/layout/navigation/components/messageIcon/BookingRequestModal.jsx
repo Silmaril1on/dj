@@ -29,6 +29,7 @@ const BookingRequestModal = ({
           bookingRequests={bookingRequests}
           fetchBookingRequests={fetchBookingRequests}
           userId={userId}
+          onClose={onClose}
         />
       </div>
       <BookingFooter />

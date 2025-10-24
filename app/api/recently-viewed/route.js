@@ -32,7 +32,7 @@ export async function POST(request) {
     }
 
     // Validate type
-    const validTypes = ['artist', 'news', 'club', 'event']
+    const validTypes = ['artist', 'club', 'event']
     if (!validTypes.includes(type)) {
       return NextResponse.json(
         { error: 'Invalid type' },
@@ -228,11 +228,10 @@ export async function GET(request) {
           if (data) {
             data.forEach(item => {
               typeMap.set(item.id, {
-                ...item,
-                type: 'artist',
-                display_name: item.stage_name || item.name,
-                display_image: item.artist_image,
-                href: `/artist/${item.id}`
+                id: item.id,
+                name: item.stage_name || item.name,
+                image: item.artist_image,
+                href: `/artists/${item.id}`
               })
             })
           }
@@ -250,10 +249,9 @@ export async function GET(request) {
           if (data) {
             data.forEach(item => {
               typeMap.set(item.id, {
-                ...item,
-                type: 'club',
-                display_name: item.name,
-                display_image: item.club_image,
+                id: item.id,
+                name: item.name,
+                image: item.club_image,
                 href: `/club/${item.id}`
               })
             })
@@ -272,33 +270,10 @@ export async function GET(request) {
           if (data) {
             data.forEach(item => {
               typeMap.set(item.id, {
-                ...item,
-                type: 'event',
-                display_name: item.event_name,
-                display_image: item.event_image,
+                id: item.id,
+                name: item.event_name,
+                image: item.event_image,
                 href: `/event/${item.id}`
-              })
-            })
-          }
-        })
-      fetchPromises.push(promise)
-    }
-
-    // Fetch news
-    if (groupedByType.news?.length) {
-      const promise = supabase
-        .from('news')
-        .select('id, title, news_image')
-        .in('id', groupedByType.news)
-        .then(({ data }) => {
-          if (data) {
-            data.forEach(item => {
-              typeMap.set(item.id, {
-                ...item,
-                type: 'news',
-                display_name: item.title,
-                display_image: item.news_image,
-                href: `/news/${item.id}`
               })
             })
           }

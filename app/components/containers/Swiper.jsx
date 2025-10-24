@@ -5,7 +5,6 @@ import ArtistCard from "@/app/pages/home-page/artists-section/ArtistCard";
 const Swiper = ({ items, animate }) => {
   const cardWidth = 176; 
   const spacing = 12;
-  
   const totalContentWidth = items.length * (cardWidth + spacing);
   const visibleWidth = window.innerWidth || 375;
   const maxScroll = totalContentWidth - visibleWidth + 50; 
@@ -40,7 +39,7 @@ const Swiper = ({ items, animate }) => {
               artist={artist}
               cardWidth={cardWidth}
               cardMargin={0}
-              animate={false} // Let Swiper handle animation
+              animate={false} 
             />
           </motion.div>
         ))}

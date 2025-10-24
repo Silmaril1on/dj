@@ -14,6 +14,7 @@ const SearchBar = () => {
   const timeoutRef = useRef();
 
   const handleChange = (e) => {
+    e.stopPropagation();
     const value = e.target.value;
     setQuery(value);
     clearTimeout(timeoutRef.current);
@@ -53,7 +54,7 @@ const SearchBar = () => {
           placeholder="Search artists, clubs, events..."
           onFocus={() => query.length > 1 && setShowDropdown(true)}
           onBlur={() => setTimeout(() => setShowDropdown(false), 200)}
-          className="w-full pr-10 py-1" 
+          className="w-full pr-10 lg:py-1" 
         />
         <FaSearch
           className="absolute right-3 top-1/2 -translate-y-1/2 text-gold pointer-events-none"

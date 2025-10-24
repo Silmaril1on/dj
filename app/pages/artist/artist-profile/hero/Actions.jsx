@@ -32,7 +32,7 @@ const Actions = ({ data, userRating, onLikeChange }) => {
       >
         {shouldRenderBookButton && (
           <button
-            className="bg-gold/30 hover:bg-gold/40 gap-1 text-gold w-fit secondary center cursor-pointer duration-300 p-1 rounded-xs text-[10px] lg:text-sm font-bold"
+            className="bg-gold/30 hover:bg-gold/40 gap-1 text-gold w-fit secondary center cursor-pointer duration-300 p-1 rounded-xs  text-sm font-bold"
             onClick={handleBookDj}
           >
             <FaHouse size={18} />

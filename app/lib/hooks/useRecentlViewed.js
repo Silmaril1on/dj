@@ -24,12 +24,13 @@ const useRecentlyViewed = (type, itemId) => {
           }),
         });
 
+        const result = await response.json();
+
         if (!response.ok) {
-          const error = await response.json();
-          console.error("Failed to track view:", error);
+          console.error("Failed to track view:", result.error || "Unknown error");
         }
       } catch (error) {
-        console.error("Error tracking recently viewed:", error);
+        console.error("Error tracking recently viewed:", error.message);
       }
     };
 

@@ -669,12 +669,12 @@ export const formConfigs = {
       {
         title: "Event Information",
         fields: ["event_name", "venue_name", "event_date", "time"],
-        gridClass: "grid grid-cols-1 md:grid-cols-4 gap-4",
+        gridClass: "grid grid-cols-2 md:grid-cols-4 gap-4",
       },
       {
         title: "Location",
         fields: ["country", "city", "address", "location_url"],
-        gridClass: "grid grid-cols-1 md:grid-cols-4 gap-4",
+        gridClass: "grid grid-cols-2 md:grid-cols-4 gap-4",
       },
       {
         title: "Additional Details",
