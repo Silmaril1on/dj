@@ -41,6 +41,7 @@ export async function PUT(request) {
 
     // Extract form data
     const updateData = {
+      userName: formData.get("userName"),
       first_name: formData.get("first_name"),
       last_name: formData.get("last_name"),
       birth_date: formData.get("birth_date"),
@@ -120,6 +121,23 @@ export async function PUT(request) {
       } = supabase.storage.from("profile_images").getPublicUrl(fileName);
 
       updateData.user_avatar = publicUrl;
+    }
+
+    // Update userName in Supabase Auth (display name) if provided
+    if (updateData.userName) {
+      const { error: authUpdateError } = await supabase.auth.updateUser({
+        data: {
+          display_name: updateData.userName,
+        },
+      });
+
+      if (authUpdateError) {
+        console.error("Auth update error:", authUpdateError);
+        return NextResponse.json(
+          { error: "Failed to update username in authentication" },
+          { status: 500 }
+        );
+      }
     }
 
     // Update user profile

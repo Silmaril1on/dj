@@ -61,6 +61,7 @@ export const formConfigs = {
   // User Profile Form
   userProfile: {
     initialData: {
+      userName: "",
       first_name: "",
       last_name: "",
       birth_date: "",
@@ -78,6 +79,11 @@ export const formConfigs = {
         required: false,
         label: "Profile Picture",
         helpText: "Upload your profile picture (max 2MB).",
+      },
+      userName: {
+        ...commonFields.userName,
+        label: "Username",
+        required: false,
       },
       first_name: {
         ...commonFields.firstName,
@@ -125,6 +131,11 @@ export const formConfigs = {
         title: "Profile Picture",
         fields: ["user_avatar"],
         gridClass: "space-y-4",
+      },
+      {
+        title: "Account Information",
+        fields: ["userName"],
+        gridClass: "grid grid-cols-1 gap-6",
       },
       {
         title: "Personal Information",

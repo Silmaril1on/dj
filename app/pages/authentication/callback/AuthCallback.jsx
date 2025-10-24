@@ -68,10 +68,11 @@ const AuthCallback = () => {
           .from("notifications")
           .insert({
             user_id: userProfile.id,
-            userName: userProfile.userName,
-            email: userProfile.email,
+            type: "welcome",
+            title: "Welcome to Soundfolio!",
+            read: false, 
             message:
-              "Welcome to the platform. You can now login to your account and start using the platform.",
+              "Your account has been created successfully. You can now access your dashboard and start exploring all available features.",
           })
           .then(({ error }) => {
             if (error) {

@@ -16,6 +16,7 @@ const UserProfileFrom = ({ profile, error, onCancel }) => {
   const formConfig = {
     ...formConfigs.userProfile,
     initialData: {
+      userName: profile?.userName || '',
       first_name: profile?.first_name || '',
       last_name: profile?.last_name || '',
       birth_date: profile?.birth_date || '',
