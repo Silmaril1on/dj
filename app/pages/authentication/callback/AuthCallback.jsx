@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import { useDispatch } from "react-redux";
 import { setUser } from "@/app/features/userSlice";
 import { supabaseClient } from "@/app/lib/config/supabaseClient";
+import MotionLogo from "@/app/components/ui/MotionLogo";
 
 const AuthCallback = () => {
   const router = useRouter();
@@ -87,7 +88,8 @@ const AuthCallback = () => {
   }, [router, dispatch]);
 
   return (
-    <div className="h-screen center">
+            <div className="h-screen center flex flex-col gap-5">
+      <MotionLogo />
       <span>Signing you in...</span>
     </div>
   );
