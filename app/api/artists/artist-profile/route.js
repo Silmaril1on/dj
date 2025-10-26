@@ -67,6 +67,7 @@ export async function GET(request) {
     let userRating = null;
     let userSubmittedArtistId = null;
     let artist_schedule = [];
+    let artist_albums = [];
 
     // Get artist schedule from artist_schedule table
     const { data: scheduleData, error: scheduleError } = await supabase
@@ -80,6 +81,20 @@ export async function GET(request) {
       // Don't fail the entire request if schedule fetch fails, just log it
     } else {
       artist_schedule = scheduleData || [];
+    }
+
+    // Get artist albums from artist_albums table
+    const { data: albumsData, error: albumsError } = await supabaseAdmin
+      .from("artist_albums")
+      .select("*")
+      .eq("artist_id", artistId)
+      .order("release_date", { ascending: false });
+
+    if (albumsError) {
+      console.error("Error fetching artist albums:", albumsError);
+      // Don't fail the entire request if albums fetch fails, just log it
+    } else {
+      artist_albums = albumsData || [];
     }
 
     // If user is authenticated, check if user liked this artist and get their rating
@@ -140,6 +155,7 @@ export async function GET(request) {
         userRating,
         userSubmittedArtistId,
         artist_schedule,
+        artist_albums,
       },
     };
 

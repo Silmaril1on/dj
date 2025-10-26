@@ -16,10 +16,9 @@ const ArtistSchedule = ({ data, title = "Upcoming Dates", description = "Stay up
     </div>
   }
 
-
   return (
     <SectionContainer title={title} description={description} className="mt-10">
-      <div className="w-[70%] space-y-4 my-5">
+      <div className="w-full lg:w-[70%] space-y-4 my-5">
         {data.map((schedule, index) => (
           <motion.div
             key={schedule.id}
@@ -27,25 +26,24 @@ const ArtistSchedule = ({ data, title = "Upcoming Dates", description = "Stay up
             whileInView={{ opacity: 1, x: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.6, delay: index * 0.1 }}
-            className="bg-stone-900  py-2 px-4 bordered hover:scale-105  "
+            className="bg-stone-900  lg:py-2 px-2 lg:px-4 bordered hover:scale-105 "
           >
-            <div className="grid grid-cols-4">
-              {/* Date */}
+            <div className="grid grid-cols-2 lg:grid-cols-[4fr_2fr] items-center">
+             <section className='grid grid-cols-1 lg:grid-cols-3 gap-1 lg:gap-0'>
+               {/* Date */}
               <div className="flex items-center gap-2 text-gold pointer-events-none">
                 <MdCalendarToday size={18} />
-                <span className="font-semibold text-lg">
+                <span className="font-semibold text-xs lg:text-lg">
                   {formatTime(schedule.date)}
                 </span>
               </div>
-
               {/* Time */}
-              <div className="flex items-center gap-2 text-chino font-bold pointer-events-none">
-                <MdAccessTime size={16} />
+              <div className="flex justify-start lg:justify-center items-center gap-2 text-xs lg:text-base text-chino font-bold pointer-events-none">
+                <MdAccessTime  />
                 <span>{schedule.time}</span>
               </div>
-
-              {/* Location */}
-              <div className="flex items-center gap-2 text-chino pointer-events-none">
+                 {/* Location */}
+              <div className="flex justify-start lg:justify-center items-center gap-2 text-chino pointer-events-none">
                 <ArtistCountry
                   artistCountry={{
                     country: schedule.country,
@@ -53,9 +51,12 @@ const ArtistSchedule = ({ data, title = "Upcoming Dates", description = "Stay up
                   }}
                 />
               </div>
+             </section>
+
+           
 
               {/* Club/Venue Name */}
-              <div className="flex flex-col items-end">
+              <div className="flex flex-col items-end justify-evenly">
                 <Title text={schedule.club_name} />
                 <FlexBox type="row-center" className="gap-4">
                   {schedule.event_link && (

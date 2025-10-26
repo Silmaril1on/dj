@@ -27,7 +27,7 @@ const NotificationItem = ({ notifications }) => {
       {notifications.map((notification) => (
         <div
           key={notification.id}
-          className={`flex items-center p-3 cursor-pointer duration-300  hover:bg-black bg-stone-900 `}
+          className={`flex items-center p-2 cursor-pointer duration-300  hover:bg-black bg-stone-900 `}
         >
           <div className="flex-1 space-y-1">
             <Paragraph text={notification.message}

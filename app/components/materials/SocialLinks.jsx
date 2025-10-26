@@ -59,7 +59,7 @@ const SocialLinks = ({
       {showTitle && (
         <h4 className="text-md font-semibold text-gold mb-2">{title}</h4>
       )}
-      <div className="flex flex-wrap gap-4">
+      <div className="flex flex-wrap gap-2">
         {social_links.map((link, index) => (
           <SocialLink key={index} link={link} index={index} />
         ))}

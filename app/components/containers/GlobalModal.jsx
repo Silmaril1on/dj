@@ -1,5 +1,5 @@
 'use client'
-import { selectAddEventModal, selectGlobalModal } from '@/app/features/modalSlice';
+import { selectAddEventModal, selectAddAlbumModal, selectGlobalModal } from '@/app/features/modalSlice';
 import { selectSuccess } from '@/app/features/successSlice';
 import { selectEvaluationModal } from '@/app/features/evaluationSlice';
 import { selectReportsModal } from '@/app/features/reportsSlice';
@@ -12,6 +12,7 @@ import ReviewModal from './ReviewModal'
 import SuccessOnSubmit from '@/app/components/materials/SuccessOnSubmit'
 import ViewSubmittedInfo from '@/app/components/materials/ViewSubmittedInfo';
 import AddEventModal from './AddEventModal';
+import AddAlbumModal from './AddAlbumModal';
 import ReportForm from '../forms/ReportForm';
 import BookingForm from '../forms/BookingForm';
 import AcceptBookingModal from './AcceptBookingModal';
@@ -22,6 +23,7 @@ const GlobalModal = ({ children, }) => {
   const successModal = useSelector(selectSuccess);
   const evaluationModal = useSelector(selectEvaluationModal);
   const addEventModal = useSelector(selectAddEventModal);
+  const addAlbumModal = useSelector(selectAddAlbumModal);
   const reportsModal = useSelector(selectReportsModal);
   const bookingModal = useSelector(selectBookingModal);
   const acceptBookingModal = useSelector(selectAcceptBookingModal); 
@@ -31,6 +33,7 @@ const GlobalModal = ({ children, }) => {
     if (acceptBookingModal?.isOpen) return "w-2xl";
     if (bookingModal?.isOpen) return "w-full lg:w-[60%]"; 
     if (addEventModal?.isOpen) return "max-w-3xl";
+    if (addAlbumModal?.isOpen) return "max-w-2xl";
     if (globalModal.content === "rating") return "w-lg";
     if (globalModal.content === "review") return "w-xl";
     if (reportsModal?.isOpen) return "w-xl";
@@ -44,6 +47,7 @@ const GlobalModal = ({ children, }) => {
         successModal.isOpen ||
         evaluationModal ||
         addEventModal?.isOpen ||
+        addAlbumModal?.isOpen ||
         reportsModal?.isOpen ||
         bookingModal?.isOpen ||
         acceptBookingModal?.isOpen ||
@@ -67,6 +71,7 @@ const GlobalModal = ({ children, }) => {
             {successModal.isOpen && <SuccessOnSubmit />}
             {evaluationModal && <ViewSubmittedInfo />}
             {addEventModal?.isOpen && <AddEventModal />}
+            {addAlbumModal?.isOpen && <AddAlbumModal />}
             {reportsModal?.isOpen && <ReportForm type={reportsModal.type} />}
             {bookingModal?.isOpen && <BookingForm />}
             {acceptBookingModal?.isOpen && <AcceptBookingModal />}

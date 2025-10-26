@@ -12,6 +12,10 @@ const initialState = {
     isOpen: false,
     artist: null,
   },
+  addAlbumModal: {
+    isOpen: false,
+    artist: null,
+  },
 };
 
 const modalSlice = createSlice({
@@ -58,6 +62,18 @@ const modalSlice = createSlice({
         artist: null,
       };
     },
+    openAddAlbumModal: (state, action) => {
+      state.addAlbumModal = {
+        isOpen: true,
+        artist: action.payload.artist,
+      };
+    },
+    closeAddAlbumModal: (state) => {
+      state.addAlbumModal = {
+        isOpen: false,
+        artist: null,
+      };
+    },
   },
 });
 
@@ -69,6 +85,8 @@ export const {
   closeGlobalModal,
   openAddEventModal,
   closeAddEventModal,
+  openAddAlbumModal,
+  closeAddAlbumModal,
 } = modalSlice.actions;
 
 export const modalReducer = modalSlice.reducer;
@@ -79,3 +97,4 @@ export const selectError = (state) => state.modal.error;
 export const selectErrorType = (state) => state.modal.errorType;
 export const selectGlobalModal = (state) => state.modal.globalModal;
 export const selectAddEventModal = (state) => state.modal.addEventModal;
+export const selectAddAlbumModal = (state) => state.modal.addAlbumModal;

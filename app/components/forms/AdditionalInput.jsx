@@ -33,7 +33,6 @@ const AdditionalInput = ({
               value={field || ""}
               onChange={(e) => onChange(index, e.target.value)}
               placeholder={placeholder}
-              className="w-full border border-gold/40 bg-gold/10 text-chino px-2 py-1 rounded focus:outline-none focus:ring-2 focus:ring-gold duration-200"
             />
 
             {canRemove && (

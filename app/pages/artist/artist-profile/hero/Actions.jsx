@@ -2,6 +2,7 @@
 import { useDispatch, useSelector } from 'react-redux';
 import { openBookingModal } from '@/app/features/bookingSlice'; 
 import AddArtistDates from '@/app/components/buttons/AddArtistDates'
+import AddArtistAlbum from '@/app/components/buttons/AddArtistAlbum'
 import EditProduct from '@/app/components/buttons/EditProduct.'
 import LikeButton from '@/app/components/buttons/LikeButton'
 import RatingButton from '@/app/components/buttons/RatingButton'
@@ -41,6 +42,11 @@ const Actions = ({ data, userRating, onLikeChange }) => {
         )}
         <AddArtistDates
           desc="Add Date"
+          artist={data}
+          userSubmittedArtistId={userSubmittedArtistId}
+        />
+        <AddArtistAlbum
+          desc="Add Album"
           artist={data}
           userSubmittedArtistId={userSubmittedArtistId}
         />

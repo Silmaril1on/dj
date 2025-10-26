@@ -35,10 +35,11 @@ const ActionButtons = ({ submission, loadingStates, submissionsList, setLoadingS
         })
       })
       if (response.ok) {
-        if (action === 'approve') {
+        if (action === 'approve' || action === 'decline') {
           const submission = submissionsList.find(s => s.id === entityId)
           if (submission?.submitter) {
             await sendNotification(submission.submitter, action)
+            await sendEmailNotification(submission.submitter, action)
           }
         }
         setSubmissionsList(prev =>
@@ -69,12 +70,38 @@ const ActionButtons = ({ submission, loadingStates, submissionsList, setLoadingS
           user_id: submitter.id,
           type: "submission approve", 
           title: "Submission Approved",
-          email: submitter.email,
-          message: message
+          message: message,
+          read: false,
         })
       })
     } catch (error) {
       console.error('Error sending notification:', error)
+    }
+  }
+
+  const sendEmailNotification = async (submitter, action) => {
+    try {
+      const status = action === 'approve' ? 'approved' : 'declined'
+      const response = await fetch('/api/resend/send-submission-notification', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          email: submitter.email,
+          userName: submitter.userName,
+          submissionType: entityType,
+          status: status,
+        })
+      })
+      if (!response.ok) {
+        const errorData = await response.json()
+        console.error('Failed to send email:', errorData)
+      } else {
+        console.log('Email sent successfully to:', submitter.email)
+      }
+    } catch (error) {
+      console.error('Error sending email notification:', error)
     }
   }
 

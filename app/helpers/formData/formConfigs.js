@@ -255,6 +255,73 @@ export const formConfigs = {
     ],
   },
 
+  // Artist Album Form
+  addArtistAlbum: {
+    initialData: {
+      name: "",
+      release_date: "",
+      description: "",
+      tracklist: [""],
+    },
+    imageField: "album_image",
+    arrayFields: ["tracklist"],
+    fields: {
+      album_image: {
+        type: "image",
+        required: true,
+        label: "Album Cover",
+        helpText: "Upload album cover image (max 2MB).",
+      },
+      name: {
+        type: "text",
+        required: true,
+        label: "Album Name",
+        placeholder: "Enter album name",
+      },
+      release_date: {
+        type: "date",
+        required: true,
+        label: "Release Date",
+      },
+      description: {
+        type: "textarea",
+        required: false,
+        label: "Description",
+        placeholder: "Describe your album...",
+        rows: 4,
+      },
+      tracklist: {
+        type: "additional",
+        required: true,
+        label: "Tracklist",
+        placeholder: "Enter track name",
+        minFields: 1,
+      },
+    },
+    sections: [
+      {
+        title: "Album Cover",
+        fields: ["album_image"],
+        gridClass: "space-y-4",
+      },
+      {
+        title: "Album Information",
+        fields: ["name", "release_date"],
+        gridClass: "grid grid-cols-1 md:grid-cols-2 gap-4",
+      },
+      {
+        title: "Description",
+        fields: ["description"],
+        gridClass: "space-y-4",
+      },
+      {
+        title: "Tracklist",
+        fields: ["tracklist"],
+        gridClass: "space-y-4",
+      },
+    ],
+  },
+
   // Club Form
   addClub: {
     initialData: {

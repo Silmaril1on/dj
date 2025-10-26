@@ -12,6 +12,7 @@ import SocialLinks from './SocialLinks'
 import Image from 'next/image'
 import ArtistGenres from './ArtistGenres'
 import Paragraph from '../ui/Paragraph'
+import ArtistCountry from './ArtistCountry'
 
 const ViewSubmittedInfo = () => {
   const dispatch = useDispatch()
@@ -22,17 +23,16 @@ const ViewSubmittedInfo = () => {
   const error = useSelector(selectEvaluationError)
 
   // Determine entity type; fall back to heuristics for backward compatibility
-  const entityType = selectedArtist?.__type || (selectedArtist?.capacity !== undefined ? 'club' : 'artist')
+  const entityType = selectedArtist?.__type || (selectedArtist?.capacity !== undefined ? 'club' : selectedArtist?.tracklist !== undefined ? 'album' : 'artist')
   const isClub = entityType === 'club'
   const isEvent = entityType === 'event'
+  const isAlbum = entityType === 'album'
 
   useEffect(() => {
     if (selectedArtist?.id && !artistData) {
-      if (isClub || isEvent) {
-        // For clubs and events, use the data directly from the submission
+      if (isClub || isEvent || isAlbum) {
         dispatch(setArtistData(selectedArtist))
       } else {
-        // For artists, fetch detailed data from API
         fetchArtistData()
       }
     }
@@ -61,7 +61,7 @@ const ViewSubmittedInfo = () => {
   if (!isOpen) return null
 
   return (
-    <div className=' '>
+    <div>
       <Close className="absolute top-4 right-4 z-10" onClick={handleClose} />
       {loading && (
         <div className="flex justify-center py-8">
@@ -81,7 +81,7 @@ const ViewSubmittedInfo = () => {
           <div className="flex gap-5 items-center justify-center w-full *:w-full">
             <div className="relative w-64 h-64 overflow-hidden">
               <Image
-                src={artistData.artist_image}
+                src={isAlbum ? artistData.album_image : artistData.artist_image}
                 alt={artistData.name}
                 fill
                 className="object-cover"
@@ -90,23 +90,44 @@ const ViewSubmittedInfo = () => {
             <div className="space-y-4">
               <div>
                 <h3 className="text-lg font-semibold text-gold mb-2">
-                  {isClub ? 'Club Information' : isEvent ? 'Event Information' : 'Basic Information'}
+                  {isClub ? 'Club Information' : isEvent ? 'Event Information' : isAlbum ? 'Album Information' : 'Basic Information'}
                 </h3>
                 <div className="space-y-2">
-                  {isClub ? (
+                  {isAlbum ? (
+                    // Album-specific fields
+                    <>
+                      <div className="flex items-center gap-2">
+                        <MdMusicNote className="text-gold/70" />
+                        <span className="text-sm text-chino/80">Album Name:</span>
+                        <span className="text-chino font-medium uppercase">{artistData.name}</span>
+                      </div>
+                      {artistData.release_date && (
+                        <div className="flex items-center gap-2">
+                          <MdCalendarToday className="text-gold/70" />
+                          <span className="text-sm text-chino/80">Release Date:</span>
+                          <span className="text-chino font-medium">{new Date(artistData.release_date).toLocaleDateString()}</span>
+                        </div>
+                      )}
+                      {artistData.tracklist && artistData.tracklist.length > 0 && (
+                        <div className="space-y-1">
+                          <div className="flex items-center gap-2">
+                            <MdMusicNote className="text-gold/70" />
+                            <span className="text-sm text-chino/80">Tracks:</span>
+                            <span className="text-chino font-medium">{artistData.tracklist.length}</span>
+                          </div>
+                        </div>
+                      )}
+                    </>
+                  ) : isClub ? (
                     // Club-specific fields
                     <>
                       <div className="flex items-center gap-2">
                         <MdBusiness className="text-gold/70" />
                         <span className="text-sm text-chino/80">Club Name:</span>
-                        <span className="text-chino font-medium">{artistData.name}</span>
+                        <span className="text-chino font-medium uppercase">{artistData.name}</span>
                       </div>
                       <div className="flex items-center gap-2">
-                        <MdLocationOn className="text-gold/70" />
-                        <span className="text-sm text-chino/80">Location:</span>
-                        <span className="text-chino font-medium">
-                          {[artistData.city, artistData.country].filter(Boolean).join(', ')}
-                        </span>
+                        <ArtistCountry artistCountry={{country: artistData.country, city:artistData.city}} />
                       </div>
                       {artistData.capacity && (
                         <div className="flex items-center gap-2">
@@ -121,17 +142,14 @@ const ViewSubmittedInfo = () => {
                     <>
                       <div className="flex items-center gap-2">
                         <span className="text-sm text-chino/80">Event Name:</span>
-                        <span className="text-chino font-medium">{artistData.name}</span>
+                        <span className="text-chino font-medium uppercase">{artistData.name}</span>
                       </div>
                       <div className="flex items-center gap-2">
                         <span className="text-sm text-chino/80">Promoter:</span>
                         <span className="text-chino font-medium">{artistData.stage_name}</span>
                       </div>
                       <div className="flex items-center gap-2">
-                        <span className="text-sm text-chino/80">Location:</span>
-                        <span className="text-chino font-medium">
-                          {[artistData.city, artistData.country].filter(Boolean).join(', ')}
-                        </span>
+                        <ArtistCountry artistCountry={{country: artistData.country, city:artistData.city}} />
                       </div>
                     </>
                   ) : (
@@ -140,7 +158,7 @@ const ViewSubmittedInfo = () => {
                       <div className="flex items-center gap-2">
                         <MdPerson className="text-gold/70" />
                         <span className="text-sm text-chino/80">Name:</span>
-                        <span className="text-chino font-medium">{artistData.name}</span>
+                        <span className="text-chino font-medium uppercase">{artistData.name}</span>
                       </div>
                       {artistData.stage_name && (
                         <div className="flex items-center gap-2">
@@ -150,11 +168,7 @@ const ViewSubmittedInfo = () => {
                         </div>
                       )}
                       <div className="flex items-center gap-2">
-                        <MdLocationOn className="text-gold/70" />
-                        <span className="text-sm text-chino/80">Location:</span>
-                        <span className="text-chino font-medium">
-                          {[artistData.city, artistData.country].filter(Boolean).join(', ')}
-                        </span>
+                        <ArtistCountry artistCountry={{country: artistData.country, city:artistData.city}} />
                       </div>
                       {artistData.sex && (
                         <div className="flex items-center gap-2">
@@ -174,14 +188,16 @@ const ViewSubmittedInfo = () => {
                   )}
                 </div>
               </div>
-              {!isClub && artistData.genres && artistData.genres.length > 0 && (
-                <ArtistGenres genres={artistData.genres} />
+              {!isClub && !isAlbum && artistData.genres && artistData.genres.length > 0 && (
+                <ArtistGenres className="text-[10px]" genres={artistData.genres} />
               )}
-              <SocialLinks
-                social_links={artistData.social_links}
-                showTitle={true}
-                animation={false}
-              />
+              {!isAlbum && (
+                <SocialLinks
+                  social_links={artistData.social_links}
+                  showTitle={true}
+                  animation={false}
+                />
+              )}
             </div>
           </div>
           <div className=' w-[600px]'>
@@ -197,10 +213,23 @@ const ViewSubmittedInfo = () => {
                 <Paragraph text={artistData.desc} />
               </div>
             )}
-            {!isClub && artistData.bio && (
+            {!isClub && !isAlbum && artistData.bio && (
               <div>
                 <h4 className="text-md font-semibold text-gold mb-2">Bio</h4>
                 <Paragraph text={truncateBio(artistData.bio, 500)} />
+              </div>
+            )}
+            {isAlbum && artistData.tracklist && artistData.tracklist.length > 0 && (
+              <div>
+                <h4 className="text-md font-semibold text-gold mb-2">Tracklist</h4>
+                <ul className="space-y-1">
+                  {artistData.tracklist.map((track, idx) => (
+                    <li key={idx} className="text-chino text-sm flex items-center gap-2">
+                      <span className="text-gold/50">{idx + 1}.</span>
+                      <span>{track}</span>
+                    </li>
+                  ))}
+                </ul>
               </div>
             )}
           </div>

@@ -5,10 +5,14 @@ import Bio from './bio/Bio';
 import ArtistSchedule from './schedule/ArtistSchedule';
 import ArtistInsight from './artist-insights/ArtistInsight';
 import useRecentlyViewed from '@/app/lib/hooks/useRecentlViewed';
+import Albums from './albums/Albums';
 
 const ArtistProfile = ({ data, ratingInsights , reviewsData}) => {
   const scheduleData = data?.artist_schedule;
+  const albumsData = data?.artist_albums;
   const artistId = data?.id
+
+  
   
 useRecentlyViewed("artist", artistId);
 
@@ -21,6 +25,7 @@ useRecentlyViewed("artist", artistId);
       </div>
       <Bio data={data} />
       <ArtistSchedule data={scheduleData} />
+      <Albums data={albumsData}  />
       <ArtistInsight ratingInsights={ratingInsights} reviewsData={reviewsData} artistId={artistId} />
     </div>
   )

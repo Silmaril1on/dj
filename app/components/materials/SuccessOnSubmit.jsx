@@ -13,6 +13,12 @@ const SuccessOnSubmit = () => {
   const router = useRouter()
   const { type, data } = useSelector(selectSuccess)
 
+  console.log('SuccessOnSubmit - Type:', type)
+  console.log('SuccessOnSubmit - Data:', data)
+  console.log('SuccessOnSubmit - album_image:', data?.album_image)
+  console.log('SuccessOnSubmit - image:', data?.image)
+  console.log('SuccessOnSubmit - name:', data?.name)
+
   const handleClose = () => {
     dispatch(hideSuccess())
     router.push('/')
@@ -28,6 +34,8 @@ const SuccessOnSubmit = () => {
         return 'Event Submitted Successfully!'
       case 'artist_date':
         return 'Artist Date Added Successfully!'
+      case 'artist_album':
+        return 'Album Added Successfully!'
       default:
         return 'Submitted Successfully!'
     }
@@ -43,6 +51,8 @@ const SuccessOnSubmit = () => {
         return 'Your event submission is now pending approval. We\'ll review it and get back to you soon!'
       case 'artist_date':
         return 'Your artist date has been added successfully! You can now see this date on the artist\'s profile.'
+      case 'artist_album':
+        return 'Your album has been added successfully! You can now see this album on the artist\'s profile.'
       default:
         return 'Your submission is now pending approval. We\'ll review it and get back to you soon!'
     }
@@ -97,10 +107,10 @@ const SuccessOnSubmit = () => {
             className="bg-stone-800 border border-gold/20 p-4"
           >
             {/* Image */}
-            {data.image && (
+            {(data.image || data.album_image) && (
               <div className="w-24 h-24 mx-auto mb-4 rounded-lg overflow-hidden">
                 <img
-                  src={data.image}
+                  src={data.image || data.album_image}
                   alt={data.name}
                   className="w-full h-full object-cover"
                 />
