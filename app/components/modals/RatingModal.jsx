@@ -9,7 +9,7 @@ import { openReviewModal } from '@/app/features/reviewsSlice';
 import Close from '@/app/components/buttons/Close';
 import ArtistName from '../materials/ArtistName';
 import Button from '../buttons/Button';
-import FlexBox from './FlexBox';
+import FlexBox from '../containers/FlexBox';
 
 const RatingModal = () => {
   const user = useSelector(selectUser);

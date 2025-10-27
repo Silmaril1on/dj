@@ -1,15 +1,15 @@
 'use client'
 import { useDispatch, useSelector } from 'react-redux';
 import { openBookingModal } from '@/app/features/bookingSlice'; 
-import AddArtistDates from '@/app/components/buttons/AddArtistDates'
-import AddArtistAlbum from '@/app/components/buttons/AddArtistAlbum'
-import EditProduct from '@/app/components/buttons/EditProduct.'
-import LikeButton from '@/app/components/buttons/LikeButton'
-import RatingButton from '@/app/components/buttons/RatingButton'
-import ReviewButton from '@/app/components/buttons/ReviewButton'
 import { motion } from 'framer-motion'
 import { FaHouse } from 'react-icons/fa6';
 import { selectUser } from '@/app/features/userSlice';
+import AddArtistDates from '@/app/components/buttons/artist-buttons/AddArtistDates'
+import AddArtistAlbum from '@/app/components/buttons/artist-buttons/AddArtistAlbum'
+import EditProduct from '@/app/components/buttons/EditProduct.'
+import RatingButton from '@/app/components/buttons/artist-buttons/RatingButton';
+import ReviewButton from '@/app/components/buttons/artist-buttons/ReviewButton';
+import LikeButton from '@/app/components/buttons/artist-buttons/LikeButton';
 
 const Actions = ({ data, userRating, onLikeChange }) => {
   const dispatch = useDispatch(); 

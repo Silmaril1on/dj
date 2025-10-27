@@ -114,7 +114,7 @@ export async function GET(request) {
       if (artistError) {
         console.error("Failed to fetch artist data:", artistError);
       } else {
-        console.log("Fetched artist data:", artistData);
+        console.log("success");
       }
 
       const artistMap = (artistData || []).reduce((acc, artist) => {

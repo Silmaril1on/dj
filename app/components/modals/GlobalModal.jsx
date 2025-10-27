@@ -7,16 +7,16 @@ import { selectBookingModal, selectAcceptBookingModal } from '@/app/features/boo
 import { selectPrivacyTermsModal } from '@/app/features/privacyTermsSlice';
 import { useSelector } from 'react-redux'
 import { AnimatePresence, motion } from 'framer-motion'
-import RatingModal from './RatingModal'
-import ReviewModal from './ReviewModal'
 import SuccessOnSubmit from '@/app/components/materials/SuccessOnSubmit'
 import ViewSubmittedInfo from '@/app/components/materials/ViewSubmittedInfo';
-import AddEventModal from './AddEventModal';
-import AddAlbumModal from './AddAlbumModal';
+import AddEventModal from '../modals/AddEventModal';
+import AddAlbumModal from '../modals/AddAlbumModal';
 import ReportForm from '../forms/ReportForm';
 import BookingForm from '../forms/BookingForm';
-import AcceptBookingModal from './AcceptBookingModal';
-import PrivacyAndTermsModal from './PrivacyAndTermsModal';
+import AcceptBookingModal from '../modals/AcceptBookingModal';
+import PrivacyAndTermsModal from '../modals/PrivacyAndTermsModal';
+import ReviewModal from '../modals/ReviewModal';
+import RatingModal from '../modals/RatingModal';
 
 const GlobalModal = ({ children, }) => {
   const globalModal = useSelector(selectGlobalModal);

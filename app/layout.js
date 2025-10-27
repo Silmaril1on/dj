@@ -4,11 +4,12 @@ import { StoreProvider } from "@/app/lib/store/StoreProvider";
 import AuthProvider from "@/app/lib/store/AuthProvider";
 import ErrorMsg from "./components/ui/ErrorMsg";
 import NavigationWrapper from "./layout/navigation/NavigationWrapper";
-import GlobalModal from "./components/containers/GlobalModal";
 import Footer from "./layout/footer/Footer";
 import MobileNavBar from "./layout/navigation/MobileNavBar";
 import SmoothScroll from "./components/containers/SmoothScroll";
 import WelcomeUser from "./components/materials/WelcomeUser";
+import GlobalModal from "./components/modals/GlobalModal";
+import EventRequestModal from "./components/modals/EventRequestModal";
 
 const rationale = Rationale({
   variable: "--font-rationale",
@@ -40,8 +41,9 @@ export default function RootLayout({ children }) {
             {children}
             <ErrorMsg />
             <GlobalModal />
-              <MobileNavBar />
-              <WelcomeUser />
+            <MobileNavBar />
+            <WelcomeUser />
+            <EventRequestModal />
             <Footer />
             {/* </SmoothScroll> */}
           </AuthProvider>

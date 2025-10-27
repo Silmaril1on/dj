@@ -1,9 +1,9 @@
 "use client"
 import { useState } from "react";
-import LikeButton from '@/app/components/buttons/LikeButton';
 import Motion from '@/app/components/containers/Motion';
 import SpanText from '@/app/components/ui/SpanText';
 import { FaUsers } from 'react-icons/fa';
+import LikeButton from "@/app/components/buttons/artist-buttons/LikeButton";
 
 const Actions = ({ event }) => {
   const [likesCount, setLikesCount] = useState(event.likesCount || 0);

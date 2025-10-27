@@ -2,7 +2,7 @@
 import FlexBox from '@/app/components/containers/FlexBox'
 import Paragraph from '@/app/components/ui/Paragraph'
 import Title from '@/app/components/ui/Title'
-import ReviewButton from '@/app/components/buttons/ReviewButton';
+import ReviewButton from '@/app/components/buttons/artist-buttons/ReviewButton';
 
 const ReviewFooter = ({ artist, onReviewAdd }) => {
 

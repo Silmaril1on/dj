@@ -1,13 +1,13 @@
 import { useState } from 'react'
 import { motion } from 'framer-motion'
-import RatingButton from '@/app/components/buttons/RatingButton'
+import RatingButton from '@/app/components/buttons/artist-buttons/RatingButton'
 import ArtistCountry from '@/app/components/materials/ArtistCountry'
 import ArtistName from '@/app/components/materials/ArtistName'
 import Image from 'next/image'
 import Link from 'next/link'
 import MetaScore from '@/app/components/materials/MetaScore'
-import LikeButton from '@/app/components/buttons/LikeButton'
 import FlexBox from '@/app/components/containers/FlexBox'
+import LikeButton from '@/app/components/buttons/artist-buttons/LikeButton'
 
 const ArtistCard = ({
   artist,

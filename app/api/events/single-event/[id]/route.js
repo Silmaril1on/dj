@@ -4,7 +4,7 @@ import { createSupabaseServerClient, getServerUser } from "@/app/lib/config/supa
 
 export async function GET(request, { params }) {
   try {
-    const { id } = params;
+    const { id } = await params;
     const cookieStore = await cookies();
     const { user } = await getServerUser(cookieStore);
     const supabase = await createSupabaseServerClient(cookieStore);

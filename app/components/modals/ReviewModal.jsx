@@ -10,7 +10,7 @@ import Button from '../buttons/Button';
 import Close from '../buttons/Close';
 import Title from '../ui/Title';
 import Paragraph from '../ui/Paragraph';
-import FlexBox from './FlexBox';
+import FlexBox from '../containers/FlexBox';
 
 const ReviewModal = () => {
   const reviewModal = useSelector(selectReviewModal);

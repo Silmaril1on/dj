@@ -4,7 +4,7 @@ import { formatTime } from "@/app/helpers/utils";
 import Title from "@/app/components/ui/Title";
 import Paragraph from "@/app/components/ui/Paragraph";
 import SpanText from "@/app/components/ui/SpanText";
-import RatingButton from "@/app/components/buttons/RatingButton";
+import RatingButton from "@/app/components/buttons/artist-buttons/RatingButton";
 import Image from "next/image";
 import Link from "next/link";
 import ArtistName from "@/app/components/materials/ArtistName";

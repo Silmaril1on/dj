@@ -9,10 +9,10 @@ import Dot from "@/app/components/ui/Dot";
 import Paragraph from "@/app/components/ui/Paragraph";
 import Image from "next/image";
 import MyLink from "@/app/components/ui/MyLink";
-import LikeButton from "@/app/components/buttons/LikeButton";
 import SpanText from "@/app/components/ui/SpanText";
 import { FaArrowRight } from "react-icons/fa";
 import SectionContainer from "@/app/components/containers/SectionContainer";
+import LikeButton from "@/app/components/buttons/artist-buttons/LikeButton";
 
 const Events = ({ events = [] }) => {
   const [open, setOpen] = useState(null);

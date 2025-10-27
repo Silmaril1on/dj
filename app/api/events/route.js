@@ -174,7 +174,6 @@ export async function POST(request) {
         .upload(fileName, event_image, { cacheControl: "3600", upsert: false });
 
       if (uploadError) {
-        console.error("Upload error:", uploadError);
         return NextResponse.json(
           { success: false, error: "Failed to upload image" },
           { status: 500 }
@@ -204,10 +203,67 @@ export async function POST(request) {
       .single();
 
     if (insertError) {
+      console.error("Event insert error:", insertError);
       return NextResponse.json(
         { success: false, error: "Failed to create event" },
         { status: 500 }
       );
+    }
+
+    // ---- Create artist_schedule entries for each artist in the event ----
+    if (artists && artists.length > 0) {
+      // Find matching artists in the database by name or stage_name
+      const { data: matchedArtists, error: artistError } = await supabase
+        .from("artists")
+        .select("id, name, stage_name")
+        .or(
+          artists
+            .map(
+              (artistName) =>
+                `name.ilike.${artistName},stage_name.ilike.${artistName}`
+            )
+            .join(",")
+        );
+
+      if (artistError) {
+        console.error("Error finding artists:", artistError);
+      } else if (matchedArtists && matchedArtists.length > 0) {
+        console.log("Matched artists:", matchedArtists);
+
+        // Prepare artist_schedule entries with pending status
+        const scheduleEntries = matchedArtists.map((artist) => ({
+          artist_id: artist.id,
+          event_id: event.id,
+          date: fields.date,
+          time: fields.doors_open || null,
+          country: fields.country,
+          city: fields.city,
+          club_name: fields.venue_name || null,
+          event_link: fields.location_url || null,
+          status: 'pending',
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+        }));
+
+        console.log("Inserting schedule entries:", scheduleEntries);
+
+        // Insert into artist_schedule
+        const { data: scheduleData, error: scheduleError } = await supabase
+          .from("artist_schedule")
+          .insert(scheduleEntries)
+          .select();
+
+        if (scheduleError) {
+          console.error("Error inserting artist schedules:", scheduleError);
+          // Don't fail the entire event creation if schedule insert fails
+        } else {
+          console.log(
+            `Successfully created ${scheduleData.length} artist schedule entries`
+          );
+        }
+      } else {
+        console.log("No matching artists found in database");
+      }
     }
 
     // ---- Update user's submitted_event_id ----

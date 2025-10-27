@@ -7,7 +7,7 @@ import Title from '@/app/components/ui/Title'
 import MyLink from '@/app/components/ui/MyLink'
 import FlexBox from '@/app/components/containers/FlexBox'
 import ErrorCode from '@/app/components/ui/ErrorCode'
-import { formatTime } from '@/app/helpers/utils'
+import { formatBirthdate, formatTime } from '@/app/helpers/utils'
 
 const ArtistSchedule = ({ data, title = "Upcoming Dates", description = "Stay updated with upcoming dates" }) => {
   if (!data || data.length === 0) {
@@ -15,6 +15,9 @@ const ArtistSchedule = ({ data, title = "Upcoming Dates", description = "Stay up
       <ErrorCode title="No Upcoming Dates" description="There are no upcoming dates available at the moment." />
     </div>
   }
+
+  console.log(data);
+  
 
   return (
     <SectionContainer title={title} description={description} className="mt-10">
@@ -34,7 +37,7 @@ const ArtistSchedule = ({ data, title = "Upcoming Dates", description = "Stay up
               <div className="flex items-center gap-2 text-gold pointer-events-none">
                 <MdCalendarToday size={18} />
                 <span className="font-semibold text-xs lg:text-lg">
-                  {formatTime(schedule.date)}
+                  {formatBirthdate(schedule.date)}
                 </span>
               </div>
               {/* Time */}
@@ -68,11 +71,11 @@ const ArtistSchedule = ({ data, title = "Upcoming Dates", description = "Stay up
                       target="_blank"
                     />
                   )}
-                  {schedule.id && (
+                  {schedule.event_id && (
                     <MyLink
                       color="chino"
                       icon={<MdEvent />}
-                      href={`/events/${schedule.id}`}
+                      href={`/events/${schedule.event_id}`}
                       text="View Event Page"
                     />
                   )}

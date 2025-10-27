@@ -4,7 +4,7 @@ import { FaHeart, FaRegHeart } from "react-icons/fa";
 import { useDispatch, useSelector } from "react-redux";
 import { selectUser } from "@/app/features/userSlice";
 import { setError } from "@/app/features/modalSlice";
-import Spinner from "../ui/Spinner";
+import Spinner from "../../ui/Spinner";
 
 const LikeButton = ({
   className,

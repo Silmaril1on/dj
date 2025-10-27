@@ -69,11 +69,12 @@ export async function GET(request) {
     let artist_schedule = [];
     let artist_albums = [];
 
-    // Get artist schedule from artist_schedule table
+    // Get artist schedule from artist_schedule table - only approved events
     const { data: scheduleData, error: scheduleError } = await supabase
       .from("artist_schedule")
       .select("*")
       .eq("artist_id", artistId)
+      .eq("status", "approved")
       .order("date", { ascending: true });
 
     if (scheduleError) {

@@ -11,6 +11,7 @@ import bookingReducer from "@/app/features/bookingSlice";
 import acceptBookingReducer from "@/app/features/bookingSlice";
 import welcomeReducer from "@/app/features/welcomeSlice";
 import { privacyTermsReducer } from "@/app/features/privacyTermsSlice";
+import eventRequestReducer from "@/app/features/eventRequestSlice";
 
 export const store = configureStore({
   reducer: {
@@ -26,5 +27,6 @@ export const store = configureStore({
     acceptBooking: acceptBookingReducer,
     welcome: welcomeReducer,
     privacyTerms: privacyTermsReducer,
+    eventRequest: eventRequestReducer,
   },
 });
