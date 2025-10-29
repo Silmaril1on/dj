@@ -2,6 +2,7 @@
 import { useSelector } from 'react-redux';
 import { selectArtistRatingStats } from '@/app/features/ratingSlice';
 import FlexBox from '@/app/components/containers/FlexBox';
+import Motion from '@/app/components/containers/Motion';
 
 const LinkActions = ({ data }) => {
   const { likesCount, rating_stats, artist_schedule } = data;
@@ -17,8 +18,8 @@ const LinkActions = ({ data }) => {
 
 const Scores = ({ scores, likesCount, scheduleCount }) => {
   return (
-    <div className="grid *:font-bold pointer-events-none gap-2">
-      <div className="space-x-2 flex items-center">
+    <div className="space-y-2 *:font-bold pointer-events-none">
+      <Motion animation="fade" delay={0.2} className="space-x-2 flex items-center">
         <span className="bg-gold/20 text-gold text-5xl px-3 py-1 rounded-md min-w-18 text-center">
           {scores?.average_score}
         </span>
@@ -29,8 +30,8 @@ const Scores = ({ scores, likesCount, scheduleCount }) => {
             {scores?.total_ratings === 1 ? "user" : "users"} has rates
           </span>
         </FlexBox>
-      </div>
-      <div className="space-x-2 flex items-center">
+      </Motion>
+      <Motion animation="fade" delay={0.4} className="space-x-2 flex items-center">
         <span className="bg-gold/20 text-gold text-5xl px-3 py-1 rounded-md min-w-18 text-center">
           {likesCount}
         </span>
@@ -40,8 +41,8 @@ const Scores = ({ scores, likesCount, scheduleCount }) => {
             {likesCount} {likesCount === 1 ? "user" : "users"} like this artist
           </span>
         </FlexBox>
-      </div>
-      <div className="space-x-2 flex items-center">
+      </Motion>
+      <Motion animation="fade" delay={0.6} className="space-x-2 flex items-center">
         <span className="bg-gold/20 text-gold text-5xl px-3 py-1 rounded-md min-w-18 text-center">
           {scheduleCount}
         </span>
@@ -51,7 +52,7 @@ const Scores = ({ scores, likesCount, scheduleCount }) => {
             {scheduleCount} {scheduleCount === 1 ? "date" : "dates"} scheduled
           </span>
         </FlexBox>
-      </div>
+      </Motion>
     </div>
   );
 
