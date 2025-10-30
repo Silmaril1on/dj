@@ -5,7 +5,7 @@ import ErrorCode from '@/app/components/ui/ErrorCode';
 import ProductCard from '@/app/components/containers/ProductCard';
 import FilterBar from '@/app/components/forms/FilterBar';
 import PageHeadline from '@/app/components/containers/PageHeadline';
-import { AnimatePresence } from 'framer-motion';
+
 import { filterConfigs } from '@/app/helpers/filterSearch/filterConfig';
 import Button from '@/app/components/buttons/Button';
 
@@ -139,23 +139,20 @@ const Clubs = ({ clubs: initialClubs = [], error }) => {
         onChange={handleFilterChange}
       />
       <div className="grid grid-cols-2 lg:grid-cols-3 gap-2 lg:gap-4">
-        <AnimatePresence>
-          {filteredClubs.map((club, idx) => (
-            <ProductCard
-              layout
-              key={club.id}
-              id={club.id}
-              image={club.club_image}
-              name={club.name}
-              country={club.country}
-              city={club.city}
-              capacity={club.capacity}
-              likesCount={club.likesCount}
-              href={`/clubs/${club.id}`}
-              delay={idx * 0.05}
-            />
-          ))}
-        </AnimatePresence>
+        {filteredClubs.map((club, idx) => (
+          <ProductCard
+            key={club.id}
+            id={club.id}
+            image={club.club_image}
+            name={club.name}
+            country={club.country}
+            city={club.city}
+            capacity={club.capacity}
+            likesCount={club.likesCount}
+            href={`/clubs/${club.id}`}
+            delay={idx}
+          />
+        ))}
       </div>
       {hasMore && (
         <div className="flex justify-center my-4">

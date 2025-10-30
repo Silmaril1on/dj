@@ -1,7 +1,7 @@
-import React from 'react'
+"use client";
+import { motion } from "framer-motion"
 import Image from 'next/image'
 import Link from 'next/link'
-import Motion from '@/app/components/containers/Motion'
 import Title from '@/app/components/ui/Title'
 import SpanText from '@/app/components/ui/SpanText'
 import ArtistCountry from '@/app/components/materials/ArtistCountry'
@@ -19,15 +19,14 @@ const ProductCard = ({
   likesCount,
   capacity, 
   href,
-  animation = "fade",
   delay = 0,
   className = "",
 }) => (
-  <Motion
+  <motion.div
     key={id}
-    layout
-    animation={animation}
-    delay={delay}
+    initial={{ opacity: 0 }}
+    animate={{ opacity: 1 }}
+    transition={{ duration: 0.4, delay: delay * 0.05 }}
     className={`relative bordered bg-stone-900 p-1 group cursor-pointer ${className}`}
   >
     <Link href={href}>
@@ -66,13 +65,13 @@ const ProductCard = ({
           <SpanText
             icon={<FaUsers />}
             size="xs"
-            text={`${likesCount} Interested`}
+            text={`${likesCount} ${artists.length > 0 ? 'Interested' : 'Likes'}`}
             className="ml-2 secondary pointer-events-none"
           />
         </div>
       )}
     </Link>
-  </Motion>
+  </motion.div>
 );
 
 export default ProductCard

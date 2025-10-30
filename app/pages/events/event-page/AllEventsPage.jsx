@@ -6,7 +6,7 @@ import FilterBar from '@/app/components/forms/FilterBar'
 import { formatBirthdate } from '@/app/helpers/utils'
 import { useState, useMemo } from 'react'
 import { filterConfigs } from '@/app/helpers/filterSearch/filterConfig'
-import { AnimatePresence } from 'framer-motion'
+
 import PageHeadline from '@/app/components/containers/PageHeadline';
 import Button from '@/app/components/buttons/Button';
 
@@ -118,24 +118,21 @@ const AllEventsPage = ({ events: initialEvents = [], error }) => {
         onChange={handleFilterChange}
       />
       <div className="grid grid-cols-2 lg:grid-cols-4 xl:grid-cols-5 gap-2 lg:gap-4">
-        <AnimatePresence>
-          {filteredEvents.map((event, idx) => (
-            <ProductCard
-              layout
-              key={event.id}
-              id={event.id}
-              image={event.event_image}
-              name={event.event_name}
-              date={formatBirthdate(event.date)}
-              country={event.country}
-              city={event.city}
-              artists={event.artists}
-              likesCount={event.likesCount}
-              href={`/events/${event.id}`}
-              delay={idx * 0.05}
-            />
-          ))}
-        </AnimatePresence>
+        {filteredEvents.map((event, idx) => (
+          <ProductCard
+            key={event.id}
+            id={event.id}
+            image={event.event_image}
+            name={event.event_name}
+            date={formatBirthdate(event.date)}
+            country={event.country}
+            city={event.city}
+            artists={event.artists}
+            likesCount={event.likesCount}
+            href={`/events/${event.id}`}
+            delay={idx}
+          />
+        ))}
       </div>
       {hasMore && (
         <div className="flex justify-center my-4">

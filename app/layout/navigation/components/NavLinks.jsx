@@ -9,6 +9,7 @@ const NavLinks = ({ type, onClose }) => {
 
     const links = [
         ...(user?.is_admin ? [{ href: '/administration/submitted-artists', label: 'Admin' }] : []),
+        { href: '/artists', label: 'Artists' },
         { href: '/events', label: 'Events' },
         { href: '/clubs', label: 'Clubs' },
         { href: '/news', label: 'News' },

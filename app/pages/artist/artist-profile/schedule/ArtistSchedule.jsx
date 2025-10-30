@@ -16,8 +16,6 @@ const ArtistSchedule = ({ data, title = "Upcoming Dates", description = "Stay up
     </div>
   }
 
-  console.log(data);
-  
 
   return (
     <SectionContainer title={title} description={description} className="mt-10">

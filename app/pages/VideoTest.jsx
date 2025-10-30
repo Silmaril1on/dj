@@ -20,8 +20,6 @@ const VideoTest = () => {
         <AnimateLogo />
         {/* artist club event owner and connection community part */}
         <CommunityConnection />
-        {/* stats and analytics part */}
-        <StatsAndAnalytics />
     </div>
   )
 }
@@ -163,8 +161,13 @@ const CommunityConnection = () => {
 // Are you an artist sharing your sound with the world?
 // Or a club owner shaping the nightlife?
 // Maybe a promoter bringing people together through music.
-// Soundfolio connects you all — in one rhythm.
+// Soundfolio connects you all — in one place.
 // Together, we build the community that moves electronic music forward.
+
+
+//“Connect, discover, and track your activity and statistics. Own your rhythm. Soundfolio keeps it social.”
+
+// Built for everyone who lives through sound — artists, clubs, and fans, connected in one place. powered by your contribution to something greater.
 
     const cards = [
     {
@@ -211,7 +214,7 @@ const CommunityConnection = () => {
   return (
     <div className='center border w-full min-h-screen relative overflow-hidden'>
        <motion.div 
-          className='absolute top-[54%] left-2/4 -translate-x-2/4 -translate-y-2/4 z-50'
+          className='absolute top-[54%] left-2/4 -translate-x-2/4 -translate-y-2/4 z-[3]'
           initial={{scale: 0, y: 0}} 
           animate={{
             scale: [0, 1, 1, 100],
@@ -226,9 +229,191 @@ const CommunityConnection = () => {
         >
         <FaUsers className='text-7xl text-gold' />
         </motion.div>
+         <motion.div 
+        initial={{y: -700}} 
+        animate={{y: 0}}
+        transition={{
+            delay: 14.5,
+            duration: 2,
+        }}
+        style={{transformOrigin: "top"}}
+        className='absolute z-[4] bg-black w-full h-2/4 top-0 left-0'
+    />
+    <motion.div 
+        initial={{y: 700 }} 
+        animate={{y: 0 }}
+        transition={{
+            delay: 14.5,
+            duration: 2,
+        }}
+        style={{transformOrigin: "bottom"}}
+        className='absolute z-[4] bg-black w-full h-2/4 bottom-0 left-0'
+    />
+          <motion.img 
+            initial={{x: -700}} 
+            animate={{x: 0, scale: [1, 1, 0]}} 
+            transition={{
+                x: {
+                    duration: 0.3, 
+                    delay: 9.5,
+                    type: "spring",
+                    stiffness: 100,
+                    damping: 15
+                },
+                scale: {
+                    duration: 0.4,
+                    delay: 16.5,
+                    ease: "easeInOut"
+                }
+            }} 
+            src="/assets/2.png" 
+            alt="events" 
+            className='w-86 h-auto z-[5] absolute top-[9%] left-[8%] -rotate-16 '
+        />
+        <motion.img 
+            initial={{y: 700, x: -700}} 
+            animate={{y: 0, x: 0, scale: [1, 1, 0]}} 
+            transition={{
+                x: {
+                    duration: 0.3, 
+                    delay: 9.9,
+                    type: "spring",
+                    stiffness: 120,
+                    damping: 20
+                },
+                y: {
+                    duration: 0.3, 
+                    delay: 9.9,
+                    type: "spring",
+                    stiffness: 120,
+                    damping: 20
+                },
+                scale: {
+                    duration: 0.4,
+                    delay: 16.5,
+                    ease: "easeInOut"
+                }
+            }} 
+            src="/assets/4.png" 
+            alt="reviews" 
+            className='w-64 h-auto z-[5] absolute bottom-[10%] left-[16%] rotate-8 '
+        />
+        <motion.img 
+            initial={{y: 700}} 
+            animate={{y: 0, scale: [1, 1, 0]}} 
+            transition={{
+                y: {
+                    duration: 0.3, 
+                    delay: 10.1,
+                    type: "spring",
+                    stiffness: 80,
+                    damping: 12
+                },
+                scale: {
+                    duration: 0.4,
+                    delay: 16.5,
+                    ease: "easeInOut"
+                }
+            }} 
+            src="/assets/3.png" 
+            alt="artist" 
+            className='w-86 h-auto z-[5] absolute bottom-[10%] right-[42%] -rotate-4 '
+        />
+        <motion.img 
+            initial={{x: 700, y: 700}} 
+            animate={{x: 1, y: 0, scale: [1, 1, 0]}} 
+            transition={{
+                x: {
+                    duration: 0.3, 
+                    delay: 10.3,
+                    type: "spring",
+                    stiffness: 90,
+                    damping: 18
+                },
+                y: {
+                    duration: 0.3, 
+                    delay: 10.3,
+                    type: "spring",
+                    stiffness: 90,
+                    damping: 18
+                },
+                scale: {
+                    duration: 0.4,
+                    delay: 16.5,
+                    ease: "easeInOut"
+                }
+            }} 
+            src="/assets/5.png" 
+            alt="likes" 
+            className='w-86 h-auto z-[5] absolute bottom-[10%] right-[16%] -rotate-12 '
+        />
+        <motion.img 
+            initial={{x: -700, y: -700}} 
+            animate={{x: 0, y: 0, scale: [1, 1, 0]}} 
+            transition={{
+                x: {
+                    duration: 0.3, 
+                    delay: 10.5,
+                    type: "spring",
+                    stiffness: 110,
+                    damping: 16
+                },
+                y: {
+                    duration: 0.3, 
+                    delay: 10.5,
+                    type: "spring",
+                    stiffness: 110,
+                    damping: 16
+                },
+                scale: {
+                    duration: 0.4,
+                    delay: 16.5,
+                    ease: "easeInOut"
+                }
+            }} 
+            src="/assets/1.png" 
+            alt="books" 
+            className='w-86 h-auto z-[5] absolute top-[6%] right-[12%] rotate-4 '
+        />
+        <motion.img 
+            initial={{y: -700}} 
+            animate={{y: 0, scale: [1, 1, 0]}} 
+            transition={{
+                y: {
+                    duration: 0.3, 
+                    delay: 10.7,
+                    type: "spring",
+                    stiffness: 95,
+                    damping: 14
+                },
+                scale: {
+                    duration: 0.4,
+                    delay: 16.5,
+                    ease: "easeInOut"
+                }
+            }} 
+            src="/assets/7.png" 
+            alt="club" 
+            className='w-86 h-auto z-[5] absolute top-[8%] right-[40%] rotate-6 '
+        />
+        <motion.img 
+            initial={{scale: 0}} 
+            animate={{scale: [0, 1, 1, 0]}} 
+            transition={{
+                scale: {
+                    times: [0, 0.375, 0.9, 1],
+                    duration: 5.5,
+                    delay: 10.9,
+                    ease: ["easeOut", "linear", "easeInOut"]
+                }
+            }} 
+            src="/assets/6.png" 
+            alt="ratings" 
+            className='w-64 h-auto z-[5] absolute top-[30%] right-[45%]'
+        />
       {cards.map(({ type, title, description, icon: Icon, position }, index) => (
         <motion.div
-        className={`${position} bg-gradient-to-br from-gold/20 to-gold/10 border border-gold/30 rounded-lg p-3 w-64 z-10`}
+        className={`${position} bg-gradient-to-br from-gold/20 to-gold/10 border border-gold/30 rounded-lg p-3 w-64 z-[1]`}
           key={type}
           initial={{ scale: 0 }}
           animate={{ scale: 1 }}
@@ -276,198 +461,5 @@ const CommunityConnection = () => {
   )
 }
 
-const StatsAndAnalytics = () => {
-
-  //“Connect, discover, and track your activity and statistics. Own your rhythm. Soundfolio keeps it social.”
-
-  return (
-   <div className='h-screen bg-gold w-full relative overflow-hidden'>
-    {/* Top and Bottom animated divs */}
-  <motion.div 
-        initial={{y: -700}} 
-        animate={{y: 0}}
-        transition={{
-            delay: 3.5,
-            duration: 2,
-        }}
-        style={{transformOrigin: "top"}}
-        className='absolute z-[5] bg-stone-800 w-full h-2/4 top-0 left-0'
-    />
-    <motion.div 
-        initial={{y: 700 }} 
-        animate={{y: 0 }}
-        transition={{
-            delay: 3.5,
-            duration: 2,
-        }}
-        style={{transformOrigin: "bottom"}}
-        className='absolute z-[5] bg-black w-full h-2/4 bottom-0 left-0'
-    />
-      {/* stat images */}
-       <motion.img 
-            initial={{x: -700}} 
-            animate={{x: 0, scale: [1, 1, 0]}} 
-            transition={{
-                x: {
-                    duration: 0.3, 
-                    delay: 0.3,
-                    type: "spring",
-                    stiffness: 100,
-                    damping: 15
-                },
-                scale: {
-                    duration: 0.4,
-                    delay: 5.5,
-                    ease: "easeInOut"
-                }
-            }} 
-            src="/assets/2.png" 
-            alt="events" 
-            className='w-86 h-auto z-10 absolute top-[9%] left-[8%] -rotate-16 '
-        />
-        <motion.img 
-            initial={{y: 700, x: -700}} 
-            animate={{y: 0, x: 0, scale: [1, 1, 0]}} 
-            transition={{
-                x: {
-                    duration: 0.3, 
-                    delay: 0.5,
-                    type: "spring",
-                    stiffness: 120,
-                    damping: 20
-                },
-                y: {
-                    duration: 0.3, 
-                    delay: 0.5,
-                    type: "spring",
-                    stiffness: 120,
-                    damping: 20
-                },
-                scale: {
-                    duration: 0.4,
-                    delay: 5.5,
-                    ease: "easeInOut"
-                }
-            }} 
-            src="/assets/4.png" 
-            alt="reviews" 
-            className='w-64 h-auto z-10 absolute bottom-[10%] left-[16%] rotate-8 '
-        />
-        <motion.img 
-            initial={{y: 700}} 
-            animate={{y: 0, scale: [1, 1, 0]}} 
-            transition={{
-                y: {
-                    duration: 0.3, 
-                    delay: 0.7,
-                    type: "spring",
-                    stiffness: 80,
-                    damping: 12
-                },
-                scale: {
-                    duration: 0.4,
-                    delay: 5.5,
-                    ease: "easeInOut"
-                }
-            }} 
-            src="/assets/3.png" 
-            alt="artist" 
-            className='w-86 h-auto z-10 absolute bottom-[10%] right-[42%] -rotate-4 '
-        />
-        <motion.img 
-            initial={{x: 700, y: 700}} 
-            animate={{x: 1, y: 0, scale: [1, 1, 0]}} 
-            transition={{
-                x: {
-                    duration: 0.3, 
-                    delay: 0.9,
-                    type: "spring",
-                    stiffness: 90,
-                    damping: 18
-                },
-                y: {
-                    duration: 0.3, 
-                    delay: 0.9,
-                    type: "spring",
-                    stiffness: 90,
-                    damping: 18
-                },
-                scale: {
-                    duration: 0.4,
-                    delay: 5.5,
-                    ease: "easeInOut"
-                }
-            }} 
-            src="/assets/5.png" 
-            alt="likes" 
-            className='w-86 h-auto z-10 absolute bottom-[10%] right-[16%] -rotate-12 '
-        />
-        <motion.img 
-            initial={{x: -700, y: -700}} 
-            animate={{x: 0, y: 0, scale: [1, 1, 0]}} 
-            transition={{
-                x: {
-                    duration: 0.3, 
-                    delay: 1.1,
-                    type: "spring",
-                    stiffness: 110,
-                    damping: 16
-                },
-                y: {
-                    duration: 0.3, 
-                    delay: 1.1,
-                    type: "spring",
-                    stiffness: 110,
-                    damping: 16
-                },
-                scale: {
-                    duration: 0.4,
-                    delay: 5.5,
-                    ease: "easeInOut"
-                }
-            }} 
-            src="/assets/1.png" 
-            alt="books" 
-            className='w-86 h-auto z-10 absolute top-[6%] right-[12%] rotate-4 '
-        />
-        <motion.img 
-            initial={{y: -700}} 
-            animate={{y: 0, scale: [1, 1, 0]}} 
-            transition={{
-                y: {
-                    duration: 0.3, 
-                    delay: 1.3,
-                    type: "spring",
-                    stiffness: 95,
-                    damping: 14
-                },
-                scale: {
-                    duration: 0.4,
-                    delay: 5.5,
-                    ease: "easeInOut"
-                }
-            }} 
-            src="/assets/7.png" 
-            alt="club" 
-            className='w-86 h-auto z-10 absolute top-[8%] right-[40%] rotate-6 '
-        />
-        <motion.img 
-            initial={{scale: 0}} 
-            animate={{scale: [0, 1, 1, 0]}} 
-            transition={{
-                scale: {
-                    times: [0, 0.375, 0.9, 1],
-                    duration: 5.5,
-                    delay: 1.5,
-                    ease: ["easeOut", "linear", "easeInOut"]
-                }
-            }} 
-            src="/assets/6.png" 
-            alt="ratings" 
-            className='w-64 h-auto z-10 absolute top-[30%] right-[45%]'
-        />
-    </div>
-  )
-}
 
 export default VideoTest
