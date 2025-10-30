@@ -1,5 +1,5 @@
 "use client"
-import React from 'react'
+import React, { useRef } from 'react'
 import {motion} from 'framer-motion'
 import { Michroma } from 'next/font/google'
 import { MdEvent } from 'react-icons/md'
@@ -15,11 +15,14 @@ const michroma = Michroma({
 
 const VideoTest = () => {
   return (
-    <div className='center flex flex-col min-h-screen gap-20'>
+    <div className='center flex flex-col min-h-screen gap-20 relative overflow-hidden'>
         {/*Welcome to soundfolio part */}
-        <AnimateLogo />
+        {/* <AnimateLogo /> */}
         {/* artist club event owner and connection community part */}
-        <CommunityConnection />
+        <CommunityCards />
+        <ConnectionLines />
+        <CommunityTransition />
+        <Beats />
     </div>
   )
 }
@@ -156,20 +159,8 @@ const AnimateLogo = () => {
     )
 }
 
-const CommunityConnection = () => {
-
-// Are you an artist sharing your sound with the world?
-// Or a club owner shaping the nightlife?
-// Maybe a promoter bringing people together through music.
-// Soundfolio connects you all — in one place.
-// Together, we build the community that moves electronic music forward.
-
-
-//“Connect, discover, and track your activity and statistics. Own your rhythm. Soundfolio keeps it social.”
-
-// Built for everyone who lives through sound — artists, clubs, events and fans, connected in one place. powered by your contribution to something greater.
-
-    const cards = [
+const CommunityCards = () => {
+  const cards = [
     {
       type: "artist",
       title: "Add Artist",
@@ -196,7 +187,39 @@ const CommunityConnection = () => {
     },
   ];
 
-    const connections = [
+  return (
+    <>
+      {cards.map(({ type, title, description, icon: Icon, position }, index) => (
+        <motion.div
+        className={`${position} bg-gradient-to-br from-gold/20 to-gold/10 border border-gold/30 rounded-lg p-3 w-64 z-[1]`}
+          key={type}
+          initial={{ scale: 0 }}
+          animate={{ scale: 1 }}
+          transition={{
+            duration: 0.5,
+            delay: index * 0.5,
+            ease: "easeOut"
+          }}
+        >
+          <div className="text-center space-y-2">
+            <div className="mx-auto text-2xl w-16 h-16 bg-gold/20 rounded-full flex items-center justify-center group-hover:bg-gold/30 transition-colors duration-300">
+              <span>{Icon}</span>
+            </div>
+            <h3 className="text-xl font-bold text-gold group-hover:text-gold/90 transition-colors duration-300">
+              {title}
+            </h3>
+            <p className="text-xs text-chino/80 leading-relaxed">
+              {description}
+            </p>
+          </div>
+        </motion.div>
+      ))}
+    </>
+  );
+};
+
+const ConnectionLines = () => {
+  const connections = [
     {
       className: "h-0.5 w-80 top-86 right-100 rotate-225 origin-center",
       delay: 3.5
@@ -212,8 +235,36 @@ const CommunityConnection = () => {
   ];
 
   return (
-    <div className='center border w-full min-h-screen relative overflow-hidden'>
-       <motion.div 
+    <>
+      {connections.map((connection, connIndex) => (
+        <div 
+          key={connIndex}
+          className={`absolute ${connection.className} flex z-0 items-center justify-around px-15`}
+          style={{ zIndex: 0 }}
+        >
+          {Array.from({ length: connIndex === 2 ? 15 : 10 }).map((_, dashIndex) => (
+            <motion.div
+              key={dashIndex}
+              initial={{ scaleX: 0, opacity: 0 }}
+              animate={{ scaleX: 1, opacity: 1 }}
+              transition={{
+                duration: 0.2,
+                delay: connection.delay + dashIndex * 0.1,
+                ease: "easeOut"
+              }}
+              className="w-3 h-1 bg-yellow-600 rounded-full"
+            />
+          ))}
+        </div>
+      ))}
+    </>
+  );
+};
+
+const CommunityTransition = () => {
+  return (
+    <>
+      <motion.div 
           className='absolute top-[54%] left-2/4 -translate-x-2/4 -translate-y-2/4 z-[3]'
           initial={{scale: 0, y: 0}} 
           animate={{
@@ -396,70 +447,134 @@ const CommunityConnection = () => {
             alt="club" 
             className='w-86 h-auto z-[5] absolute top-[8%] right-[40%] rotate-6 '
         />
-        <motion.img 
-            initial={{scale: 0}} 
-            animate={{scale: [0, 1, 1, 0]}} 
-            transition={{
-                scale: {
-                    times: [0, 0.375, 0.9, 1],
-                    duration: 5.5,
-                    delay: 10.9,
-                    ease: ["easeOut", "linear", "easeInOut"]
-                }
-            }} 
-            src="/assets/6.png" 
-            alt="ratings" 
-            className='w-64 h-auto z-[5] absolute top-[30%] right-[45%]'
-        />
-      {cards.map(({ type, title, description, icon: Icon, position }, index) => (
+ <motion.img 
+  initial={{ scale: 0 }} 
+  animate={{ scale: [0, 1, 1, 0] }} 
+  transition={{
+    scale: {
+      times: [0, 0.3, 0.8, 1],  // smoother in → hold → out
+      duration: 6.5,            // matches others’ visible duration
+      delay: 10.9,              // aligns entry with rest
+      ease: ["easeOut", "linear", "easeInOut"]
+    }
+  }} 
+  src="/assets/6.png" 
+  alt="ratings" 
+  className="w-64 h-auto z-[5] absolute top-[30%] right-[45%]"
+/>
+    </>
+  );
+};
+
+const Beats = () => {
+  const artistVideoRef = useRef(null);
+  const bars = [
+    9, 18, 15, 23, 18, 32, 23, 18, 24, 17, 10, 15, 20, 25, 18, 12, 28, 16, 22, 14,
+    19, 26, 13, 21, 17, 24, 11, 20, 18, 23, 15, 19, 27, 14, 22, 16, 25, 13, 20, 17,
+    24, 12, 21, 18, 26, 15, 23, 19, 16, 22, 22, 16, 25, 13, 20, 17, 24, 12, 21, 18,
+    26, 15, 23, 19, 16, 22, 22, 16, 25, 13, 20, 17, 24, 12, 21, 18, 26, 15, 23, 19,
+    16, 22, 22, 16, 25, 13, 16, 22, 22, 16, 25, 13, 20, 17, 24, 12, 21, 18, 26, 15, 23, 19,
+    16, 22, 22, 16, 25, 13, 22, 22, 16, 25, 13, 20, 17, 24, 12, 21, 18, 26, 15, 23, 19,
+    16, 22, 22, 16, 25, 13,
+  ];
+
+  return (
+   <>
+    <motion.div
+      initial={{
+    opacity: 0,
+    top: "50%",
+    left: "50%",
+    x: "-50%",
+    y: "-50%",
+  }}
+  animate={{
+    opacity: 1,
+    top: ["45%", "7%"],
+    left: ["55%", "10%"],
+    x: ["-50%", "0%"],
+    y: ["-50%", "0%"],
+  }}
+    transition={{
+    opacity: { duration: 0.4, delay: 18.5 },
+    top: { duration: 0.5, delay: 19.2, ease: "easeInOut" },
+    left: { duration: 0.5, delay: 19.2, ease: "easeInOut" },
+    x: { duration: 0.5, delay: 19.2, ease: "easeInOut" },
+    y: { duration: 0.5, delay: 19.2, ease: "easeInOut" },
+  }}
+      className="flex items-center w-[750px] h-20 absolute z-10 space-x-[2px] overflow-hidden"
+    >
+      {bars.map((height, index) => (
         <motion.div
-        className={`${position} bg-gradient-to-br from-gold/20 to-gold/10 border border-gold/30 rounded-lg p-3 w-64 z-[1]`}
-          key={type}
-          initial={{ scale: 0 }}
-          animate={{ scale: 1 }}
-          transition={{
-            duration: 0.5,
-            delay: index * 0.5,
-            ease: "easeOut"
+          key={index}
+          className="w-0.5 bg-gold"
+          animate={{
+            height: [5, height, 5],
           }}
-        >
-          <div className="text-center space-y-2">
-            <div className="mx-auto text-2xl w-16 h-16 bg-gold/20 rounded-full flex items-center justify-center group-hover:bg-gold/30 transition-colors duration-300">
-              <span>{Icon}</span>
-            </div>
-            <h3 className="text-xl font-bold text-gold group-hover:text-gold/90 transition-colors duration-300">
-              {title}
-            </h3>
-            <p className="text-xs text-chino/80 leading-relaxed">
-              {description}
-            </p>
-          </div>
-        </motion.div>
+          transition={{
+            duration: 1.2,
+            repeat: Infinity,
+            repeatType: "reverse",
+            ease: "easeInOut",
+            delay: index * 0.05,
+          }}
+        />
       ))}
-     {connections.map((connection, connIndex) => (
-       <div 
-          key={connIndex}
-          className={`absolute ${connection.className} flex z-0 items-center justify-around px-15`}
-          style={{ zIndex: 0 }}
-        >
-          {Array.from({ length: connIndex === 2 ? 15 : 10 }).map((_, dashIndex) => (
-            <motion.div
-              key={dashIndex}
-              initial={{ scaleX: 0, opacity: 0 }}
-              animate={{ scaleX: 1, opacity: 1 }}
-              transition={{
-                duration: 0.2,
-                delay: connection.delay + dashIndex * 0.1,
-                ease: "easeOut"
-              }}
-              className="w-3 h-1 bg-yellow-600 rounded-full"
-            />
-          ))}
-        </div>
-      ))}
-    </div>
-  )
-}
+    </motion.div>
+  {/* Animated Videos */}
+  <motion.video
+    src="/assets/event-video.mp4"
+    autoPlay
+    muted
+    playsInline
+    className="absolute z-10 right-15 top-10 w-[600px] rounded-2xl"
+    initial={{ y: -700, opacity: 0 }}
+    animate={{ y: 0, opacity: 1 }}
+    transition={{ duration: 0.3, delay: 19.5, ease: "easeInOut" }}
+  />
+
+   <motion.video
+        ref={artistVideoRef}
+        src="/assets/artist-video.mp4"
+        muted
+        playsInline
+        className="absolute z-10 left-10 bottom-20 w-[750px] rounded-3xl"
+        initial={{ scale: 0, opacity: 0 }}
+        animate={{ scale: 1, opacity: 1 }}
+        transition={{ duration: 0.4, delay: 19.7, ease: "easeInOut" }}
+        onAnimationComplete={() => {
+          if (artistVideoRef.current) {
+            artistVideoRef.current.play();
+          }
+        }}
+      />
+
+  <motion.video
+    src="/assets/club-video.mp4"
+    autoPlay
+    muted
+    playsInline
+    className="absolute z-10 right-15 bottom-20 w-[600px] rounded-2xl"
+    initial={{ y: 700, opacity: 0 }}
+    animate={{ y: 0, opacity: 1 }}
+    transition={{ duration: 0.3, delay: 19.9, ease: "easeInOut" }}
+  />
+   </>
+  );
+};
 
 
 export default VideoTest
+
+
+
+// Are you an artist sharing your sound with the world?
+// Or a club owner shaping the nightlife?
+// Maybe a promoter bringing people together through music.
+// Soundfolio connects you all — in one place.
+// Together, we build the community that moves electronic music forward.
+
+
+//“Connect, discover, and track your activity and statistics. Own your rhythm. Soundfolio keeps it social.”
+
+// Built for everyone who lives through sound — artists, clubs, events and fans, connected in one place. powered by your contribution to something greater.

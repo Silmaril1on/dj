@@ -186,13 +186,34 @@ export async function POST(request) {
       eventImageUrl = data.publicUrl;
     }
 
+    // ---- Match club by venue_name ----
+    let matchedClubId = club_id; // Use existing club_id if provided
+    
+    if (fields.venue_name && !club_id) {
+      const { data: matchedClubs, error: clubError } = await supabase
+        .from("clubs")
+        .select("id, name")
+        .ilike("name", fields.venue_name);
+
+      if (clubError) {
+        console.error("Error finding clubs:", clubError);
+      } else if (matchedClubs && matchedClubs.length > 0) {
+        // Find exact match or closest match
+        const exactMatch = matchedClubs.find(
+          (club) => club.name.toLowerCase() === fields.venue_name.toLowerCase()
+        );
+        matchedClubId = exactMatch ? exactMatch.id : matchedClubs[0].id;
+        console.log("Matched club:", exactMatch || matchedClubs[0]);
+      }
+    }
+
     // ---- Insert event ----
     const eventData = {
       user_id: user.id,
       ...fields,
       artists,
       event_image: eventImageUrl,
-      club_id,
+      club_id: matchedClubId,
       created_at: new Date().toISOString(),
     };
 

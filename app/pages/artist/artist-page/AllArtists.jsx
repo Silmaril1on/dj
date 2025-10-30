@@ -12,14 +12,15 @@ import Spinner from "@/app/components/ui/Spinner";
 const PAGE_LIMIT = 20;
 const DEBOUNCE_MS = 300;
 
-const AllArtistsClient = ({ initialArtists = [], initialTotal = 0, initialFilters = {} }) => {
+const AllArtistsClient = ({ initialArtists = [], initialTotal = 0, initialFilters = {}, error: initialError = null }) => {
   const [artists, setArtists] = useState(initialArtists || []);
-  const [offset, setOffset] = useState(0);
+  const [offset, setOffset] = useState(initialArtists.length > 0 ? PAGE_LIMIT : 0);
   const [total, setTotal] = useState(initialTotal || null);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
+  const [error, setError] = useState(initialError);
   const [filters, setFilters] = useState(initialFilters);
   const [queryVersion, setQueryVersion] = useState(0); // bump to cancel race conditions
+  const [hasInitialData] = useState(initialArtists.length > 0); // Track if we started with SSR data
 
   // dynamic options
 const countryOptions = useMemo(() => {
@@ -52,7 +53,11 @@ const genreOptions = useMemo(() => {
   }, [countryOptions, genreOptions]);
 
   useEffect(() => {
-    // initial load when component mounts (or filters change)
+    // Skip initial fetch if we have SSR data and filters haven't changed
+    if (hasInitialData && Object.keys(filters).every(key => !filters[key])) {
+      return;
+    }
+    // Fetch when filters change
     fetchFirstPage();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [filters]);

@@ -77,7 +77,7 @@ const ClubProfile = ({ club, currentUserId, clubSchedule }) => {
         <PosterSide src={club.club_image} alt={club.name} />
       </div>
       <ArtistSchedule
-        data={clubSchedule}
+        clubId={club.id}
         title="Upcoming Events"
         description="See all upcoming events at this club"
       />

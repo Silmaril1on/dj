@@ -10,16 +10,41 @@ import FlexBox from '@/app/components/containers/FlexBox'
 import ErrorCode from '@/app/components/ui/ErrorCode'
 import { formatBirthdate } from '@/app/helpers/utils'
 
-const ArtistSchedule = ({ artistId, title = "Upcoming Dates", description = "Stay updated with upcoming dates" }) => {
+const ArtistSchedule = ({ 
+  artistId, 
+  clubId, 
+  data: passedData, 
+  title = "Upcoming Dates", 
+  description = "Stay updated with upcoming dates" 
+}) => {
   const [data, setData] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
 
   useEffect(() => {
+    // If data is passed as prop (like from ClubProfile), use it directly
+    if (passedData) {
+      setData(passedData)
+      setLoading(false)
+      return
+    }
+
     const fetchSchedule = async () => {
       try {
         setLoading(true)
-        const response = await fetch(`/api/artists/${artistId}/schedule`)
+        let response
+        
+        // Determine which API endpoint to use
+        if (artistId) {
+          response = await fetch(`/api/artists/${artistId}/schedule`)
+        } else if (clubId) {
+          response = await fetch(`/api/club/${clubId}/events`)
+        } else {
+          setError('No ID provided')
+          setLoading(false)
+          return
+        }
+        
         const result = await response.json()
         
         if (result.success) {
@@ -35,10 +60,10 @@ const ArtistSchedule = ({ artistId, title = "Upcoming Dates", description = "Sta
       }
     }
 
-    if (artistId) {
+    if (artistId || clubId) {
       fetchSchedule()
     }
-  }, [artistId])
+  }, [artistId, clubId, passedData])
 
   if (loading) {
     return (
@@ -93,9 +118,14 @@ const ArtistSchedule = ({ artistId, title = "Upcoming Dates", description = "Sta
 
            
 
-              {/* Club/Venue Name */}
+              {/* Club/Venue Name or Event Name */}
               <div className="flex flex-col items-end justify-evenly">
-                <Title text={schedule.club_name} />
+                <Title text={clubId ? schedule.event_name : schedule.club_name} />
+                {clubId && schedule.artists && (
+                  <div className="text-xs text-chino mb-2">
+                    Artists: {Array.isArray(schedule.artists) ? schedule.artists.join(', ') : schedule.artists}
+                  </div>
+                )}
                 <FlexBox type="row-center" className="gap-4">
                   {schedule.event_link && (
                     <MyLink

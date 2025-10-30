@@ -27,7 +27,7 @@ const ArtistsPage = async () => {
     console.error("Error fetching artists:", err);
   }
 
-  return <AllArtists artists={artists} error={error} />;
+  return <AllArtists initialArtists={artists} initialTotal={artists.length} error={error} />;
 };
 
 export default ArtistsPage;
