@@ -59,60 +59,7 @@ const ArtistProfilePage = async ({ params }) => {
       throw new Error("Artist not found");
     }
 
-    // Fetch rating insights for this artist
-    const ratingInsightsUrl = new URL(
-      `${process.env.PROJECT_URL}/api/artists/artist-rating-insights`
-    );
-    ratingInsightsUrl.searchParams.set("artistId", id);
-
-    let ratingInsights = null;
-    try {
-      const ratingResponse = await fetch(ratingInsightsUrl.toString(), {
-        next: { revalidate: 0 },
-        headers: {
-          Cookie: cookieStore.toString(),
-        },
-      });
-
-      if (ratingResponse.ok) {
-        const ratingData = await ratingResponse.json();
-        ratingInsights = ratingData;
-      }
-    } catch (error) {
-      console.error("Error fetching rating insights:", error);
-    }
-
-    // Fetch artist reviews
-    const reviewsUrl = new URL(
-      `${process.env.PROJECT_URL}/api/artists/artist-reviews`
-    );
-    reviewsUrl.searchParams.set("artistId", id);
-
-    let reviewsData = null;
-    try {
-      const reviewsResponse = await fetch(reviewsUrl.toString(), {
-        next: { revalidate: 0 },
-        headers: {
-          Cookie: cookieStore.toString(),
-        },
-      });
-
-      if (reviewsResponse.ok) {
-        const reviewsResult = await reviewsResponse.json();
-        reviewsData = reviewsResult.data || [];
-      }
-    } catch (error) {
-      console.error("Error fetching artist reviews:", error);
-      reviewsData = [];
-    }
-
-    return (
-      <ArtistProfile
-        data={artist}
-        ratingInsights={ratingInsights}
-        reviewsData={reviewsData}
-      />
-    );
+    return <ArtistProfile data={artist} artistId={id} />;
   } catch (error) {
     console.error("Artist page error:", error);
     return (

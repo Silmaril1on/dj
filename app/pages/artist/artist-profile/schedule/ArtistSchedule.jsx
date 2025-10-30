@@ -1,4 +1,5 @@
 "use client"
+import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import { MdEvent, MdAccessTime, MdCalendarToday } from 'react-icons/md'
 import ArtistCountry from '@/app/components/materials/ArtistCountry'
@@ -7,15 +8,51 @@ import Title from '@/app/components/ui/Title'
 import MyLink from '@/app/components/ui/MyLink'
 import FlexBox from '@/app/components/containers/FlexBox'
 import ErrorCode from '@/app/components/ui/ErrorCode'
-import { formatBirthdate, formatTime } from '@/app/helpers/utils'
+import { formatBirthdate } from '@/app/helpers/utils'
 
-const ArtistSchedule = ({ data, title = "Upcoming Dates", description = "Stay updated with upcoming dates" }) => {
-  if (!data || data.length === 0) {
-    return <div className='w-auto center py-20 bg-stone-900 mt-4 mx-3 '> 
+const ArtistSchedule = ({ artistId, title = "Upcoming Dates", description = "Stay updated with upcoming dates" }) => {
+  const [data, setData] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(null)
+
+  useEffect(() => {
+    const fetchSchedule = async () => {
+      try {
+        setLoading(true)
+        const response = await fetch(`/api/artists/${artistId}/schedule`)
+        const result = await response.json()
+        
+        if (result.success) {
+          setData(result.data || [])
+        } else {
+          setError(result.error)
+        }
+      } catch (err) {
+        console.error('Error fetching schedule:', err)
+        setError('Failed to load schedule')
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    if (artistId) {
+      fetchSchedule()
+    }
+  }, [artistId])
+
+  if (loading) {
+    return (
+      <div className='w-auto center py-20 bg-stone-900 mt-4 mx-3 min-h-[400px]'>
+        <div className="animate-pulse text-gold">Loading schedule...</div>
+      </div>
+    )
+  }
+
+  if (error || !data || data.length === 0) {
+    return <div className='w-auto center py-20 bg-stone-900 mt-4 mx-3 min-h-[400px]'> 
       <ErrorCode title="No Upcoming Dates" description="There are no upcoming dates available at the moment." />
     </div>
   }
-
 
   return (
     <SectionContainer title={title} description={description} className="mt-10">

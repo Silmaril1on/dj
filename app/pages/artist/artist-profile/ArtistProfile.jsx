@@ -7,14 +7,10 @@ import ArtistInsight from './artist-insights/ArtistInsight';
 import useRecentlyViewed from '@/app/lib/hooks/useRecentlViewed';
 import Albums from './albums/Albums';
 
-const ArtistProfile = ({ data, ratingInsights , reviewsData}) => {
-  const scheduleData = data?.artist_schedule;
-  const albumsData = data?.artist_albums;
-  const artistId = data?.id
-
+const ArtistProfile = ({ data, artistId }) => {
+  const id = artistId || data?.id;
   
-  
-useRecentlyViewed("artist", artistId);
+  useRecentlyViewed("artist", id);
 
   return (
     <div className="min-h-screen">
@@ -24,9 +20,9 @@ useRecentlyViewed("artist", artistId);
         <BasicInfo data={data} />
       </div>
       <Bio data={data} />
-      <ArtistSchedule data={scheduleData} />
-      <Albums data={albumsData}  />
-      <ArtistInsight ratingInsights={ratingInsights} reviewsData={reviewsData} artistId={artistId} />
+      <ArtistSchedule artistId={id} />
+      <Albums artistId={id} />
+      <ArtistInsight artistId={id} />
     </div>
   )
 }

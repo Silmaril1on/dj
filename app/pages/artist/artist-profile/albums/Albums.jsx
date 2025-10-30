@@ -1,5 +1,5 @@
 'use client'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import Image from 'next/image'
 import SectionContainer from '@/app/components/containers/SectionContainer'
@@ -7,10 +7,52 @@ import Title from '@/app/components/ui/Title'
 import Paragraph from '@/app/components/ui/Paragraph'
 import SpanText from '@/app/components/ui/SpanText'
 
-const Albums = ({ data }) => {
+const Albums = ({ artistId }) => {
+  const [data, setData] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(null)
   const [hoveredAlbum, setHoveredAlbum] = useState(null)
 
-  if (!data || data.length === 0) {
+  useEffect(() => {
+    const fetchAlbums = async () => {
+      try {
+        setLoading(true)
+        const response = await fetch(`/api/artists/${artistId}/albums`)
+        const result = await response.json()
+        
+        if (result.success) {
+          setData(result.data || [])
+        } else {
+          setError(result.error)
+        }
+      } catch (err) {
+        console.error('Error fetching albums:', err)
+        setError('Failed to load albums')
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    if (artistId) {
+      fetchAlbums()
+    }
+  }, [artistId])
+
+  if (loading) {
+    return (
+      <SectionContainer
+        title="Albums & Releases"
+        description="Discography and music releases"
+        className="bg-stone-900 min-h-[300px]"
+      >
+        <div className="flex items-center justify-center py-10">
+          <div className="animate-pulse text-gold">Loading albums...</div>
+        </div>
+      </SectionContainer>
+    )
+  }
+
+  if (error || !data || data.length === 0) {
     return null
   }
 

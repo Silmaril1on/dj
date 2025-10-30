@@ -7,6 +7,7 @@ import FilterBar from "@/app/components/forms/FilterBar";
 import PageHeadline from "@/app/components/containers/PageHeadline";
 import { filterConfigs } from "@/app/helpers/filterSearch/filterConfig";
 import Button from "@/app/components/buttons/Button";
+import Spinner from "@/app/components/ui/Spinner";
 
 const PAGE_LIMIT = 20;
 const DEBOUNCE_MS = 300;
@@ -175,7 +176,9 @@ const genreOptions = useMemo(() => {
             </div>
           </>
         ) : loading ? (
-          <div className="py-12 text-center">Loading...</div>
+          <div className="py-12 center">
+            <Spinner/>
+          </div>
         ) : (
           <div className="text-center py-10">
             <ErrorCode title="No artists found" description="Try adjusting your filters to see more results." />

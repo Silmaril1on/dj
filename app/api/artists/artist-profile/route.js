@@ -66,37 +66,6 @@ export async function GET(request) {
     let isLiked = false;
     let userRating = null;
     let userSubmittedArtistId = null;
-    let artist_schedule = [];
-    let artist_albums = [];
-
-    // Get artist schedule from artist_schedule table - only approved events
-    const { data: scheduleData, error: scheduleError } = await supabase
-      .from("artist_schedule")
-      .select("*")
-      .eq("artist_id", artistId)
-      .eq("status", "approved")
-      .order("date", { ascending: true });
-
-    if (scheduleError) {
-      console.error("Error fetching artist schedule:", scheduleError);
-      // Don't fail the entire request if schedule fetch fails, just log it
-    } else {
-      artist_schedule = scheduleData || [];
-    }
-
-    // Get artist albums from artist_albums table
-    const { data: albumsData, error: albumsError } = await supabaseAdmin
-      .from("artist_albums")
-      .select("*")
-      .eq("artist_id", artistId)
-      .order("release_date", { ascending: false });
-
-    if (albumsError) {
-      console.error("Error fetching artist albums:", albumsError);
-      // Don't fail the entire request if albums fetch fails, just log it
-    } else {
-      artist_albums = albumsData || [];
-    }
 
     // If user is authenticated, check if user liked this artist and get their rating
     if (userId) {
@@ -155,8 +124,6 @@ export async function GET(request) {
         isLiked,
         userRating,
         userSubmittedArtistId,
-        artist_schedule,
-        artist_albums,
       },
     };
 

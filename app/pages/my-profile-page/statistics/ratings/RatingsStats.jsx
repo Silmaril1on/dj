@@ -56,7 +56,7 @@ const RatingsStats = ({ data, error, title = "Ratings", description = "My Rating
         {/* CONTENT - Takes full height */}
         <div className="flex-1 flex flex-col justify-between grow-1">
           <div className="space-y-2 flex flex-1 grow-1 flex-col">
-            {ratingData.map(({ rating, count, percentage }) => (
+            {ratingData?.map(({ rating, count, percentage }) => (
               <div key={rating} className="flex items-center gap-3 ">
                 <span className="text-cream font-bold w-6 text-right">{rating}</span>
                 <motion.div

@@ -167,7 +167,7 @@ const CommunityConnection = () => {
 
 //“Connect, discover, and track your activity and statistics. Own your rhythm. Soundfolio keeps it social.”
 
-// Built for everyone who lives through sound — artists, clubs, and fans, connected in one place. powered by your contribution to something greater.
+// Built for everyone who lives through sound — artists, clubs, events and fans, connected in one place. powered by your contribution to something greater.
 
     const cards = [
     {
