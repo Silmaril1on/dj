@@ -1,10 +1,12 @@
 "use client"
-import React, { useRef } from 'react'
-import {motion} from 'framer-motion'
+import React, { useEffect, useRef, useState } from 'react'
+import {motion, useAnimation} from 'framer-motion'
 import { Michroma } from 'next/font/google'
 import { MdEvent } from 'react-icons/md'
 import { SiNeteasecloudmusic, SiYoutubemusic } from 'react-icons/si'
-import { FaUsers } from "react-icons/fa";
+import { FaPause, FaPlay, FaUsers } from "react-icons/fa";
+import Particles, { initParticlesEngine } from "@tsparticles/react";
+import { loadSlim } from "@tsparticles/slim";
 
 // Built for everyone who lives through sound — artists, clubs, and fans, connected in one place. powered by your contribution to something greater.
 
@@ -15,53 +17,77 @@ const michroma = Michroma({
 
 const VideoTest = () => {
   return (
-    <div className='center flex flex-col min-h-screen gap-20 relative overflow-hidden'>
-        {/*Welcome to soundfolio part */}
-        {/* <AnimateLogo /> */}
-        {/* artist club event owner and connection community part */}
+   <>
+    <div className=' flex flex-col min-h-screen gap-20 relative overflow-hidden'>
+        <Twinkls />
         <CommunityCards />
         <ConnectionLines />
         <CommunityTransition />
         <Beats />
+        <AnimateLogo />
     </div>
+        <div className="h-screen w-full center">
+          <Cues />
+        </div>
+   </>
   )
 }
 
 
 const AnimateLogo = () => {
-
     return  (
-     <div className='flex flex-col items-center gap-10 h-screen center border w-full'>
+     <motion.div 
+       initial={{scale: 0}}
+       animate={{scale: 1}}
+       transition={{
+        duration: 0.3, 
+        delay: 25.5 ,  
+        type: "spring",
+        stiffness: 120,            
+        damping: 20
+        }}
+      className='flex flex-col bg-black items-center gap-10 h-screen center w-full absolute inset-0 z-[15]'>
      <div className={`w-80 h-[260px] relative sepia overflow-hidden`}>
+      <motion.img 
+         initial={{opacity:0}} 
+         animate={{opacity:[0, 1, 0, 1, 1, 1, 0, 1, 1, 0, 1, 0]}} 
+         transition={{
+            duration: 2,
+            delay: 28,
+            times: [0, 0.125, 0.25, 0.375, 0.5, 0.625, 0.75, 0.875, 0.921, 0.958, 0.979, 1],
+        }} 
+          src="/assets/glich.logo.png" 
+          alt="gliched logo" 
+          className="w-full h-auto border absolute -top-13 scale-120 z-[30] left-0"
+      />
   {/* Nose - animates last with rotation */}
-         <motion.img
-    src="/assets/vector-7.png"
-    alt="nose"
-    className="w-6 h-auto absolute top-[11%] left-[13%]"
-    style={{ originX: 0.5, originY: 0.5 }}
-    initial={{ opacity: 0, rotate: -180 }}
-    animate={{ opacity: 1, rotate: 0 }}
-    transition={{
-      duration: 0.5,
-      ease: "easeInOut",
-      delay: 1.4, // 0.5 (neck+muceli) + 0.9
-    }}
-  />
-
-  
-  {/* Neck - animates on "WELCOME" */}
-  <motion.img
-    src="/assets/vector-6.png"
-    alt="neck"
-    className="w-16 h-auto absolute top-[11%] left-[21.5%]"
-    style={{ originX: 0, originY: 0.5 }}
-    initial={{ y: -300 }}
-    animate={{ y: 0 }}
-    transition={{
-      duration: 0.5,
-      ease: "easeInOut",
-    }}
-  />
+      <motion.img
+          src="/assets/vector-7.png"
+          alt="nose"
+          className="w-6 h-auto absolute top-[11%] left-[13%]"
+          style={{ originX: 0.5, originY: 0.5 }}
+          initial={{ opacity: 0, rotate: -180 }}
+          animate={{ opacity: 1, rotate: 0 }}
+          transition={{
+              duration: 0.5,
+              ease: "easeInOut",
+              delay: 27.9, // 25.5 + 0.3 (container) + 0.5 (neck) + 0.3 (muceli) + 0.8
+         }}
+        />
+  {/* Neck - animates on "WELCOME" - FIRST */}
+       <motion.img
+           src="/assets/vector-6.png"
+           alt="neck"
+           className="w-16 h-auto absolute top-[11%] left-[21.5%]"
+           style={{ originX: 0, originY: 0.5 }}
+           initial={{ y: -300 }}
+           animate={{ y: 0 }}
+           transition={{
+                 duration: 0.5,
+                 ease: "easeInOut",
+                 delay: 26.3, // 25.5 + 0.3 (container animation)
+             }}
+        />
   
   {/* Wing-1 - animates 4th with rotation */}
   <motion.img
@@ -74,7 +100,7 @@ const AnimateLogo = () => {
     transition={{
       duration: 0.5,
       ease: "easeInOut",
-      delay: 1.3, // 0.5 (neck+muceli) + 0.8
+      delay: 27.8, // 25.5 + 0.3 (container) + 0.5 (neck) + 0.3 (muceli) + 0.7
     }}
   />
   
@@ -89,7 +115,7 @@ const AnimateLogo = () => {
     transition={{
       duration: 0.5,
       ease: "easeInOut",
-      delay: 1.2, // 0.5 (neck+muceli) + 0.7
+      delay: 27.7, // 25.5 + 0.3 (container) + 0.5 (neck) + 0.3 (muceli) + 0.6
     }}
   />
   
@@ -104,11 +130,11 @@ const AnimateLogo = () => {
     transition={{
       duration: 0.5,
       ease: "easeInOut",
-      delay: 1.1, // 0.5 (neck+muceli) + 0.6
+      delay: 27.6, // 25.5 + 0.3 (container) + 0.5 (neck) + 0.3 (muceli) + 0.5
     }}
   />
   
-  {/* Muceli - animates on "TO" */}
+  {/* Muceli - animates on "TO" - SECOND */}
   <motion.img
     src="/assets/vector-2.png"
     alt="muceli"
@@ -119,7 +145,7 @@ const AnimateLogo = () => {
     transition={{
       duration: 0.5,
       ease: "easeInOut",
-      delay: 0.3
+      delay: 26.8 // 25.5 + 0.3 (container) + 0.5 (neck)
     }}
   />
   
@@ -134,11 +160,26 @@ const AnimateLogo = () => {
     transition={{
       duration: 0.5,
       ease: "easeInOut",
-      delay: 1.0, // 0.5 (neck+muceli) + 0.5
+      delay: 27.5, // 25.5 + 0.3 (container) + 0.5 (neck) + 0.3 (muceli) + 0.4
     }}
   />
     </div>
-    <h1 className={`${michroma.className} font-bold text-3xl`}>
+    <h1 className={`${michroma.className} font-bold text-3xl relative z-10`}>
+        <motion.img 
+    src="/assets/title-2.png" 
+    alt="title-1" 
+    className="absolute -top-0.5 scale-104 left-0 inset-0 z-20"
+    initial={{ opacity: 0 }}
+    animate={{ 
+      opacity: [0, 1, 1, 0] 
+    }}
+    transition={{
+      duration: 3.2,
+      delay: 28.5,
+      times: [0, 0.4 , 0.8, 1],
+      ease: "easeInOut"
+    }}
+  />
        {"SOUNDFOLIO".split("").map((letter, index) => (
         <motion.span
         key={index}
@@ -146,16 +187,15 @@ const AnimateLogo = () => {
         animate={{ opacity: 1 }}
         transition={{
             duration: 0.3,
-            delay: 1.3 + (index * 0.1), 
+            delay: 27.8 + (index * 0.1), // 25.5 + 0.3 (container) + 0.5 (neck) + 0.3 (muceli) + 0.7
             ease: "easeInOut"
           }}
     >
       {letter}
     </motion.span>
-  ))}
-
-</h1>
-   </div>
+    ))}
+  </h1>
+   </motion.div>
     )
 }
 
@@ -278,9 +318,10 @@ const CommunityTransition = () => {
             ease: ["easeOut", "linear", "easeIn"]
             }} 
         >
-        <FaUsers className='text-7xl text-gold' />
+          <FaUsers className='text-7xl text-gold' />
         </motion.div>
-         <motion.div 
+        {/* Covering black bars */}
+    <motion.div 
         initial={{y: -700}} 
         animate={{y: 0}}
         transition={{
@@ -319,7 +360,7 @@ const CommunityTransition = () => {
             }} 
             src="/assets/2.png" 
             alt="events" 
-            className='w-86 h-auto z-[5] absolute top-[9%] left-[8%] -rotate-16 '
+            className='w-86 h-auto z-[25] absolute top-[9%] left-[8%] -rotate-16 '
         />
         <motion.img 
             initial={{y: 700, x: -700}} 
@@ -347,7 +388,7 @@ const CommunityTransition = () => {
             }} 
             src="/assets/4.png" 
             alt="reviews" 
-            className='w-64 h-auto z-[5] absolute bottom-[10%] left-[16%] rotate-8 '
+            className='w-64 h-auto z-[25] absolute bottom-[10%] left-[16%] rotate-8 '
         />
         <motion.img 
             initial={{y: 700}} 
@@ -368,7 +409,7 @@ const CommunityTransition = () => {
             }} 
             src="/assets/3.png" 
             alt="artist" 
-            className='w-86 h-auto z-[5] absolute bottom-[10%] right-[42%] -rotate-4 '
+            className='w-86 h-auto z-[25] absolute bottom-[10%] right-[42%] -rotate-4 '
         />
         <motion.img 
             initial={{x: 700, y: 700}} 
@@ -396,7 +437,7 @@ const CommunityTransition = () => {
             }} 
             src="/assets/5.png" 
             alt="likes" 
-            className='w-86 h-auto z-[5] absolute bottom-[10%] right-[16%] -rotate-12 '
+            className='w-86 h-auto z-[25] absolute bottom-[10%] right-[16%] -rotate-12 '
         />
         <motion.img 
             initial={{x: -700, y: -700}} 
@@ -424,7 +465,7 @@ const CommunityTransition = () => {
             }} 
             src="/assets/1.png" 
             alt="books" 
-            className='w-86 h-auto z-[5] absolute top-[6%] right-[12%] rotate-4 '
+            className='w-86 h-auto z-[25] absolute top-[6%] right-[12%] rotate-4 '
         />
         <motion.img 
             initial={{y: -700}} 
@@ -445,7 +486,7 @@ const CommunityTransition = () => {
             }} 
             src="/assets/7.png" 
             alt="club" 
-            className='w-86 h-auto z-[5] absolute top-[8%] right-[40%] rotate-6 '
+            className='w-86 h-auto z-[25] absolute top-[8%] right-[40%] rotate-6 '
         />
  <motion.img 
   initial={{ scale: 0 }} 
@@ -460,14 +501,65 @@ const CommunityTransition = () => {
   }} 
   src="/assets/6.png" 
   alt="ratings" 
-  className="w-64 h-auto z-[5] absolute top-[30%] right-[45%]"
+  className="w-64 h-auto z-[25] absolute top-[30%] right-[45%]"
 />
     </>
   );
 };
 
 const Beats = () => {
-  const artistVideoRef = useRef(null);
+   const artistVideoRef = useRef(null);
+  const eventControls = useAnimation();
+  const artistControls = useAnimation();
+  const clubControls = useAnimation();
+
+  useEffect(() => {
+    // ENTER at ~19.5s
+    const enterTimeout = setTimeout(() => {
+      eventControls.start("enter");
+      artistControls.start("enter");
+      clubControls.start("enter");
+    }, 19500);
+
+    // EXIT at ~25.4s
+    const exitTimeout = setTimeout(() => {
+      eventControls.start("exit");
+      artistControls.start("exit");
+      clubControls.start("exit");
+    }, 25400);
+
+    return () => {
+      clearTimeout(enterTimeout);
+      clearTimeout(exitTimeout);
+    };
+  }, [eventControls, artistControls, clubControls]);
+
+  // Variants
+  const eventVariants = {
+    hidden: { y: -700, opacity: 0 },
+    enter: { y: 0, opacity: 1, transition: { duration: 0.3, ease: "easeInOut" } },
+    exit: { y: -700, opacity: 0, transition: { duration: 0.4, ease: "easeInOut" } },
+  };
+
+  const artistVariants = {
+    hidden: { x: -700, opacity: 0 },
+    enter: {
+      x: 0,
+      opacity: 1,
+      transition: { duration: 0.4, ease: "easeInOut" },
+    },
+    exit: {
+      x: -700,
+      opacity: 0,
+      transition: { duration: 0.4, ease: "easeInOut" },
+    },
+  };
+
+  const clubVariants = {
+    hidden: { y: 700, opacity: 0 },
+    enter: { y: 0, opacity: 1, transition: { duration: 0.3, ease: "easeInOut" } },
+    exit: { y: 700, opacity: 0, transition: { duration: 0.4, ease: "easeInOut" } },
+  };
   const bars = [
     9, 18, 15, 23, 18, 32, 23, 18, 24, 17, 10, 15, 20, 25, 18, 12, 28, 16, 22, 14,
     19, 26, 13, 21, 17, 24, 11, 20, 18, 23, 15, 19, 27, 14, 22, 16, 25, 13, 20, 17,
@@ -482,26 +574,26 @@ const Beats = () => {
    <>
     <motion.div
       initial={{
-    opacity: 0,
-    top: "50%",
-    left: "50%",
-    x: "-50%",
-    y: "-50%",
-  }}
-  animate={{
-    opacity: 1,
-    top: ["45%", "7%"],
-    left: ["55%", "10%"],
-    x: ["-50%", "0%"],
-    y: ["-50%", "0%"],
-  }}
-    transition={{
-    opacity: { duration: 0.4, delay: 18.5 },
-    top: { duration: 0.5, delay: 19.2, ease: "easeInOut" },
-    left: { duration: 0.5, delay: 19.2, ease: "easeInOut" },
-    x: { duration: 0.5, delay: 19.2, ease: "easeInOut" },
-    y: { duration: 0.5, delay: 19.2, ease: "easeInOut" },
-  }}
+        opacity: 0,
+        top: "50%",
+        left: "50%",
+        x: "-50%",
+        y: "-50%",
+      }}
+      animate={{
+        opacity: 1,
+        top: ["45%", "7%"],
+        left: ["55%", "10%"],
+        x: ["-50%", "0%"],
+        y: ["-50%", "0%"],
+     }}
+      transition={{
+        opacity: { duration: 0.4, delay: 18.5 },
+        top: { duration: 0.5, delay: 19.2, ease: "easeInOut" },
+        left: { duration: 0.5, delay: 19.2, ease: "easeInOut" },
+        x: { duration: 0.5, delay: 19.2, ease: "easeInOut" },
+        y: { duration: 0.5, delay: 19.2, ease: "easeInOut" },
+      }}
       className="flex items-center w-[750px] h-20 absolute z-10 space-x-[2px] overflow-hidden"
     >
       {bars.map((height, index) => (
@@ -523,46 +615,149 @@ const Beats = () => {
     </motion.div>
   {/* Animated Videos */}
   <motion.video
-    src="/assets/event-video.mp4"
-    autoPlay
-    muted
-    playsInline
-    className="absolute z-10 right-15 top-10 w-[600px] rounded-2xl"
-    initial={{ y: -700, opacity: 0 }}
-    animate={{ y: 0, opacity: 1 }}
-    transition={{ duration: 0.3, delay: 19.5, ease: "easeInOut" }}
-  />
+        src="/assets/event-video.mp4"
+        autoPlay
+        muted
+        playsInline
+        className="absolute z-[21] right-15 top-10 w-[600px] rounded-2xl"
+        variants={eventVariants}
+        initial="hidden"
+        animate={eventControls}
+      />
 
-   <motion.video
+      {/* Artist video */}
+      <motion.video
         ref={artistVideoRef}
         src="/assets/artist-video.mp4"
         muted
         playsInline
-        className="absolute z-10 left-10 bottom-20 w-[750px] rounded-3xl"
-        initial={{ scale: 0, opacity: 0 }}
-        animate={{ scale: 1, opacity: 1 }}
-        transition={{ duration: 0.4, delay: 19.7, ease: "easeInOut" }}
+        className="absolute z-[21] left-10 bottom-20 w-[750px] rounded-3xl"
+        variants={artistVariants}
+        initial="hidden"
+        animate={artistControls}
         onAnimationComplete={() => {
-          if (artistVideoRef.current) {
-            artistVideoRef.current.play();
-          }
+          if (artistVideoRef.current) artistVideoRef.current.play();
         }}
       />
 
-  <motion.video
-    src="/assets/club-video.mp4"
-    autoPlay
-    muted
-    playsInline
-    className="absolute z-10 right-15 bottom-20 w-[600px] rounded-2xl"
-    initial={{ y: 700, opacity: 0 }}
-    animate={{ y: 0, opacity: 1 }}
-    transition={{ duration: 0.3, delay: 19.9, ease: "easeInOut" }}
-  />
+      {/* Club video */}
+      <motion.video
+        src="/assets/club-video.mp4"
+        autoPlay
+        muted
+        playsInline
+        className="absolute z-[21] right-15 bottom-20 w-[600px] rounded-2xl"
+        variants={clubVariants}
+        initial="hidden"
+        animate={clubControls}
+      />
    </>
   );
 };
 
+
+const Twinkls = () =>{
+    const [init, setInit] = useState(false);
+
+  useEffect(() => {
+    initParticlesEngine(async (engine) => {
+      await loadSlim(engine);
+    }).then(() => {
+      setInit(true);
+    });
+  }, []);
+
+  const particlesLoaded = (container) => {
+    console.log(container);
+  };
+  return  (
+      <>
+      {init && (
+        <Particles
+          id="tsparticles"
+          className="absolute z-20 inset-0"
+          particlesLoaded={particlesLoaded}
+          options={{
+            fullScreen: { enable: false, zIndex: 0 },
+            background: { color: { value: "transparent" } },
+            particles: {
+              size: {
+                value: { min: 0.7, max: 1.1 }, // 👈 This controls the particle size range
+                animation: {
+                  enable: true, // set true if you want particles to "pulse" in size
+                  speed: 2,      // pulsing speed
+                  minimumValue: 1,
+                  sync: false,   // false = each particle pulses individually
+                },
+              },
+              number: { value: 100 },
+              color: { value: "#fcf5df" },
+              shape: { type: "star" },
+              opacity: {
+                value: { min: 0.1, max: 0.8 },
+                animation: {
+                  enable: true,
+                  speed: 0.4,
+                  minimumValue: 0.3,
+                  sync: false, // each particle glows independently
+                },
+              },
+              move: {
+                enable: true,
+                speed: 0.3,
+                direction: "none",
+                random: true,
+                straight: false,
+                outModes: { default: "out" },
+              },
+            },
+            interactivity: {
+              events: {
+                onHover: { enable: true, mode: "repulse" },
+                onClick: { enable: true, mode: "push" },
+              },
+              modes: {
+                repulse: { distance: 100 },
+                push: { quantity: 2 },
+              },
+            },
+            detectRetina: true,
+          }}
+        />
+      )}
+    </>
+  )
+}
+
+const Cues = () => {
+  return (
+      
+<div className="border-2 border-stone-600 p-1.5 rounded-full">
+  <div className="flex items-center gap-4 w-44 h-44 bg-stone-900 rounded-full justify-center">
+      <motion.div
+        animate={{ opacity: [0.3, 1, 0.3] }}
+        transition={{ duration: 1, repeat: Infinity,  }}
+      >
+        <FaPlay className="text-green-500 text-5xl drop-shadow-[0_0_5px_#32a852]" />
+      </motion.div>
+
+      <motion.div
+        className="bg-green-500 rotate-20 w-1 h-12 drop-shadow-[0_0_10px_#32a852]"
+        animate={{ opacity: [0.3, 1, 0.3] }}
+        transition={{ duration: 1, repeat: Infinity, }}
+      />
+
+      <motion.div
+        animate={{ opacity: [0.3, 1, 0.3] }}
+        transition={{ duration: 1, repeat: Infinity,}}
+      >
+        <FaPause className="text-green-500 text-5xl drop-shadow-[0_0_5px_#32a852]" />
+      </motion.div>
+    </div>
+</div>
+
+  );
+};
 
 export default VideoTest
 
