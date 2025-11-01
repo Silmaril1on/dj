@@ -321,7 +321,7 @@ const CommunityTransition = () => {
             y: [0, 0, 0, 600]
           }} 
           transition={{
-            delay: 10.5,
+            delay: 8.5,
             duration: 9,
             times: [0, 0.072, 0.278, 0.333],
             ease: ["easeOut", "linear", "easeIn"]
