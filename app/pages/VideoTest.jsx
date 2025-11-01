@@ -7,6 +7,7 @@ import { SiNeteasecloudmusic, SiYoutubemusic } from 'react-icons/si'
 import { FaPause, FaPlay, FaUsers } from "react-icons/fa";
 import Particles, { initParticlesEngine } from "@tsparticles/react";
 import { loadSlim } from "@tsparticles/slim";
+import { FaHandPointer } from "react-icons/fa";
 
 // Built for everyone who lives through sound — artists, clubs, and fans, connected in one place. powered by your contribution to something greater.
 
@@ -20,6 +21,10 @@ const VideoTest = () => {
    <>
     <div className=' flex flex-col min-h-screen gap-20 relative overflow-hidden'>
         <Twinkls />
+        <Waveform />
+       <div className='absolute left-[43%] top-[20%]'>
+         <Cues />
+       </div>
         <CommunityCards />
         <ConnectionLines />
         <CommunityTransition />
@@ -41,25 +46,27 @@ const AnimateLogo = () => {
        animate={{scale: 1}}
        transition={{
         duration: 0.3, 
-        delay: 25.5 ,  
+        delay: 29.5 ,  
         type: "spring",
         stiffness: 120,            
         damping: 20
         }}
       className='flex flex-col bg-black items-center gap-10 h-screen center w-full absolute inset-0 z-[15]'>
      <div className={`w-80 h-[260px] relative sepia overflow-hidden`}>
-      <motion.img 
-         initial={{opacity:0}} 
-         animate={{opacity:[0, 1, 0, 1, 1, 1, 0, 1, 1, 0, 1, 0]}} 
-         transition={{
-            duration: 2,
-            delay: 28,
-            times: [0, 0.125, 0.25, 0.375, 0.5, 0.625, 0.75, 0.875, 0.921, 0.958, 0.979, 1],
-        }} 
-          src="/assets/glich.logo.png" 
-          alt="gliched logo" 
-          className="w-full h-auto border absolute -top-13 scale-120 z-[30] left-0"
-      />
+    <motion.img 
+  initial={{opacity:0}} 
+  animate={{opacity:[0, 1, 0, 1, 1, 1, 0, 1, 1, 0, 1, 0]}} 
+  transition={{
+    duration: 2,
+    delay: 32.0,
+    times: [0, 0.125, 0.25, 0.375, 0.5, 0.625, 0.75, 0.875, 0.921, 0.958, 0.979, 1],
+    repeat: Infinity,
+    repeatDelay: 0, // Optional: delay between each loop
+  }} 
+  src="/assets/glitch-logo.png" 
+  alt="glitched logo" 
+  className="w-full h-auto border absolute -top-13 scale-120 z-[30] left-0"
+/>
   {/* Nose - animates last with rotation */}
       <motion.img
           src="/assets/vector-7.png"
@@ -71,7 +78,7 @@ const AnimateLogo = () => {
           transition={{
               duration: 0.5,
               ease: "easeInOut",
-              delay: 27.9, // 25.5 + 0.3 (container) + 0.5 (neck) + 0.3 (muceli) + 0.8
+              delay: 31.9, // 29.5 + 0.3 (container) + 0.5 (neck) + 0.3 (muceli) + 0.8
          }}
         />
   {/* Neck - animates on "WELCOME" - FIRST */}
@@ -85,7 +92,7 @@ const AnimateLogo = () => {
            transition={{
                  duration: 0.5,
                  ease: "easeInOut",
-                 delay: 26.3, // 25.5 + 0.3 (container animation)
+                 delay: 30.3, // 29.5 + 0.3 (container animation)
              }}
         />
   
@@ -100,7 +107,7 @@ const AnimateLogo = () => {
     transition={{
       duration: 0.5,
       ease: "easeInOut",
-      delay: 27.8, // 25.5 + 0.3 (container) + 0.5 (neck) + 0.3 (muceli) + 0.7
+      delay: 31.8, // 29.5 + 0.3 (container) + 0.5 (neck) + 0.3 (muceli) + 0.7
     }}
   />
   
@@ -115,7 +122,7 @@ const AnimateLogo = () => {
     transition={{
       duration: 0.5,
       ease: "easeInOut",
-      delay: 27.7, // 25.5 + 0.3 (container) + 0.5 (neck) + 0.3 (muceli) + 0.6
+      delay: 31.7, // 29.5 + 0.3 (container) + 0.5 (neck) + 0.3 (muceli) + 0.6
     }}
   />
   
@@ -130,7 +137,7 @@ const AnimateLogo = () => {
     transition={{
       duration: 0.5,
       ease: "easeInOut",
-      delay: 27.6, // 25.5 + 0.3 (container) + 0.5 (neck) + 0.3 (muceli) + 0.5
+      delay: 31.6, // 29.5 + 0.3 (container) + 0.5 (neck) + 0.3 (muceli) + 0.5
     }}
   />
   
@@ -145,7 +152,7 @@ const AnimateLogo = () => {
     transition={{
       duration: 0.5,
       ease: "easeInOut",
-      delay: 26.8 // 25.5 + 0.3 (container) + 0.5 (neck)
+      delay: 30.8 // 29.5 + 0.3 (container) + 0.5 (neck)
     }}
   />
   
@@ -160,7 +167,7 @@ const AnimateLogo = () => {
     transition={{
       duration: 0.5,
       ease: "easeInOut",
-      delay: 27.5, // 25.5 + 0.3 (container) + 0.5 (neck) + 0.3 (muceli) + 0.4
+      delay: 31.5, // 29.5 + 0.3 (container) + 0.5 (neck) + 0.3 (muceli) + 0.4
     }}
   />
     </div>
@@ -175,7 +182,9 @@ const AnimateLogo = () => {
     }}
     transition={{
       duration: 3.2,
-      delay: 28.5,
+      delay: 32.5,
+        repeat: Infinity,
+    repeatDelay: 0,
       times: [0, 0.4 , 0.8, 1],
       ease: "easeInOut"
     }}
@@ -187,7 +196,7 @@ const AnimateLogo = () => {
         animate={{ opacity: 1 }}
         transition={{
             duration: 0.3,
-            delay: 27.8 + (index * 0.1), // 25.5 + 0.3 (container) + 0.5 (neck) + 0.3 (muceli) + 0.7
+            delay: 31.8 + (index * 0.1), // 29.5 + 0.3 (container) + 0.5 (neck) + 0.3 (muceli) + 0.7
             ease: "easeInOut"
           }}
     >
@@ -237,7 +246,7 @@ const CommunityCards = () => {
           animate={{ scale: 1 }}
           transition={{
             duration: 0.5,
-            delay: index * 0.5,
+            delay: 4.0 + index * 0.5,
             ease: "easeOut"
           }}
         >
@@ -262,15 +271,15 @@ const ConnectionLines = () => {
   const connections = [
     {
       className: "h-0.5 w-80 top-86 right-100 rotate-225 origin-center",
-      delay: 3.5
+      delay: 7.5
     },
     {
       className: "h-0.5 w-80 top-86 left-100 -rotate-225 ",
-      delay: 2.5
+      delay: 6.5
     },
     {
       className: "h-0.5 w-96 bottom-45 left-1/2 -translate-x-1/2",
-      delay: 3
+      delay: 7.0
     }
   ];
 
@@ -312,7 +321,7 @@ const CommunityTransition = () => {
             y: [0, 0, 0, 600]
           }} 
           transition={{
-            delay: 6.5,
+            delay: 10.5,
             duration: 9,
             times: [0, 0.072, 0.278, 0.333],
             ease: ["easeOut", "linear", "easeIn"]
@@ -325,7 +334,7 @@ const CommunityTransition = () => {
         initial={{y: -700}} 
         animate={{y: 0}}
         transition={{
-            delay: 14.5,
+            delay: 18.5,
             duration: 2,
         }}
         style={{transformOrigin: "top"}}
@@ -335,7 +344,7 @@ const CommunityTransition = () => {
         initial={{y: 700 }} 
         animate={{y: 0 }}
         transition={{
-            delay: 14.5,
+            delay: 18.5,
             duration: 2,
         }}
         style={{transformOrigin: "bottom"}}
@@ -347,14 +356,14 @@ const CommunityTransition = () => {
             transition={{
                 x: {
                     duration: 0.3, 
-                    delay: 9.5,
+                    delay: 13.5,
                     type: "spring",
                     stiffness: 100,
                     damping: 15
                 },
                 scale: {
                     duration: 0.4,
-                    delay: 16.5,
+                    delay: 20.5,
                     ease: "easeInOut"
                 }
             }} 
@@ -368,21 +377,21 @@ const CommunityTransition = () => {
             transition={{
                 x: {
                     duration: 0.3, 
-                    delay: 9.9,
+                    delay: 13.9,
                     type: "spring",
                     stiffness: 120,
                     damping: 20
                 },
                 y: {
                     duration: 0.3, 
-                    delay: 9.9,
+                    delay: 13.9,
                     type: "spring",
                     stiffness: 120,
                     damping: 20
                 },
                 scale: {
                     duration: 0.4,
-                    delay: 16.5,
+                    delay: 20.5,
                     ease: "easeInOut"
                 }
             }} 
@@ -396,20 +405,20 @@ const CommunityTransition = () => {
             transition={{
                 y: {
                     duration: 0.3, 
-                    delay: 10.1,
+                    delay: 14.1,
                     type: "spring",
                     stiffness: 80,
                     damping: 12
                 },
                 scale: {
                     duration: 0.4,
-                    delay: 16.5,
+                    delay: 20.5,
                     ease: "easeInOut"
                 }
             }} 
             src="/assets/3.png" 
             alt="artist" 
-            className='w-86 h-auto z-[25] absolute bottom-[10%] right-[42%] -rotate-4 '
+            className='w-86 h-auto z-[25] absolute bottom-[13%] right-[42%] -rotate-4 '
         />
         <motion.img 
             initial={{x: 700, y: 700}} 
@@ -417,27 +426,27 @@ const CommunityTransition = () => {
             transition={{
                 x: {
                     duration: 0.3, 
-                    delay: 10.3,
+                    delay: 14.3,
                     type: "spring",
                     stiffness: 90,
                     damping: 18
                 },
                 y: {
                     duration: 0.3, 
-                    delay: 10.3,
+                    delay: 14.3,
                     type: "spring",
                     stiffness: 90,
                     damping: 18
                 },
                 scale: {
                     duration: 0.4,
-                    delay: 16.5,
+                    delay: 20.5,
                     ease: "easeInOut"
                 }
             }} 
             src="/assets/5.png" 
             alt="likes" 
-            className='w-86 h-auto z-[25] absolute bottom-[10%] right-[16%] -rotate-12 '
+            className='w-86 h-auto z-[25] absolute bottom-[14%] right-[16%] -rotate-12 '
         />
         <motion.img 
             initial={{x: -700, y: -700}} 
@@ -445,27 +454,27 @@ const CommunityTransition = () => {
             transition={{
                 x: {
                     duration: 0.3, 
-                    delay: 10.5,
+                    delay: 14.5,
                     type: "spring",
                     stiffness: 110,
                     damping: 16
                 },
                 y: {
                     duration: 0.3, 
-                    delay: 10.5,
+                    delay: 14.5,
                     type: "spring",
                     stiffness: 110,
                     damping: 16
                 },
                 scale: {
                     duration: 0.4,
-                    delay: 16.5,
+                    delay: 20.5,
                     ease: "easeInOut"
                 }
             }} 
             src="/assets/1.png" 
             alt="books" 
-            className='w-86 h-auto z-[25] absolute top-[6%] right-[12%] rotate-4 '
+            className='w-86 h-auto z-[25] absolute top-[4%] right-[12%] rotate-2 '
         />
         <motion.img 
             initial={{y: -700}} 
@@ -473,14 +482,14 @@ const CommunityTransition = () => {
             transition={{
                 y: {
                     duration: 0.3, 
-                    delay: 10.7,
+                    delay: 14.7,
                     type: "spring",
                     stiffness: 95,
                     damping: 14
                 },
                 scale: {
                     duration: 0.4,
-                    delay: 16.5,
+                    delay: 20.5,
                     ease: "easeInOut"
                 }
             }} 
@@ -494,8 +503,8 @@ const CommunityTransition = () => {
   transition={{
     scale: {
       times: [0, 0.3, 0.8, 1],  // smoother in → hold → out
-      duration: 6.5,            // matches others’ visible duration
-      delay: 10.9,              // aligns entry with rest
+      duration: 6.5,            // matches others' visible duration
+      delay: 14.9,              // aligns entry with rest
       ease: ["easeOut", "linear", "easeInOut"]
     }
   }} 
@@ -514,19 +523,19 @@ const Beats = () => {
   const clubControls = useAnimation();
 
   useEffect(() => {
-    // ENTER at ~19.5s
+    // ENTER at ~23.5s (19.5 + 3.3 + 0.7)
     const enterTimeout = setTimeout(() => {
       eventControls.start("enter");
       artistControls.start("enter");
       clubControls.start("enter");
-    }, 19500);
+    }, 23500);
 
-    // EXIT at ~25.4s
+    // EXIT at ~29.4s (25.4 + 3.3 + 0.7)
     const exitTimeout = setTimeout(() => {
       eventControls.start("exit");
       artistControls.start("exit");
       clubControls.start("exit");
-    }, 25400);
+    }, 29400);
 
     return () => {
       clearTimeout(enterTimeout);
@@ -560,59 +569,9 @@ const Beats = () => {
     enter: { y: 0, opacity: 1, transition: { duration: 0.3, ease: "easeInOut" } },
     exit: { y: 700, opacity: 0, transition: { duration: 0.4, ease: "easeInOut" } },
   };
-  const bars = [
-    9, 18, 15, 23, 18, 32, 23, 18, 24, 17, 10, 15, 20, 25, 18, 12, 28, 16, 22, 14,
-    19, 26, 13, 21, 17, 24, 11, 20, 18, 23, 15, 19, 27, 14, 22, 16, 25, 13, 20, 17,
-    24, 12, 21, 18, 26, 15, 23, 19, 16, 22, 22, 16, 25, 13, 20, 17, 24, 12, 21, 18,
-    26, 15, 23, 19, 16, 22, 22, 16, 25, 13, 20, 17, 24, 12, 21, 18, 26, 15, 23, 19,
-    16, 22, 22, 16, 25, 13, 16, 22, 22, 16, 25, 13, 20, 17, 24, 12, 21, 18, 26, 15, 23, 19,
-    16, 22, 22, 16, 25, 13, 22, 22, 16, 25, 13, 20, 17, 24, 12, 21, 18, 26, 15, 23, 19,
-    16, 22, 22, 16, 25, 13,
-  ];
 
   return (
    <>
-    <motion.div
-      initial={{
-        opacity: 0,
-        top: "50%",
-        left: "50%",
-        x: "-50%",
-        y: "-50%",
-      }}
-      animate={{
-        opacity: 1,
-        top: ["45%", "7%"],
-        left: ["55%", "10%"],
-        x: ["-50%", "0%"],
-        y: ["-50%", "0%"],
-     }}
-      transition={{
-        opacity: { duration: 0.4, delay: 18.5 },
-        top: { duration: 0.5, delay: 19.2, ease: "easeInOut" },
-        left: { duration: 0.5, delay: 19.2, ease: "easeInOut" },
-        x: { duration: 0.5, delay: 19.2, ease: "easeInOut" },
-        y: { duration: 0.5, delay: 19.2, ease: "easeInOut" },
-      }}
-      className="flex items-center w-[750px] h-20 absolute z-10 space-x-[2px] overflow-hidden"
-    >
-      {bars.map((height, index) => (
-        <motion.div
-          key={index}
-          className="w-0.5 bg-gold"
-          animate={{
-            height: [5, height, 5],
-          }}
-          transition={{
-            duration: 1.2,
-            repeat: Infinity,
-            repeatType: "reverse",
-            ease: "easeInOut",
-            delay: index * 0.05,
-          }}
-        />
-      ))}
-    </motion.div>
   {/* Animated Videos */}
   <motion.video
         src="/assets/event-video.mp4"
@@ -731,33 +690,116 @@ const Twinkls = () =>{
 
 const Cues = () => {
   return (
-      
-<div className="border-2 border-stone-600 p-1.5 rounded-full">
-  <div className="flex items-center gap-4 w-44 h-44 bg-stone-900 rounded-full justify-center">
+
+<motion.div initial={{opacity: 1}} animate={{scale: 0}} transition={{duration: 0.4, delay: 3.2}} className='flex flex-col gap-10 relative'>
+    <div className="border-2 border-stone-600 p-1.5 rounded-full">
+       <div className="flex items-center gap-4 w-44 h-44 bg-stone-900 rounded-full justify-center relative z-[20]">
+          <motion.div
+            animate={{ opacity: [0.3, 1, 0.3] }}
+            transition={{ duration: 1, repeat: Infinity,  }}
+          >
+             <span className="text-amber-500 font-bold text-6xl drop-shadow-[0_0_10px_#d48d0b]">CUE</span>
+           </motion.div>
+        </div>
+    </div>
+    <div className="border-2 border-stone-600 p-1.5 rounded-full">
+  <div className="flex items-center gap-4 w-44 h-44 bg-stone-900 rounded-full justify-center relative z-[20]">
       <motion.div
         animate={{ opacity: [0.3, 1, 0.3] }}
         transition={{ duration: 1, repeat: Infinity,  }}
       >
         <FaPlay className="text-green-500 text-5xl drop-shadow-[0_0_5px_#32a852]" />
       </motion.div>
-
       <motion.div
         className="bg-green-500 rotate-20 w-1 h-12 drop-shadow-[0_0_10px_#32a852]"
         animate={{ opacity: [0.3, 1, 0.3] }}
         transition={{ duration: 1, repeat: Infinity, }}
       />
-
       <motion.div
         animate={{ opacity: [0.3, 1, 0.3] }}
         transition={{ duration: 1, repeat: Infinity,}}
       >
-        <FaPause className="text-green-500 text-5xl drop-shadow-[0_0_5px_#32a852]" />
+        <FaPause className="text-green-500 text-5xl drop-shadow-[0_0_5px_#32a852] " />
       </motion.div>
     </div>
-</div>
+    </div>
+
+  <motion.div 
+  initial={{x: 300, y: 300}} 
+  animate={{
+    x: -60, 
+    y: -60,
+    scale: [1, 1, 0.6],  // Click effect after movement
+    opacity: 0, 
+  }} 
+  transition={{
+    x: { duration: 0.5, delay: 2 },
+    y: { duration: 0.5, delay: 2 },
+    scale: { 
+      duration: 0.6, 
+      delay: 2.5, // Starts after movement (2s delay + 0.5s duration)
+      times: [0, 0.3, 0.5] // Controls the timing of each scale value
+    },
+    opacity: {
+      duration: 0.6,
+      delay: 3,
+    }
+  }} 
+  className='absolute bottom-0 right-0 z-[30]'
+>
+  <FaHandPointer className='text-4xl -rotate-35'/>
+</motion.div>
+
+</motion.div>
 
   );
 };
+
+const Waveform = () => {
+  const totalBars = 120; // number of bars (increase for smoother waveform)
+  const duration = 37; // total playback duration in seconds
+  const delayStart = 3.3 * 1000; // convert to ms
+
+  const heights = Array.from({ length: totalBars }, () =>
+    Math.floor(Math.random() * 50) + 20
+  );
+
+  const [progress, setProgress] = useState(0);
+
+  useEffect(() => {
+    const startTimeout = setTimeout(() => {
+      const interval = setInterval(() => {
+        setProgress((prev) => (prev < totalBars ? prev + 1 : totalBars));
+      }, (duration / totalBars) * 1000);
+
+      return () => clearInterval(interval);
+    }, delayStart);
+
+    return () => clearTimeout(startTimeout);
+  }, [totalBars, duration]);
+
+  return (
+    <motion.div
+      initial={{ y: 100 }}
+      animate={{ y: 0 }}
+      transition={{ duration: 0.5, delay: 3.3 }}
+      className="absolute z-50 bottom-2 w-full h-16 flex items-end justify-center overflow-hidden"
+    >
+      {heights.map((h, i) => (
+        <motion.div
+          key={i}
+          initial={{ height: 0 }}
+          animate={{ height: `${h}px` }}
+          transition={{ duration: 0.4 }}
+          className={`w-[2px] mx-[1px] rounded-sm ${
+            i <= progress ? "bg-gold" : "bg-white"
+          }`}
+        />
+      ))}
+    </motion.div>
+  );
+};
+
 
 export default VideoTest
 
@@ -772,4 +814,4 @@ export default VideoTest
 
 //“Connect, discover, and track your activity and statistics. Own your rhythm. Soundfolio keeps it social.”
 
-// Built for everyone who lives through sound — artists, clubs, events and fans, connected in one place. powered by your contribution to something greater.
+// Built for everyone who lives through sound — artists, clubs and events , connected in one place. powered by your contribution to something greater.
