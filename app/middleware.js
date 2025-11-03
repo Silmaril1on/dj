@@ -33,13 +33,26 @@ export async function middleware(request) {
   ];
 
   // Define auth routes (should redirect if already authenticated)
-  const authRoutes = ["/login", "/signup", "/auth"];
+  // Important: do NOT include "/auth" root to avoid catching /auth/callback
+  const authRoutes = [
+    "/login",
+    "/signup",
+    "/sign-in",
+    "/sign-up",
+    "/auth/login",
+    "/auth/signup",
+  ];
 
   const isProtectedRoute = protectedRoutes.some((route) =>
     pathname.startsWith(route)
   );
 
   const isAuthRoute = authRoutes.some((route) => pathname.startsWith(route));
+
+  // Always allow OAuth callback to run to complete profile setup
+  if (pathname.startsWith("/auth/callback")) {
+    return response;
+  }
 
   // Redirect to login if accessing protected route without session
   if (isProtectedRoute && (!session || error)) {
