@@ -106,7 +106,7 @@ const ArtistCard = ({
             <ArtistName  artistName={artist} className="leading-5 text-lg lg:text-2xl" />
             <ArtistCountry artistCountry={artist} />
             <MetaScore scoreData={artist?.rating_stats} artistId={artist.id} />
-            <div  className="absolute top-[1px] left-[1px] space-y-1 p-1">
+            <div  className="absolute top-[5px] left-[5px] space-y-1 p-1">
               <RatingButton
                 artist={artist}
                 ratingStats={artist.rating_stats}

@@ -1,4 +1,5 @@
-"use client"
+import ShareButton from '@/app/components/buttons/artist-buttons/ShareButton';
+import Motion from '@/app/components/containers/Motion';
 import { motion } from 'framer-motion'
 import Image from 'next/image'
 
@@ -11,7 +12,10 @@ const Avatar = ({ data }) => {
       animate={{ opacity: 1, x: 0 }}
       transition={{ duration: 0.8, ease: "easeOut" }}
     >
-      <div className="relative overflow-hidden shadow-2xl">
+      <div className="relative overflow-hidden shadow-2xl ">
+       <Motion className="absolute top-5 left-5 text-2xl z-10" animation="fade" delay={1.5}>
+         <ShareButton artistName={data.name} />
+       </Motion>
         <motion.div
           className="relative w-full h-[400px] lg:h-[700px]"
           whileHover={{ scale: 1.02 }}

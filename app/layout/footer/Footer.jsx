@@ -32,7 +32,7 @@ const Footer = () => {
       <section className="w-full grid grid-cols-2 bg-black p-3 lg:p-5">
         <div className="relative w-fit">
           <Logo size="md" />
-          <h1 className="absolute bottom-[20%] hidden lg:block -right-27 text-4xl font-bold tracking-tight">SoundFolio</h1>
+          <h1 className="absolute bottom-[12%] hidden lg:block -right-27 text-4xl font-bold tracking-tight">SoundFolio</h1>
         </div>
         <div className="flex flex-col justify-center gap-1 items-end lg:items-end mb-4 lg:mb-0">
           <SocialLinks social_links={appSocialLinks} />
