@@ -20,7 +20,6 @@ export const generateMetadata = async ({ params }) => {
     const { artist } = await response.json();
     const artistName = capitalizeTitle(artist?.stage_name || artist?.name || "Artist");
     const artistImage = artist?.artist_image || '/assets/default-artist.jpg';
-    const artistBio = artist?.bio || `Check out ${artistName} on Soundfolio - DJ profile, events, music, and more.`;
     const pageUrl = `${process.env.PROJECT_URL}/artists/${id}`;
 
     // Ensure the image URL is absolute
@@ -30,10 +29,8 @@ export const generateMetadata = async ({ params }) => {
 
     return {
       title: `Soundfolio | ${artistName}`,
-      description: artistBio.substring(0, 100), // Facebook recommends 155-160 characters
       openGraph: {
-        title: `${artistName} - DJ Profile on Soundfolio`,
-        description: artistBio.substring(0, 160),
+        title: `${artistName} - Artist Profile on Soundfolio`,
         url: pageUrl,
         siteName: 'Soundfolio',
         images: [
@@ -41,15 +38,14 @@ export const generateMetadata = async ({ params }) => {
             url: absoluteImageUrl,
             width: 1200,
             height: 630,
-            alt: `${artistName} - DJ Profile Picture`,
+            alt: `${artistName} - Artist Profile Picture`,
           },
         ],
         type: 'profile',
       },
       twitter: {
         card: 'summary_large_image',
-        title: `${artistName} - DJ Profile on Soundfolio`,
-        description: artistBio.substring(0, 160),
+        title: `${artistName} - Artist Profile on Soundfolio`,
         images: [absoluteImageUrl],
       },
     };
@@ -57,7 +53,6 @@ export const generateMetadata = async ({ params }) => {
     console.error("Metadata generation error:", error);
     return { 
       title: "Soundfolio - Artist",
-      description: "Discover amazing DJs and electronic music artists on Soundfolio.",
     };
   }
 };
