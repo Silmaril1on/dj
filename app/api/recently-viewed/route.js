@@ -90,8 +90,8 @@ export async function POST(request) {
       )
     }
 
-    // If user has 6 or more views, delete the oldest one
-    if (count >= 6) {
+    // If user has 5 or more views, delete the oldest one to maintain a maximum of 6
+    if (count >= 5) {
       const { data: oldestView } = await supabase
         .from('recently_viewed')
         .select('id')

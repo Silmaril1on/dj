@@ -56,20 +56,24 @@ body {
 
 ::-webkit-scrollbar {
   width: 8px;
-  background: #222; /* or your preferred color */
+  background: #fcf5df; /* or your preferred color */
 }
 ::-webkit-scrollbar-thumb {
   background: #444; /* or your preferred color */
-  border-radius: 4px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: #666;
+  background: #fcf5df;
 }
 
 /* For Firefox */
 * {
   scrollbar-width: thin;
-  scrollbar-color: #595b5c transparent;
+  scrollbar-color: #fcf5df transparent;
+}
+
+/* Fix scroll position on navigation */
+html {
+  scroll-behavior: smooth;
 }
 
 .right-clip {
