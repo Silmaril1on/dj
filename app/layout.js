@@ -32,7 +32,7 @@ export default function RootLayout({ children }) {
   return (
     <html lang="en">
       <body
-        className={`${rationale.variable} ${montserratAlternates.variable} min-h-screen mb-10 lg:mb-0 relative flex flex-col duration-300 bg-black text-gold mx-auto max-w-[1800px]`}
+        className={`${rationale.variable} ${montserratAlternates.variable} min-h-screen relative flex flex-col duration-300 bg-black text-gold mx-auto max-w-[1800px]`}
       >
         <StoreProvider>
           <AuthProvider>

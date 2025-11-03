@@ -1,7 +1,6 @@
 "use client";
 import FlexBox from "@/app/components/containers/FlexBox";
 import MyLink from "@/app/components/ui/MyLink";
-import Paragraph from "@/app/components/ui/Paragraph";
 import Title from "@/app/components/ui/Title";
 import { truncateString } from "@/app/helpers/utils";
 import { motion } from "framer-motion";
@@ -47,7 +46,7 @@ const ContentSide = ({  currentNews }) => {
         </FlexBox>
         <div className="flex items-end flex-col">
           <p className="text-[9px] lg:text-sm text-cream secondary text-end">
-            {truncateString(currentNews.content, 150)}
+            {truncateString(currentNews.content, 100)}
           </p>
           <MyLink
             href={`/news/${currentNews.id}`}

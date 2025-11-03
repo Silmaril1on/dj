@@ -22,7 +22,6 @@ const ArtistSchedule = ({
   const [error, setError] = useState(null)
 
   useEffect(() => {
-    // If data is passed as prop (like from ClubProfile), use it directly
     if (passedData) {
       setData(passedData)
       setLoading(false)
@@ -33,7 +32,6 @@ const ArtistSchedule = ({
       try {
         setLoading(true)
         let response
-        
         // Determine which API endpoint to use
         if (artistId) {
           response = await fetch(`/api/artists/${artistId}/schedule`)
@@ -44,9 +42,7 @@ const ArtistSchedule = ({
           setLoading(false)
           return
         }
-        
         const result = await response.json()
-        
         if (result.success) {
           setData(result.data || [])
         } else {
@@ -81,7 +77,7 @@ const ArtistSchedule = ({
 
   return (
     <SectionContainer title={title} description={description} className="mt-10">
-      <div className="w-full lg:w-[70%] space-y-4 my-5">
+      <div className="w-full lg:w-[70%] space-y-2 lg:space-y-4 my-5">
         {data.map((schedule, index) => (
           <motion.div
             key={schedule.id}
@@ -89,7 +85,7 @@ const ArtistSchedule = ({
             whileInView={{ opacity: 1, x: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.6, delay: index * 0.1 }}
-            className="bg-stone-900  lg:py-2 px-2 lg:px-4 bordered hover:scale-105 "
+            className="bg-stone-900 py-1 lg:py-2 px-2 lg:px-4 bordered lg:hover:scale-105 "
           >
             <div className="grid grid-cols-2 lg:grid-cols-[4fr_2fr] items-center">
              <section className='grid grid-cols-1 lg:grid-cols-3 gap-1 lg:gap-0'>
@@ -120,7 +116,7 @@ const ArtistSchedule = ({
 
               {/* Club/Venue Name or Event Name */}
               <div className="flex flex-col items-end justify-evenly">
-                <Title text={clubId ? schedule.event_name : schedule.club_name} />
+                <Title text={clubId ? schedule.event_name : schedule.club_name} className='pointer-events-none' />
                 {clubId && schedule.artists && (
                   <div className="text-xs text-chino mb-2">
                     Artists: {Array.isArray(schedule.artists) ? schedule.artists.join(', ') : schedule.artists}

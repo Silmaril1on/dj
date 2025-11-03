@@ -15,8 +15,9 @@ const SingleNews = ({ news }) => {
     useRecentlyViewed("news", news.id);
 
   return (
-    <div className=" py-4 px-[10%] bg-stone-900 rounded">
+    <div className="py-4 px-3 lg:px-[10%] bg-stone-900 rounded">
       <div className="mb-4 pb-2 border-b border-gold/30">
+        <SpanText text="Author" size="xs" className="leading-none" />
         <div className="flex items-center gap-2">
           <ProfilePicture avatar_url={news.submitter.user_avatar} />
           <div>

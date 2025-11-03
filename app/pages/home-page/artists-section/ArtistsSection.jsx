@@ -14,6 +14,7 @@ const ArtistsSection = () => {
   const [error, setError] = useState(null);
   const user = useSelector(selectUser);
   const hasFetched = useRef(false);
+  const hasAnimated = useRef(false);
 
   useEffect(() => {
     if (hasFetched.current) return;
@@ -45,6 +46,7 @@ const ArtistsSection = () => {
     return <h1>Error: {error}</h1>;
   }
 
+
   return (
     <SectionContainer
       title="Discover DJs & Artists"
@@ -67,13 +69,28 @@ const ArtistsSection = () => {
                 <ArtistCard
                   key={artist.id}
                   artist={artist}
-                  animate={true}
-                  delay={idx * 0.1} 
+                  animate={idx < 6 && !hasAnimated.current}
+                  delay={idx * 0.1}
+                  onAnimationComplete={() => {
+                    if (idx === 5) {
+                      hasAnimated.current = true;
+                    }
+                  }}
                 />
               ))}
             </SliderContainer>
           </div>
-          <Swiper animate={true} items={artists} />
+          <Swiper items={artists} animate={true} cardWidth={176}>
+            {artists?.map((artist, idx) => (
+              <ArtistCard
+                key={artist.id}
+                artist={artist}
+                cardWidth={176}
+                cardMargin={0}
+                animate={false}
+              />
+            ))}
+          </Swiper>
         </>
       )}
     </SectionContainer>

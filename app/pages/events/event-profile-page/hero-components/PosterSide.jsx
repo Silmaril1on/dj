@@ -15,7 +15,7 @@ const PosterSide = ({ src, className = "" }) => (
       alt={src}
       width={600}
       height={400}
-      className="w-auto h-full"
+      className="w-full lg:w-auto h-full"
     />
   </motion.div>
 );

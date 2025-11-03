@@ -1,5 +1,6 @@
 "use client"
-import { FaFacebook, FaGlobe, FaInstagram, FaSoundcloud, FaSpotify, FaTwitter, FaYoutube } from 'react-icons/fa'
+import { FaFacebook, FaGlobe, FaInstagram, FaSoundcloud, FaSpotify, FaTwitter, FaYoutube , FaDeezer } from 'react-icons/fa'
+import { SiApplemusic } from "react-icons/si";
 import { motion } from 'framer-motion'
 import Icon from '@/app/components/ui/Icon'
 
@@ -23,6 +24,8 @@ const SocialLinks = ({
     if (url.includes('spotify')) return <FaSpotify className={iconSize} />;
     if (url.includes('soundcloud')) return <FaSoundcloud className={iconSize} />;
     if (url.includes('twitter') || url.includes('x.com')) return <FaTwitter className={iconSize} />;
+    if (url.includes('deezer')) return <FaDeezer className={iconSize} />;
+    if (url.includes('apple') || url.includes('music.apple')) return <SiApplemusic className={iconSize} />;
     return <FaGlobe className={iconSize} />;
   };
 
@@ -55,7 +58,7 @@ const SocialLinks = ({
   }
 
   return (
-    <div className={className}>
+    <div  className={className}>
       {showTitle && (
         <h4 className="text-md font-semibold text-gold mb-2">{title}</h4>
       )}

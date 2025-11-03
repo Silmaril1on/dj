@@ -59,21 +59,21 @@ const VerifyAccount = () => {
             </div>
           <div className="flex items-center gap-2">
             {user?.email_verified ? (
-              <>
+              <div className='bg-green-500/30 rounded-sm center gap-1 px-2 pointer-events-none'>
                 <FaCheckCircle className="text-green-500" />
                 <SpanText
                   text="Verified"
                   className="text-green-500 font-medium"
                 />
-              </>
+              </div>
             ) : (
-              <>
+              <div className='bg-crimson/30 rounded-sm center gap-1 px-2 pointer-events-none'>
                 <FaExclamationTriangle className="text-crimson" />
                 <SpanText
                   text="Verify Email"
-                  className="text-crimson font-medium"
+                  color="crimson"
                 />
-              </>
+              </div>
             )}
           </div>
         </div>

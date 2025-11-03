@@ -6,7 +6,7 @@ const ArtistGenres = ({ genres, className }) => {
         <div className={`flex items-center secondary font-medium gap-2 text-gold pointer-events-none ${className}`}>
             <IoMusicalNotesSharp size={20} />
             {genres?.map((genre, index) => (
-                <h1 className='bg-gold/20 px-2 py-1 border border-gold/50 ' key={index}>{capitalizeFirst(genre)}</h1>
+                <h1 className='bg-gold/20 text-[10px] lg:text-md px-2 py-1 border border-gold/50 ' key={index}>{capitalizeFirst(genre)}</h1>
             ))}
         </div>
     )

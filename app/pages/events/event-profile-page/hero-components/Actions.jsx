@@ -15,7 +15,7 @@ const Actions = ({ event }) => {
   };
 
   return (
-    <Motion animation="pop" className="center space-x-4">
+    <Motion animation="pop" className="center space-x-4 pl-2 lg:px-4">
       <SpanText
         icon={<FaUsers />}
         size="sm"

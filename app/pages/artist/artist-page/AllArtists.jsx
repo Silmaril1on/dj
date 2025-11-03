@@ -148,7 +148,7 @@ const genreOptions = useMemo(() => {
   const hasMore = total === null ? artists.length % PAGE_LIMIT === 0 && artists.length > 0 : artists.length < total;
 
   return (
-    <div className="px-3 lg:px-4">
+    <div className="px-2 lg:px-4">
       <PageHeadline title="All Artists" description="Discover talented artists from around the world." />
       <FilterBar config={dynamicFilterConfig} values={filters} onChange={handleFilterChange} />
 

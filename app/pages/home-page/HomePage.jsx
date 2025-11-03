@@ -6,10 +6,12 @@ import News from "./news-section/News";
 import MyRecentlyViews from "./recently-viewd-section/MyRecentlyViews";
 import SubmitSection from "./submit-section/SubmitSection";
 
+
+
+
 const HomePage = ({ events = [] }) => {
     return (
       <div className="flex-1 center flex-col space-y-10 ">
- 
         <Events events={events} />
         <News />
         <ArtistsSection />

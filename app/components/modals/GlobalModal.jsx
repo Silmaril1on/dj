@@ -38,6 +38,7 @@ const GlobalModal = ({ children, }) => {
     if (globalModal.content === "review") return "w-xl";
     if (reportsModal?.isOpen) return "w-xl";
     if (privacyTermsModal?.isOpen) return "max-w-4xl";
+    if (successModal?.isOpen) return "w-full lg:max-w-4xl"
     return "max-w-2xl"; 
   };
 

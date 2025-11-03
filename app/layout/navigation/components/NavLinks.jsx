@@ -23,7 +23,7 @@ const NavLinks = ({ type, onClose }) => {
 
     return (
         <div className={`flex items-center gap-2 w-fit font-bold uppercase *:text-chino *:hover:text-cream *:duration-300 ${
-            isSidebar ? 'flex-col text-3xl gap-2' : ''
+            isSidebar ? 'flex-col text-3xl gap-2' : ' pr-3'
         }`}>
             {links.map((link, index) => (
                 <Motion

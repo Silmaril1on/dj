@@ -79,12 +79,6 @@ export const filterConfigs = {
       options: [],
     },
     {
-      name: "name",
-      label: "Artist Name",
-      type: "text",
-      placeholder: "Search by artist name",
-    },
-    {
       name: "sex",
       label: "Gender",
       type: "select",
@@ -92,6 +86,12 @@ export const filterConfigs = {
         { value: "male", label: "Male" },
         { value: "female", label: "Female" },
       ],
+    },
+        {
+      name: "name",
+      label: "Artist Name",
+      type: "text",
+      placeholder: "Search by artist name",
     },
     {
       name: "genres",

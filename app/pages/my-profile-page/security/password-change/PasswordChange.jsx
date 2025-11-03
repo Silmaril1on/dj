@@ -62,7 +62,7 @@ const PasswordChange = () => {
       title="Change Password"
       description="Update your password"
     >
-      <div className="grid grid-cols-1 w-full">
+      <div className="grid grid-cols-1 w-full mt-2">
         <form onSubmit={handleSubmit} className="space-y-4">
           {/* Current Password */}
           <div className="relative">

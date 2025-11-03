@@ -56,35 +56,39 @@ const Albums = ({ artistId }) => {
     return null
   }
 
+  const hoveredAlbumData = data.find(album => album.id === hoveredAlbum);
+
   return (
     <SectionContainer
       title="Albums & Releases"
       description="Discography and music releases"
-      className="bg-stone-900"
+      className="bg-stone-900 relative"
     >
-      <div className="flex gap-3">
+     <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 lg:px-[13%] gap-3 w-full relative">
         {data.map((album, index) => (
           <motion.div
-            key={album.id}
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: index * 0.1 }}
-            className="bg-black bordered relative h-48 w-48 duration-300 cursor-pointer"
-            onMouseEnter={() => setHoveredAlbum(album.id)}
-            onMouseLeave={() => setHoveredAlbum(null)}
+             key={album.id}
+             initial={{ opacity: 0, y: 20 }}
+             animate={{ opacity: 1, y: 0 }}
+             transition={{ duration: 0.5, delay: index * 0.1 }}
+             className="relative aspect-square bg-black bordered duration-300 cursor-pointer"
+             onMouseEnter={() => setHoveredAlbum(album.id)}
+             onMouseLeave={() => setHoveredAlbum(null)}
           >
             <div className="absolute inset-0 z-0">
-                <Image
-                  src={album.album_image}
-                  alt={album.name}
-                  fill
-                  className="object-cover brightness-80 hover:brightness-100 duration-300"
-                />
+             <Image
+                src={album.album_image}
+                alt={album.name}
+                fill
+                className="object-cover brightness-80 hover:brightness-100 duration-300"
+              />
             </div>
-            {hoveredAlbum === album.id && <AlbumInfo album={album} />}
           </motion.div>
         ))}
       </div>
+      
+      {/* Render album info outside of grid */}
+      {hoveredAlbumData && <AlbumInfo album={hoveredAlbumData} />}
     </SectionContainer>
   )
 }
@@ -96,7 +100,7 @@ const AlbumInfo = ({ album }) => {
       animate={{ opacity: 1, scale: 1 }}
       exit={{ opacity: 0, scale: 0.9 }}
       transition={{ duration: 0.2 }}
-      className="absolute -top-20 -right-20 w-80 bg-black border-2 border-gold/50 p-3 space-y-2 z-10 shadow-2xl pointer-events-none"
+      className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 lg:left-1/2 lg:top-1/2 lg:-translate-x-1/2 lg:-translate-y-1/2 w-80 max-w-[90vw] bg-black border-2 border-gold/50 p-3 space-y-2 z-50 shadow-2xl pointer-events-none"
     >
       {/* Album Name */}
       <div>
@@ -113,19 +117,17 @@ const AlbumInfo = ({ album }) => {
           />
         )}
       </div>
-
       {/* Description */}
       {album.description && (
         <div>
           <SpanText
-          size="xxs"
-          font="secondary"
-          color="cream"
+            size="xxs"
+            font="secondary"
+            color="cream"
             text={album.description}
           />
         </div>
       )}
-
       {/* Tracklist */}
       {album.tracklist && album.tracklist.length > 0 && (
         <div>

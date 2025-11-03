@@ -3,7 +3,7 @@ import ProductCard from '@/app/components/containers/ProductCard'
 
 const AllNews = ({ news = [] }) => {
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 p-4">
+    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 p-2 lg:p-4">
       {news.map((item, idx) => (
         <ProductCard
           key={item.id}

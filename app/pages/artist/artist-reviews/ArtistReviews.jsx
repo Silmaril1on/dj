@@ -48,7 +48,7 @@ const ArtistReviews = ({ artist, data = [], error = null, pagination, artistId }
   }
 
   return (
-    <div className="px-3 lg:px-5 space-y-5 lg:space-y-10 h-full flex flex-col">
+    <div className="px-3 lg:px-5 space-y-5 lg:space-y-10 h-full flex flex-col pb-5">
       <ReviewHeader artist={artist} data={reviews} />
       <ReviewList data={reviews} artist={artist} setReviews={setReviews} />
       {hasMore && (

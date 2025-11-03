@@ -26,8 +26,8 @@ const MetaScore = ({ scoreData, artistId }) => {
 
 const Score = ({ average_score, total_ratings }) => {
   return (
-    <div >
-      <span className='bg-gold/30 px-1 font-bold rounded-xs'>{average_score}</span>
+    <div>
+      <span className='bg-gold/30 px-1 font-bold rounded-xs min-w-6 text-center'>{average_score}</span>
       <span>{total_ratings} Listeners score</span>
     </div>
   )

@@ -94,11 +94,13 @@ const SearchBar = () => {
                   {item.type === "club" && item.name}
                   {item.type === "event" && item.event_name}
                 </div>
-                <div className="text-xs text-stone-400">
+                <div className="text-[10px] text-stone-400">
                   {item.country}, {item.city}
-                  {item.type === "artist" &&
+                 <div className="hidden lg:block">
+                   {item.type === "artist" &&
                     item.genres &&
                     ` • ${item.genres.join(", ")}`}
+                 </div>
                   {item.type === "event" &&
                     item.venue_name &&
                     ` • ${item.venue_name}`}

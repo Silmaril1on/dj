@@ -25,7 +25,7 @@ const BasicInfo = ({ event }) => {
           text={`Promoter: ${capitalizeFirst(event.promoter)}`}
         />
       </Motion>
-      <div className="space-y-3">
+      <div className="space-y-3 py-5">
         <Motion animation="fade" delaty={0.3} className="space-y-1">
           <Title size="xl" text={event.event_name} />
           <Paragraph text={event.description} />

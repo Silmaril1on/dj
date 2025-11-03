@@ -1,5 +1,4 @@
 import Button from '@/app/components/buttons/Button'
-import FlexBox from '@/app/components/containers/FlexBox'
 import ProfilePicture from '@/app/components/materials/ProfilePicture'
 import Icon from '@/app/components/ui/Icon'
 import SpanText from '@/app/components/ui/SpanText'
@@ -12,7 +11,7 @@ const ProfileHeader = ({ profile, onUpdateClick, isEditing }) => {
   }
 
   return (
-    <div className="bg-gold/20 p-8 border-b border-gold/30">
+    <div className="bg-gold/20 p-3 lg:p-8 border-b border-gold/30">
       <div className="flex flex-col md:flex-row items-center gap-6">
         <div className="relative">
           {profile?.user_avatar ? (
@@ -22,7 +21,7 @@ const ProfileHeader = ({ profile, onUpdateClick, isEditing }) => {
           )}
         </div>
         <div className="flex-1 text-center md:text-left">
-          <FlexBox type="column-start" className="space-y-2 *:font-bold">
+          <div  className="space-y-2 flex items-center lg:items-start flex-col *:font-bold">
             <SpanText
               color="gold"
               icon={<MdPerson />}
@@ -30,8 +29,8 @@ const ProfileHeader = ({ profile, onUpdateClick, isEditing }) => {
             />
             <SpanText icon={<MdEmail />} text={profile?.email} color="gold" />
             <SpanText icon={<MdAccessTime />} text={`Member since ${formatTime(profile.created_at)}`} color="gold" />
-          </FlexBox>
-          <div className="mt-4">
+          </div>
+          <div className="mt-4 flex justify-center lg:justify-start">
             <Button
               size="small"
               text={isEditing ? "Cancel Edit" : "Update My Info"}

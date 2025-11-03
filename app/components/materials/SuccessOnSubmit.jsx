@@ -13,12 +13,6 @@ const SuccessOnSubmit = () => {
   const router = useRouter()
   const { type, data } = useSelector(selectSuccess)
 
-  console.log('SuccessOnSubmit - Type:', type)
-  console.log('SuccessOnSubmit - Data:', data)
-  console.log('SuccessOnSubmit - album_image:', data?.album_image)
-  console.log('SuccessOnSubmit - image:', data?.image)
-  console.log('SuccessOnSubmit - name:', data?.name)
-
   const handleClose = () => {
     dispatch(hideSuccess())
     router.push('/')
