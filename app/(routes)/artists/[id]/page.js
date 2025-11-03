@@ -19,19 +19,47 @@ export const generateMetadata = async ({ params }) => {
 
     const { artist } = await response.json();
     const artistName = capitalizeTitle(artist?.stage_name || artist?.name || "Artist");
+    const artistImage = artist?.avatar || artist?.image || '/assets/default-artist.jpg';
+    const artistBio = artist?.bio || `Check out ${artistName} on Soundfolio - DJ profile, events, music, and more.`;
+    const pageUrl = `${process.env.PROJECT_URL}/artists/${id}`;
+
     return {
       title: `Soundfolio | ${artistName}`,
+      description: artistBio.substring(0, 100), // Facebook recommends 155-160 characters
+      openGraph: {
+        title: `${artistName} - DJ Profile on Soundfolio`,
+        description: artistBio.substring(0, 160),
+        url: pageUrl,
+        siteName: 'Soundfolio',
+        images: [
+          {
+            url: artistImage,
+            width: 1200,
+            height: 630,
+            alt: `${artistName} - DJ Profile Picture`,
+          },
+        ],
+        type: 'profile',
+      },
+      twitter: {
+        card: 'summary_large_image',
+        title: `${artistName} - DJ Profile on Soundfolio`,
+        description: artistBio.substring(0, 160),
+        images: [artistImage],
+      },
     };
   } catch (error) {
     console.error("Metadata generation error:", error);
-    return { title: "Soundfolio - Artist" };
+    return { 
+      title: "Soundfolio - Artist",
+      description: "Discover amazing DJs and electronic music artists on Soundfolio.",
+    };
   }
 };
 
 const ArtistProfilePage = async ({ params }) => {
   try {
     const { id } = await params;
-
     const cookieStore = await cookies();
     const { user } = await getServerUser(cookieStore);
 
