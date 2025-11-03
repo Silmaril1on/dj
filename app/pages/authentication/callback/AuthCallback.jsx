@@ -12,77 +12,50 @@ const AuthCallback = () => {
 
   useEffect(() => {
     const handleGoogleProfile = async () => {
-      // 1. Get the current session/user
-      const {
-        data: { user },
-        error: userError,
-      } = await supabaseClient.auth.getUser();
-      console.log("Supabase Auth user:", user, "Error:", userError);
+      try {
+        // 1. Verify user is authenticated
+        const {
+          data: { user },
+          error: userError,
+        } = await supabaseClient.auth.getUser();
+        
+        console.log("Supabase Auth user:", user, "Error:", userError);
 
-      if (!user) {
-        router.replace("/signIn");
-        return;
+        if (!user) {
+          console.error("No user found, redirecting to sign in");
+          router.replace("/sign-in");
+          return;
+        }
+
+        // 2. Call API to handle user profile creation/retrieval
+        const response = await fetch("/api/auth/google-callback", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+        });
+
+        if (!response.ok) {
+          const errorData = await response.json();
+          console.error("Failed to create/fetch user profile:", errorData);
+          router.replace("/sign-in");
+          return;
+        }
+
+        const { user: userProfile, isNewUser } = await response.json();
+        console.log("User profile:", userProfile, "Is new user:", isNewUser);
+
+        // 3. Set user in Redux store
+        if (userProfile) {
+          dispatch(setUser(userProfile));
+        }
+
+        // 4. Redirect to home
+        router.replace("/");
+      } catch (error) {
+        console.error("Google callback error:", error);
+        router.replace("/sign-in");
       }
-
-      // 2. Check if user exists in users table
-      const { data: existing, error: selectError } = await supabaseClient
-        .from("users")
-        .select("*")
-        .eq("id", user.id)
-        .single();
-
-      console.log("Existing user in users table:", existing, "Error:", selectError);
-
-      // 3. If not, insert user profile
-      if (!existing) {
-        const { email, user_metadata } = user;
-        const { full_name, name, avatar_url, picture, userName, display_name } =
-          user_metadata || {};
-        const profile = {
-          id: user.id,
-          email,
-          userName: userName || full_name || name || "",
-          user_avatar: avatar_url || picture || "",
-        };
-        const { data: inserted, error: insertError } = await supabaseClient
-          .from("users")
-          .insert([profile])
-          .select()
-          .single();
-        console.log("Inserted user profile:", inserted, "Error:", insertError);
-      }
-
-      // 4. Fetch the user profile from users table for Redux
-      const { data: userProfile, error: fetchProfileError } = await supabaseClient
-        .from("users")
-        .select("*")
-        .eq("id", user.id)
-        .single();
-
-      console.log("Fetched user profile for Redux:", userProfile, "Error:", fetchProfileError);
-
-      if (userProfile) {
-        dispatch(setUser(userProfile));
-        // Send welcome notification if this is a new user (optional: check a flag)
-        supabaseClient
-          .from("notifications")
-          .insert({
-            user_id: userProfile.id,
-            type: "welcome",
-            title: "Welcome to Soundfolio!",
-            read: false, 
-            message:
-              "Your account has been created successfully. You can now access your dashboard and start exploring all available features.",
-          })
-          .then(({ error }) => {
-            if (error) {
-              console.warn("Failed to create welcome notification:", error);
-            }
-          });
-      }
-
-      // 5. Redirect to home or dashboard
-      router.replace("/");
     };
 
     handleGoogleProfile();
