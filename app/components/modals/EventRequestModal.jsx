@@ -2,6 +2,7 @@
 import { useState, useEffect } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { closeEventRequestModal, selectEventRequestModal, removeRequest, openEventRequestModal } from '@/app/features/eventRequestSlice'
+import { selectUser } from '@/app/features/userSlice'
 import { MdCalendarToday, MdAccessTime, MdCheckCircle, MdCancel } from 'react-icons/md'
 import ArtistCountry from '@/app/components/materials/ArtistCountry'
 import Title from '@/app/components/ui/Title'
@@ -13,9 +14,15 @@ import {motion, AnimatePresence} from 'framer-motion'
 const EventRequestModal = () => {
   const dispatch = useDispatch()
   const { requests, isOpen } = useSelector(selectEventRequestModal)
+  const user = useSelector(selectUser)
   const [loading, setLoading] = useState(null)
 
   useEffect(() => {
+    // Only fetch if user is logged in
+    if (!user) {
+      return
+    }
+
     const fetchPendingEvents = async () => {
       try {
         const response = await fetch('/api/users/artist-event-request')
@@ -31,7 +38,7 @@ const EventRequestModal = () => {
     }
 
     fetchPendingEvents()
-  }, [dispatch])
+  }, [dispatch, user])
 
   const handleClose = () => {
     dispatch(closeEventRequestModal())
