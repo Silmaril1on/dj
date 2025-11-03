@@ -13,13 +13,16 @@ const AuthCallback = () => {
   useEffect(() => {
     const handleGoogleProfile = async () => {
       try {
+        console.log("🔄 Auth callback started");
+        console.log("Current URL:", window.location.href);
+        
         // 1. Verify user is authenticated
         const {
           data: { user },
           error: userError,
         } = await supabaseClient.auth.getUser();
         
-        console.log("Supabase Auth user:", user, "Error:", userError);
+        console.log("✅ Supabase Auth user:", user, "Error:", userError);
 
         if (!user) {
           console.error("No user found, redirecting to sign in");
