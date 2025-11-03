@@ -21,7 +21,22 @@ const MotionLogo = ({className}) => {
   };
 
   return (
-      <div className={`w-80 h-[260px] relative sepia ${className}`}>
+      <div className={`w-80 h-[260px] relative sepia ${className}`}> 
+      {/* Glitch Effect Logo */}
+        <motion.img 
+          initial={{ opacity: 0 }} 
+          animate={{ opacity: [0, 1, 0, 1, 1, 1, 0, 1, 1, 0, 1, 0] }} 
+          transition={{
+            duration: 2,
+            delay: 1.8, 
+            times: [0, 0.125, 0.25, 0.375, 0.5, 0.625, 0.75, 0.875, 0.921, 0.958, 0.979, 1],
+            repeat: Infinity,
+            repeatDelay: 0, 
+          }} 
+          src="/assets/glitch-logo.png" 
+          alt="glitched logo" 
+          className="w-full h-auto absolute -top-13 scale-120 z-[30] left-0"
+        />
         <motion.img
           src="/assets/vector-7.png"
           alt="nose"

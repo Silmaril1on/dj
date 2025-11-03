@@ -1,3 +1,4 @@
+import MotionLogo from "@/app/components/ui/MotionLogo";
 import AppDataStats from "./app-data-stats/AppDataStats";
 import ArtistsSection from "./artists-section/ArtistsSection";
 import BornToday from "./bord-today-section/BornToday";
