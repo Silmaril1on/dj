@@ -91,14 +91,24 @@ const AddArtist = () => {
                 throw new Error(errorData.error || `Failed to ${isEditMode ? 'update' : 'submit'} artist`)
             }
             const result = await response.json()
-            dispatch(showSuccess({
-                type: 'artist',
-                image: result.data?.artist_image || '',
-                name: result.data?.name || '',
-                stage_name: result.data?.stage_name || '',
-                country: result.data?.country || '',
-                city: result.data?.city || ''
-            }))
+            
+            if (isEditMode) {
+                // Show success message for edit mode
+                dispatch(setError({ 
+                    message: "You updated info successfully", 
+                    type: "success" 
+                }))
+            } else {
+                // Show success modal for new submission
+                dispatch(showSuccess({
+                    type: 'artist',
+                    image: result.data?.artist_image || '',
+                    name: result.data?.name || '',
+                    stage_name: result.data?.stage_name || '',
+                    country: result.data?.country || '',
+                    city: result.data?.city || ''
+                }))
+            }
         } catch (err) {
             dispatch(setError({ message: err.message, type: 'error' }))
         } finally {
