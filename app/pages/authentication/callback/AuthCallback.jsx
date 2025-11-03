@@ -16,16 +16,25 @@ const AuthCallback = () => {
         console.log("🔄 Auth callback started");
         console.log("Current URL:", window.location.href);
         
-        // 1. Verify user is authenticated
-        const {
-          data: { user },
-          error: userError,
-        } = await supabaseClient.auth.getUser();
-        
-        console.log("✅ Supabase Auth user:", user, "Error:", userError);
+        // 1. Wait for Supabase to exchange the OAuth code and set the session
+        //    (Production can be a tick slower than localhost.)
+        const waitForUser = async (retries = 10, delay = 300) => {
+          for (let i = 0; i < retries; i++) {
+            const { data, error } = await supabaseClient.auth.getUser();
+            if (data?.user) {
+              return { user: data.user };
+            }
+            console.log(`⏳ Waiting for session... attempt ${i + 1}/${retries}`, error?.message);
+            await new Promise((r) => setTimeout(r, delay));
+          }
+          return { user: null };
+        };
+
+        const { user } = await waitForUser();
+        console.log("✅ Supabase Auth user after wait:", user);
 
         if (!user) {
-          console.error("No user found, redirecting to sign in");
+          console.error("No user found after wait, redirecting to sign in");
           router.replace("/sign-in");
           return;
         }

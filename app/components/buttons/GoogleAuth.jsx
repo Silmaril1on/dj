@@ -11,16 +11,16 @@ const GoogleAuth = () => {
     setLoading(true);
     await new Promise((resolve) => setTimeout(resolve, 500));
     try {
-      const redirectUrl = typeof window !== 'undefined' 
-        ? `${window.location.origin}/auth/callback`
-        : 'https://soundfolio.net/auth/callback';
-        
-      console.log('Redirect URL:', redirectUrl);
+      const base = typeof window !== 'undefined' ? window.location.origin : 'https://soundfolio.net';
+      const redirectUrl = `${base}/auth/callback`;
+      console.log('🔗 OAuth redirectTo:', redirectUrl, 'origin:', base);
       
       await supabaseClient.auth.signInWithOAuth({
         provider: "google",
         options: {
           redirectTo: redirectUrl,
+          // Let Supabase perform the browser redirect; we'll land on /auth/callback
+          skipBrowserRedirect: false,
         },
       });
     } catch (error) {
