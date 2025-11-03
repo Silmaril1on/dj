@@ -19,9 +19,14 @@ export const generateMetadata = async ({ params }) => {
 
     const { artist } = await response.json();
     const artistName = capitalizeTitle(artist?.stage_name || artist?.name || "Artist");
-    const artistImage = artist?.avatar || artist?.image || '/assets/default-artist.jpg';
+    const artistImage = artist?.artist_image || '/assets/default-artist.jpg';
     const artistBio = artist?.bio || `Check out ${artistName} on Soundfolio - DJ profile, events, music, and more.`;
     const pageUrl = `${process.env.PROJECT_URL}/artists/${id}`;
+
+    // Ensure the image URL is absolute
+    const absoluteImageUrl = artistImage.startsWith('http') 
+      ? artistImage 
+      : `${process.env.PROJECT_URL}${artistImage}`;
 
     return {
       title: `Soundfolio | ${artistName}`,
@@ -33,7 +38,7 @@ export const generateMetadata = async ({ params }) => {
         siteName: 'Soundfolio',
         images: [
           {
-            url: artistImage,
+            url: absoluteImageUrl,
             width: 1200,
             height: 630,
             alt: `${artistName} - DJ Profile Picture`,
@@ -45,7 +50,7 @@ export const generateMetadata = async ({ params }) => {
         card: 'summary_large_image',
         title: `${artistName} - DJ Profile on Soundfolio`,
         description: artistBio.substring(0, 160),
-        images: [artistImage],
+        images: [absoluteImageUrl],
       },
     };
   } catch (error) {
