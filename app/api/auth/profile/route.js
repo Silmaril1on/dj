@@ -4,6 +4,7 @@ import { cookies } from "next/headers";
 import {
   getServerUser,
   createSupabaseServerClient,
+  supabaseAdmin,
 } from "@/app/lib/config/supabaseServer";
 
 export async function GET() {
@@ -39,25 +40,37 @@ export async function PUT(request) {
     const formData = await request.formData();
     const supabase = await createSupabaseServerClient(cookieStore);
 
-    // Extract form data
-    const updateData = {
-      userName: formData.get("userName"),
-      first_name: formData.get("first_name"),
-      last_name: formData.get("last_name"),
-      birth_date: formData.get("birth_date"),
-      sex: formData.get("sex"),
-      address: formData.get("address"),
-      country: formData.get("country"),
-      city: formData.get("city"),
-      state: formData.get("state"),
-      zip_code: formData.get("zip_code"),
-    };
+    // Extract form data and handle empty values
+    const updateData = {};
+    
+    const userName = formData.get("userName");
+    const first_name = formData.get("first_name");
+    const last_name = formData.get("last_name");
+    const birth_date = formData.get("birth_date");
+    const sex = formData.get("sex");
+    const address = formData.get("address");
+    const country = formData.get("country");
+    const city = formData.get("city");
+    const state = formData.get("state");
+    const zip_code = formData.get("zip_code");
 
-    // Handle file upload if present
+    // Only add non-empty values to updateData
+    if (userName) updateData.userName = userName;
+    if (first_name) updateData.first_name = first_name;
+    if (last_name) updateData.last_name = last_name;
+    if (birth_date && birth_date.trim() !== "") updateData.birth_date = birth_date;
+    if (sex && sex.trim() !== "") updateData.sex = sex;
+    if (address) updateData.address = address;
+    if (country) updateData.country = country;
+    if (city) updateData.city = city;
+    if (state) updateData.state = state;
+    if (zip_code) updateData.zip_code = zip_code;
+
+    // Handle file upload if present using supabaseAdmin
     const user_avatar = formData.get("user_avatar");
     if (user_avatar && user_avatar.size > 0) {
-      // Get current user data to check for existing avatar
-      const { data: currentUser, error: fetchError } = await supabase
+      // Get current user data to check for existing avatar using admin
+      const { data: currentUser, error: fetchError } = await supabaseAdmin
         .from("users")
         .select("user_avatar")
         .eq("id", user.id)
@@ -81,7 +94,7 @@ export async function PUT(request) {
 
           // Only delete if it's actually a file in our bucket (not a default image URL)
           if (existingFileName && existingUrl.includes("profile_images")) {
-            const { error: deleteError } = await supabase.storage
+            const { error: deleteError } = await supabaseAdmin.storage
               .from("profile_images")
               .remove([existingFileName]);
 
@@ -96,11 +109,11 @@ export async function PUT(request) {
         }
       }
 
-      // Upload new avatar with consistent filename
+      // Upload new avatar with consistent filename using admin
       const fileExt = user_avatar.name.split(".").pop();
       const fileName = `${user.id}.${fileExt}`;
 
-      const { data: uploadData, error: uploadError } = await supabase.storage
+      const { data: uploadData, error: uploadError } = await supabaseAdmin.storage
         .from("profile_images")
         .upload(fileName, user_avatar, {
           cacheControl: "3600",
@@ -118,7 +131,7 @@ export async function PUT(request) {
       // Get public URL
       const {
         data: { publicUrl },
-      } = supabase.storage.from("profile_images").getPublicUrl(fileName);
+      } = supabaseAdmin.storage.from("profile_images").getPublicUrl(fileName);
 
       updateData.user_avatar = publicUrl;
     }
@@ -140,8 +153,8 @@ export async function PUT(request) {
       }
     }
 
-    // Update user profile
-    const { data: updatedUser, error: updateError } = await supabase
+    // Update user profile using supabaseAdmin to bypass RLS
+    const { data: updatedUser, error: updateError } = await supabaseAdmin
       .from("users")
       .update(updateData)
       .eq("id", user.id)
