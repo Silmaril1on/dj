@@ -35,22 +35,22 @@ export const SubmissionNotificationEmail = ({
   <title>${content.title}</title>
 </head>
 <body style="margin: 0; padding: 0; font-family: Arial, sans-serif; background-color: #f4f4f4;">
-  <table width="100%" cellpadding="0" cellspacing="0" style="background-color: #f4f4f4; padding: 40px 0;">
+  <table width="100%" cellpadding="0" cellspacing="0" style="background-color: #f4f4f4; padding: 0 0;">
     <tr>
       <td align="center">
-        <table width="600" cellpadding="0" cellspacing="0" style="background-color: #ffffff; border: 2px solid #d4af37; max-width: 600px;">
+        <table width="600" cellpadding="0" cellspacing="0" style="background-color: #ffffff; max-width: 600px;">
           
           <!-- Header -->
           <tr>
             <td style="background-color: #000000; padding: 30px; text-align: center;">
-              <h1 style="color: #d4af37; margin: 0; font-size: 28px;">SoundFolio</h1>
+              <h1 style="color: #fcb913; margin: 0; font-size: 28px;">SoundFolio</h1>
             </td>
           </tr>
 
           <!-- Content -->
           <tr>
             <td style="padding: 40px 30px;">
-              <h2 style="color: #d4af37; margin-top: 0; font-size: 24px;">${content.title}</h2>
+              <h2 style="color: #fcb913; margin-top: 0; font-size: 24px;">${content.title}</h2>
               
               <p style="color: #333; font-size: 16px; line-height: 1.6; margin: 0 0 16px;">
                 <strong>${content.greeting}</strong>
@@ -80,9 +80,6 @@ export const SubmissionNotificationEmail = ({
               </div>
               `}
 
-              <!-- Divider -->
-              <div style="height: 2px; background-color: #d4af37; margin: 30px 0;"></div>
-
               <!-- Next Steps -->
               <h3 style="color: #333; font-size: 18px; margin: 0 0 16px;">What's Next?</h3>
               <ul style="color: #666; font-size: 14px; line-height: 1.8; margin: 0 0 24px; padding-left: 20px;">
@@ -104,7 +101,7 @@ export const SubmissionNotificationEmail = ({
                 If you have any questions or need assistance, our support team is here to help.
               </p>
               <p style="color: #999; font-size: 12px; margin: 0;">
-                Email us at <a href="mailto:support@soundfolio.net" style="color: #d4af37; text-decoration: none;">support@soundfolio.net</a>
+                Email us at <a href="mailto:hello.soundfolio@gmail.com" style="color: #d4af37; text-decoration: none;">hello.soundfolio@gmail.com</a>
               </p>
             </td>
           </tr>
@@ -112,10 +109,10 @@ export const SubmissionNotificationEmail = ({
           <!-- Footer -->
           <tr>
             <td style="background-color: #1c1c1c; padding: 20px 30px; text-align: center;">
-              <p style="color: #999; font-size: 12px; margin: 0 0 8px;">© ${new Date().getFullYear()} SoundFolio. All rights reserved.</p>
-              <p style="color: #999; font-size: 12px; margin: 0;">Discover DJs, Artists, Clubs & Book Amazing Talents</p>
-              <p style="color: #d4af37; font-size: 12px; margin: 8px 0 0;">
-                <a href="${process.env.PROJECT_URL || 'https://soundfolio.net'}" style="color: #d4af37; text-decoration: none;">Visit SoundFolio</a>
+              <p style="color: #fcb913; font-size: 12px; margin: 0 0 8px;">© ${new Date().getFullYear()} SoundFolio. All rights reserved.</p>
+              <p style="color: #fcb913; font-size: 12px; margin: 0;">Discover DJs, Artists, Clubs & Book Amazing Talents</p>
+              <p style="color: #fcb913; font-size: 12px; margin: 8px 0 0;">
+                <a href="https://soundfolio.net'}" style="color: #fcb913; text-decoration: none;">Visit SoundFolio</a>
               </p>
             </td>
           </tr>

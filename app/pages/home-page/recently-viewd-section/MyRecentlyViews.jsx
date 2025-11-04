@@ -66,7 +66,7 @@ const MyRecentlyViews = () => {
     <SectionContainer
       title="Recently Viewed"
       description="Your recently browsed items"
-      className="bg-stone-900"
+      className="bg-stone-950"
     >
       {/* Desktop Grid */}
       <div className="hidden lg:grid lg:grid-cols-6 gap-4">

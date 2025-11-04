@@ -21,22 +21,41 @@ const AllArtistsClient = ({ initialArtists = [], initialTotal = 0, initialFilter
   const [filters, setFilters] = useState(initialFilters);
   const [queryVersion, setQueryVersion] = useState(0); // bump to cancel race conditions
   const [hasInitialData] = useState(initialArtists.length > 0); // Track if we started with SSR data
+  const [allArtistsData, setAllArtistsData] = useState(initialArtists || []); // Store all artists for filter options
 
-  // dynamic options
-const countryOptions = useMemo(() => {
-  const set = new Set((artists || []).map(a => a.country).filter(Boolean));
-  return Array.from(set).sort();
-}, [artists]);
+  // STATIC options - extracted from ALL artists data, not filtered results
+  const countryOptions = useMemo(() => {
+    const set = new Set((allArtistsData || []).map(a => a.country).filter(Boolean));
+    return Array.from(set).sort();
+  }, [allArtistsData]);
 
-const genreOptions = useMemo(() => {
-  const allGenres = new Set();
-  (artists || []).forEach(artist => {
-    if (artist.genres && Array.isArray(artist.genres)) {
-      artist.genres.forEach(g => allGenres.add(g));
+  const genreOptions = useMemo(() => {
+    const allGenres = new Set();
+    (allArtistsData || []).forEach(artist => {
+      if (artist.genres && Array.isArray(artist.genres)) {
+        artist.genres.forEach(g => allGenres.add(g));
+      }
+    });
+    return Array.from(allGenres).sort();
+  }, [allArtistsData]);
+
+  // Fetch ALL artists once for filter options
+  useEffect(() => {
+    const fetchAllForFilters = async () => {
+      try {
+        const res = await fetch(`${process.env.NEXT_PUBLIC_PROJECT_URL || ""}/api/artists/all-artists?limit=9999`, { cache: "no-store" });
+        const json = await res.json();
+        if (!json.error && json.data) {
+          setAllArtistsData(json.data);
+        }
+      } catch (err) {
+        console.error("Failed to fetch all artists for filters", err);
+      }
+    };
+    if (allArtistsData.length === 0) {
+      fetchAllForFilters();
     }
-  });
-  return Array.from(allGenres).sort();
-}, [artists]);
+  }, []);
 
   const dynamicFilterConfig = useMemo(() => {
     return filterConfigs.artists
@@ -53,11 +72,8 @@ const genreOptions = useMemo(() => {
   }, [countryOptions, genreOptions]);
 
   useEffect(() => {
-    // Skip initial fetch if we have SSR data and filters haven't changed
-    if (hasInitialData && Object.keys(filters).every(key => !filters[key])) {
-      return;
-    }
-    // Fetch when filters change
+    console.log('Filters changed:', filters);
+    // Always fetch when filters change (including when reset)
     fetchFirstPage();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [filters]);
@@ -140,8 +156,18 @@ const genreOptions = useMemo(() => {
   };
 
   const handleFilterChange = (name, value) => {
-    // update filters; reset offset in fetchFirstPage()
-    setFilters(prev => ({ ...prev, [name]: value }));
+    setFilters(prev => {
+      const newFilters = { ...prev };
+      // If value is empty (clicked placeholder), remove that filter completely
+      if (!value || value === "" || value === null || value === undefined) {
+        delete newFilters[name];
+        console.log(`Removed filter: ${name}`, newFilters);
+      } else {
+        newFilters[name] = value;
+        console.log(`Set filter ${name} = ${value}`, newFilters);
+      }
+      return newFilters;
+    });
   };
 
   // computed UI flags

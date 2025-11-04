@@ -40,9 +40,8 @@ const Footer = () => {
         </div>
       </section>
         <section className="flex flex-col lg:flex-row justify-center gap-2 lg:gap-5 items-center *:w-fit *:text-2xl *:text-gold *:hover:text-cream *:duration-300 *:cursor-pointer font-bold uppercase py-3 w-full">
-          <h1>contact us</h1>
+          <h1 onClick={() => handleOpen("bug")}>Contact Us</h1>
           <h1 onClick={() => handleOpen("feedback")}>feedback</h1>
-          <h1 onClick={() => handleOpen("bug")}>report</h1>
           <h1 onClick={() => dispatch(openPrivacyTermsModal("general"))}>Terms & Conditions</h1>
           <h1 onClick={() => dispatch(openPrivacyTermsModal("privacy"))}>Privacy Policy</h1>
         </section>

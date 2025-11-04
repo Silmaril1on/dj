@@ -9,6 +9,7 @@ import MyLink from '@/app/components/ui/MyLink'
 import FlexBox from '@/app/components/containers/FlexBox'
 import ErrorCode from '@/app/components/ui/ErrorCode'
 import { formatBirthdate } from '@/app/helpers/utils'
+import Spinner from '@/app/components/ui/Spinner'
 
 const ArtistSchedule = ({ 
   artistId, 
@@ -64,15 +65,13 @@ const ArtistSchedule = ({
   if (loading) {
     return (
       <div className='w-auto center py-20 bg-stone-900 mt-4 mx-3 min-h-[400px]'>
-        <div className="animate-pulse text-gold">Loading schedule...</div>
+        <Spinner type="logo" />
       </div>
     )
   }
 
   if (error || !data || data.length === 0) {
-    return <div className='w-auto center py-20 bg-stone-900 mt-4 mx-3 min-h-[400px]'> 
-      <ErrorCode title="No Upcoming Dates" description="There are no upcoming dates available at the moment." />
-    </div>
+    return null
   }
 
   return (

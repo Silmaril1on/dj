@@ -16,9 +16,6 @@ const VerifyAccount = () => {
 
   const handleSendVerification = async () => {
     setLoading(true)
-    setMessage('')
-    setMessageType('')
-
     try {
       const response = await fetch('/api/resend/send-verification', {
         method: 'POST',
