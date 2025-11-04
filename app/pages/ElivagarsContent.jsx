@@ -10,7 +10,7 @@ const michroma = Michroma({
   subsets: ['latin'],
 })
 
-const Test = () => {
+const ElivagarsContent = () => {
   return (
    <div className='min-h-screen w-full relative'>
        <Twinkls />
@@ -337,4 +337,4 @@ const Twinkls = () =>{
 
 
 
-export default Test
+export default ElivagarsContent
