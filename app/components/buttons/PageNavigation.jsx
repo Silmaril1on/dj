@@ -67,6 +67,7 @@ const PageNavigation = ({ linksData, className = " " }) => {
                           href={dropdownItem.href}
                           text={dropdownItem.text}
                           icon={dropdownItem.icon}
+                          onClick={() => setActiveDropdown(null)}
                           className="py-3 px-4 font-bold  text-sm text-gold gap-2 hover:bg-gold hover:text-neutral-800 duration-300 w-full flex items-center "
                         />
                       </div>

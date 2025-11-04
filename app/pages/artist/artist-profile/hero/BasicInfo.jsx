@@ -33,7 +33,7 @@ const BasicInfo = ({ data }) => {
       </div>
       <Country country={country} city={city} />
       <Description desc={desc} />
-      <Lable label={label} />
+      <Label label={label} />
       <SocialLinks
         social_links={social_links}
         className="space-y-4"
@@ -105,16 +105,21 @@ const Description = ({ desc }) => {
   </motion.div>
 }
 
-const Lable = ({ label }) => {
-  return <motion.div
-    initial={{ opacity: 0, scale: 0.8 }}
-    animate={{ opacity: 1, scale: 1 }}
-    transition={{ duration: 0.5, delay: 1.0 }}
-  >
-    <h1 className="px-4 py-1 w-fit cursor-pointer duration-300 hover:bg-emperor/40 bg-cream/20 border border-cream/30 rounded-sm uppercase text-cream font-bold">
-      {label}
-    </h1>
-  </motion.div>
+const Label = ({ label }) => {
+  return (
+    <motion.div
+      initial={{ opacity: 0, scale: 0.8 }}
+      animate={{ opacity: 1, scale: 1 }}
+      transition={{ duration: 0.5, delay: 1.0 }}
+      className='flex items-center space-x-2'
+    >
+     {label?.map((item, idx) => (
+       <h1 key={idx} className="px-4 py-1 w-fit cursor-pointer duration-300 hover:bg-emperor/40 bg-cream/20 border border-cream/30 rounded-sm uppercase text-cream font-bold">
+        {item}
+      </h1>
+     ))}
+    </motion.div>
+  )
 }
 
 

@@ -32,7 +32,6 @@ export async function POST(request) {
       .maybeSingle();
 
     if (selectError) {
-      console.error("Error checking existing user:", selectError);
       return NextResponse.json(
         { error: "Failed to check user profile" },
         { status: 500 }
@@ -59,7 +58,6 @@ export async function POST(request) {
         .single();
 
       if (insertError) {
-        console.error("Error inserting user profile:", insertError);
         return NextResponse.json(
           { error: "Failed to create user profile" },
           { status: 500 }
@@ -97,7 +95,6 @@ export async function POST(request) {
       isNewUser: false,
     });
   } catch (error) {
-    console.error("Google callback error:", error);
     return NextResponse.json(
       { error: "Internal server error" },
       { status: 500 }

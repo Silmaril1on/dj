@@ -168,6 +168,7 @@ const genreOptions = useMemo(() => {
                   likesCount={artist.likesCount}
                   href={`/artists/${artist.id}`}
                   delay={idx}
+                  score={artist.rating_stats?.average_score}
                 />
               ))}
             </div>

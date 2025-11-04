@@ -88,15 +88,15 @@ const SearchBar = () => {
                 className="w-8 h-8 rounded object-cover"
               />
 
-              <div>
+              <div className="w-full *:capitalize gap-1">
                 <div className="font-bold text-gold uppercase">
                   {item.type === "artist" && (item.stage_name || item.name)}
                   {item.type === "club" && item.name}
                   {item.type === "event" && item.event_name}
                 </div>
-                <div className="text-[10px] text-stone-400">
+                <div className="text-[10px] lg:text-xs text-stone-400 flex items-center">
                   {item.country}, {item.city}
-                 <div className="hidden lg:block">
+                 <div className="hidden lg:block ">
                    {item.type === "artist" &&
                     item.genres &&
                     ` • ${item.genres.join(", ")}`}

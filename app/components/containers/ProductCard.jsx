@@ -6,7 +6,7 @@ import Title from '@/app/components/ui/Title'
 import SpanText from '@/app/components/ui/SpanText'
 import ArtistCountry from '@/app/components/materials/ArtistCountry'
 import Dot from '@/app/components/ui/Dot'
-import { FaUsers } from 'react-icons/fa'
+import { FaStar, FaUsers } from 'react-icons/fa'
 
 const ProductCard = ({
   id,
@@ -21,6 +21,7 @@ const ProductCard = ({
   href,
   delay = 0,
   className = "",
+  score,
 }) => (
   <motion.div
     key={id}
@@ -60,8 +61,18 @@ const ProductCard = ({
           ))}
         </div>
       )}
+      {score && (
+        <div className="absolute z-10 top-4 left-4 ">
+          <SpanText
+            icon={<FaStar />}
+            size="xs"
+            text={`${score}`}
+            className="secondary pointer-events-none "
+          />
+        </div>
+      )}
       {typeof likesCount === "number" && (
-        <div className="absolute center space-x-2 top-4 right-4">
+        <div className="absolute center space-x-2 top-4 right-4 ">
           <SpanText
             icon={<FaUsers />}
             size="xs"

@@ -9,7 +9,7 @@ const BookingContent = ({ bookingRequests, onClose }) => {
 
   if (!bookingRequests || bookingRequests.length === 0) {
     return (
-      <div className="p-4 bg-stone-900 m-2 center pointer-events-none">
+      <div className="p-4 bg-stone-900 center pointer-events-none">
         <Paragraph text="No booking requests found yet" />
       </div>
     );
