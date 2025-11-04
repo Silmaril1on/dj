@@ -150,6 +150,14 @@ export async function POST(request) {
       );
     }
 
+    // Validate file size (1MB limit)
+    if (artist_image.size > 1 * 1024 * 1024) {
+      return NextResponse.json(
+        { error: "Image size must be less than 1MB" },
+        { status: 400 }
+      );
+    }
+
     // Generate unique filename with random ID to avoid title issues
     const randomId = Math.random().toString(36).substring(2, 15);
     const fileExtension = artist_image.name.split(".").pop();

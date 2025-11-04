@@ -126,6 +126,14 @@ export async function POST(request) {
       );
     }
 
+    // Validate file size (1MB limit)
+    if (club_image.size > 1 * 1024 * 1024) {
+      return NextResponse.json(
+        { error: "Image size must be less than 1MB" },
+        { status: 400 }
+      );
+    }
+
     // Validate email format if provided
     if (venue_email && venue_email.trim() !== "") {
       const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -422,6 +430,15 @@ export async function PATCH(request) {
           { status: 400 }
         );
       }
+
+      // Validate file size (1MB limit)
+      if (club_image.size > 1 * 1024 * 1024) {
+        return NextResponse.json(
+          { error: "Image size must be less than 1MB" },
+          { status: 400 }
+        );
+      }
+
       const fileExtension = club_image.name.split(".").pop();
       const fileName = `${name
         .toLowerCase()

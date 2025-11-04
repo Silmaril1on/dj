@@ -162,9 +162,9 @@ export async function POST(request) {
         );
       }
 
-      if (event_image.size > 5 * 1024 * 1024) {
+      if (event_image.size > 1 * 1024 * 1024) {
         return NextResponse.json(
-          { success: false, error: "File too large. Max 5MB allowed." },
+          { success: false, error: "File too large. Max 1MB allowed." },
           { status: 400 }
         );
       }
@@ -367,9 +367,9 @@ export async function PATCH(request) {
           { status: 400 }
         );
       }
-      if (event_image.size > 5 * 1024 * 1024) {
+      if (event_image.size > 1 * 1024 * 1024) {
         return NextResponse.json(
-          { success: false, error: "File too large. Max 5MB allowed." },
+          { success: false, error: "File too large. Max 1MB allowed." },
           { status: 400 }
         );
       }

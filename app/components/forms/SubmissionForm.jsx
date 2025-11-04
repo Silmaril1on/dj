@@ -1,5 +1,6 @@
 "use client";
 import { useState, useRef, useEffect } from "react";
+import { useDispatch } from "react-redux";
 import {
   MdUpload,
   MdEdit,
@@ -18,6 +19,7 @@ import PasswordStrengthIndicator from "./PasswordStrengthIndicator";
 import { checkPasswordStrength } from "@/app/helpers/validatePwd";
 import GoogleAuth from "../buttons/GoogleAuth";
 import FlexBox from "../containers/FlexBox";
+import { setError } from "@/app/features/modalSlice";
 
 const SubmissionForm = ({
   showGoogle = true,
@@ -31,6 +33,7 @@ const SubmissionForm = ({
   className = "",
   showPasswordStrength = false,
 }) => {
+  const dispatch = useDispatch();
   const [formData, setFormData] = useState(formConfig.initialData || {});
   const [imagePreview, setImagePreview] = useState(null);
   const [selectedFile, setSelectedFile] = useState(null);
@@ -104,9 +107,11 @@ const SubmissionForm = ({
     const file = e.target.files[0];
     if (file) {
       if (!file.type.startsWith("image/")) {
+        dispatch(setError({ message: "Please upload a valid image file", type: "error" }));
         return;
       }
-      if (file.size > 5 * 1024 * 1024) {
+      if (file.size > 1 * 1024 * 1024) {
+        dispatch(setError({ message: "Image size must be less than 1MB", type: "error" }));
         return;
       }
       setSelectedFile(file);

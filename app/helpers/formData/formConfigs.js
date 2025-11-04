@@ -78,7 +78,7 @@ export const formConfigs = {
         type: "image",
         required: false,
         label: "Profile Picture",
-        helpText: "Upload your profile picture (max 2MB).",
+        helpText: "Upload your profile picture (max 1MB).",
       },
       userName: {
         ...commonFields.userName,
@@ -270,7 +270,7 @@ export const formConfigs = {
         type: "image",
         required: true,
         label: "Album Cover",
-        helpText: "Upload album cover image (max 2MB).",
+        helpText: "Upload album cover image (max 1MB).",
       },
       name: {
         type: "text",
@@ -343,7 +343,7 @@ export const formConfigs = {
         type: "image",
         required: true,
         label: "Club Image",
-        helpText: "Upload a club image (max 2MB).",
+        helpText: "Upload a club image (max 1MB).",
       },
       name: {
         type: "text",
@@ -477,7 +477,7 @@ export const formConfigs = {
         type: "image",
         required: false,
         label: "Event Image",
-        helpText: "Upload an event image (max 2MB).",
+        helpText: "Upload an event image (max 1MB).",
       },
       country: {
         type: "select",
@@ -585,7 +585,7 @@ export const formConfigs = {
         type: "image",
         required: true,
         label: "News Image",
-        helpText: "Upload a news image (max 2MB).",
+        helpText: "Upload a news image (max 1MB).",
       },
       title: {
         type: "text",
