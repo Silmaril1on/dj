@@ -18,7 +18,7 @@ const nextConfig = {
         pathname: "/**",
       },
     ],
-    qualities: [75, 80, 90],
+    unoptimized: true, 
   },
   webpack: (config) => {
     config.resolve.alias = {
