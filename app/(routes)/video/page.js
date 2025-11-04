@@ -1,9 +1,8 @@
-import VideoTest from '@/app/pages/VideoTest'
-import React from 'react'
+import ElivagarsContent from '@/app/pages/ElivagarsContent'
 
 const page = () => {
   return (
-   <VideoTest />
+   <ElivagarsContent />
   )
 }
 
