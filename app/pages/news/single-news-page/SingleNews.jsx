@@ -7,12 +7,9 @@ import EmailTag from '@/app/components/ui/EmailTag';
 import SpanText from "@/app/components/ui/SpanText";
 import { formatTime } from "@/app/helpers/utils";
 import { FaLink } from "react-icons/fa";
-import useRecentlyViewed from "@/app/lib/hooks/useRecentlViewed";
 
 const SingleNews = ({ news }) => {
   if (!news) return <div>News not found.</div>;
-  
-    useRecentlyViewed("news", news.id);
 
   return (
     <div className="py-4 px-3 lg:px-[10%] bg-stone-900 rounded">

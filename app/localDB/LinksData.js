@@ -99,7 +99,7 @@ export const administrationLinks = [
   },
   {
     href: "/administration/reports",
-    text: "Bugs and Feedbacks",
+    text: "Reports and Feedbacks",
     icon: <MdEvent />,
   },
 ];

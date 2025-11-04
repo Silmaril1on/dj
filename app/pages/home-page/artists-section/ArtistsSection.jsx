@@ -50,7 +50,7 @@ const ArtistsSection = () => {
   return (
     <SectionContainer
       title="Discover DJs & Artists"
-      description="Browse profiles, drop reviews, track and rate top talents."
+      description="Browse profiles, drop reviews, track and rate performances"
     >
       {loading ? (
         <div className="center h-80 w-full">
