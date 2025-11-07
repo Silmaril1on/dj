@@ -9,31 +9,33 @@ export async function GET(request, { params }) {
     const { user } = await getServerUser(cookieStore);
     const supabase = await createSupabaseServerClient(cookieStore);
 
-    // Fetch the event
-    const { data: event, error: eventError } = await supabase
-      .from("events")
-      .select("*")
-      .eq("id", id)
-      .single();
+    const [eventResult, likesResult] = await Promise.all([
+      supabase
+        .from("events")
+        .select("*")
+        .eq("id", id)
+        .single(),
+      
+      supabase
+        .from("event_likes")
+        .select("user_id")
+        .eq("event_id", id)
+    ]);
 
-    if (eventError || !event) {
+    if (eventResult.error || !eventResult.data) {
       return NextResponse.json(
-        { success: false, error: eventError?.message || "Event not found" },
+        { success: false, error: eventResult.error?.message || "Event not found" },
         { status: 404 }
       );
     }
 
-    // Fetch likes/interested count
-    const { data: likesData, error: likesError } = await supabase
-      .from("event_likes")
-      .select("user_id")
-      .eq("event_id", id);
+    const event = eventResult.data;
+    const likesData = likesResult.data || [];
 
-    const likesCount = Array.isArray(likesData) ? likesData.length : 0;
-    const userLiked =
-      user && Array.isArray(likesData)
-        ? likesData.some((like) => like.user_id === user.id)
-        : false;
+    const likesCount = likesData.length;
+    const userLiked = user 
+      ? likesData.some((like) => like.user_id === user.id)
+      : false;
 
     return NextResponse.json({
       ...event,

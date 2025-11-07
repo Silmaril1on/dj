@@ -3,50 +3,42 @@ import { supabaseAdmin } from "@/app/lib/config/supabaseServer";
 
 export async function GET(request) {
   try {
-    // Get all pending artists
+    // ✅ OPTIMIZED: Get pending artists with submitter data in ONE query using JOIN
     const { data: artists, error: artistsError } = await supabaseAdmin
       .from("artists")
-      .select(
-        "id, name, stage_name, status, created_at, artist_image, country, city"
-      )
+      .select(`
+        id,
+        name,
+        stage_name,
+        status,
+        created_at,
+        artist_image,
+        country,
+        city,
+        user_id,
+        users:user_id(
+          id,
+          userName,
+          email,
+          user_avatar
+        )
+      `)
       .eq("status", "pending")
       .order("created_at", { ascending: false });
 
     if (artistsError) {
+      console.error("Artists query error:", artistsError);
       return NextResponse.json(
-        { error: artistsError.message },
+        { error: artistsError.message, details: artistsError },
         { status: 500 }
       );
     }
+
     if (!artists || artists.length === 0) {
       return NextResponse.json({ submissions: [] });
     }
-    // Get users who submitted these artists
-    const artistIds = artists.map((artist) => artist.id);
-    const { data: users, error: usersError } = await supabaseAdmin
-      .from("users")
-      .select(
-        `
-        id,
-        userName,
-        email,
-        user_avatar,
-        submitted_artist_id
-      `
-      )
-      .in("submitted_artist_id", artistIds);
 
-    if (usersError) {
-      return NextResponse.json({ error: usersError.message }, { status: 500 });
-    }
-    // Create a map of artist_id to user data
-    const userMap = {};
-    users?.forEach((user) => {
-      if (user.submitted_artist_id) {
-        userMap[user.submitted_artist_id] = user;
-      }
-    });
-    // Combine artist data with submitter information
+    // Transform the joined data into the expected format
     const submissions = artists.map((artist) => ({
       id: artist.id,
       name: artist.name,
@@ -55,15 +47,16 @@ export async function GET(request) {
       country: artist.country,
       city: artist.city,
       created_at: artist.created_at,
-      submitter: userMap[artist.id]
+      submitter: artist.users
         ? {
-            id: userMap[artist.id].id,
-            userName: userMap[artist.id].userName,
-            email: userMap[artist.id].email,
-            user_avatar: userMap[artist.id].user_avatar,
+            id: artist.users.id,
+            userName: artist.users.userName,
+            email: artist.users.email,
+            user_avatar: artist.users.user_avatar,
           }
         : null,
     }));
+
     return NextResponse.json({ submissions });
   } catch (error) {
     return NextResponse.json(

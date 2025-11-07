@@ -9,25 +9,34 @@ export async function GET(request, { params }) {
     const { user, error: userError } = await getServerUser(cookieStore);
     const supabase = await createSupabaseServerClient(cookieStore);
 
-    // Fetch club
-    const { data: club, error } = await supabase
-      .from("clubs")
-      .select("*")
-      .eq("id", id)
-      .single();
+    // ✅ OPTIMIZED: Fetch club and events in parallel
+    const [clubResult, eventsResult] = await Promise.all([
+      supabase
+        .from("clubs")
+        .select("*")
+        .eq("id", id)
+        .single(),
+      
+      supabase
+        .from("events")
+        .select("id, date, doors_open, country, city, venue_name, links")
+        .eq("club_id", id)
+        .eq("status", "approved")
+        .order("date", { ascending: true })
+    ]);
 
-    if (error || !club) {
-      return NextResponse.json({ error: error?.message || "Club not found" }, { status: 404 });
+    if (clubResult.error || !clubResult.data) {
+      return NextResponse.json(
+        { error: clubResult.error?.message || "Club not found" }, 
+        { status: 404 }
+      );
     }
 
-    // Fetch events for this club
-    const { data: events, error: eventsError } = await supabase
-      .from("events")
-      .select("id, date, doors_open, country, city, venue_name, links")
-      .eq("club_id", id);
+    const club = clubResult.data;
+    const events = eventsResult.data || [];
 
     // Prepare schedule data for ArtistSchedule component
-    const clubSchedule = (events || []).map((event) => ({
+    const clubSchedule = events.map((event) => ({
       id: event.id,
       date: event.date,
       time: event.doors_open,

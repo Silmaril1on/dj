@@ -1,56 +1,27 @@
-"use client"
-import React, { useEffect, useState } from 'react'
-import { Michroma } from 'next/font/google'
-import {motion} from 'framer-motion'
-import Particles, { initParticlesEngine } from '@tsparticles/react'
-import { loadSlim } from '@tsparticles/slim'
+"use client";
+import { motion } from 'framer-motion';
+import { Michroma } from 'next/font/google';
+import TrackList from './TrackList';
 
 const michroma = Michroma({
   weight: '400',
   subsets: ['latin'],
 })
 
-const ElivagarsContent = () => {
-  return (
-   <div className='min-h-screen w-full relative'>
-       <Twinkls />
-       {/* <AlbumPoster /> */}
-       <SoundfolioAnimation />
-       <TrackList />
-   </div>
-  )
-}
-
-const AlbumPoster = () =>{
-  return (
-     <div className='h-screen w-full center'>
-       <div className='w-98 h-98 relative bg-stone-950'>
-          <h1 className={`font-bold  absolute bottom-1 left-1 ${michroma.className}`}>Essence Radio 001</h1>
-           <div className="absolute w-64 h-72 right-0 top-0 overflow-hidden rounded-bl-4xl">
-             <img src="assets/elivagar.webp" alt="Essence Radio 001" className='w-full h-full object-cover' />
-           </div>
-           <img src="assets/elivagar-logo.png" alt="Essence Radio 001" className='w-20 h-20 object-cover ml-6 mt-1 sepia' />
-       </div>
-    </div>
-  )
-}
-
-const SoundfolioAnimation = () => { 
+const SoundfolioAnimation = ({tracklist = false, headline = " "}) => { 
   return (
     <motion.div 
       initial={{ scale: 0 }}
       animate={{ scale: 1 }}
       transition={{
         duration: 0.3, 
-        delay: 0,  // starts immediately
+        delay: 0, 
         type: "spring",
         stiffness: 120,            
         damping: 20
       }}
-      className='flex flex-col items-center gap-10 center absolute inset-0 z-20'
-    >
+      className={`flex flex-col items-center center absolute inset-0 z-20 ${tracklist ? 'gap-5' : ' gap-10'}`}>
       <div className="w-80 h-[260px] relative sepia overflow-hidden">
-        
         {/* Glitch logo */}
         <motion.img 
           initial={{ opacity: 0 }} 
@@ -172,11 +143,11 @@ const SoundfolioAnimation = () => {
           }}
         />
       </div>
-
+       {tracklist && <TrackList />}
       {/* Title */}
       <h1 className={`${michroma.className} font-bold text-3xl relative z-10`}>
         <motion.img 
-          src="/assets/elivagar-glitch.png" 
+          src={headline === "soundfolio" ? "/assets/title-1.png" : "/assets/elivagar-glitch.png"}
           alt="title-1" 
           className="absolute top-0.5 scale-104 left-0 inset-0 z-20"
           initial={{ opacity: 0 }}
@@ -190,7 +161,7 @@ const SoundfolioAnimation = () => {
             ease: "easeInOut"
           }}
         />
-        {"ELIVAGAR".split("").map((letter, index) => (
+        {(headline === "soundfolio" ? "SOUNDFOLIO" : "ELIVAGAR").split("").map((letter, index) => (
           <motion.span
             key={index}
             initial={{ opacity: 0 }}
@@ -209,132 +180,5 @@ const SoundfolioAnimation = () => {
   )
 }
 
-const TrackList = () => {
-  const trackList = [
-    "Moonwalk - In Your Mind",
-    "Dominik Gehringer  Strange World",
-    "Paradoks - Sea Of Infinity",
-    "Anyma, Massano ft. Nathan Nicholson - Angel In The Dark",
-    "Mia Mendi - Enter Machina (Moonwalk Remix)",
-    "Laura Van Dam ft. Harry Diamond & K-MRK - Identify",
-    "Agents Of Time - Zodiac",
-    "D-Nox & Ed Steele - Comfort Zone",
-    "Boris Brejcha - End of Time",
-  ];
 
-  // Parent (stagger control)
-  const containerVariants = {
-    hidden: { opacity: 0 },
-    visible: {
-      opacity: 1,
-      transition: {
-        staggerChildren: 0.2, // delay between each item
-      },
-    },
-  };
-
-  // Child (individual item animation)
-  const itemVariants = {
-    hidden: { opacity: 0, x: -50 },
-    visible: { opacity: 1, x: 0 },
-  };
-
-  return (
-    <motion.div
-      className="absolute secondary z-20 w-78 h-64 top-[40%] left-[55%] flex flex-col gap-1"
-      variants={containerVariants}
-      initial="hidden"
-      animate="visible"
-    >
-      {trackList.map((track, index) => (
-        <motion.div
-          key={index}
-          variants={itemVariants}
-          transition={{ duration: 0.4, ease: "easeOut" }}
-          className=" text-cream text-[10px]"
-        >
-          {track}
-        </motion.div>
-      ))}
-    </motion.div>
-  );
-};
-
-const Twinkls = () =>{
-    const [init, setInit] = useState(false);
-
-  useEffect(() => {
-    initParticlesEngine(async (engine) => {
-      await loadSlim(engine);
-    }).then(() => {
-      setInit(true);
-    });
-  }, []);
-
-  const particlesLoaded = (container) => {
-    console.log(container);
-  };
-  return  (
-      <>
-      {init && (
-        <Particles
-          id="tsparticles"
-          className="absolute z-20 inset-0"
-          particlesLoaded={particlesLoaded}
-          options={{
-            fullScreen: { enable: false, zIndex: 0 },
-            background: { color: { value: "transparent" } },
-            particles: {
-              size: {
-                value: { min: 0.7, max: 1.1 }, // 👈 This controls the particle size range
-                animation: {
-                  enable: true, // set true if you want particles to "pulse" in size
-                  speed: 2,      // pulsing speed
-                  minimumValue: 1,
-                  sync: false,   // false = each particle pulses individually
-                },
-              },
-              number: { value: 100 },
-              color: { value: "#fcf5df" },
-              shape: { type: "star" },
-              opacity: {
-                value: { min: 0.1, max: 0.8 },
-                animation: {
-                  enable: true,
-                  speed: 0.4,
-                  minimumValue: 0.3,
-                  sync: false, // each particle glows independently
-                },
-              },
-              move: {
-                enable: true,
-                speed: 0.3,
-                direction: "none",
-                random: true,
-                straight: false,
-                outModes: { default: "out" },
-              },
-            },
-            interactivity: {
-              events: {
-                onHover: { enable: true, mode: "repulse" },
-                onClick: { enable: true, mode: "push" },
-              },
-              modes: {
-                repulse: { distance: 100 },
-                push: { quantity: 2 },
-              },
-            },
-            detectRetina: true,
-          }}
-        />
-      )}
-    </>
-  )
-}
-
-
-
-
-
-export default ElivagarsContent
+export default SoundfolioAnimation;

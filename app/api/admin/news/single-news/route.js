@@ -14,10 +14,18 @@ export async function GET(request) {
       return NextResponse.json({ error: "Missing id" }, { status: 400 });
     }
 
-    // Fetch the news item
+    // ✅ OPTIMIZED: Fetch news with submitter data in ONE query using JOIN
     const { data: news, error: newsError } = await supabase
       .from("news")
-      .select("*")
+      .select(`
+        *,
+        users:user_id(
+          id,
+          user_avatar,
+          userName,
+          email
+        )
+      `)
       .eq("id", id)
       .single();
 
@@ -28,21 +36,15 @@ export async function GET(request) {
       );
     }
 
-    // Fetch the user who submitted the news (if any)
-    let user = null;
-    if (news.user_id) {
-      const { data: users, error: userError } = await supabase
-        .from("users")
-        .select("id, user_avatar, userName, email")
-        .eq("id", news.user_id)
-        .single();
-
-      if (!userError && users) {
-        user = users;
-      }
-    }
-
-    return NextResponse.json({ news: { ...news, submitter: user } });
+    // Transform the joined data into the expected format
+    const { users, ...newsData } = news;
+    
+    return NextResponse.json({ 
+      news: { 
+        ...newsData, 
+        submitter: users || null 
+      } 
+    });
   } catch (err) {
     return NextResponse.json({ error: err.message }, { status: 500 });
   }

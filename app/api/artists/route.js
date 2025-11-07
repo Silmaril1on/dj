@@ -18,10 +18,11 @@ export async function GET() {
 
     const supabase = await createSupabaseServerClient(cookieStore);
 
-const { data: artists, error: artistsError } = await supabase
-  .rpc("get_random_artists", { limit_count: 18 })
-  .select("id, name, stage_name, artist_image, country, city, rating_stats")
-  .eq("status", "approved");
+    // ✅ OPTIMIZED: Fetch artists using RPC, then get aggregated likes/ratings in fewer queries
+    const { data: artists, error: artistsError } = await supabase
+      .rpc("get_random_artists", { limit_count: 18 })
+      .select("id, name, stage_name, artist_image, country, city, rating_stats")
+      .eq("status", "approved");
 
     if (artistsError) {
       return NextResponse.json(
@@ -36,69 +37,58 @@ const { data: artists, error: artistsError } = await supabase
 
     const artistIds = artists.map((artist) => artist.id);
 
-    // Get likes count for each artist
-    const { data: likesData, error: likesError } = await supabase
+    // ✅ Get ALL likes and user-specific data in parallel
+    const likesPromise = supabase
       .from("artist_likes")
-      .select("artist_id")
+      .select("artist_id, user_id")
       .in("artist_id", artistIds);
 
-    if (likesError) {
-      return NextResponse.json({ error: likesError.message }, { status: 500 });
-    }
-
-    // Count likes for each artist
-    const likesCount = {};
-    likesData?.forEach((like) => {
-      likesCount[like.artist_id] = (likesCount[like.artist_id] || 0) + 1;
-    });
-
-    // Get user's likes if user is authenticated
-    let userLikes = {};
-    if (userId) {
-      const { data: userLikesData, error: userLikesError } = await supabaseAdmin
-        .from("artist_likes")
-        .select("artist_id")
-        .eq("user_id", userId)
-        .in("artist_id", artistIds);
-
-      if (userLikesError) {
-        console.error("Error fetching user likes:", userLikesError);
-        return NextResponse.json(
-          { error: userLikesError.message },
-          { status: 500 }
-        );
-      }
-
-      // Create a set of artist IDs that the user has liked
-      userLikesData?.forEach((like) => {
-        userLikes[like.artist_id] = true;
-      });
-    }
-
-    // Get user's ratings if user is authenticated
-    let userRatings = {};
-    if (userId) {
-      const { data: userRatingsData, error: userRatingsError } =
-        await supabaseAdmin
+    const ratingsPromise = userId
+      ? supabaseAdmin
           .from("artist_ratings")
           .select("artist_id, score")
           .eq("user_id", userId)
-          .in("artist_id", artistIds);
+          .in("artist_id", artistIds)
+      : Promise.resolve({ data: [], error: null });
 
-      if (userRatingsError) {
-        return NextResponse.json(
-          { error: userRatingsError.message },
-          { status: 500 }
-        );
-      }
+    const [likesResult, ratingsResult] = await Promise.all([
+      likesPromise,
+      ratingsPromise,
+    ]);
 
-      // Create a map of artist IDs to user's rating scores
-      userRatingsData?.forEach((rating) => {
-        userRatings[rating.artist_id] = rating.score;
-      });
+    if (likesResult.error) {
+      console.error("Error fetching likes:", likesResult.error);
+      return NextResponse.json(
+        { error: likesResult.error.message },
+        { status: 500 }
+      );
     }
 
-    // Add likes count, user's like status, and user's rating to each artist
+    if (ratingsResult.error) {
+      console.error("Error fetching ratings:", ratingsResult.error);
+      return NextResponse.json(
+        { error: ratingsResult.error.message },
+        { status: 500 }
+      );
+    }
+
+    // Count total likes per artist AND track user's likes
+    const likesCount = {};
+    const userLikes = {};
+    likesResult.data?.forEach((like) => {
+      likesCount[like.artist_id] = (likesCount[like.artist_id] || 0) + 1;
+      if (userId && like.user_id === userId) {
+        userLikes[like.artist_id] = true;
+      }
+    });
+
+    // Map user's ratings
+    const userRatings = {};
+    ratingsResult.data?.forEach((rating) => {
+      userRatings[rating.artist_id] = rating.score;
+    });
+
+    // Combine all data
     const artistsWithLikes = artists.map((artist) => ({
       ...artist,
       likesCount: likesCount[artist.id] || 0,

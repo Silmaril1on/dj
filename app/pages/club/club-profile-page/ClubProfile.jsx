@@ -35,23 +35,26 @@ const ClubProfile = ({ club, currentUserId, clubSchedule }) => {
 
   return (
     <div className="flex flex-col pb-5">
-        {isOwner && (
-      <div className="p-4 flex justify-between items-center">
-          <FlexBox type="row=start" className="gap-2">
-            <EditProduct desc="Edit Club Info" data={club} type="club" />
-            <button
-              onClick={handleAddEvent}
-              className="bg-gold/30 flex hover:bg-gold/40 cursor-pointer duration-300 items-center gap-1 secondary text-sm px-2 py-1 rounded-xs font-bold "
-            >
-              <FaUpload />
-              <span>Add Event</span>
-            </button>
-          </FlexBox>
-      </div>
-        )}
-      {club.residents && (
-        <Lineup title="Venue Residents" data={club.residents} />
-      )}
+        <div className="flex flex-col lg:pl-2 lg:flex-row justify-between items-start lg:items-center pr-4 gap-2">
+           {club.residents && (
+                <Lineup title="Venue Residents" data={club.residents} />
+               )}
+            {isOwner && (
+                <div className="p-4 flex justify-between items-center">
+                     <FlexBox type="row=start" className="gap-2">
+                      <EditProduct desc="Edit Club Info" data={club} type="club" />
+                           <button
+                                 onClick={handleAddEvent}
+                                 className="bg-gold/30 flex hover:bg-gold/40 cursor-pointer duration-300 items-center gap-1 secondary text-sm px-2 py-1 rounded-xs font-bold "
+                            >
+                       <FaUpload />
+                       <span>Add Event</span>
+                     </button>
+                     </FlexBox>
+                </div>
+            )}
+           
+        </div>
       <div className="grid grid-cols-1 lg:grid-cols-2">
         <article className="flex flex-1 space-y-3 justify-between items-start flex-col bg-stone-900 p-4">
           <div >

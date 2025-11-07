@@ -45,44 +45,41 @@ export async function POST(request) {
 
 export async function GET() {
   try {
-    // 1. Fetch all reports
+    // ✅ OPTIMIZED: Fetch reports with user data in ONE query using JOIN
     const { data: reports, error: reportsError } = await supabaseAdmin
       .from("reports")
-      .select("*")
+      .select(`
+        *,
+        users:user_id(
+          id,
+          email,
+          user_avatar,
+          userName
+        )
+      `)
       .order("created_at", { ascending: false });
 
     if (reportsError) {
+      console.error("Reports query error:", reportsError);
       return NextResponse.json({ error: reportsError.message }, { status: 500 });
     }
+
     if (!reports || reports.length === 0) {
       return NextResponse.json({ reports: [] });
     }
 
-    // 2. Get unique user_ids
-    const userIds = [...new Set(reports.map(r => r.user_id).filter(Boolean))];
-
-    // 3. Fetch users
-    let usersMap = {};
-    if (userIds.length > 0) {
-      const { data: users, error: usersError } = await supabaseAdmin
-        .from("users")
-        .select("id, email, user_avatar, userName")
-        .in("id", userIds);
-
-      if (usersError) {
-        return NextResponse.json({ error: usersError.message }, { status: 500 });
-      }
-      usersMap = Object.fromEntries(users.map(u => [u.id, u]));
-    }
-
-    // 4. Merge
-    const mergedReports = reports.map(report => ({
-      ...report,
-      reporter: usersMap[report.user_id] || null,
-    }));
+    // Transform the joined data into the expected format
+    const mergedReports = reports.map(report => {
+      const { users, ...reportData } = report;
+      return {
+        ...reportData,
+        reporter: users || null,
+      };
+    });
 
     return NextResponse.json({ reports: mergedReports });
   } catch (err) {
+    console.error("GET reports error:", err);
     return NextResponse.json({ error: err.message }, { status: 500 });
   }
 }

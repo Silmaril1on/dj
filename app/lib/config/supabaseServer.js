@@ -26,6 +26,14 @@ export const createSupabaseServerClient = async (cookieStore) => {
           }
         },
       },
+      db: {
+        schema: 'public', // Explicitly set schema to reduce introspection queries
+      },
+      global: {
+        headers: {
+          'x-client-info': 'dj-app', // Add client identifier
+        },
+      },
     }
   );
 };
@@ -55,7 +63,22 @@ export const getServerUser = async (cookieStore) => {
   }
 };
 
+// Admin client with optimized settings
 export const supabaseAdmin = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL,
-  process.env.SUPABASE_SERVICE_ROLE_KEY
+  process.env.SUPABASE_SERVICE_ROLE_KEY,
+  {
+    db: {
+      schema: 'public', // Explicitly set schema
+    },
+    auth: {
+      autoRefreshToken: false, // Disable for admin client
+      persistSession: false, // Don't persist admin sessions
+    },
+    global: {
+      headers: {
+        'x-client-info': 'dj-app-admin',
+      },
+    },
+  }
 );

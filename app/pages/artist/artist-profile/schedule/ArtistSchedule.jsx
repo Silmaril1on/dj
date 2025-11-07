@@ -7,7 +7,6 @@ import SectionContainer from '@/app/components/containers/SectionContainer'
 import Title from '@/app/components/ui/Title'
 import MyLink from '@/app/components/ui/MyLink'
 import FlexBox from '@/app/components/containers/FlexBox'
-import ErrorCode from '@/app/components/ui/ErrorCode'
 import { formatBirthdate } from '@/app/helpers/utils'
 import Spinner from '@/app/components/ui/Spinner'
 
@@ -74,6 +73,7 @@ const ArtistSchedule = ({
     return null
   }
 
+
   return (
     <SectionContainer title={title} description={description} className="mt-10">
       <div className="w-full lg:w-[70%] space-y-2 lg:space-y-4 my-5">
@@ -110,17 +110,10 @@ const ArtistSchedule = ({
                 />
               </div>
              </section>
-
            
-
               {/* Club/Venue Name or Event Name */}
               <div className="flex flex-col items-end justify-evenly">
                 <Title text={clubId ? schedule.event_name : schedule.club_name} className='pointer-events-none' />
-                {clubId && schedule.artists && (
-                  <div className="text-xs text-chino mb-2">
-                    Artists: {Array.isArray(schedule.artists) ? schedule.artists.join(', ') : schedule.artists}
-                  </div>
-                )}
                 <FlexBox type="row-center" className="gap-4">
                   {schedule.event_link && (
                     <MyLink

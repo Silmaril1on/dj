@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { createSupabaseServerClient, getServerUser } from "@/app/lib/config/supabaseServer";
 import { cookies } from "next/headers";
 
-export async function GET() {
+export async function GET(request) {
   try {
     const cookieStore = await cookies();
     const supabase = await createSupabaseServerClient(cookieStore);
@@ -10,45 +10,42 @@ export async function GET() {
     const { searchParams } = new URL(request.url);
     const status = searchParams.get("status") || "pending";
 
-    // Fetch all feedbacks
+    // ✅ OPTIMIZED: Fetch feedbacks with user data in ONE query using JOIN
     const { data: feedbacks, error: feedbacksError } = await supabase
       .from("feedbacks")
-      .select("*")
+      .select(`
+        *,
+        users:user_id(
+          id,
+          email,
+          user_avatar,
+          userName
+        )
+      `)
       .eq("status", status)
       .order("created_at", { ascending: false });
 
     if (feedbacksError) {
+      console.error("Feedbacks query error:", feedbacksError);
       return NextResponse.json({ error: feedbacksError.message }, { status: 500 });
     }
+
     if (!feedbacks || feedbacks.length === 0) {
       return NextResponse.json({ feedbacks: [] });
     }
 
-    // Get unique user_ids
-    const userIds = [...new Set(feedbacks.map(f => f.user_id).filter(Boolean))];
-
-    // Fetch users
-    let usersMap = {};
-    if (userIds.length > 0) {
-      const { data: users, error: usersError } = await supabase
-        .from("users")
-        .select("id, email, user_avatar, userName")
-        .in("id", userIds);
-
-      if (usersError) {
-        return NextResponse.json({ error: usersError.message }, { status: 500 });
-      }
-      usersMap = Object.fromEntries(users.map(u => [u.id, u]));
-    }
-
-    // Merge user data into each feedback
-    const mergedFeedbacks = feedbacks.map(feedback => ({
-      ...feedback,
-      reporter: usersMap[feedback.user_id] || null,
-    }));
+    // Transform the joined data into the expected format
+    const mergedFeedbacks = feedbacks.map(feedback => {
+      const { users, ...feedbackData } = feedback;
+      return {
+        ...feedbackData,
+        reporter: users || null,
+      };
+    });
 
     return NextResponse.json({ feedbacks: mergedFeedbacks });
   } catch (err) {
+    console.error("GET feedbacks error:", err);
     return NextResponse.json({ error: err.message }, { status: 500 });
   }
 }

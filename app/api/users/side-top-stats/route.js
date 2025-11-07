@@ -16,27 +16,45 @@ function getWeekRange(offset = 0) {
 }
 
 async function getTopArtists(supabase, start, end) {
-  // Get all ratings for the week
+  // ✅ OPTIMIZED: Get ratings with artist data in ONE query using JOIN
   const { data: ratings, error } = await supabase
     .from("artist_ratings")
-    .select("artist_id, score, created_at")
+    .select(`
+      artist_id, 
+      score, 
+      created_at,
+      artists:artist_id(
+        id, 
+        name, 
+        stage_name, 
+        artist_image, 
+        rating_stats
+      )
+    `)
     .gte("created_at", start)
     .lte("created_at", end);
 
   if (error) throw new Error(error.message);
+  if (!ratings || ratings.length === 0) return [];
 
   // Group by artist_id
   const grouped = {};
   ratings.forEach(r => {
-    if (!grouped[r.artist_id]) grouped[r.artist_id] = [];
-    grouped[r.artist_id].push(r.score);
+    if (!grouped[r.artist_id]) {
+      grouped[r.artist_id] = {
+        scores: [],
+        artist: r.artists // Store artist data from JOIN
+      };
+    }
+    grouped[r.artist_id].scores.push(r.score);
   });
 
   // Calculate average and count
-  const stats = Object.entries(grouped).map(([artist_id, scores]) => ({
+  const stats = Object.entries(grouped).map(([artist_id, data]) => ({
     artist_id,
-    average: scores.reduce((a, b) => a + b, 0) / scores.length,
-    count: scores.length,
+    average: data.scores.reduce((a, b) => a + b, 0) / data.scores.length,
+    count: data.scores.length,
+    artist: data.artist
   }));
 
   // Sort and pick top 5
@@ -44,28 +62,15 @@ async function getTopArtists(supabase, start, end) {
     .sort((a, b) => b.average - a.average || b.count - a.count)
     .slice(0, 5);
 
-  // Fetch artist info
-  const ids = top5.map(a => a.artist_id);
-  if (ids.length === 0) return [];
-  const { data: artists, error: artistError } = await supabase
-    .from("artists")
-    .select("id, name, stage_name, artist_image, rating_stats")
-    .in("id", ids);
-
-  if (artistError) throw new Error(artistError.message);
-
-  // Merge stats with artist info
-  return top5.map(stat => {
-    const artist = artists.find(a => a.id === stat.artist_id);
-    return {
-      ...artist,
-      weeklyAverage: Math.round(stat.average * 100) / 100,
-      weeklyRatingCount: stat.count,
-      metascore: artist.rating_stats?.metascore || 0,
-      allTimeAverage: artist.rating_stats?.average_score || 0,
-      allTimeTotal: artist.rating_stats?.total_ratings || 0,
-    };
-  });
+  // Transform with stats
+  return top5.map(stat => ({
+    ...stat.artist,
+    weeklyAverage: Math.round(stat.average * 100) / 100,
+    weeklyRatingCount: stat.count,
+    metascore: stat.artist?.rating_stats?.metascore || 0,
+    allTimeAverage: stat.artist?.rating_stats?.average_score || 0,
+    allTimeTotal: stat.artist?.rating_stats?.total_ratings || 0,
+  }));
 }
 
 export async function GET() {

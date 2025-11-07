@@ -12,45 +12,54 @@ export async function GET() {
 
     const { user, error: userError } = await getServerUser(cookieStore);
 
-    const { data: events, error } = await supabase
-      .from("events")
-      .select("*")
-      .eq("status", "approved")
-      .order("created_at", { ascending: false })
-      .limit(7);
+    // ✅ OPTIMIZED: Fetch events and likes in parallel
+    const [eventsResult, likesResult] = await Promise.all([
+      supabase
+        .from("events")
+        .select("*")
+        .eq("status", "approved")
+        .order("created_at", { ascending: false })
+        .limit(7),
+      
+      supabase
+        .from("event_likes")
+        .select("event_id, user_id")
+    ]);
 
-    if (error) {
+    if (eventsResult.error) {
       return NextResponse.json(
         { success: false, error: "Failed to fetch events" },
         { status: 500 }
       );
     }
 
+    const events = eventsResult.data;
+
     if (!events || events.length === 0) {
       return NextResponse.json({ success: true, data: [] });
     }
 
     const eventIds = events.map((e) => e.id);
+    const likesData = likesResult.data || [];
 
-    const { data: likesData } = await supabase
-      .from("event_likes")
-      .select("event_id, user_id")
-      .in("event_id", eventIds);
-
-    const enrichedEvents = events.map((event) => {
-      const likesForEvent =
-        likesData?.filter((l) => l.event_id === event.id) || [];
-      const likesCount = likesForEvent.length;
-      const isLiked = user
-        ? likesForEvent.some((l) => l.user_id === user.id)
-        : false;
-
-      return {
-        ...event,
-        isLiked,
-        likesCount,
-      };
+    // Build likes map for better performance
+    const likesMap = {};
+    const userLikesSet = new Set();
+    
+    likesData.forEach((like) => {
+      if (eventIds.includes(like.event_id)) {
+        likesMap[like.event_id] = (likesMap[like.event_id] || 0) + 1;
+        if (user?.id && like.user_id === user.id) {
+          userLikesSet.add(like.event_id);
+        }
+      }
     });
+
+    const enrichedEvents = events.map((event) => ({
+      ...event,
+      likesCount: likesMap[event.id] || 0,
+      isLiked: userLikesSet.has(event.id),
+    }));
 
     return NextResponse.json({ success: true, data: enrichedEvents });
   } catch (err) {

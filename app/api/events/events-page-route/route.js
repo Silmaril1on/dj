@@ -11,30 +11,31 @@ export async function GET(request) {
     const cookieStore = await cookies();
     const supabase = await createSupabaseServerClient(cookieStore);
 
-    // Fetch events
-    const { data: events, error } = await supabase
-      .from("events")
-      .select("id, event_image, event_name, date, country, city, artists")
-      .order("date", { ascending: true }) // ascending: true for soonest first
-      .range(offset, offset + limit - 1);
-
-    if (error) {
-      return NextResponse.json({ error: error.message }, { status: 500 });
-    }
-
-    // Fetch likes count for all events in one query
-    const eventIds = events.map((e) => e.id);
-    let likesCountMap = {};
-    if (eventIds.length > 0) {
-      const { data: likesData } = await supabase
+    // ✅ OPTIMIZED: Fetch events and likes in parallel
+    const [eventsResult, likesResult] = await Promise.all([
+      supabase
+        .from("events")
+        .select("id, event_image, event_name, date, country, city, artists")
+        .order("date", { ascending: true })
+        .range(offset, offset + limit - 1),
+      
+      supabase
         .from("event_likes")
-        .select("event_id, user_id");
+        .select("event_id")
+    ]);
 
-      // Count likes per event
-      likesData?.forEach((like) => {
-        likesCountMap[like.event_id] = (likesCountMap[like.event_id] || 0) + 1;
-      });
+    if (eventsResult.error) {
+      return NextResponse.json({ error: eventsResult.error.message }, { status: 500 });
     }
+
+    const events = eventsResult.data || [];
+    const likesData = likesResult.data || [];
+
+    // Build likes count map
+    const likesCountMap = {};
+    likesData.forEach((like) => {
+      likesCountMap[like.event_id] = (likesCountMap[like.event_id] || 0) + 1;
+    });
 
     // Attach likesCount to each event
     const eventsWithLikes = events.map((event) => ({

@@ -3,54 +3,40 @@ import { supabaseAdmin } from "@/app/lib/config/supabaseServer";
 
 export async function GET(request) {
   try {
-    // Get all pending events
+    // ✅ OPTIMIZED: Get pending events with submitter data in ONE query using JOIN
     const { data: events, error: eventsError } = await supabaseAdmin
       .from("events")
-      .select(
-        "id, event_name, promoter, event_image, country, city, status, created_at, description"
-      )
+      .select(`
+        id,
+        event_name,
+        promoter,
+        event_image,
+        country,
+        city,
+        status,
+        created_at,
+        description,
+        user_id,
+        users:user_id(
+          id,
+          userName,
+          email,
+          user_avatar
+        )
+      `)
       .eq("status", "pending")
       .order("created_at", { ascending: false });
 
     if (eventsError) {
-      return NextResponse.json({ error: eventsError.message }, { status: 500 });
+      console.error("Events query error:", eventsError);
+      return NextResponse.json({ error: eventsError.message, details: eventsError }, { status: 500 });
     }
+
     if (!events || events.length === 0) {
       return NextResponse.json({ submissions: [] });
     }
 
-    const eventIds = events.map((e) => e.id);
-
-    // Get users who submitted these events (submitted_event_id is an array)
-    const { data: users, error: usersError } = await supabaseAdmin
-      .from("users")
-      .select(
-        `
-        id,
-        userName,
-        email,
-        user_avatar,
-        submitted_event_id
-      `
-      )
-      .overlaps("submitted_event_id", eventIds);
-
-    if (usersError) {
-      return NextResponse.json({ error: usersError.message }, { status: 500 });
-    }
-
-    // Map event_id to user who submitted it
-    const userMap = {};
-    users?.forEach((user) => {
-      const ids = user.submitted_event_id || [];
-      ids.forEach((id) => {
-        if (!userMap[id]) {
-          userMap[id] = user;
-        }
-      });
-    });
-
-    // Shape submissions for UI (reuse artist card structure)
+    // Transform the joined data into the expected format
     const submissions = events.map((event) => ({
       id: event.id,
       name: event.event_name,
@@ -60,12 +46,12 @@ export async function GET(request) {
       city: event.city,
       description: event.description,
       created_at: event.created_at,
-      submitter: userMap[event.id]
+      submitter: event.users
         ? {
-            id: userMap[event.id].id,
-            userName: userMap[event.id].userName,
-            email: userMap[event.id].email,
-            user_avatar: userMap[event.id].user_avatar,
+            id: event.users.id,
+            userName: event.users.userName,
+            email: event.users.email,
+            user_avatar: event.users.user_avatar,
           }
         : null,
     }));

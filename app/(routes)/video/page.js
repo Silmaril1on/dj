@@ -1,8 +1,8 @@
-import ElivagarsContent from '@/app/pages/ElivagarsContent'
+import Commercials from '@/app/pages/commercials/Commercials'
 
 const page = () => {
   return (
-   <ElivagarsContent />
+   <Commercials />
   )
 }
 

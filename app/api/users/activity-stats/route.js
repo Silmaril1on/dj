@@ -33,8 +33,8 @@ export async function GET() {
 
     const supabase = await createSupabaseServerClient(cookieStore);
 
-    // Fetch all counts in parallel
-    const [reviewsResult, ratingsResult, likesResult, eventsResult] = await Promise.all([
+    // ✅ OPTIMIZED: Fetch all counts in parallel including event likes
+    const [reviewsResult, ratingsResult, artistLikesResult, eventLikesResult, eventsResult] = await Promise.all([
       supabase
         .from("artist_reviews")
         .select("*", { count: "exact", head: true })
@@ -48,9 +48,13 @@ export async function GET() {
         .select("*", { count: "exact", head: true })
         .eq("user_id", user.id),
       supabase
+        .from("event_likes")
+        .select("*", { count: "exact", head: true })
+        .eq("user_id", user.id),
+      supabase
         .from("events")
         .select("*", { count: "exact", head: true })
-        .eq("user_id", user.id), // adjust field if needed
+        .eq("user_id", user.id),
     ]);
 
     return NextResponse.json({
@@ -58,7 +62,8 @@ export async function GET() {
       data: {
         totalReviews: reviewsResult.count || 0,
         totalRatings: ratingsResult.count || 0,
-        totalLikes: likesResult.count || 0,
+        totalArtistLikes: artistLikesResult.count || 0,
+        totalEventLikes: eventLikesResult.count || 0,
         totalEvents: eventsResult.count || 0,
       },
     });

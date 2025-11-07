@@ -171,7 +171,7 @@ export async function GET(request) {
       );
     }
 
-    // Get user ratings for each review author
+    // ✅ OPTIMIZED: Get ratings for review authors in ONE query with better filtering
     const reviewUserIds = reviews?.map((review) => review.user_id) || [];
     let userRatings = {};
 
@@ -184,16 +184,12 @@ export async function GET(request) {
 
       if (ratingsError) {
         console.error("Error fetching user ratings:", ratingsError);
-        return NextResponse.json(
-          { error: "Failed to fetch user ratings" },
-          { status: 500 }
-        );
+      } else {
+        // Create a map of user_id to rating score
+        ratingsData?.forEach((rating) => {
+          userRatings[rating.user_id] = rating.score;
+        });
       }
-
-      // Create a map of user_id to rating score
-      ratingsData?.forEach((rating) => {
-        userRatings[rating.user_id] = rating.score;
-      });
     }
 
     // Add user ratings to each review

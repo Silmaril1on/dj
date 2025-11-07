@@ -16,10 +16,20 @@ export async function GET(request, { params }) {
     const cookieStore = await cookies();
     const supabase = await createSupabaseServerClient(cookieStore);
 
-    // Fetch last 6 reviews for the artist
+    // ✅ OPTIMIZED: Fetch reviews with user data in ONE query using JOIN
     const { data: reviews, error: reviewsError } = await supabase
       .from("artist_reviews")
-      .select("review_title, review_text, created_at, user_id")
+      .select(`
+        review_title,
+        review_text,
+        created_at,
+        user_id,
+        users:user_id(
+          id,
+          userName,
+          user_avatar
+        )
+      `)
       .eq("artist_id", artistId)
       .order("created_at", { ascending: false })
       .limit(6);
@@ -39,43 +49,17 @@ export async function GET(request, { params }) {
       });
     }
 
-    // Get unique user IDs from reviews
-    const userIds = [...new Set(reviews.map((review) => review.user_id))];
-
-    // Fetch user data for all reviewers
-    const { data: users, error: usersError } = await supabase
-      .from("users")
-      .select("id, userName, user_avatar")
-      .in("id", userIds);
-
-    if (usersError) {
-      console.error("Error fetching users:", usersError);
-      return NextResponse.json(
-        { error: "Failed to fetch user data" },
-        { status: 500 }
-      );
-    }
-
-    // Create user lookup map
-    const userMap = (users || []).reduce((acc, user) => {
-      acc[user.id] = {
-        userName: user.userName,
-        user_avatar: user.user_avatar,
+    // Transform the joined data into the expected format
+    const reviewsWithUsers = reviews.map((review) => {
+      const { users, ...reviewData } = review;
+      return {
+        ...reviewData,
+        user: users || {
+          userName: "Unknown User",
+          user_avatar: null,
+        }
       };
-      return acc;
-    }, {});
-
-    // Combine reviews with user data
-    const reviewsWithUsers = reviews.map((review) => ({
-      review_title: review.review_title,
-      review_text: review.review_text,
-      created_at: review.created_at,
-      user_id: review.user_id,
-      user: userMap[review.user_id] || {
-        userName: "Unknown User",
-        user_avatar: null,
-      },
-    }));
+    });
 
     return NextResponse.json({
       success: true,
