@@ -8,6 +8,8 @@ import {
   MdStar,
   MdEvent,
   MdEventAvailable,
+  MdFestival,
+  MdOutlineReport 
 } from "react-icons/md";
 import { FiActivity } from "react-icons/fi";
 
@@ -65,12 +67,17 @@ export const addProductLinks = [
   {
     href: "/add-product/add-club",
     text: "Club",
-    icon: <MdPerson />,
+    icon: <MdOutlineTrackChanges />,
   },
   {
     href: "/add-product/add-event",
     text: "Event",
     icon: <MdEvent />,
+  },
+  {
+    href: "/add-product/add-festival",
+    text: "Festival",
+    icon: <MdFestival />,
   },
   {
     href: "/add-product/add-news",
@@ -85,7 +92,7 @@ export const administrationLinks = [
   {
     href: "/administration/submitted-artists",
     text: "Artists",
-    icon: <MdOutlineTrackChanges />,
+    icon: <MdPerson />,
   },
   {
     href: "/administration/submitted-clubs",
@@ -95,11 +102,16 @@ export const administrationLinks = [
   {
     href: "/administration/submitted-events",
     text: "Events",
-    icon: <MdOutlineTrackChanges />,
+    icon: <MdEvent />,
+  },
+  {
+    href: "/administration/submitted-festival",
+    text: "Festivals",
+    icon: <MdFestival />,
   },
   {
     href: "/administration/reports",
     text: "Reports and Feedbacks",
-    icon: <MdEvent />,
+    icon: <MdOutlineReport />,
   },
 ];

@@ -21,6 +21,9 @@ const ArtistSchedule = ({
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
 
+  console.log(data, "from schedule");
+  
+
   useEffect(() => {
     if (passedData) {
       setData(passedData)

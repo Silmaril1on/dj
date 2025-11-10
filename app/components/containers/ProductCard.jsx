@@ -71,12 +71,12 @@ const ProductCard = ({
           />
         </div>
       )}
-      {typeof likesCount === "number" && (
+      {typeof likesCount === "number" && likesCount > 0 && (
         <div className="absolute center space-x-2 top-4 right-4 ">
           <SpanText
             icon={<FaUsers />}
             size="xs"
-            text={`${likesCount} ${artists.length > 0 ? 'Interested' : 'Likes'}`}
+            text={`${likesCount} ${artists.length > 0 ? 'Interested' : 'Followers'}`}
             className="ml-2 secondary pointer-events-none"
           />
         </div>

@@ -28,7 +28,7 @@ export async function GET(request, { params }) {
         country,
         city,
         address,
-        location_url,
+        links,
         event_type,
         artists,
         created_at
@@ -54,7 +54,7 @@ export async function GET(request, { params }) {
       country: event.country,
       city: event.city,
       club_name: event.venue_name,
-      event_link: event.location_url,
+      event_link: event.links,
       event_name: event.event_name,
       event_type: event.event_type,
       artists: event.artists,

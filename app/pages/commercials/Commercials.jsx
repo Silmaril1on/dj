@@ -7,11 +7,12 @@ const Commercials = () => {
   return (
      <div className='min-h-screen w-full relative'>
        <Twinkls />
-       <Shorties />
+       {/* <Shorties /> */}
        {/* <SoundCloudPoster /> */}
-       {/* <SoundfolioAnimation tracklist={true} /> */}
+       <SoundfolioAnimation tracklist={true} />
    </div>
   )
 }
+
 
 export default Commercials

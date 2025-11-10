@@ -761,6 +761,138 @@ export const formConfigs = {
       },
     ],
   },
+
+  // Festival Form
+  addFestival: {
+    initialData: {
+      name: "",
+      description: "",
+      bio: "",
+      start_date: "",
+      end_date: "",
+      location: "",
+      capacity_total: "",
+      capacity_per_day: "",
+      country: "",
+      city: "",
+      social_links: [""],
+    },
+    imageField: "poster",
+    arrayFields: ["social_links"],
+    fields: {
+      poster: {
+        type: "image",
+        required: true,
+        label: "Festival Poster",
+        helpText: "Upload festival poster image (max 5MB).",
+      },
+      name: {
+        type: "text",
+        required: true,
+        label: "Festival Name",
+        placeholder: "Enter festival name",
+      },
+      description: {
+        type: "textarea",
+        required: false,
+        label: "Description",
+        placeholder: "Brief description of the festival",
+        rows: 3,
+      },
+      story: {
+        type: "textarea",
+        required: false,
+        label: "Story",
+        placeholder: "Detailed information about the festival and its origins",
+        rows: 5,
+      },
+      start_date: {
+        type: "date",
+        required: false,
+        label: "Start Date",
+      },
+      end_date: {
+        type: "date",
+        required: false,
+        label: "End Date",
+      },
+      location: {
+        type: "text",
+        required: false,
+        label: "Location",
+        placeholder: "Festival venue/location",
+      },
+      capacity_total: {
+        type: "text",
+        required: false,
+        label: "Total Capacity",
+        placeholder: "e.g., 50000, 100000+",
+      },
+      capacity_per_day: {
+        type: "text",
+        required: false,
+        label: "Capacity Per Day",
+        placeholder: "e.g., 20000, 30000",
+      },
+      country: {
+        type: "select",
+        required: false,
+        label: "Country",
+        options: countries,
+        searchable: true,
+        showFlags: true,
+      },
+      city: {
+        type: "text",
+        required: false,
+        label: "City",
+        placeholder: "Enter city name",
+      },
+      social_links: {
+        type: "additional",
+        required: false,
+        label: "Social Links",
+        placeholder: "Enter social media URL (e.g., https://facebook.com/festivalname)",
+      },
+    },
+    sections: [
+      {
+        title: "Festival Poster",
+        fields: ["poster"],
+        gridClass: "space-y-4",
+      },
+      {
+        title: "Basic Information",
+        fields: ["name", "description"],
+        gridClass: "space-y-4",
+      },
+      {
+        title: "Event Details",
+        fields: ["start_date", "end_date", "location"],
+        gridClass: "grid grid-cols-1 md:grid-cols-3 gap-4",
+      },
+      {
+        title: "Capacity",
+        fields: ["capacity_total", "capacity_per_day"],
+        gridClass: "grid grid-cols-1 md:grid-cols-2 gap-4",
+      },
+      {
+        title: "Location",
+        fields: ["country", "city"],
+        gridClass: "grid grid-cols-1 md:grid-cols-2 gap-4",
+      },
+      {
+        title: "Bio",
+        fields: ["bio"],
+        gridClass: "space-y-4",
+      },
+      {
+        title: "Social Media",
+        fields: ["social_links"],
+        gridClass: "space-y-4",
+      },
+    ],
+  },
 };
 
 // Helper function to create custom form configurations

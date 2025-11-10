@@ -4,7 +4,7 @@ import { selectUser } from "@/app/features/userSlice";
 import { useRouter } from "next/navigation";
 import { useDispatch, useSelector } from "react-redux";
 import { SiYoutubemusic, SiNeteasecloudmusic } from "react-icons/si";
-import { MdEvent } from "react-icons/md";
+import { MdEvent, MdFestival } from "react-icons/md";
 import Motion from "@/app/components/containers/Motion";
 import Title from "@/app/components/ui/Title";
 import Paragraph from "@/app/components/ui/Paragraph";
@@ -16,13 +16,26 @@ const SubmitSection = () => {
   const user = useSelector(selectUser);
 
 const handleSubmit = (type) => {
+  // Check if user is logged in
+  if (!user) {
+    dispatch(
+      setError({ message: "Please login to continue", type: "error" })
+    );
+    return;
+  }
+  // Check if email is verified
+  if (!user.email_verified) {
+    dispatch(
+      setError({
+        message: "Please verify your email before submitting content",
+        type: "error",
+      })
+    );
+    return;
+  }
   switch (type) {
     case "artist":
-      if (!user) {
-        dispatch(
-          setError({ message: "Please login to add artists", type: "error" })
-        );
-      } else if (user?.submitted_artist_id) {
+      if (user?.submitted_artist_id) {
         dispatch(
           setError({
             message: "You have already submitted an artist",
@@ -35,11 +48,7 @@ const handleSubmit = (type) => {
       break;
 
     case "club":
-      if (!user) {
-        dispatch(
-          setError({ message: "Please login to add clubs", type: "error" })
-        );
-      } else if (user?.submitted_club_id) {
+      if (user?.submitted_club_id) {
         dispatch(
           setError({
             message: "You have already submitted a club",
@@ -52,12 +61,19 @@ const handleSubmit = (type) => {
       break;
 
     case "event":
-      if (!user) {
+      router.push("/add-product/add-event");
+      break;
+
+    case "festival":
+      if (user?.submitted_festival_id) {
         dispatch(
-          setError({ message: "Please login to add events", type: "error" })
+          setError({
+            message: "You have already submitted a festival",
+            type: "error",
+          })
         );
       } else {
-        router.push("/add-product/add-event");
+        router.push("/add-product/add-festival");
       }
       break;
 
@@ -89,6 +105,13 @@ const handleSubmit = (type) => {
         "Create and manage your upcoming events. Connect with fans and promote your shows.",
       icon: <MdEvent />,
     },
+    {
+      type: "festival",
+      title: "Add Festival",
+      description:
+        "Submit a music festival to our platform. Showcase multi-day events and reach a wider audience.",
+      icon: <MdFestival />,
+    },
   ];
 
   return (
@@ -100,7 +123,7 @@ const handleSubmit = (type) => {
         <Title text="Submit New Content" />
         <Paragraph className="text-center" text="Contribute to our community by adding new artists, clubs, or events. Your submissions help keep our platform vibrant and up-to-date." />
       </div>
-      <div className="w-full grid grid-cols-1 md:grid-cols-3 gap-6 px-[10%] overflow-hidden">
+      <div className="w-full grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 px-[10%] overflow-hidden">
         {cards.map(({ type, title, description, icon: Icon }, index) => (
           <Motion
             animation="fade"

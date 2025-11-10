@@ -17,6 +17,7 @@ const SubmittionCard = ({ submissions, type = 'artist' }) => {
   const [submissionsList, setSubmissionsList] = useState(submissions)
   const isClub = type === 'club'
   const isEvent = type === 'event'
+  const isFestival = type === 'festival'
 
   return (
     <div className="gap-5 grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 overflow-hidden">
@@ -38,7 +39,7 @@ const SubmittionCard = ({ submissions, type = 'artist' }) => {
             />
           </div>
           <div>
-            {isClub || isEvent ? <Title className='uppercase' text={truncateString(submission.name, 20)} /> : <ArtistName artistName={submission} />}
+            {isClub || isEvent || isFestival ? <Title className='uppercase' text={truncateString(submission.name, 20)} /> : <ArtistName artistName={submission} />}
             <ArtistCountry artistCountry={submission} />
             {isClub && submission.capacity && (
               <div className="mt-2">

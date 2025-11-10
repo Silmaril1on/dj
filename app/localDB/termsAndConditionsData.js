@@ -169,6 +169,63 @@ export const eventsTermsAndConditionsData = {
   },
 };
 
+export const festivalsTermsAndConditionsData = {
+  title: "Festival Submission Terms & Conditions",
+  lastUpdated: "December 2024",
+  sections: [
+    {
+      title: "Eligibility Requirements",
+      items: [
+        "You must have a verified account to submit festivals",
+        "Each user can submit only one festival profile",
+        "Festival profiles can be edited once per month - update carefully",
+        "All submissions require admin approval before going live",
+      ],
+    },
+    {
+      title: "Submission Guidelines",
+      items: [
+        "Provide high-quality festival images (poster and logo)",
+        "Fill in all required fields completely and accurately",
+        "Use professional images that represent the festival brand",
+        "Ensure all information is truthful and up-to-date",
+      ],
+    },
+    {
+      title: "Approval Process",
+      items: [
+        "All submissions are reviewed by our admin team",
+        "You will be notified via email about the approval decision",
+        "Approval typically takes 1-3 business days",
+        "Rejected submissions can be resubmitted after addressing feedback",
+      ],
+    },
+    {
+      title: "Content Standards",
+      items: [
+        "No offensive, inappropriate, or copyrighted content",
+        "Festival information must be factual and verifiable",
+        "Social media links must be legitimate and active",
+        "Dates, location, and capacity information should be accurate",
+      ],
+    },
+    {
+      title: "Festival Management",
+      items: [
+        "You are responsible for maintaining accurate festival information",
+        "Report any changes to dates, location, or lineup promptly",
+        "Violation of terms may result in profile suspension",
+        "Contact support for assistance with your submission",
+      ],
+    },
+  ],
+  footer: {
+    note: "By submitting a festival profile, you agree to these terms and conditions.",
+    contact: "Questions? Contact our support team for assistance.",
+    version: "Version 1.0 - December 2024",
+  },
+};
+
 export const generalTermsAndConditionsData = {
   title: "Soundfolio Terms & Conditions",
   lastUpdated: "December 2024",
@@ -331,6 +388,7 @@ export const termsAndConditionsData = {
   artist: artistTermsAndConditionsData,
   club: clubsTermsAndConditionsData,
   event: eventsTermsAndConditionsData,
+  festival: festivalsTermsAndConditionsData,
   general: generalTermsAndConditionsData,
   privacy: privacyPolicyData,
 };

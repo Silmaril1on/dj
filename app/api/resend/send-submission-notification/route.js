@@ -17,10 +17,10 @@ export async function POST(request) {
     }
 
     // Validate submission type
-    const validTypes = ['artist', 'club', 'event'];
+    const validTypes = ['artist', 'club', 'event', 'festival'];
     if (!validTypes.includes(submissionType)) {
       return NextResponse.json(
-        { error: 'Invalid submission type. Must be: artist, club, or event' },
+        { error: 'Invalid submission type. Must be: artist, club, event, or festival' },
         { status: 400 }
       );
     }

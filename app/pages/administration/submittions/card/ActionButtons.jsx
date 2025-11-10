@@ -9,12 +9,15 @@ const ActionButtons = ({ submission, loadingStates, submissionsList, setLoadingS
   const dispatch = useDispatch()
   const isClub = type === 'club'
   const isEvent = type === 'event'
-  const entityType = isClub ? 'club' : isEvent ? 'event' : 'artist'
+  const isFestival = type === 'festival'
+  const entityType = isClub ? 'club' : isEvent ? 'event' : isFestival ? 'festival' : 'artist'
   const apiEndpoint = isClub
     ? '/api/admin/submitted-clubs'
     : isEvent
       ? '/api/admin/submitted-events'
-      : '/api/admin/submitted-artists'
+      : isFestival
+        ? '/api/admin/submitted-festival'
+        : '/api/admin/submitted-artists'
 
   const handleView = (submission) => {
     dispatch(openEvaluationModal({ ...submission, __type: entityType }))
@@ -30,7 +33,7 @@ const ActionButtons = ({ submission, loadingStates, submissionsList, setLoadingS
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          [isClub ? 'clubId' : isEvent ? 'eventId' : 'artistId']: entityId,
+          [isClub ? 'clubId' : isEvent ? 'eventId' : isFestival ? 'festivalId' : 'artistId']: entityId,
           action
         })
       })

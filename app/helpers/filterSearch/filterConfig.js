@@ -121,4 +121,31 @@ export const filterConfigs = {
       ],
     },
   ],
+  festivals: [
+    {
+      name: "country",
+      label: "Country",
+      type: "select",
+      options: [],
+    },
+    {
+      name: "name",
+      label: "Festival Name",
+      type: "text",
+      placeholder: "Search by festival name",
+    },
+    {
+      name: "sort",
+      label: "Sort By",
+      type: "select",
+      options: [
+        { value: "name", label: "Name A-Z" },
+        { value: "date_asc", label: "Date (Earliest First)" },
+        { value: "date_desc", label: "Date (Latest First)" },
+        { value: "most_liked", label: "Most Liked" },
+        { value: "newest", label: "Newest Added" },
+        { value: "oldest", label: "Oldest Added" },
+      ],
+    },
+  ],
 };

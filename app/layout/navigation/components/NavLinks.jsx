@@ -1,6 +1,6 @@
 import Motion from '@/app/components/containers/Motion'
-import { selectUser } from '@/app/features/userSlice'
 import Link from 'next/link'
+import { selectUser } from '@/app/features/userSlice'
 import { useSelector } from 'react-redux'
 
 const NavLinks = ({ type, onClose }) => {
@@ -12,6 +12,7 @@ const NavLinks = ({ type, onClose }) => {
         { href: '/artists', label: 'Artists' },
         { href: '/events', label: 'Events' },
         { href: '/clubs', label: 'Clubs' },
+        { href: '/festivals', label: 'Festivals' },
         { href: '/news', label: 'News' },
     ]
 

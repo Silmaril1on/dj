@@ -3,15 +3,16 @@ import { motion } from 'framer-motion';
 
 const TrackList = () => {
   const trackList = [
-    "Moonwalk - In Your Mind",
-    "Dominik Gehringer  Strange World",
-    "Paradoks - Sea Of Infinity",
-    "Anyma, Massano ft. Nathan Nicholson - Angel In The Dark",
-    "Mia Mendi - Enter Machina (Moonwalk Remix)",
-    "Laura Van Dam ft. Harry Diamond & K-MRK - Identify",
-    "Agents Of Time - Zodiac",
-    "D-Nox & Ed Steele - Comfort Zone",
-    "Boris Brejcha - End of Time",
+    "Alessio Pennati, Deviu - Promises",
+    "Alok, Agents Of Time - Fever",
+    "Anyma - Running (feat. Meg Myers)",
+    "Calippo - It's Over Now",
+    "8Kays, Ramverk - Come Alive",
+    "Biskuwi - Inside My Head",
+    "Ben C, Yela, Kalsx - Chasing The Light",
+    "Annihilation - Wait For Me",
+    "Argy, Adriatique - Racer",
+    "Binaryh - Hozho Naasha",
   ];
 
   // Parent (stagger control)
