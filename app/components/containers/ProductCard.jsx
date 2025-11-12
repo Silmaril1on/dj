@@ -7,6 +7,7 @@ import SpanText from '@/app/components/ui/SpanText'
 import ArtistCountry from '@/app/components/materials/ArtistCountry'
 import Dot from '@/app/components/ui/Dot'
 import { FaStar, FaUsers } from 'react-icons/fa'
+import { truncateString } from "@/app/helpers/utils";
 
 const ProductCard = ({
   id,
@@ -41,7 +42,7 @@ const ProductCard = ({
         />
       </div>
       <div className="flex flex-col">
-        <Title color="cream" className="uppercase text-start text-[12px] lg:text-lg xl:text-2xl" text={name} />
+        <Title color="cream" className="uppercase text-start text-[12px] lg:text-lg xl:text-xl" text={truncateString(name, 28)} />
         {date && <p className="text-chino uppercase font-bold text-[10px] lg:text-sm">{date}</p>}
         <ArtistCountry artistCountry={{ country, city }} />
         {/* Add capacity display here */}

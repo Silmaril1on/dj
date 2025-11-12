@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
-import { createSupabaseServerClient } from "@/app/lib/config/supabaseServer";
+import { createSupabaseServerClient, getServerUser } from "@/app/lib/config/supabaseServer";
 
 export async function GET(request, { params }) {
   try {
@@ -15,6 +15,10 @@ export async function GET(request, { params }) {
         { status: 400 }
       );
     }
+
+    // Get current user
+    const { user } = await getServerUser(cookieStore);
+    const currentUserId = user?.id || null;
 
     // Fetch festival data
     const { data: festival, error } = await supabase
@@ -34,6 +38,7 @@ export async function GET(request, { params }) {
     return NextResponse.json({
       success: true,
       festival: festival,
+      currentUserId: currentUserId,
     });
   } catch (err) {
     console.error("Unexpected error in GET /api/festivals/[id]:", err);

@@ -1,4 +1,4 @@
-import ClubProfile from '@/app/pages/club/club-profile-page/ClubProfile'
+import SingleDataProfile from '@/app/pages/single-data-profile/SingleDataProfile';
 import { cookies } from "next/headers";
 
 export const dynamic = "force-dynamic";
@@ -24,9 +24,12 @@ const ClubProfilePage = async ({ params }) => {
   });
   const { club, currentUserId, clubSchedule } = await res.json();
 
-
   return (
-    <ClubProfile club={club} currentUserId={currentUserId} clubSchedule={clubSchedule} />
+    <SingleDataProfile 
+      data={club} 
+      type="clubs" 
+      currentUserId={currentUserId} 
+    />
   );
 }
 

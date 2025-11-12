@@ -1,4 +1,4 @@
-import AllFestivals from "@/app/pages/festivals/festivals-page/AllFestivals";
+import AllDataPage from "@/app/pages/all-data-page/AllDataPage";
 
 export const metadata = {
   title: "Soundfolio | Festivals",
@@ -26,7 +26,15 @@ const FestivalsPage = async () => {
     console.error("Error fetching festivals:", err);
   }
 
-  return <AllFestivals initialFestivals={festivals} initialTotal={festivals.length} error={error} />;
+  return (
+    <AllDataPage 
+      type="festivals"
+      initialData={festivals}
+      error={error}
+      title="All Festivals"
+      description="Discover music festivals from around the world."
+    />
+  );
 };
 
 export default FestivalsPage;

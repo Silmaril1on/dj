@@ -4,6 +4,7 @@ import { FaPlus, FaMinus } from "react-icons/fa6";
 const AdditionalInput = ({
   fields,
   onChange,
+  className, 
   onAdd,
   onRemove,
   placeholder,
@@ -33,6 +34,7 @@ const AdditionalInput = ({
               value={field || ""}
               onChange={(e) => onChange(index, e.target.value)}
               placeholder={placeholder}
+              className={className}
             />
 
             {canRemove && (

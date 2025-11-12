@@ -1,4 +1,4 @@
-import AllEventsPage from "@/app/pages/events/event-page/AllEventsPage";
+import AllDataPage from "@/app/pages/all-data-page/AllDataPage";
 import { cookies } from "next/headers";
 export const dynamic = "force-dynamic";
 
@@ -33,9 +33,24 @@ const EventsPage = async () => {
 
     const result = await response.json();
     const events = result?.data || [];
-    return <AllEventsPage events={events} />;
+    return (
+      <AllDataPage 
+        type="events"
+        initialData={events}
+        title="Upcoming events"
+        description="Find the latest events happening near you."
+      />
+    );
   } catch (error) {
-    return <AllEventsPage events={[]} error={error.message} />;
+    return (
+      <AllDataPage 
+        type="events"
+        initialData={[]}
+        error={error.message}
+        title="Upcoming events"
+        description="Find the latest events happening near you."
+      />
+    );
   }
 };
 

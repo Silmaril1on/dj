@@ -1,4 +1,4 @@
-import EventProfile from "@/app/pages/events/event-profile-page/EventProfile";
+import SingleDataProfile from "@/app/pages/single-data-profile/SingleDataProfile";
 import { cookies } from "next/headers";
 export const dynamic = "force-dynamic";
 
@@ -15,14 +15,14 @@ const EventProfilePage = async ({ params }) => {
     .join("; ");
 
   const { id } = await params;
- const response = await fetch(`${process.env.PROJECT_URL}/api/events/single-event/${id}`, {
-   cache: "no-store",
-   headers: {
-     "Content-Type": "application/json",
-     Cookie: cookieHeader,
-   },
- });
-const event = await response.json();
+  const response = await fetch(`${process.env.PROJECT_URL}/api/events/single-event/${id}`, {
+    cache: "no-store",
+    headers: {
+      "Content-Type": "application/json",
+      Cookie: cookieHeader,
+    },
+  });
+  const event = await response.json();
 
   if (!event) {
     return (
@@ -30,16 +30,14 @@ const event = await response.json();
         <div className="bg-stone-900 border border-red-400/30 rounded-lg p-8 text-center">
           <h2 className="text-red-400 text-2xl mb-2">Event Not Found</h2>
           <p className="text-stone-300">
-            {error || "This event does not exist."}
+            This event does not exist.
           </p>
         </div>
       </div>
     );
   }
 
-  
-  return <EventProfile event={event} />;
+  return <SingleDataProfile data={event} type="events" />;
 };
-
 
 export default EventProfilePage;

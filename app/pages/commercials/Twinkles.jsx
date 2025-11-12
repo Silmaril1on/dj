@@ -29,7 +29,7 @@ const Twinkls = () =>{
             background: { color: { value: "transparent" } },
             particles: {
               size: {
-                value: { min: 0.7, max: 1.5 }, // 👈 This controls the particle size range
+                value: { min: 0.7, max: 1.1 }, // 👈 This controls the particle size range
                 animation: {
                   enable: true, // set true if you want particles to "pulse" in size
                   speed: 2,      // pulsing speed

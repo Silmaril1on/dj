@@ -68,7 +68,7 @@ const UserRatingsPage = ({ ratingsData, error, currentPage = 1 }) => {
             <Link href={`/artists/${rating.artist.id}`}>
               <div
                 key={rating.id}
-                className="bg-stone-900 group flex-col flex p-2 bordered"
+                className="bg-stone-900 group flex-col flex p-1 bordered"
               >
                 <div className="h-34 w-full">
                   <Image
@@ -86,7 +86,7 @@ const UserRatingsPage = ({ ratingsData, error, currentPage = 1 }) => {
                   className="text-sm"
                 />
                 <SpanText
-                  className="w-fit"
+                  className="w-fit mt-1"
                   color="chino"
                   size="xs"
                   text={formatTime(rating.created_at)}

@@ -32,7 +32,7 @@ export async function POST(request) {
     }
 
     // Validate type
-    const validTypes = ['artist', 'club', 'event']
+    const validTypes = ['artist', 'club', 'event', 'festival']
     if (!validTypes.includes(type)) {
       return NextResponse.json(
         { error: 'Invalid type' },
@@ -273,7 +273,28 @@ export async function GET(request) {
                 id: item.id,
                 name: item.event_name,
                 image: item.event_image,
-                href: `/event/${item.id}`
+                href: `/events/${item.id}`
+              })
+            })
+          }
+        })
+      fetchPromises.push(promise)
+    }
+
+    // Fetch festivals
+    if (groupedByType.festival?.length) {
+      const promise = supabase
+        .from('festivals')
+        .select('id, name, poster')
+        .in('id', groupedByType.festival)
+        .then(({ data }) => {
+          if (data) {
+            data.forEach(item => {
+              typeMap.set(item.id, {
+                id: item.id,
+                name: item.name,
+                image: item.poster,
+                href: `/festivals/${item.id}`
               })
             })
           }

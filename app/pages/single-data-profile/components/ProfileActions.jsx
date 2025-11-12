@@ -1,17 +1,30 @@
-"use client"
+"use client";
 import { useState } from "react";
 import Motion from '@/app/components/containers/Motion';
 import SpanText from '@/app/components/ui/SpanText';
 import { FaUsers } from 'react-icons/fa';
 import LikeButton from "@/app/components/buttons/artist-buttons/LikeButton";
 
-const Actions = ({ event }) => {
-  const [likesCount, setLikesCount] = useState(event.likesCount || 0);
-  const [isLiked, setIsLiked] = useState(event.userLiked || false);
+const ProfileActions = ({ data, type }) => {
+  const [likesCount, setLikesCount] = useState(data.likesCount || 0);
+  const [isLiked, setIsLiked] = useState(data.userLiked || false);
 
   const handleLikeChange = (liked, newLikesCount) => {
     setIsLiked(liked);
     setLikesCount(newLikesCount);
+  };
+
+  const getInterestLabel = () => {
+    switch (type) {
+      case 'events':
+        return 'Interested';
+      case 'clubs':
+        return 'Likes';
+      case 'festivals':
+        return 'Going';
+      default:
+        return 'Likes';
+    }
   };
 
   return (
@@ -19,13 +32,13 @@ const Actions = ({ event }) => {
       <SpanText
         icon={<FaUsers />}
         size="sm"
-        text={`${likesCount} Interested`}
+        text={`${likesCount} ${getInterestLabel()}`}
         className="ml-2 secondary pointer-events-none"
       />
       <LikeButton
-        type="event"
+        type={type}
         artist={{
-          id: event.id,
+          id: data.id,
           isLiked: isLiked,
           likesCount: likesCount,
         }}
@@ -35,4 +48,4 @@ const Actions = ({ event }) => {
   );
 };
 
-export default Actions;
+export default ProfileActions;

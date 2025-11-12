@@ -1,4 +1,4 @@
-import Clubs from "@/app/pages/club/clubs-page/Clubs";
+import AllDataPage from "@/app/pages/all-data-page/AllDataPage";
 import { cookies } from "next/headers";
 
 export const dynamic = "force-dynamic";
@@ -34,9 +34,24 @@ const ClubsPage = async () => {
 
     const result = await response.json();
     const clubs = result?.data || [];
-    return <Clubs clubs={clubs} />;
+    return (
+      <AllDataPage 
+        type="clubs"
+        initialData={clubs}
+        title="All Clubs"
+        description="Discover the best clubs around the world."
+      />
+    );
   } catch (error) {
-    return <Clubs clubs={[]} error={error.message} />;
+    return (
+      <AllDataPage 
+        type="clubs"
+        initialData={[]}
+        error={error.message}
+        title="All Clubs"
+        description="Discover the best clubs around the world."
+      />
+    );
   }
 };
 
