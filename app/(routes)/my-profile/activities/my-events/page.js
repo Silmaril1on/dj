@@ -17,7 +17,7 @@ const MyEventsPage = async () => {
       .map(({ name, value }) => `${name}=${value}`)
       .join("; ");
 
-    const res = await fetch(`${process.env.PROJECT_URL}/api/users/submitted-event/all-events`, {
+    const res = await fetch(`${process.env.PROJECT_URL}/api/users/my-submitted-events`, {
       headers: {
         Cookie: cookieHeader,
       },

@@ -91,7 +91,7 @@ const ReviewModal = () => {
       let response;
 
       if (reviewModal.isEditMode) {
-        response = await fetch('/api/users/review-stats/user-reviews', {
+        response = await fetch('/api/users/user-reviews', {
           method: 'PUT',
           headers: {
             'Content-Type': 'application/json',

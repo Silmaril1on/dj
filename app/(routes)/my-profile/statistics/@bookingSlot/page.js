@@ -14,7 +14,7 @@ const BookingSlot = async () => {
       .join("; ");
 
     const response = await fetch(
-      `${process.env.PROJECT_URL}/api/users/booking-stats`,
+      `${process.env.PROJECT_URL}/api/users/statistics`,
       {
         cache: "no-store",
         headers: {
@@ -26,17 +26,18 @@ const BookingSlot = async () => {
 
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}));
-      console.error("Booking stats API Error:", response.status, errorData);
-      throw new Error(errorData.error || "Failed to fetch booking statistics");
+      console.error("Statistics API Error:", response.status, errorData);
+      throw new Error(errorData.error || "Failed to fetch statistics");
     }
 
     const result = await response.json();
 
     if (!result.success) {
-      throw new Error(result.error || "Failed to fetch booking statistics");
+      throw new Error(result.error || "Failed to fetch statistics");
     }
 
-    return <Mybookings data={result.data} />;
+    // Extract only bookings data for this slot
+    return <Mybookings data={result.data.bookings} />;
   } catch (error) {
     console.error("Error fetching booking statistics:", error);
     return <Mybookings data={null} error={error.message} />;

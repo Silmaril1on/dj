@@ -22,7 +22,7 @@ const UserRatingsPage = ({ ratingsData, error, currentPage = 1 }) => {
     setLoadingMore(true);
     try {
       const res = await fetch(
-        `/api/users/rate-stats/user-rates?page=${page + 1}&limit=20`,
+        `/api/users/user-rates?page=${page + 1}&limit=20`,
         { cache: "no-store" }
       );
       const data = await res.json();

@@ -51,7 +51,7 @@ const ReviewList = ({ reviewsData, onReviewUpdate }) => {
     setLoadingMore(true);
     try {
       const res = await fetch(
-        `/api/users/review-stats/user-reviews?page=${page + 1}&limit=20`,
+        `/api/users/user-reviews?page=${page + 1}&limit=20`,
         { cache: "no-store" }
       );
       const data = await res.json();

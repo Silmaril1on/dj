@@ -49,10 +49,10 @@ const SubmittedArtist = ({ data, error }) => {
       description="Your artist profile"
       className="bg-stone-900"
     >
-      <section className="w-full space-y-2 lg:space-y-0">
-        <div className="flex gap-2 lg:gap-5 w-full">
+      <section className="w-full flex flex-col lg:flex-row space-y-2 lg:space-y-0">
+        <div className="flex gap-2 lg:gap-5">
           <ProfilePicture type="avatar" avatar_url={data[0]?.artist_image} />
-          <div className="flex items-start justify-center  flex-col ">
+          <div className="flex items-start justify-center flex-col ">
             <Title
               size="xl"
               className="uppercase"

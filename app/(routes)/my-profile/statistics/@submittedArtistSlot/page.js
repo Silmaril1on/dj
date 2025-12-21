@@ -14,7 +14,7 @@ const SubmittedArtistsSlot = async () => {
       .join("; ");
 
     const response = await fetch(
-      `${process.env.PROJECT_URL}/api/users/submitted-artist`,
+      `${process.env.PROJECT_URL}/api/users/statistics`,
       {
         cache: "no-store",
         headers: {
@@ -26,17 +26,18 @@ const SubmittedArtistsSlot = async () => {
 
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}));
-      console.error("API Error:", response.status, errorData);
-      throw new Error(errorData.error || "Failed to fetch submitted artists");
+      console.error("Statistics API Error:", response.status, errorData);
+      throw new Error(errorData.error || "Failed to fetch statistics");
     }
 
     const result = await response.json();
 
     if (!result.success) {
-      throw new Error(result.error || "Failed to fetch submitted artists");
+      throw new Error(result.error || "Failed to fetch statistics");
     }
 
-    return <SubmittedArtist data={result.data} />;
+    // Extract only submitted artist data for this slot
+    return <SubmittedArtist data={result.data.submittedArtist} />;
   } catch (error) {
     console.error("Error fetching submitted artists:", error);
     return <SubmittedArtist data={null} error={error.message} />;

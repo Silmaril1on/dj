@@ -1,5 +1,4 @@
 import Button from '@/app/components/buttons/Button';
-import FlexBox from '@/app/components/containers/FlexBox';
 import SectionContainer from '@/app/components/containers/SectionContainer';
 import ArtistCountry from '@/app/components/materials/ArtistCountry';
 import ProfilePicture from '@/app/components/materials/ProfilePicture';
@@ -54,7 +53,7 @@ const SubmittedClub = ({ data, error }) => {
         description="Your club profile"
         className="bg-stone-900"
       >
-        <section className="gap-4 w-full pb-4 px-4 flex flex-col lg:flex-row">
+        <section className="gap-4 w-full pb-4 flex flex-col lg:flex-row">
           <div className="flex gap-2">
             <ProfilePicture type="avatar" avatar_url={data[0]?.club_image} />
             <div className="flex items-start justify-center  flex-col">

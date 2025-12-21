@@ -29,7 +29,7 @@ const ReviewActions = ({ review, onDelete, onUpdate }) => {
   const handleDelete = async () => {
     setIsDeleting(true);
     try {
-      const response = await fetch(`/api/users/review-stats/user-reviews?reviewId=${review.id}`, {
+      const response = await fetch(`/api/users/user-reviews?reviewId=${review.id}`, {
         method: 'DELETE',
       });
       if (response.ok) {

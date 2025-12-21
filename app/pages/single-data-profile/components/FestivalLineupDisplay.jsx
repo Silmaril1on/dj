@@ -6,7 +6,6 @@ import Motion from "@/app/components/containers/Motion";
 import Dot from "@/app/components/ui/Dot";
 import LayoutButtons from "@/app/components/buttons/LayoutButtons";
 import { FaList, FaTh } from "react-icons/fa";
-import Twinkls from "../../commercials/Twinkles";
 
 const FestivalLineupDisplay = ({ festivalId }) => {
   const [lineup, setLineup] = useState(null);
@@ -115,7 +114,6 @@ const FestivalLineupDisplay = ({ festivalId }) => {
 
   return (
     <div className="center flex-col relative py-20">
-      <Twinkls />
       {/* Layout Toggle Buttons */}
       <div className="space-y-6">
       <div className="flex justify-center">

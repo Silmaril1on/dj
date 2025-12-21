@@ -27,7 +27,7 @@ const ActivityReviewsPage = async ({ searchParams }) => {
       .join("; ");
 
     // Build the API URL with search parameters
-    const apiUrl = `${process.env.PROJECT_URL}/api/users/review-stats/user-reviews?page=${page}&limit=${limit}`;
+    const apiUrl = `${process.env.PROJECT_URL}/api/users/user-reviews?page=${page}&limit=${limit}`;
 
     const response = await fetch(apiUrl, {
       cache: "no-store",

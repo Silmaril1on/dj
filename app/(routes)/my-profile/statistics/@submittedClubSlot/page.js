@@ -14,7 +14,7 @@ const SubmittedClubsSlot = async () => {
       .join("; ");
 
     const response = await fetch(
-      `${process.env.PROJECT_URL}/api/users/submitted-club`,
+      `${process.env.PROJECT_URL}/api/users/statistics`,
       {
         cache: "no-store",
         headers: {
@@ -26,17 +26,18 @@ const SubmittedClubsSlot = async () => {
 
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}));
-      console.error("API Error:", response.status, errorData);
-      throw new Error(errorData.error || "Failed to fetch submitted clubs");
+      console.error("Statistics API Error:", response.status, errorData);
+      throw new Error(errorData.error || "Failed to fetch statistics");
     }
 
     const result = await response.json();
 
     if (!result.success) {
-      throw new Error(result.error || "Failed to fetch submitted clubs");
+      throw new Error(result.error || "Failed to fetch statistics");
     }
 
-    return <SubmittedClub data={result.data} />;
+    // Extract only submitted club data for this slot
+    return <SubmittedClub data={result.data.submittedClub} />;
   } catch (error) {
     console.error("Error fetching submitted clubs:", error);
     return <SubmittedClub data={null} error={error.message} />;

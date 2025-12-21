@@ -14,7 +14,7 @@ const LikesStatsSlot = async () => {
       .join("; ");
 
     const response = await fetch(
-      `${process.env.PROJECT_URL}/api/users/likes-stat`,
+      `${process.env.PROJECT_URL}/api/users/statistics`,
       {
         cache: "no-store",
         headers: {
@@ -26,17 +26,18 @@ const LikesStatsSlot = async () => {
 
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}));
-      console.error("API Error:", response.status, errorData);
-      throw new Error(errorData.error || "Failed to fetch likes statistics");
+      console.error("Statistics API Error:", response.status, errorData);
+      throw new Error(errorData.error || "Failed to fetch statistics");
     }
 
     const result = await response.json();
 
     if (!result.success) {
-      throw new Error(result.error || "Failed to fetch likes statistics");
+      throw new Error(result.error || "Failed to fetch statistics");
     }
 
-    return <LikesStats data={result.data} />;
+    // Extract only likes data for this slot
+    return <LikesStats data={result.data.likes} />;
   } catch (error) {
     console.error("Error fetching likes statistics:", error);
     return <LikesStats data={null} error={error.message} />;

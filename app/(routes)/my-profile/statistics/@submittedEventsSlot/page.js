@@ -13,7 +13,7 @@ const SubmittedEventsSlot = async () => {
       .join("; ");
 
     const response = await fetch(
-      `${process.env.PROJECT_URL}/api/users/submitted-event`,
+      `${process.env.PROJECT_URL}/api/users/statistics`,
       {
         cache: "no-store",
         headers: {
@@ -25,19 +25,20 @@ const SubmittedEventsSlot = async () => {
 
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}));
-      console.error("API Error:", response.status, errorData);
+      console.error("Statistics API Error:", response.status, errorData);
       throw new Error(
-        errorData.error || "Failed to fetch submitted events stats"
+        errorData.error || "Failed to fetch statistics"
       );
     }
 
     const result = await response.json();
 
     if (!result.success) {
-      throw new Error(result.error || "Failed to fetch submitted events stats");
+      throw new Error(result.error || "Failed to fetch statistics");
     }
 
-    return <SubmittedEvents data={result.data} />;
+    // Extract only submitted events data for this slot
+    return <SubmittedEvents data={result.data.submittedEvents} />;
   } catch (error) {
     console.error("Error fetching submitted events stats:", error);
     return <SubmittedEvents data={null} error={error.message} />;

@@ -14,7 +14,7 @@ const ReviewsStatsSlot = async () => {
       .join("; ");
 
     const response = await fetch(
-      `${process.env.PROJECT_URL}/api/users/review-stats`,
+      `${process.env.PROJECT_URL}/api/users/statistics`,
       {
         cache: "no-store",
         headers: {
@@ -26,17 +26,18 @@ const ReviewsStatsSlot = async () => {
 
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}));
-      console.error("API Error:", response.status, errorData);
-      throw new Error(errorData.error || "Failed to fetch reviews statistics");
+      console.error("Statistics API Error:", response.status, errorData);
+      throw new Error(errorData.error || "Failed to fetch statistics");
     }
 
     const result = await response.json();
 
     if (!result.success) {
-      throw new Error(result.error || "Failed to fetch reviews statistics");
+      throw new Error(result.error || "Failed to fetch statistics");
     }
 
-    return <ReviewsStats data={result.data} />;
+    // Extract only reviews data for this slot
+    return <ReviewsStats data={result.data.reviews} />;
   } catch (error) {
     console.error("Error fetching reviews statistics:", error);
     return <ReviewsStats data={null} error={error.message} />;
