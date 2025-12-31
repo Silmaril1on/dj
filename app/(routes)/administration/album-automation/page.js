@@ -24,6 +24,11 @@ const AlbumAutomationPage = () => {
   const [importingAlbumId, setImportingAlbumId] = useState(null);
   const [importedAlbums, setImportedAlbums] = useState(new Set());
 
+  // Select Multiple State
+  const [selectMode, setSelectMode] = useState(false);
+  const [selectedAlbums, setSelectedAlbums] = useState(new Set());
+  const [isImportingSelected, setIsImportingSelected] = useState(false);
+
   // API Response Demonstration State
   const [apiResponses, setApiResponses] = useState({
     preview: null,
@@ -39,70 +44,28 @@ const AlbumAutomationPage = () => {
   const handleSearch = async () => {
     const trimmedSearch = searchTerm.trim();
 
-    console.log("═══════════════════════════════════════════");
-    console.log("🔍 FRONTEND: handleSearch called");
-    console.log("═══════════════════════════════════════════");
-    console.log("📝 Search term RAW:", searchTerm);
-    console.log("📝 Search term TRIMMED:", trimmedSearch);
-    console.log("📝 Search term LENGTH:", trimmedSearch.length);
-    console.log("📝 Search term TYPE:", typeof trimmedSearch);
-
     if (!trimmedSearch) {
-      console.log("❌ Search term is empty, returning");
       return;
     }
 
-    console.log("✅ Starting database search for artists:", trimmedSearch);
     setIsSearching(true);
     setSelectedArtist(null);
     setAlbums([]);
 
     try {
-      // Search YOUR database artists table
       const url = `/api/automation/search-artists?q=${encodeURIComponent(trimmedSearch)}`;
-      console.log("🌐 FETCHING URL:", url);
-      console.log("🌐 Encoded search term:", encodeURIComponent(trimmedSearch));
-
       const response = await fetch(url);
-      console.log("📡 RESPONSE STATUS:", response.status, response.statusText);
-      console.log("📡 RESPONSE OK:", response.ok);
-      console.log("📡 RESPONSE TYPE:", response.headers.get("content-type"));
-
       const data = await response.json();
-      console.log("📦 FULL API RESPONSE:");
-      console.log(JSON.stringify(data, null, 2));
-      console.log("📊 Response data type:", typeof data);
-      console.log("🔑 Response keys:", Object.keys(data));
-      console.log("📊 Data source:", data.source);
 
       if (data.results) {
-        console.log("✅ data.results EXISTS");
-        console.log("📊 Results array length:", data.results.length);
-        console.log("📋 All results (full array):");
-        console.log(JSON.stringify(data.results, null, 2));
-
-        // All results are already artists from YOUR database
         const artistResults = data.results;
-        console.log("🎨 Artist results (from database):");
-        console.log(JSON.stringify(artistResults, null, 2));
-        console.log("🎨 Artist count FINAL:", artistResults.length);
-
         setArtists(artistResults);
-        console.log(
-          "✅ STATE UPDATED - Artists array length:",
-          artistResults.length
-        );
       } else {
-        console.log("❌ NO results property in response");
-        console.log("❌ Response structure:", Object.keys(data));
         setArtists([]);
       }
     } catch (error) {
-      console.error("❌ Search error:", error);
-      console.error("Error stack:", error.stack);
       setArtists([]);
     } finally {
-      console.log("🏁 Search complete, setting isSearching to false");
       setIsSearching(false);
     }
   };
@@ -120,38 +83,9 @@ const AlbumAutomationPage = () => {
     setIsLoadingAlbums(true);
 
     try {
-      console.log("═══════════════════════════════════════════");
-      console.log("🔵 API CALL #1: /api/automation/preview-albums");
-      console.log("═══════════════════════════════════════════");
-      console.log("📤 REQUEST - Artist data:", {
-        endpoint: "/api/automation/preview-albums",
-        method: "GET",
-        artistId: artist.id,
-        artistName: artist.stage_name || artist.name,
-        hasMusicBrainzId: !!artist.musicbrainz_artist_id,
-      });
-
-      // Database artist - use artistId (already has ID from database)
       const url = `/api/automation/preview-albums?artistId=${artist.id}`;
-      console.log("🌐 Fetching preview URL:", url);
-      console.log("🌐 This will fetch albums from MusicBrainz for this artist");
-
       const response = await fetch(url);
       const data = await response.json();
-
-      console.log("📥 RESPONSE STATUS:", response.status, response.statusText);
-      console.log("📦 FULL DATA STRUCTURE:");
-      console.log(JSON.stringify(data, null, 2));
-      console.log("🔍 DATA BREAKDOWN:");
-      console.log("  - success:", data.success);
-      console.log("  - artist:", data.artist);
-      console.log("  - albums count:", data.albums?.length);
-      console.log("  - totalFound:", data.totalFound);
-      console.log("  - alreadyImported:", data.alreadyImported);
-      console.log("  - Sample album:", data.albums?.[0]);
-      console.log("═══════════════════════════════════════════\n");
-
-      // Store for UI display
       setApiResponses((prev) => ({ ...prev, preview: data }));
 
       if (data.success && data.albums) {
@@ -169,7 +103,6 @@ const AlbumAutomationPage = () => {
         );
       }
     } catch (error) {
-      console.error("Error fetching albums:", error);
       dispatch(
         setError({
           message: "Failed to fetch albums from MusicBrainz",
@@ -185,21 +118,6 @@ const AlbumAutomationPage = () => {
     setImportingAlbumId(album.id);
 
     try {
-      console.log("═══════════════════════════════════════════");
-      console.log("🟢 API CALL #2: /api/automation/import-single-album");
-      console.log("═══════════════════════════════════════════");
-      console.log("📤 REQUEST:", {
-        endpoint: "/api/automation/import-single-album",
-        method: "POST",
-        artistId: selectedArtist.id,
-        album: {
-          id: album.id,
-          title: album.title,
-          releaseDate: album.releaseDate,
-          primaryType: album.primaryType,
-        },
-      });
-
       const response = await fetch("/api/automation/import-single-album", {
         method: "POST",
         headers: {
@@ -212,20 +130,6 @@ const AlbumAutomationPage = () => {
       });
 
       const data = await response.json();
-
-      console.log("📥 RESPONSE STATUS:", response.status, response.statusText);
-      console.log("📦 FULL DATA STRUCTURE:");
-      console.log(JSON.stringify(data, null, 2));
-      console.log("🔍 DATA BREAKDOWN:");
-      console.log("  - success:", data.success);
-      console.log("  - message:", data.message);
-      console.log("  - album.id:", data.album?.id);
-      console.log("  - album.name:", data.album?.name);
-      console.log("  - tracklist length:", data.album?.tracklist?.length);
-      console.log("  - Sample tracks:", data.album?.tracklist?.slice(0, 3));
-      console.log("═══════════════════════════════════════════\n");
-
-      // Store for UI display
       setApiResponses((prev) => ({ ...prev, singleImport: data }));
 
       if (response.ok && data.success) {
@@ -245,7 +149,6 @@ const AlbumAutomationPage = () => {
         );
       }
     } catch (error) {
-      console.error("Import error:", error);
       dispatch(
         setError({
           message: "Failed to import album",
@@ -267,21 +170,43 @@ const AlbumAutomationPage = () => {
     }
   };
 
+  const toggleSelectMode = () => {
+    setSelectMode(!selectMode);
+    setSelectedAlbums(new Set()); // Clear selections when toggling mode
+  };
+
+  const toggleAlbumSelection = (albumId) => {
+    setSelectedAlbums((prev) => {
+      const newSet = new Set(prev);
+      if (newSet.has(albumId)) {
+        newSet.delete(albumId);
+      } else {
+        newSet.add(albumId);
+      }
+      return newSet;
+    });
+  };
+
+  const handleImportSelected = async () => {
+    if (selectedAlbums.size === 0) return;
+
+    setIsImportingSelected(true);
+    const albumsToImport = albums.filter((a) => selectedAlbums.has(a.id));
+
+    for (const album of albumsToImport) {
+      await handleImportAlbum(album);
+    }
+
+    setIsImportingSelected(false);
+    setSelectedAlbums(new Set()); // Clear selections after import
+    setSelectMode(false); // Exit select mode
+  };
+
   // Demonstration: Call bulk import API (doesn't use it in normal flow)
   const handleDemoBulkImport = async () => {
     if (!selectedArtist) return;
 
     try {
-      console.log("═══════════════════════════════════════════");
-      console.log("🟣 API CALL #3: /api/automation/import-albums");
-      console.log("═══════════════════════════════════════════");
-      console.log("📤 REQUEST:", {
-        endpoint: "/api/automation/import-albums",
-        method: "POST",
-        artistId: selectedArtist.id,
-        artistName: selectedArtist.stage_name || selectedArtist.name,
-      });
-
       const response = await fetch("/api/automation/import-albums", {
         method: "POST",
         headers: {
@@ -293,22 +218,6 @@ const AlbumAutomationPage = () => {
       });
 
       const data = await response.json();
-
-      console.log("📥 RESPONSE STATUS:", response.status, response.statusText);
-      console.log("📦 FULL DATA STRUCTURE:");
-      console.log(JSON.stringify(data, null, 2));
-      console.log("🔍 DATA BREAKDOWN:");
-      console.log("  - success:", data.success);
-      console.log("  - message:", data.message);
-      console.log("  - imported:", data.imported);
-      console.log("  - skipped:", data.skipped);
-      console.log("  - totalFound:", data.totalFound);
-      console.log("  - mbArtistId:", data.mbArtistId);
-      console.log("  - mbArtistName:", data.mbArtistName);
-      console.log("  - errors:", data.errors);
-      console.log("═══════════════════════════════════════════\n");
-
-      // Store for UI display
       setApiResponses((prev) => ({ ...prev, bulkImport: data }));
 
       if (data.success) {
@@ -318,11 +227,10 @@ const AlbumAutomationPage = () => {
             type: "success",
           })
         );
-        // Refresh album list
         handleSelectArtist(selectedArtist);
       }
     } catch (error) {
-      console.error("Bulk import error:", error);
+      // Handle error silently or show user error
     }
   };
 
@@ -342,16 +250,15 @@ const AlbumAutomationPage = () => {
         description="Import artist albums from MusicBrainz - Search, preview, and import individual albums"
         className="w-full"
       >
-        <div className="">
+        <div className=" w-full">
           {/* Search Section */}
-          <div className="space-y-2 w-full max-w-[30%]">
+          <div className="space-y-2 w-full">
             <div className="flex gap-2">
               <input
                 type="text"
                 placeholder="Search for artist (e.g., Martin Garrix, Armin van Buuren)..."
                 value={searchTerm}
                 onChange={(e) => {
-                  console.log("🎯 Input changed:", e.target.value);
                   setSearchTerm(e.target.value);
                 }}
                 onKeyPress={handleKeyPress}
@@ -441,24 +348,65 @@ const AlbumAutomationPage = () => {
                 <div className="flex gap-2">
                   {albums.length > 0 && (
                     <>
-                      <button
-                        onClick={handleImportAll}
-                        disabled={
-                          importingAlbumId !== null ||
-                          albums.every(
-                            (a) => a.alreadyImported || importedAlbums.has(a.id)
-                          )
-                        }
-                        className="bg-gold/30 hover:bg-gold/40 disabled:bg-gray-600 disabled:cursor-not-allowed px-4 py-2 font-bold flex items-center gap-2 rounded text-sm"
-                      >
-                        <SiMusicbrainz /> Import All New Albums
-                      </button>
-                      <button
-                        onClick={handleDemoBulkImport}
-                        className="bg-purple-500/30 hover:bg-purple-500/40 px-4 py-2 font-bold flex items-center gap-2 rounded text-sm"
-                      >
-                        <SiMusicbrainz /> Demo: Bulk API
-                      </button>
+                      {selectMode ? (
+                        <>
+                          <button
+                            onClick={handleImportSelected}
+                            disabled={
+                              selectedAlbums.size === 0 || isImportingSelected
+                            }
+                            className="bg-green-500/30 hover:bg-green-500/40 disabled:bg-gray-600 disabled:cursor-not-allowed px-4 py-2 font-bold flex items-center gap-2 rounded text-sm"
+                          >
+                            {isImportingSelected ? (
+                              <>
+                                <FaClock className="animate-spin" /> Importing (
+                                {selectedAlbums.size})...
+                              </>
+                            ) : (
+                              <>
+                                <FaDownload /> Import Selected (
+                                {selectedAlbums.size})
+                              </>
+                            )}
+                          </button>
+                          <button
+                            onClick={toggleSelectMode}
+                            disabled={isImportingSelected}
+                            className="bg-gray-600 hover:bg-gray-700 disabled:cursor-not-allowed px-4 py-2 font-bold rounded text-sm"
+                          >
+                            Cancel
+                          </button>
+                        </>
+                      ) : (
+                        <>
+                          <button
+                            onClick={toggleSelectMode}
+                            disabled={importingAlbumId !== null}
+                            className="bg-blue-500/30 hover:bg-blue-500/40 disabled:bg-gray-600 disabled:cursor-not-allowed px-4 py-2 font-bold flex items-center gap-2 rounded text-sm"
+                          >
+                            <FaCheckCircle /> Select Multiple
+                          </button>
+                          <button
+                            onClick={handleImportAll}
+                            disabled={
+                              importingAlbumId !== null ||
+                              albums.every(
+                                (a) =>
+                                  a.alreadyImported || importedAlbums.has(a.id)
+                              )
+                            }
+                            className="bg-gold/30 hover:bg-gold/40 disabled:bg-gray-600 disabled:cursor-not-allowed px-4 py-2 font-bold flex items-center gap-2 rounded text-sm"
+                          >
+                            <SiMusicbrainz /> Import All New Albums
+                          </button>
+                          <button
+                            onClick={handleDemoBulkImport}
+                            className="bg-purple-500/30 hover:bg-purple-500/40 px-4 py-2 font-bold flex items-center gap-2 rounded text-sm"
+                          >
+                            <SiMusicbrainz /> Demo: Bulk API
+                          </button>
+                        </>
+                      )}
                     </>
                   )}
                 </div>
@@ -485,15 +433,41 @@ const AlbumAutomationPage = () => {
                     return (
                       <div
                         key={album.id}
-                        className={`bg-stone-900 border p-4 rounded transition-all ${
+                        className={`bg-stone-900 border p-4 rounded transition-all relative ${
                           isImported
                             ? "border-green-500/30 bg-green-900/10"
-                            : "border-gold/30 hover:border-gold"
+                            : selectedAlbums.has(album.id)
+                              ? "border-blue-500 bg-blue-900/10"
+                              : "border-gold/30 hover:border-gold"
                         }`}
                       >
+                        {/* Checkbox in Select Mode */}
+                        {selectMode && !isImported && (
+                          <div className="absolute top-2 right-2 z-10">
+                            <input
+                              type="checkbox"
+                              checked={selectedAlbums.has(album.id)}
+                              onChange={() => toggleAlbumSelection(album.id)}
+                              className="w-5 h-5 cursor-pointer accent-blue-500"
+                            />
+                          </div>
+                        )}
+
+                        {/* Album Cover or Icon */}
                         <div className="flex items-start gap-3">
-                          <div className="w-12 h-12 bg-stone-800 rounded flex items-center justify-center flex-shrink-0">
-                            <SiMusicbrainz className="text-gold text-2xl" />
+                          <div className="w-16 h-16 bg-stone-800 rounded flex items-center justify-center flex-shrink-0 overflow-hidden">
+                            {album.albumImage ? (
+                              <Image
+                                src={album.albumImage}
+                                alt={album.title}
+                                width={64}
+                                height={64}
+                                className="w-full h-full object-cover"
+                                unoptimized
+                              />
+                            ) : (
+                              <SiMusicbrainz className="text-gold text-2xl" />
+                            )}
                           </div>
                           <div className="flex-1 min-w-0">
                             <Title
@@ -526,7 +500,9 @@ const AlbumAutomationPage = () => {
                             <button
                               onClick={() => handleImportAlbum(album)}
                               disabled={
-                                isImporting || importingAlbumId !== null
+                                isImporting ||
+                                importingAlbumId !== null ||
+                                selectMode
                               }
                               className="w-full bg-gold/20 hover:bg-gold/30 disabled:bg-gray-700 disabled:cursor-not-allowed py-2 px-4 rounded text-sm font-bold flex items-center justify-center gap-2 transition-colors"
                             >

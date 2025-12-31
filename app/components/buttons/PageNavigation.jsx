@@ -1,22 +1,20 @@
-'use client'
-import { useState } from 'react'
-import { AnimatePresence, motion } from 'framer-motion'
-import MyLink from '@/app/components/ui/MyLink'
+"use client";
+import { useState } from "react";
+import { AnimatePresence, motion } from "framer-motion";
+import MyLink from "@/app/components/ui/MyLink";
 
 const PageNavigation = ({ linksData, className = " " }) => {
-  const [activeDropdown, setActiveDropdown] = useState(null)
+  const [activeDropdown, setActiveDropdown] = useState(null);
 
   const handleMouseEnter = (index) => {
     if (linksData[index].hasDropdown) {
-      setActiveDropdown(index)
+      setActiveDropdown(index);
     }
-  }
+  };
 
   const handleMouseLeave = () => {
-    setActiveDropdown(null)
-  }
-
-
+    setActiveDropdown(null);
+  };
 
   return (
     <div className={`bg-stone-900 ${className}`}>
@@ -30,10 +28,9 @@ const PageNavigation = ({ linksData, className = " " }) => {
               onMouseLeave={handleMouseLeave}
             >
               {item.hasDropdown ? (
-                <div
-                  className="py-2 px-3 font-bold cursor-pointer flex items-center gap-1">
+                <div className="py-2 px-3 h-full font-bold cursor-pointer flex items-center gap-1">
                   {item.icon}
-                  <span className='text-xs lg:text-sm'>{item.text}</span>
+                  <span className="text-xs lg:text-sm">{item.text}</span>
                   <span className="text-xs">▼</span>
                 </div>
               ) : (
@@ -41,7 +38,7 @@ const PageNavigation = ({ linksData, className = " " }) => {
                   href={item.href}
                   text={item.text}
                   icon={item.icon}
-                  className='py-2 px-4 center font-bold hover:bg-gold hover:text-neutral-800'
+                  className="py-2 px-4 center font-bold hover:bg-gold hover:text-neutral-800"
                 />
               )}
 
@@ -57,9 +54,9 @@ const PageNavigation = ({ linksData, className = " " }) => {
                       ease: "easeOut",
                       type: "spring",
                       stiffness: 300,
-                      damping: 30
+                      damping: 30,
                     }}
-                    className="absolute top-full left-0 bg-stone-800 w-full z-50 overflow-hidden"
+                    className="absolute top-full left-0 bg-stone-900 w-full min-w-max z-50 overflow-hidden"
                   >
                     {item.dropdownItems.map((dropdownItem) => (
                       <div key={dropdownItem.href}>
@@ -68,7 +65,7 @@ const PageNavigation = ({ linksData, className = " " }) => {
                           text={dropdownItem.text}
                           icon={dropdownItem.icon}
                           onClick={() => setActiveDropdown(null)}
-                          className="py-3 px-4 font-bold  text-sm text-gold gap-2 hover:bg-gold hover:text-neutral-800 duration-300 w-full flex items-center "
+                          className="py-2 px-4 font-bold  text-sm text-gold gap-2 hover:bg-gold hover:text-neutral-800 duration-300 w-full flex items-center "
                         />
                       </div>
                     ))}
@@ -80,7 +77,7 @@ const PageNavigation = ({ linksData, className = " " }) => {
         </nav>
       </div>
     </div>
-  )
-}
+  );
+};
 
-export default PageNavigation
+export default PageNavigation;

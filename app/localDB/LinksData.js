@@ -8,6 +8,7 @@ import {
   MdEvent,
   MdEventAvailable,
   MdFestival,
+  MdAlbum,
 } from "react-icons/md";
 import { FiActivity } from "react-icons/fi";
 
@@ -95,20 +96,46 @@ export const administrationLinks = [
     text: "Upload Festival",
   },
   {
-    href: "/administration/submitted-artists",
-    text: "Artists",
+    text: "Automation",
+    hasDropdown: true,
+    dropdownItems: [
+      {
+        href: "/administration/album-automation",
+        text: "Album Automation",
+        icon: <MdAlbum />,
+      },
+      {
+        href: "/administration/artist-automation",
+        text: "Artist Automation",
+        icon: <MdPerson />,
+      },
+    ],
   },
   {
-    href: "/administration/submitted-clubs",
-    text: "Clubs",
-  },
-  {
-    href: "/administration/submitted-events",
-    text: "Events",
-  },
-  {
-    href: "/administration/submitted-festival",
-    text: "Festivals",
+    text: "Submitted Items",
+    hasDropdown: true,
+    dropdownItems: [
+      {
+        href: "/administration/submitted-artists",
+        text: "Artists",
+        icon: <MdPerson />,
+      },
+      {
+        href: "/administration/submitted-clubs",
+        text: "Clubs",
+        icon: <MdOutlineTrackChanges />,
+      },
+      {
+        href: "/administration/submitted-events",
+        text: "Events",
+        icon: <MdEvent />,
+      },
+      {
+        href: "/administration/submitted-festival",
+        text: "Festivals",
+        icon: <MdFestival />,
+      },
+    ],
   },
   {
     href: "/administration/reports",

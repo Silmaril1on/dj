@@ -1,12 +1,14 @@
 import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import { getServerUser, supabaseAdmin } from "@/app/lib/config/supabaseServer";
+import sharp from "sharp";
 
 // Rate limiting helper - MusicBrainz requires 1 second between requests
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
 // MusicBrainz API base URL
 const MUSICBRAINZ_API = "https://musicbrainz.org/ws/2";
+const COVERART_API = "https://coverartarchive.org";
 const USER_AGENT = "DJApp/1.0.0 (contact@djapp.com)"; // Replace with your actual contact
 
 // Helper to fetch from MusicBrainz with rate limiting
@@ -24,6 +26,77 @@ async function fetchMusicBrainz(url) {
   }
 
   return response.json();
+}
+
+// Helper to fetch album cover from Cover Art Archive
+async function fetchAlbumCover(releaseId) {
+  try {
+    const url = `${COVERART_API}/release/${releaseId}`;
+    const response = await fetch(url);
+
+    if (!response.ok) return null;
+
+    const data = await response.json();
+
+    // Prefer front cover, fallback to first approved image
+    const frontImage =
+      data.images?.find((img) => img.front && img.approved) ||
+      data.images?.find((img) => img.approved) ||
+      data.images?.[0];
+
+    return frontImage?.image || null;
+  } catch (error) {
+    return null;
+  }
+}
+
+// Download image from external URL and resize to 512x512
+async function downloadAndProcessImage(imageUrl) {
+  try {
+    const response = await fetch(imageUrl);
+
+    if (!response.ok) {
+      return null;
+    }
+
+    const arrayBuffer = await response.arrayBuffer();
+    const buffer = Buffer.from(arrayBuffer);
+
+    const processedBuffer = await sharp(buffer)
+      .resize(512, 512, { fit: "cover" })
+      .jpeg({ quality: 80 })
+      .toBuffer();
+
+    return processedBuffer;
+  } catch (error) {
+    return null;
+  }
+}
+
+// Upload processed image to Supabase Storage
+async function uploadToSupabase(buffer, albumId) {
+  try {
+    const filePath = `albums/${albumId}.jpg`;
+
+    const { error: uploadError } = await supabaseAdmin.storage
+      .from("album_images")
+      .upload(filePath, buffer, {
+        contentType: "image/jpeg",
+        upsert: true,
+      });
+
+    if (uploadError) {
+      return null;
+    }
+
+    const { data } = supabaseAdmin.storage
+      .from("album_images")
+      .getPublicUrl(filePath);
+
+    return data.publicUrl;
+  } catch (error) {
+    return null;
+  }
 }
 
 // Step 1: Get MusicBrainz Artist ID
@@ -96,7 +169,7 @@ async function fetchTracklist(releaseGroupId) {
   const releaseData = await fetchMusicBrainz(releaseUrl);
 
   if (!releaseData.media || releaseData.media.length === 0) {
-    return [];
+    return { tracklist: [], releaseId };
   }
 
   // Extract track titles from all media (discs)
@@ -109,7 +182,7 @@ async function fetchTracklist(releaseGroupId) {
     }
   }
 
-  return tracklist;
+  return { tracklist, releaseId };
 }
 
 export async function POST(request) {
@@ -156,30 +229,19 @@ export async function POST(request) {
     let mbArtistId = artist.musicbrainz_artist_id;
     let mbArtistName = null;
 
-    // Step 2: If no MusicBrainz ID, fetch and save it
     if (!mbArtistId) {
-      console.log(
-        `Fetching MusicBrainz ID for: ${artist.stage_name || artist.name}`
-      );
       const mbArtist = await getMusicBrainzArtistId(
         artist.stage_name || artist.name
       );
       mbArtistId = mbArtist.id;
       mbArtistName = mbArtist.name;
 
-      // Save MusicBrainz Artist ID to database
       const { error: updateError } = await supabaseAdmin
         .from("artists")
         .update({ musicbrainz_artist_id: mbArtistId })
         .eq("id", artistId);
-
-      if (updateError) {
-        console.error("Failed to save MusicBrainz Artist ID:", updateError);
-      }
     }
 
-    // Step 3: Fetch albums/EPs
-    console.log(`Fetching albums for MusicBrainz Artist ID: ${mbArtistId}`);
     const albums = await fetchAlbums(mbArtistId);
 
     if (albums.length === 0) {
@@ -208,38 +270,56 @@ export async function POST(request) {
           .single();
 
         if (existingAlbum) {
-          console.log(`Album already exists: ${album.title}`);
           skipped++;
           continue;
         }
 
-        // Fetch tracklist
-        console.log(`Fetching tracklist for: ${album.title}`);
-        const tracklist = await fetchTracklist(album.id);
+        const { tracklist, releaseId } = await fetchTracklist(album.id);
 
-        // Insert album into database
-        const { error: insertError } = await supabaseAdmin
+        let externalImageUrl = null;
+        if (releaseId) {
+          externalImageUrl = await fetchAlbumCover(releaseId);
+        }
+
+        const { data: newAlbum, error: insertError } = await supabaseAdmin
           .from("artist_albums")
           .insert({
             name: album.title,
+            album_image: null,
             release_date: album.releaseDate || null,
             tracklist: tracklist.length > 0 ? tracklist : null,
             artist_id: artistId,
             musicbrainz_release_group_id: album.id,
-            user_id: null, // No user_id for automated imports
+            user_id: null,
             description: `${album.primaryType} - Imported from MusicBrainz`,
-          });
+          })
+          .select()
+          .single();
 
         if (insertError) {
-          console.error(`Failed to insert album ${album.title}:`, insertError);
           errors.push(`${album.title}: ${insertError.message}`);
           continue;
         }
 
-        console.log(`Successfully imported: ${album.title}`);
+        if (externalImageUrl && newAlbum.id) {
+          const imageBuffer = await downloadAndProcessImage(externalImageUrl);
+          if (imageBuffer) {
+            const albumImageUrl = await uploadToSupabase(
+              imageBuffer,
+              newAlbum.id
+            );
+
+            if (albumImageUrl) {
+              await supabaseAdmin
+                .from("artist_albums")
+                .update({ album_image: albumImageUrl })
+                .eq("id", newAlbum.id);
+            }
+          }
+        }
+
         imported++;
       } catch (error) {
-        console.error(`Error processing album ${album.title}:`, error);
         errors.push(`${album.title}: ${error.message}`);
       }
     }
@@ -255,7 +335,6 @@ export async function POST(request) {
       errors: errors.length > 0 ? errors : null,
     });
   } catch (error) {
-    console.error("Import albums error:", error);
     return NextResponse.json(
       {
         error: "Failed to import albums",
