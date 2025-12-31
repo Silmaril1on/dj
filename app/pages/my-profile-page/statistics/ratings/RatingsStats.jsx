@@ -1,15 +1,24 @@
 "use client";
 import { motion } from "framer-motion";
-import SectionContainer from '@/app/components/containers/SectionContainer';
-import MotionCount from '@/app/components/ui/MotionCount';
-import Paragraph from '@/app/components/ui/Paragraph';
-import ErrorCode from '@/app/components/ui/ErrorCode';
+import SectionContainer from "@/app/components/containers/SectionContainer";
+import MotionCount from "@/app/components/ui/MotionCount";
+import Paragraph from "@/app/components/ui/Paragraph";
+import ErrorCode from "@/app/components/ui/ErrorCode";
 
-const RatingsStats = ({ data, error, title = "Ratings", description = "My Rating Statistics",  }) => {
-
+const RatingsStats = ({
+  data,
+  error,
+  title = "Ratings",
+  description = "My Rating Statistics",
+}) => {
   if (error) {
     return (
-      <SectionContainer className="bg-stone-900" size="sm" title={title} description={description}>
+      <SectionContainer
+        className="bg-stone-900"
+        size="sm"
+        title={title}
+        description={description}
+      >
         <ErrorCode
           title="Error loading rating statistics"
           description={error}
@@ -29,26 +38,19 @@ const RatingsStats = ({ data, error, title = "Ratings", description = "My Rating
   const { ratingData, totalRatings } = data;
 
   if (totalRatings === 0) {
-    return (
-      <SectionContainer
-        size="sm"
-        title={title}
-        className="bg-stone-900"
-        description={description}
-      >
-        <ErrorCode
-          title="No ratings yet"
-          description="Start rating artists to see your insights!"
-        />
-      </SectionContainer>
-    );
+    return null;
   }
 
   return (
-    <SectionContainer size="sm" title={title} description={description} className="bg-stone-900 flex flex-col h-full">
+    <SectionContainer
+      size="sm"
+      title={title}
+      description={description}
+      className="bg-stone-900 flex flex-col h-full"
+    >
       <div className="w-full flex flex-col justify-between h-full space-y-4">
         {/* HEADER */}
-        <div className='w-full flex justify-start gap-3'>
+        <div className="w-full flex justify-start gap-3">
           <MotionCount data={totalRatings} />
           <Paragraph text={description} />
         </div>
@@ -58,7 +60,9 @@ const RatingsStats = ({ data, error, title = "Ratings", description = "My Rating
           <div className="space-y-2 flex flex-1 grow-1 flex-col">
             {ratingData?.map(({ rating, count, percentage }) => (
               <div key={rating} className="flex items-center gap-3 ">
-                <span className="text-cream font-bold w-6 text-right">{rating}</span>
+                <span className="text-cream font-bold w-6 text-right">
+                  {rating}
+                </span>
                 <motion.div
                   initial={{ width: 0 }}
                   viewport={{ once: true }}
@@ -72,13 +76,12 @@ const RatingsStats = ({ data, error, title = "Ratings", description = "My Rating
               </div>
             ))}
           </div>
-
-
         </div>
         {/* FOOTER */}
         <div>
           <p className="text-chino/60 text-sm text-center secondary">
-            Total Ratings: <span className="text-gold font-semibold">{totalRatings}</span>
+            Total Ratings:{" "}
+            <span className="text-gold font-semibold">{totalRatings}</span>
           </p>
         </div>
       </div>

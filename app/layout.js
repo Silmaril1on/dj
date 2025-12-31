@@ -41,7 +41,7 @@ export default function RootLayout({ children }) {
             {children}
             <ErrorMsg />
             <GlobalModal />
-            <MobileNavBar />
+            {/* <MobileNavBar /> */}
             <WelcomeUser />
             <EventRequestModal />
             <Footer />

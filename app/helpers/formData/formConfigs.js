@@ -209,7 +209,7 @@ export const formConfigs = {
       city: {
         ...artistFields.city,
         label: "City",
-        required: true,
+        required: false,
       },
       label: {
         ...artistFields.label,
@@ -852,7 +852,8 @@ export const formConfigs = {
         type: "additional",
         required: false,
         label: "Social Links",
-        placeholder: "Enter social media URL (e.g., https://facebook.com/festivalname)",
+        placeholder:
+          "Enter social media URL (e.g., https://facebook.com/festivalname)",
       },
     },
     sections: [

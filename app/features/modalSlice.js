@@ -11,6 +11,8 @@ const initialState = {
   addEventModal: {
     isOpen: false,
     artist: null,
+    eventData: null, // For editing existing events
+    isEditMode: false,
   },
   addAlbumModal: {
     isOpen: false,
@@ -54,12 +56,16 @@ const modalSlice = createSlice({
       state.addEventModal = {
         isOpen: true,
         artist: action.payload.artist,
+        eventData: action.payload.eventData || null,
+        isEditMode: !!action.payload.eventData,
       };
     },
     closeAddEventModal: (state) => {
       state.addEventModal = {
         isOpen: false,
         artist: null,
+        eventData: null,
+        isEditMode: false,
       };
     },
     openAddAlbumModal: (state, action) => {

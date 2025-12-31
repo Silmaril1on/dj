@@ -120,7 +120,7 @@ export const artistFields = {
   },
   bio: {
     type: "textarea",
-    required: true,
+    required: false,
     placeholder: "Detailed biography of the artist",
   },
   label: {
@@ -130,7 +130,7 @@ export const artistFields = {
   },
   birth: {
     type: "date",
-    required: true,
+    required: false,
   },
   genres: {
     type: "additional",

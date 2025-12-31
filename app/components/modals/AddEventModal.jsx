@@ -1,94 +1,146 @@
-'use client'
-import { useState } from 'react'
-import { useDispatch, useSelector } from 'react-redux'
-import { closeAddEventModal } from '@/app/features/modalSlice'
-import { showSuccess } from '@/app/features/successSlice'
-import Button from '@/app/components/buttons/Button'
-import Close from '@/app/components/buttons/Close'
-import Title from '@/app/components/ui/Title'
-import { MdEvent, MdLocationOn, MdAccessTime, MdCalendarToday } from 'react-icons/md'
+"use client";
+import { useState, useEffect } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import { closeAddEventModal } from "@/app/features/modalSlice";
+import { showSuccess } from "@/app/features/successSlice";
+import Button from "@/app/components/buttons/Button";
+import Close from "@/app/components/buttons/Close";
+import Title from "@/app/components/ui/Title";
+import {
+  MdEvent,
+  MdLocationOn,
+  MdAccessTime,
+  MdCalendarToday,
+} from "react-icons/md";
 
 const AddEventModal = () => {
-  const dispatch = useDispatch()
-  const { isOpen, artist } = useSelector(state => state.modal.addEventModal || {})
+  const dispatch = useDispatch();
+  const { isOpen, artist, eventData, isEditMode } = useSelector(
+    (state) => state.modal.addEventModal || {}
+  );
   const [formData, setFormData] = useState({
-    date: '',
-    time: '',
-    country: '',
-    city: '',
-    club_name: '',
-    event_link: ''
-  })
-  const [isSubmitting, setIsSubmitting] = useState(false)
+    date: "",
+    time: "",
+    country: "",
+    city: "",
+    club_name: "",
+    event_link: "",
+  });
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // Pre-fill form when editing
+  useEffect(() => {
+    if (isEditMode && eventData) {
+      setFormData({
+        date: eventData.date || "",
+        time: eventData.time || "",
+        country: eventData.country || "",
+        city: eventData.city || "",
+        club_name: eventData.club_name || "",
+        event_link: eventData.event_link || "",
+      });
+    } else {
+      // Reset form when creating new event
+      setFormData({
+        date: "",
+        time: "",
+        country: "",
+        city: "",
+        club_name: "",
+        event_link: "",
+      });
+    }
+  }, [isEditMode, eventData, isOpen]);
 
   const handleInputChange = (e) => {
-    const { name, value } = e.target
-    setFormData(prev => ({
+    const { name, value } = e.target;
+    setFormData((prev) => ({
       ...prev,
-      [name]: value
-    }))
-  }
+      [name]: value,
+    }));
+  };
 
   const handleSubmit = async (e) => {
-    e.preventDefault()
-    setIsSubmitting(true)
+    e.preventDefault();
+    setIsSubmitting(true);
     try {
-      const response = await fetch(`/api/artists/${artist.id}`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          ...formData,
-          type: 'artist_date'
-        })
-      })
+      let response;
 
-      if (!response.ok) {
-        const errorData = await response.json()
-        throw new Error(errorData.error || 'Failed to add event')
+      if (isEditMode && eventData) {
+        // Update existing event
+        response = await fetch(`/api/artists/schedule/${eventData.id}`, {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(formData),
+        });
+      } else {
+        // Create new event
+        response = await fetch(`/api/artists/${artist.id}`, {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            ...formData,
+            type: "artist_date",
+          }),
+        });
       }
 
-      const result = await response.json()
-      dispatch(showSuccess({
-        type: 'artist_date',
-        message: 'Artist date added successfully!',
-        data: result.data
-      }))
-      dispatch(closeAddEventModal())
-      setFormData({
-        date: '',
-        time: '',
-        country: '',
-        city: '',
-        club_name: '',
-        event_link: ''
-      })
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(
+          errorData.error || `Failed to ${isEditMode ? "update" : "add"} event`
+        );
+      }
+
+      const result = await response.json();
+      dispatch(
+        showSuccess({
+          type: "artist_date",
+          message: `Artist date ${isEditMode ? "updated" : "added"} successfully!`,
+          data: result.data,
+        })
+      );
+      dispatch(closeAddEventModal());
+
+      // Reload page to refresh schedule data
+      setTimeout(() => {
+        window.location.reload();
+      }, 1500);
     } catch (error) {
-      console.error('Error adding event:', error)
+      console.error(
+        `Error ${isEditMode ? "updating" : "adding"} event:`,
+        error
+      );
     } finally {
-      setIsSubmitting(false)
+      setIsSubmitting(false);
     }
-  }
+  };
 
   const handleClose = () => {
-    dispatch(closeAddEventModal())
-  }
+    dispatch(closeAddEventModal());
+  };
 
-  if (!isOpen) return null
+  if (!isOpen) return null;
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
       <div className="bg-black border border-gold/30 max-w-md w-full max-h-[90vh] overflow-y-auto">
         <div className="p-6">
           <div className="flex items-center justify-between mb-6">
-            <Title text="Add Event" size="lg" />
+            <Title text={isEditMode ? "Edit Event" : "Add Event"} size="lg" />
             <Close onClick={handleClose} />
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <label ><MdCalendarToday className="inline mr-2" />Date</label>
+              <label>
+                <MdCalendarToday className="inline mr-2" />
+                Date
+              </label>
               <input
                 type="date"
                 name="date"
@@ -99,7 +151,10 @@ const AddEventModal = () => {
             </div>
 
             <div>
-              <label><MdAccessTime className="inline mr-2" />Time</label>
+              <label>
+                <MdAccessTime className="inline mr-2" />
+                Time
+              </label>
               <input
                 type="time"
                 name="time"
@@ -111,7 +166,11 @@ const AddEventModal = () => {
 
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label> <MdLocationOn className="inline mr-2" />Country</label>
+                <label>
+                  {" "}
+                  <MdLocationOn className="inline mr-2" />
+                  Country
+                </label>
                 <input
                   type="text"
                   name="country"
@@ -123,7 +182,9 @@ const AddEventModal = () => {
               </div>
 
               <div>
-                <label><MdLocationOn className="inline mr-2" />City
+                <label>
+                  <MdLocationOn className="inline mr-2" />
+                  City
                 </label>
                 <input
                   type="text"
@@ -137,7 +198,10 @@ const AddEventModal = () => {
             </div>
 
             <div>
-              <label><MdEvent className="inline mr-2" />Club / Venue Name</label>
+              <label>
+                <MdEvent className="inline mr-2" />
+                Club / Venue Name
+              </label>
               <input
                 type="text"
                 name="club_name"
@@ -161,14 +225,14 @@ const AddEventModal = () => {
 
             <Button
               type="submit"
-              text="Add Event"
+              text={isEditMode ? "Update Event" : "Add Event"}
               loading={isSubmitting}
             />
           </form>
         </div>
       </div>
     </div>
-  )
-}
+  );
+};
 
-export default AddEventModal
+export default AddEventModal;

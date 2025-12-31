@@ -1,15 +1,17 @@
-"use client"
-import Avatar from './hero/Avatar'
-import BasicInfo from './hero/BasicInfo';
-import Bio from './bio/Bio';
-import ArtistSchedule from './schedule/ArtistSchedule';
-import ArtistInsight from './artist-insights/ArtistInsight';
-import useRecentlyViewed from '@/app/lib/hooks/useRecentlViewed';
-import Albums from './albums/Albums';
+"use client";
+import Avatar from "./hero/Avatar";
+import BasicInfo from "./hero/BasicInfo";
+import Bio from "./bio/Bio";
+import ArtistSchedule from "./schedule/ArtistSchedule";
+import ArtistInsight from "./artist-insights/ArtistInsight";
+import useRecentlyViewed from "@/app/lib/hooks/useRecentlViewed";
+import Albums from "./albums/Albums";
 
 const ArtistProfile = ({ data, artistId }) => {
   const id = artistId || data?.id;
-  
+
+  console.log(id);
+
   useRecentlyViewed("artist", id);
 
   return (
@@ -20,11 +22,11 @@ const ArtistProfile = ({ data, artistId }) => {
         <BasicInfo data={data} />
       </div>
       <Bio data={data} />
-      <ArtistSchedule artistId={id} />
+      <ArtistSchedule artistId={id} artistData={data} />
       <Albums artistId={id} />
       <ArtistInsight artistId={id} />
     </div>
-  )
-}
+  );
+};
 
-export default ArtistProfile
+export default ArtistProfile;

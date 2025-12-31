@@ -1,7 +1,6 @@
 import {
   MdPerson,
   MdSecurity,
-  MdPayment,
   MdAnalytics,
   MdOutlineTrackChanges,
   MdReviews,
@@ -9,7 +8,6 @@ import {
   MdEvent,
   MdEventAvailable,
   MdFestival,
-  MdOutlineReport 
 } from "react-icons/md";
 import { FiActivity } from "react-icons/fi";
 
@@ -85,33 +83,35 @@ export const addProductLinks = [
     icon: <MdEvent />,
     access: "admin",
   },
-
 ];
 
 export const administrationLinks = [
   {
+    href: "/administration/upload-artist",
+    text: "Upload Artist",
+  },
+  {
+    href: "/administration/upload-festival",
+    text: "Upload Festival",
+  },
+  {
     href: "/administration/submitted-artists",
     text: "Artists",
-    icon: <MdPerson />,
   },
   {
     href: "/administration/submitted-clubs",
     text: "Clubs",
-    icon: <MdOutlineTrackChanges />,
   },
   {
     href: "/administration/submitted-events",
     text: "Events",
-    icon: <MdEvent />,
   },
   {
     href: "/administration/submitted-festival",
     text: "Festivals",
-    icon: <MdFestival />,
   },
   {
     href: "/administration/reports",
     text: "Reports and Feedbacks",
-    icon: <MdOutlineReport />,
   },
 ];
