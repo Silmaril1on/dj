@@ -24,10 +24,6 @@ async function fetchMusicBrainz(url) {
 }
 
 export async function GET(request) {
-  console.log("═══════════════════════════════════════════");
-  console.log("🎵 MUSICBRAINZ SEARCH API CALLED");
-  console.log("═══════════════════════════════════════════");
-
   try {
     // Authentication & Admin check
     const cookieStore = await cookies();
@@ -52,9 +48,6 @@ export async function GET(request) {
     const { searchParams } = new URL(request.url);
     const query = searchParams.get("q")?.trim();
 
-    console.log("📝 Search query:", query);
-    console.log("📝 Query length:", query?.length);
-
     if (!query || query.length < 2) {
       console.log("❌ Query too short");
       return NextResponse.json({ results: [] });
@@ -64,13 +57,7 @@ export async function GET(request) {
     const encodedQuery = encodeURIComponent(query);
     const url = `${MUSICBRAINZ_API}/artist/?query=artist:${encodedQuery}&fmt=json&limit=10`;
 
-    console.log("🌐 Fetching from MusicBrainz:", url);
-
     const data = await fetchMusicBrainz(url);
-
-    console.log("📦 MusicBrainz raw response:");
-    console.log(JSON.stringify(data, null, 2));
-    console.log("📊 Artists found:", data.artists?.length || 0);
 
     if (!data.artists || data.artists.length === 0) {
       console.log("❌ No artists found on MusicBrainz");
@@ -89,11 +76,6 @@ export async function GET(request) {
       disambiguation: artist.disambiguation || null,
       artist_image: null, // MusicBrainz doesn't provide images in search
     }));
-
-    console.log("✅ Transformed results:");
-    console.log(JSON.stringify(results, null, 2));
-    console.log("📊 Total results:", results.length);
-    console.log("═══════════════════════════════════════════\n");
 
     return NextResponse.json({
       results,

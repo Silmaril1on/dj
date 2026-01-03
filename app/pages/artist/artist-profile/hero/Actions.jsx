@@ -6,8 +6,6 @@ import { FaHouse } from "react-icons/fa6";
 import { selectUser } from "@/app/features/userSlice";
 import AddArtistDates from "@/app/components/buttons/artist-buttons/AddArtistDates";
 import AddArtistAlbum from "@/app/components/buttons/artist-buttons/AddArtistAlbum";
-import ImportAlbumsButton from "@/app/components/buttons/artist-buttons/ImportAlbumsButton";
-import EditProduct from "@/app/components/buttons/EditProduct.";
 import RatingButton from "@/app/components/buttons/artist-buttons/RatingButton";
 import ReviewButton from "@/app/components/buttons/artist-buttons/ReviewButton";
 import LikeButton from "@/app/components/buttons/artist-buttons/LikeButton";
@@ -16,15 +14,9 @@ const Actions = ({ data, userRating, onLikeChange }) => {
   const dispatch = useDispatch();
   const user = useSelector(selectUser);
   const userSubmittedArtistId = data.userSubmittedArtistId;
-  const isAdmin = user?.is_admin;
 
   const handleBookDj = () => {
     dispatch(openBookingModal(data));
-  };
-
-  const handleAlbumsImported = () => {
-    // Reload the page to show new albums
-    window.location.reload();
   };
 
   const shouldRenderBookButton =
@@ -56,14 +48,6 @@ const Actions = ({ data, userRating, onLikeChange }) => {
         artist={data}
         userSubmittedArtistId={userSubmittedArtistId}
       />
-      {isAdmin && (
-        <ImportAlbumsButton
-          artistId={data.id}
-          artistName={data.stage_name || data.name}
-          onSuccess={handleAlbumsImported}
-          variant="icon"
-        />
-      )}
       <RatingButton
         desc={userRating ? " " : "Rate"}
         artist={data}

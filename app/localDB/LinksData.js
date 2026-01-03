@@ -8,7 +8,6 @@ import {
   MdEvent,
   MdEventAvailable,
   MdFestival,
-  MdAlbum,
 } from "react-icons/md";
 import { FiActivity } from "react-icons/fi";
 
@@ -96,20 +95,8 @@ export const administrationLinks = [
     text: "Upload Festival",
   },
   {
-    text: "Automation",
-    hasDropdown: true,
-    dropdownItems: [
-      {
-        href: "/administration/album-automation",
-        text: "Album Automation",
-        icon: <MdAlbum />,
-      },
-      {
-        href: "/administration/artist-automation",
-        text: "Artist Automation",
-        icon: <MdPerson />,
-      },
-    ],
+    href: "/administration/apify",
+    text: "APIFY",
   },
   {
     text: "Submitted Items",

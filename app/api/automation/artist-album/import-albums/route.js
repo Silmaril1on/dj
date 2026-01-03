@@ -291,7 +291,7 @@ export async function POST(request) {
             artist_id: artistId,
             musicbrainz_release_group_id: album.id,
             user_id: null,
-            description: `${album.primaryType} - Imported from MusicBrainz`,
+            description: `${album.primaryType} - ${album.title}`,
           })
           .select()
           .single();

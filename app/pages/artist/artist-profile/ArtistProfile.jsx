@@ -10,8 +10,6 @@ import Albums from "./albums/Albums";
 const ArtistProfile = ({ data, artistId }) => {
   const id = artistId || data?.id;
 
-  console.log(id);
-
   useRecentlyViewed("artist", id);
 
   return (

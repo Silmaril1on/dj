@@ -1,4 +1,5 @@
 "use client";
+import { useState, useEffect } from "react";
 import { MdEdit } from "react-icons/md";
 import { useDispatch, useSelector } from "react-redux";
 import { selectUser } from "@/app/features/userSlice";
@@ -9,6 +10,11 @@ const EditProduct = ({ className, data, type, desc }) => {
   const dispatch = useDispatch();
   const user = useSelector(selectUser);
   const router = useRouter();
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   const canEdit =
     type === "artist"
@@ -64,6 +70,11 @@ const EditProduct = ({ className, data, type, desc }) => {
   };
 
   if (!canEdit) {
+    return null;
+  }
+
+  // Prevent hydration mismatch - don't render until mounted
+  if (!mounted) {
     return null;
   }
 

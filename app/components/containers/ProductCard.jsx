@@ -1,12 +1,12 @@
 "use client";
-import { motion } from "framer-motion"
-import Image from 'next/image'
-import Link from 'next/link'
-import Title from '@/app/components/ui/Title'
-import SpanText from '@/app/components/ui/SpanText'
-import ArtistCountry from '@/app/components/materials/ArtistCountry'
-import Dot from '@/app/components/ui/Dot'
-import { FaStar, FaUsers } from 'react-icons/fa'
+import { motion } from "framer-motion";
+import Image from "next/image";
+import Link from "next/link";
+import Title from "@/app/components/ui/Title";
+import SpanText from "@/app/components/ui/SpanText";
+import ArtistCountry from "@/app/components/materials/ArtistCountry";
+import Dot from "@/app/components/ui/Dot";
+import { FaStar, FaUsers } from "react-icons/fa";
 import { truncateString } from "@/app/helpers/utils";
 
 const ProductCard = ({
@@ -18,7 +18,7 @@ const ProductCard = ({
   artists = [],
   date,
   likesCount,
-  capacity, 
+  capacity,
   href,
   delay = 0,
   className = "",
@@ -33,17 +33,34 @@ const ProductCard = ({
   >
     <Link href={href}>
       <div className="h-44 lg:h-80 brightness">
-        <Image
-          src={image}
-          alt={name}
-          className="w-full h-full object-cover"
-          width={300}
-          height={300}
-        />
+        {image ? (
+          <Image
+            src={image}
+            alt={name}
+            className="w-full h-full object-cover"
+            width={300}
+            height={300}
+          />
+        ) : (
+          <Image
+            src="/assets/elivagar-logo.png"
+            alt="soundfolio"
+            width={300}
+            height={300}
+          />
+        )}
       </div>
       <div className="flex flex-col">
-        <Title color="cream" className="uppercase text-start text-[12px] lg:text-lg xl:text-xl" text={truncateString(name, 28)} />
-        {date && <p className="text-chino uppercase font-bold text-[10px] lg:text-sm">{date}</p>}
+        <Title
+          color="cream"
+          className="uppercase text-start text-[12px] lg:text-lg xl:text-xl"
+          text={truncateString(name, 28)}
+        />
+        {date && (
+          <p className="text-chino uppercase font-bold text-[10px] lg:text-sm">
+            {date}
+          </p>
+        )}
         <ArtistCountry artistCountry={{ country, city }} />
         {/* Add capacity display here */}
         {capacity && (
@@ -56,7 +73,11 @@ const ProductCard = ({
         <div className="flex flex-wrap">
           {artists.slice(0, 5).map((artist, idx) => (
             <div className="flex mr-2 space-x-1" key={idx}>
-              <Title color="chino" className="uppercase text-[12px] lg:text-lg" text={artist} />
+              <Title
+                color="chino"
+                className="uppercase text-[12px] lg:text-lg"
+                text={artist}
+              />
               {idx < artists.length - 1 && <Dot />}
             </div>
           ))}
@@ -77,7 +98,7 @@ const ProductCard = ({
           <SpanText
             icon={<FaUsers />}
             size="xs"
-            text={`${likesCount} ${artists.length > 0 ? 'Interested' : 'Followers'}`}
+            text={`${likesCount} ${artists.length > 0 ? "Interested" : "Followers"}`}
             className="ml-2 secondary pointer-events-none"
           />
         </div>
@@ -86,4 +107,4 @@ const ProductCard = ({
   </motion.div>
 );
 
-export default ProductCard
+export default ProductCard;

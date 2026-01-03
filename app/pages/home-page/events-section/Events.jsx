@@ -76,14 +76,16 @@ const Panel = ({ open, setOpen, event }) => {
           className="bg-stone-900 lg:mx-1 hover:bg-gold/50 cursor-pointer border border-gold/30 hover:border-gold/50 duration-300 flex flex-row-reverse lg:flex-col justify-end items-center gap-4 relative group"
           onClick={() => setOpen(event.id)}
         >
-          <Image
-            src={event.event_image}
-            alt={event.event_name}
-            fill
-            priority
-            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-            className="object-cover relative z-0"
-          />
+          {event.event_image && (
+            <Image
+              src={event.event_image}
+              alt={event.event_name}
+              fill
+              priority
+              sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+              className="object-cover relative z-0"
+            />
+          )}
           <div className="bg-black/60 relative z-[2] w-full h-full p-2 lg:p-5 backdrop-blur-xs flex justify-start">
             <span
               style={{
@@ -110,13 +112,15 @@ const Panel = ({ open, setOpen, event }) => {
             exit="closed"
             className="w-full h-full overflow-hidden relative flex items-end lg:mx-1 border border-gold/30"
           >
-            <Image
-              src={event.event_image}
-              alt={event.event_name}
-              fill
-              sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-              className="object-cover"
-            />
+            {event.event_image && (
+              <Image
+                src={event.event_image}
+                alt={event.event_name}
+                fill
+                sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                className="object-cover"
+              />
+            )}
             <motion.div
               variants={descriptionVariants}
               initial="closed"
@@ -131,7 +135,11 @@ const Panel = ({ open, setOpen, event }) => {
                   text="Check Event"
                   icon={<FaLink />}
                 />
-                <MyLink href={`events/${event.id}`} text="View Details" icon={<FaArrowRight />} />
+                <MyLink
+                  href={`events/${event.id}`}
+                  text="View Details"
+                  icon={<FaArrowRight />}
+                />
               </div>
               <div className="p-2 lg:p-4">
                 <div className="absolute center space-x-2 top-2 lg:top-4 right-2 lg:right-4">
@@ -163,9 +171,13 @@ const Panel = ({ open, setOpen, event }) => {
                   <Paragraph text={event.address} />
                 </FlexBox>
                 <FlexBox type="row-start" className="gap-2">
-                  <p className="text-chino text-[10px] lg:text-base">Doors Open: {event.doors_open}</p>
+                  <p className="text-chino text-[10px] lg:text-base">
+                    Doors Open: {event.doors_open}
+                  </p>
                   <Dot />
-                  <p className="text-gold text-[10px] lg:text-base font-medium">{event.date}</p>
+                  <p className="text-gold text-[10px] lg:text-base font-medium">
+                    {event.date}
+                  </p>
                 </FlexBox>
                 <Title
                   color="cream"
@@ -178,7 +190,10 @@ const Panel = ({ open, setOpen, event }) => {
                   className="flex-wrap gap-2 items-center"
                 >
                   {event.artists.map((artist, index) => (
-                    <div key={index} className="flex items-center space-x-0.5 lg:space-x-2">
+                    <div
+                      key={index}
+                      className="flex items-center space-x-0.5 lg:space-x-2"
+                    >
                       <Title
                         color="cream"
                         className="uppercase text-sm leading-2 lg:leading-none lg:text-4xl"

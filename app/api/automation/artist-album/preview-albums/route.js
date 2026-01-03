@@ -5,6 +5,41 @@ import { getServerUser, supabaseAdmin } from "@/app/lib/config/supabaseServer";
 // Rate limiting helper
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
+// Concurrency limiter
+async function mapWithConcurrency(items, limit, mapper) {
+  const results = [];
+  const executing = [];
+
+  for (const item of items) {
+    const p = Promise.resolve().then(() => mapper(item));
+    results.push(p);
+
+    if (limit <= items.length) {
+      const e = p.then(() => executing.splice(executing.indexOf(e), 1));
+      executing.push(e);
+      if (executing.length >= limit) {
+        await Promise.race(executing);
+      }
+    }
+  }
+  return Promise.all(results);
+}
+
+// Fetch with retry logic
+async function fetchWithRetry(url, retries = 3, delay = 500, headers = {}) {
+  for (let i = 0; i < retries; i++) {
+    try {
+      const res = await fetch(url, { headers });
+      if (res.ok) return res;
+      await sleep(delay * (i + 1));
+    } catch (error) {
+      if (i === retries - 1) throw error;
+      await sleep(delay * (i + 1));
+    }
+  }
+  return null;
+}
+
 const MUSICBRAINZ_API = "https://musicbrainz.org/ws/2";
 const COVERART_API = "https://coverartarchive.org";
 const USER_AGENT = "DJApp/1.0.0 (contact@djapp.com)";
@@ -52,21 +87,32 @@ async function getMusicBrainzArtistId(artistName) {
 
 async function fetchAlbumCover(releaseGroupId) {
   try {
-    // First get the release ID from the release-group
+    // Try direct Cover Art Archive release-group endpoint first (fastest)
+    const directUrl = `${COVERART_API}/release-group/${releaseGroupId}/front`;
+    const directResponse = await fetchWithRetry(directUrl, 2, 300);
+
+    if (directResponse && directResponse.ok) {
+      const finalUrl = directResponse.url; // Follow redirect
+      return finalUrl;
+    }
+
+    // Fallback: Get release ID from release-group
     const rgUrl = `${MUSICBRAINZ_API}/release-group/${releaseGroupId}?inc=releases&fmt=json`;
     await sleep(1000);
 
-    const response = await fetch(rgUrl, {
-      headers: {
-        "User-Agent": USER_AGENT,
-        Accept: "application/json",
-      },
+    const response = await fetchWithRetry(rgUrl, 2, 500, {
+      "User-Agent": USER_AGENT,
+      Accept: "application/json",
     });
 
-    if (!response.ok) return null;
+    if (!response || !response.ok) {
+      return null;
+    }
 
     const rgData = await response.json();
-    if (!rgData.releases || rgData.releases.length === 0) return null;
+    if (!rgData.releases || rgData.releases.length === 0) {
+      return null;
+    }
 
     // Get official release or first available
     const officialRelease =
@@ -74,11 +120,13 @@ async function fetchAlbumCover(releaseGroupId) {
       rgData.releases[0];
     const releaseId = officialRelease.id;
 
-    // Fetch cover from Cover Art Archive
+    // Fetch cover from Cover Art Archive with retry
     const coverUrl = `${COVERART_API}/release/${releaseId}`;
-    const coverResponse = await fetch(coverUrl);
+    const coverResponse = await fetchWithRetry(coverUrl, 3, 500);
 
-    if (!coverResponse.ok) return null;
+    if (!coverResponse || !coverResponse.ok) {
+      return null;
+    }
 
     const coverData = await coverResponse.json();
 
@@ -88,27 +136,27 @@ async function fetchAlbumCover(releaseGroupId) {
       coverData.images?.find((img) => img.approved) ||
       coverData.images?.[0];
 
-    return frontImage?.image || null;
+    const imageUrl = frontImage?.image || null;
+    return imageUrl;
   } catch (error) {
     return null;
   }
 }
 
 async function fetchAlbums(artistMbid) {
-  const url = `${MUSICBRAINZ_API}/release-group?artist=${artistMbid}&type=album|ep&fmt=json&limit=100`;
-
+  const url = `${MUSICBRAINZ_API}/release-group?artist=${artistMbid}&type=album&fmt=json&limit=100`;
   const data = await fetchMusicBrainz(url);
-
   if (!data["release-groups"]) {
     return [];
   }
 
+  // Filter: Only Albums (no EPs), no Compilations, no Live
   return data["release-groups"]
     .filter((rg) => {
       const primaryType = rg["primary-type"];
       const secondaryTypes = rg["secondary-types"] || [];
       return (
-        (primaryType === "Album" || primaryType === "EP") &&
+        primaryType === "Album" &&
         !secondaryTypes.includes("Compilation") &&
         !secondaryTypes.includes("Live")
       );
@@ -198,15 +246,25 @@ export async function GET(request) {
       );
     }
 
-    const albumsWithCovers = await Promise.all(
-      albums.map(async (album) => {
+    // Fetch covers with concurrency limit (3 at a time)
+    const albumsWithCovers = await mapWithConcurrency(
+      albums,
+      3, // Only 3 concurrent requests
+      async (album) => {
         const albumImage = await fetchAlbumCover(album.id);
         return {
           ...album,
           albumImage,
           alreadyImported: existingIds.has(album.id),
         };
-      })
+      }
+    );
+
+    const albumsWithImages = albumsWithCovers.filter(
+      (a) => a.albumImage
+    ).length;
+    console.log(
+      `✅ Cover fetch complete: ${albumsWithImages}/${albumsWithCovers.length} albums have images`
     );
 
     const albumsWithStatus = albumsWithCovers;

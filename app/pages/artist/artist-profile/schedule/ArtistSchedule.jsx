@@ -167,7 +167,11 @@ const ArtistSchedule = ({
               {/* Club/Venue Name or Event Name */}
               <div className="flex flex-col items-end justify-evenly">
                 <Title
-                  text={clubId ? schedule.event_name : schedule.club_name}
+                  text={
+                    clubId
+                      ? schedule.event_name
+                      : schedule.event_title || schedule.club_name
+                  }
                   className="pointer-events-none"
                 />
                 <FlexBox type="row-center" className="gap-4">
