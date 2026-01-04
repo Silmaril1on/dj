@@ -1,56 +1,56 @@
-'use client'
-import { useDispatch, useSelector } from 'react-redux'
-import { useRouter } from 'next/navigation'
-import { hideSuccess } from '@/app/features/successSlice'
-import { selectSuccess } from '@/app/features/successSlice'
-import { MdCheckCircle, MdLocationOn, MdPerson } from 'react-icons/md'
-import { motion } from 'framer-motion'
-import Button from '@/app/components/buttons/Button'
-import Close from '../buttons/Close'
+"use client";
+import { useDispatch, useSelector } from "react-redux";
+import { useRouter } from "next/navigation";
+import { hideSuccess } from "@/app/features/successSlice";
+import { selectSuccess } from "@/app/features/successSlice";
+import { MdCheckCircle, MdLocationOn, MdPerson } from "react-icons/md";
+import { motion } from "framer-motion";
+import Button from "@/app/components/buttons/Button";
+import Close from "../buttons/Close";
 
 const SuccessOnSubmit = () => {
-  const dispatch = useDispatch()
-  const router = useRouter()
-  const { type, data } = useSelector(selectSuccess)
+  const dispatch = useDispatch();
+  const router = useRouter();
+  const { type, data } = useSelector(selectSuccess);
 
   const handleClose = () => {
-    dispatch(hideSuccess())
-    router.push('/')
-  }
+    dispatch(hideSuccess());
+    router.push("/");
+  };
 
   const getTypeTitle = () => {
     switch (type) {
-      case 'artist':
-        return 'Artist Submitted Successfully!'
-      case 'club':
-        return 'Club Submitted Successfully!'
-      case 'event':
-        return 'Event Submitted Successfully!'
-      case 'artist_date':
-        return 'Artist Date Added Successfully!'
-      case 'artist_album':
-        return 'Album Added Successfully!'
+      case "artist":
+        return "Artist Submitted Successfully!";
+      case "club":
+        return "Club Submitted Successfully!";
+      case "event":
+        return "Event Submitted Successfully!";
+      case "artist_date":
+        return "Artist Date Added Successfully!";
+      case "artist_album":
+        return "Album Added Successfully!";
       default:
-        return 'Submitted Successfully!'
+        return "Submitted Successfully!";
     }
-  }
+  };
 
   const getTypeDescription = () => {
     switch (type) {
-      case 'artist':
-        return 'Your artist submission is now pending approval. We\'ll review it and get back to you soon! You can check details in your profiles statistics'
-      case 'club':
-        return 'Your club submission is now pending approval. We\'ll review it and get back to you soon!'
-      case 'event':
-        return 'Your event submission is now pending approval. We\'ll review it and get back to you soon!'
-      case 'artist_date':
-        return 'Your artist date has been added successfully! You can now see this date on the artist\'s profile.'
-      case 'artist_album':
-        return 'Your album has been added successfully! You can now see this album on the artist\'s profile.'
+      case "artist":
+        return "Your artist submission is now pending approval. We'll review it and get back to you soon! You can check details in your profiles statistics";
+      case "club":
+        return "Your club submission is now pending approval. We'll review it and get back to you soon!";
+      case "event":
+        return "Your event submission is now pending approval. We'll review it and get back to you soon!";
+      case "artist_date":
+        return "Your artist date has been added successfully! You can now see this date on the artist's profile.";
+      case "artist_album":
+        return "Your album has been added successfully! You can now see this album on the artist's profile.";
       default:
-        return 'Your submission is now pending approval. We\'ll review it and get back to you soon!'
+        return "Your submission is now pending approval. We'll review it and get back to you soon!";
     }
-  }
+  };
 
   return (
     <motion.div
@@ -82,7 +82,7 @@ const SuccessOnSubmit = () => {
           {getTypeTitle()}
         </motion.h2>
         {/* Success Description */}
-        <div className='center'>
+        <div className="center">
           <motion.p
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -93,7 +93,7 @@ const SuccessOnSubmit = () => {
           </motion.p>
         </div>
         {/* Submitted Item Preview - only show for non-artist_date types */}
-        {type !== 'artist_date' && (
+        {type !== "artist_date" && (
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -116,7 +116,7 @@ const SuccessOnSubmit = () => {
             </h3>
 
             {/* Stage Name (for artists) */}
-            {type === 'artist' && data.stage_name && (
+            {type === "artist" && data.stage_name && (
               <p className="text-sm capitalize">
                 <MdPerson className="inline mr-1" />
                 {data.stage_name}
@@ -126,28 +126,26 @@ const SuccessOnSubmit = () => {
             {(data.country || data.city) && (
               <p className="text-sm">
                 <MdLocationOn className="inline mr-1" />
-                {[data.city, data.country].filter(Boolean).join(', ')}
+                {[data.city, data.country].filter(Boolean).join(", ")}
               </p>
             )}
           </motion.div>
         )}
 
-        {/* Action Buttons */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.6 }}
-          className="flex flex-col sm:flex-row gap-3 justify-center mt-5"
-        >
-          <Button
-            text="Go to Home"
-            onClick={handleClose}
-          />
-
-        </motion.div>
+        {/* Action Buttons - only show for non-artist_date types */}
+        {type !== "artist_date" && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.6 }}
+            className="flex flex-col sm:flex-row gap-3 justify-center mt-5"
+          >
+            <Button text="Go to Home" onClick={handleClose} />
+          </motion.div>
+        )}
       </div>
     </motion.div>
-  )
-}
+  );
+};
 
-export default SuccessOnSubmit
+export default SuccessOnSubmit;

@@ -20,10 +20,8 @@ export async function GET() {
         .eq("status", "approved")
         .order("created_at", { ascending: false })
         .limit(7),
-      
-      supabase
-        .from("event_likes")
-        .select("event_id, user_id")
+
+      supabase.from("event_likes").select("event_id, user_id"),
     ]);
 
     if (eventsResult.error) {
@@ -45,7 +43,7 @@ export async function GET() {
     // Build likes map for better performance
     const likesMap = {};
     const userLikesSet = new Set();
-    
+
     likesData.forEach((like) => {
       if (eventIds.includes(like.event_id)) {
         likesMap[like.event_id] = (likesMap[like.event_id] || 0) + 1;
@@ -197,7 +195,7 @@ export async function POST(request) {
 
     // ---- Match club by venue_name ----
     let matchedClubId = club_id; // Use existing club_id if provided
-    
+
     if (fields.venue_name && !club_id) {
       const { data: matchedClubs, error: clubError } = await supabase
         .from("clubs")
@@ -270,7 +268,7 @@ export async function POST(request) {
           city: fields.city,
           club_name: fields.venue_name || null,
           event_link: fields.location_url || null,
-          status: 'pending',
+          status: "pending",
           created_at: new Date().toISOString(),
           updated_at: new Date().toISOString(),
         }));
@@ -340,6 +338,13 @@ export async function PATCH(request) {
     const formData = await request.formData();
 
     const eventId = formData.get("eventId");
+    console.log(
+      "📝 PATCH /api/events - eventId:",
+      eventId,
+      "Type:",
+      typeof eventId
+    );
+
     if (!eventId) {
       return NextResponse.json(
         { success: false, error: "Missing eventId" },
@@ -347,10 +352,51 @@ export async function PATCH(request) {
       );
     }
 
+    // Check if event exists first (try both as string and number for UUID compatibility)
+    const { data: existingEvent, error: checkError } = await supabase
+      .from("events")
+      .select("id, event_name, user_id")
+      .eq("id", eventId)
+      .maybeSingle();
+
+    console.log("🔍 Existing event check:", {
+      eventId,
+      existingEvent: existingEvent
+        ? { id: existingEvent.id, name: existingEvent.event_name }
+        : null,
+      checkError,
+    });
+
+    if (checkError) {
+      console.error("❌ Error checking event:", checkError);
+      return NextResponse.json(
+        {
+          success: false,
+          error: "Error checking event",
+          details: checkError.message,
+        },
+        { status: 500 }
+      );
+    }
+
+    if (!existingEvent) {
+      console.error("❌ Event not found with ID:", eventId);
+      return NextResponse.json(
+        { success: false, error: `Event with ID ${eventId} not found` },
+        { status: 404 }
+      );
+    }
+
     // Build update object
     const updateFields = {};
     for (const [key, value] of formData.entries()) {
-      if (key !== "eventId" && value !== undefined && value !== null) {
+      if (
+        key !== "eventId" &&
+        key !== "event_image" &&
+        value !== undefined &&
+        value !== null &&
+        value !== ""
+      ) {
         // Handle arrays (artists, links, etc) if needed
         if (["artists", "links"].includes(key)) {
           try {
@@ -366,39 +412,51 @@ export async function PATCH(request) {
 
     // Handle image upload if a new file is provided
     const event_image = formData.get("event_image");
-    let eventImageUrl = null;
-    if (event_image instanceof File) {
-      const fileExtension = event_image.name.split(".").pop();
-      const fileName = `event_${eventId}_${Date.now()}.${fileExtension}`;
-      if (!event_image.type.startsWith("image/")) {
-        return NextResponse.json(
-          { success: false, error: "Invalid file type. Only images are allowed." },
-          { status: 400 }
-        );
+    if (event_image) {
+      if (event_image instanceof File) {
+        // Handle file upload
+        const fileExtension = event_image.name.split(".").pop();
+        const fileName = `event_${eventId}_${Date.now()}.${fileExtension}`;
+        if (!event_image.type.startsWith("image/")) {
+          return NextResponse.json(
+            {
+              success: false,
+              error: "Invalid file type. Only images are allowed.",
+            },
+            { status: 400 }
+          );
+        }
+        if (event_image.size > 1 * 1024 * 1024) {
+          return NextResponse.json(
+            { success: false, error: "File too large. Max 1MB allowed." },
+            { status: 400 }
+          );
+        }
+        const { error: uploadError } = await supabase.storage
+          .from("event_images")
+          .upload(fileName, event_image, {
+            cacheControl: "3600",
+            upsert: true,
+          });
+        if (uploadError) {
+          return NextResponse.json(
+            { success: false, error: "Failed to upload image" },
+            { status: 500 }
+          );
+        }
+        const { data } = supabase.storage
+          .from("event_images")
+          .getPublicUrl(fileName);
+        updateFields.event_image = data.publicUrl;
+      } else if (typeof event_image === "string" && event_image.trim() !== "") {
+        // Handle URL string
+        updateFields.event_image = event_image;
       }
-      if (event_image.size > 1 * 1024 * 1024) {
-        return NextResponse.json(
-          { success: false, error: "File too large. Max 1MB allowed." },
-          { status: 400 }
-        );
-      }
-      const { error: uploadError } = await supabase.storage
-        .from("event_images")
-        .upload(fileName, event_image, { cacheControl: "3600", upsert: true });
-      if (uploadError) {
-        return NextResponse.json(
-          { success: false, error: "Failed to upload image" },
-          { status: 500 }
-        );
-      }
-      const { data } = supabase.storage
-        .from("event_images")
-        .getPublicUrl(fileName);
-      eventImageUrl = data.publicUrl;
-      updateFields.event_image = eventImageUrl;
     }
 
     // Update the event
+    console.log("📤 Updating event with fields:", updateFields);
+
     const { data: updated, error: updateError } = await supabase
       .from("events")
       .update(updateFields)
@@ -407,11 +465,18 @@ export async function PATCH(request) {
       .single();
 
     if (updateError) {
+      console.error("❌ Error updating event:", updateError);
       return NextResponse.json(
-        { success: false, error: "Failed to update event" },
+        {
+          success: false,
+          error: "Failed to update event",
+          details: updateError.message,
+        },
         { status: 500 }
       );
     }
+
+    console.log("✅ Event updated successfully:", updated.id);
 
     return NextResponse.json({
       success: true,
@@ -419,8 +484,9 @@ export async function PATCH(request) {
       data: updated,
     });
   } catch (err) {
+    console.error("❌ PATCH /api/events error:", err);
     return NextResponse.json(
-      { success: false, error: "Internal server error" },
+      { success: false, error: "Internal server error", details: err.message },
       { status: 500 }
     );
   }

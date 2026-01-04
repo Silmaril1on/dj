@@ -50,18 +50,18 @@ const ProductCard = ({
           />
         )}
       </div>
-      <div className="flex flex-col">
+      <div className="flex flex-col *:leading-none">
         <Title
           color="cream"
           className="uppercase text-start text-[12px] lg:text-lg xl:text-xl"
           text={truncateString(name, 28)}
         />
         {date && (
-          <p className="text-chino uppercase font-bold text-[10px] lg:text-sm">
-            {date}
-          </p>
+          <p className="text-chino uppercase text-[10px] lg:text-sm">{date}</p>
         )}
-        <ArtistCountry artistCountry={{ country, city }} />
+        <div className="py-2">
+          <ArtistCountry artistCountry={{ country, city }} />
+        </div>
         {/* Add capacity display here */}
         {capacity && (
           <p className="text-chino text-sm">
@@ -72,13 +72,13 @@ const ProductCard = ({
       {artists.length > 0 && (
         <div className="flex flex-wrap">
           {artists.slice(0, 5).map((artist, idx) => (
-            <div className="flex mr-2 space-x-1" key={idx}>
+            <div className="flex mr-2 space-x-1  items-center" key={idx}>
               <Title
                 color="chino"
-                className="uppercase text-[12px] lg:text-lg"
+                className="uppercase text-[12px] lg:text-lg leading-none"
                 text={artist}
               />
-              {idx < artists.length - 1 && <Dot />}
+              {idx < artists.length - 1 && <Dot className="leading-none" />}
             </div>
           ))}
         </div>

@@ -1,14 +1,15 @@
-import Motion from '@/app/components/containers/Motion';
-import ArtistCountry from '@/app/components/materials/ArtistCountry';
-import Location from '@/app/components/materials/Location';
-import MyLink from '@/app/components/ui/MyLink';
-import Paragraph from '@/app/components/ui/Paragraph';
-import SpanText from '@/app/components/ui/SpanText';
-import Title from '@/app/components/ui/Title';
-import { capitalizeFirst, formatBirthdate } from '@/app/helpers/utils';
-import { FaCalendar, FaLink, FaGlobe } from 'react-icons/fa';
-import EmailTag from '@/app/components/ui/EmailTag';
-import SocialLinks from '@/app/components/materials/SocialLinks';
+import Motion from "@/app/components/containers/Motion";
+import ArtistCountry from "@/app/components/materials/ArtistCountry";
+import Location from "@/app/components/materials/Location";
+import MyLink from "@/app/components/ui/MyLink";
+import Paragraph from "@/app/components/ui/Paragraph";
+import SpanText from "@/app/components/ui/SpanText";
+import Title from "@/app/components/ui/Title";
+import { capitalizeFirst, formatBirthdate } from "@/app/helpers/utils";
+import { FaCalendar, FaLink, FaGlobe } from "react-icons/fa";
+import EmailTag from "@/app/components/ui/EmailTag";
+import SocialLinks from "@/app/components/materials/SocialLinks";
+import { CiCalendar } from "react-icons/ci";
 
 const ProfileBasicInfo = ({ data, type }) => {
   const renderEventInfo = () => (
@@ -32,9 +33,9 @@ const ProfileBasicInfo = ({ data, type }) => {
         )}
       </Motion>
       <div className="space-y-3 py-5">
-        <Motion animation="fade" delay={0.3} className="space-y-1">
+        <Motion animation="fade" delay={0.3} className="space-y-1 w-full">
           <Title size="xl" text={data.name} />
-          <Paragraph text={data.description} />
+          <Paragraph text={data.description} className=" lg:pr-[15%]" />
         </Motion>
         <Motion animation="left" delay={1}>
           <ArtistCountry artistCountry={data} />
@@ -44,10 +45,10 @@ const ProfileBasicInfo = ({ data, type }) => {
       <div className="overflow-hidden">
         <Motion animation="top" delay={0.7}>
           <SpanText
-            icon={<FaCalendar />}
+            icon={<CiCalendar />}
             color="cream"
             size="md"
-            className="font-bold"
+            className="font-bold uppercase"
             text={formatBirthdate(data.date)}
           />
           {data.doors_open && (
@@ -105,7 +106,10 @@ const ProfileBasicInfo = ({ data, type }) => {
           <Paragraph text={data.description} />
         </Motion>
         <Motion animation="left" delay={1}>
-          <Location address={data.address} location_url={data.location_url || data.location} />
+          <Location
+            address={data.address}
+            location_url={data.location_url || data.location}
+          />
         </Motion>
       </div>
       {(data.start_date || data.end_date) && (
@@ -132,12 +136,18 @@ const ProfileBasicInfo = ({ data, type }) => {
         <div className="mt-4 text-xs text-stone-400 space-y-1">
           {data.capacity_total && (
             <div>
-              Capacity Total: <span className="text-gold">{parseInt(data.capacity_total).toLocaleString()}</span>
+              Capacity Total:{" "}
+              <span className="text-gold">
+                {parseInt(data.capacity_total).toLocaleString()}
+              </span>
             </div>
           )}
           {data.capacity_per_day && (
             <div>
-              Capacity Per Day: <span className="text-gold">{parseInt(data.capacity_per_day).toLocaleString()}</span>
+              Capacity Per Day:{" "}
+              <span className="text-gold">
+                {parseInt(data.capacity_per_day).toLocaleString()}
+              </span>
             </div>
           )}
           {!data.capacity_total && !data.capacity_per_day && data.capacity && (

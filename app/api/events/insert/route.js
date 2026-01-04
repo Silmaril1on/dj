@@ -48,13 +48,6 @@ export async function POST(req) {
             const imageResponse = await fetch(event.images[0].filename);
             const imageBuffer = await imageResponse.arrayBuffer();
 
-            // Resize to 720x720
-            console.log("✂️ Resizing image to 720x720...");
-            const resizedBuffer = await sharp(Buffer.from(imageBuffer))
-              .resize(720, 720, { fit: "cover" })
-              .jpeg({ quality: 90 })
-              .toBuffer();
-
             // Generate unique filename
             const filename = `event_${event.id}_${Date.now()}.jpg`;
             const filePath = `${filename}`;
@@ -64,7 +57,7 @@ export async function POST(req) {
             const { data: uploadData, error: uploadError } =
               await supabase.storage
                 .from("event_images")
-                .upload(filePath, resizedBuffer, {
+                .upload(filePath, imageBuffer, {
                   contentType: "image/jpeg",
                   upsert: false,
                 });
@@ -110,6 +103,28 @@ export async function POST(req) {
         const cleanDescription = event.content
           ? event.content.replace(/\\n/g, " ").replace(/\n/g, " ").trim()
           : null;
+
+        // Check if event already exists (by title, date, and venue)
+        const { data: existingEvent, error: checkError } = await supabase
+          .from("events")
+          .select("id, event_name, date, venue_name")
+          .eq("event_name", event.title || null)
+          .eq("date", event.date ? event.date.split("T")[0] : null)
+          .eq("venue_name", event.venue?.name || null)
+          .maybeSingle();
+
+        if (checkError) {
+          console.error("Error checking for duplicate:", checkError);
+        }
+
+        if (existingEvent) {
+          console.log(`⏭️ Skipping duplicate event: ${event.title}`);
+          errors.push({
+            event: event.title || event.id,
+            error: "Event already exists in database",
+          });
+          continue; // Skip to next event
+        }
 
         // Insert into events table
         const eventData = {

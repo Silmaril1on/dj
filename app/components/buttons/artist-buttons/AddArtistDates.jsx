@@ -1,13 +1,19 @@
 "use client";
+import { useState, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { selectUser } from "@/app/features/userSlice";
 import { setError } from "@/app/features/modalSlice";
 import { openAddEventModal } from "@/app/features/modalSlice";
-import { MdEvent } from "react-icons/md";
 
 const AddArtistDates = ({ className, artist, desc, userSubmittedArtistId }) => {
   const dispatch = useDispatch();
   const user = useSelector(selectUser);
+  const [mounted, setMounted] = useState(false);
+
+  // Prevent hydration mismatch by only rendering after mount
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   // Check if current user is admin or submitted this artist
   const canAddEvent =
@@ -34,7 +40,8 @@ const AddArtistDates = ({ className, artist, desc, userSubmittedArtistId }) => {
     dispatch(openAddEventModal({ artist }));
   };
 
-  if (!canAddEvent) {
+  // Don't render until mounted to prevent hydration mismatch
+  if (!mounted || !canAddEvent) {
     return null;
   }
 
@@ -43,7 +50,6 @@ const AddArtistDates = ({ className, artist, desc, userSubmittedArtistId }) => {
       onClick={handleAddEvent}
       className={`bg-gold/30 hover:bg-gold/40 text-gold w-fit secondary center gap-1 cursor-pointer duration-300 p-1 rounded-xs text-sm font-bold ${className}`}
     >
-      <MdEvent size={20} />
       {desc && <h1>{desc}</h1>}
     </div>
   );

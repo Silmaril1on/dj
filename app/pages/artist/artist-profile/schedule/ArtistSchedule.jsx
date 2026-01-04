@@ -2,7 +2,13 @@
 import { useState, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { motion } from "framer-motion";
-import { MdEvent, MdAccessTime, MdCalendarToday, MdEdit } from "react-icons/md";
+import {
+  MdEvent,
+  MdAccessTime,
+  MdCalendarToday,
+  MdEdit,
+  MdDelete,
+} from "react-icons/md";
 import { selectUser } from "@/app/features/userSlice";
 import { openAddEventModal } from "@/app/features/modalSlice";
 import ArtistCountry from "@/app/components/materials/ArtistCountry";
@@ -102,6 +108,30 @@ const ArtistSchedule = ({
     );
   };
 
+  const handleDeleteEvent = async (scheduleId) => {
+    if (!confirm("Are you sure you want to delete this schedule?")) {
+      return;
+    }
+
+    try {
+      const response = await fetch(`/api/artists/schedule/${scheduleId}`, {
+        method: "DELETE",
+      });
+
+      const result = await response.json();
+
+      if (response.ok && result.success) {
+        // Remove the deleted schedule from local state
+        setData((prevData) => prevData.filter((s) => s.id !== scheduleId));
+      } else {
+        alert(result.error || "Failed to delete schedule");
+      }
+    } catch (err) {
+      console.error("Error deleting schedule:", err);
+      alert("Failed to delete schedule");
+    }
+  };
+
   if (loading) {
     return (
       <div className="w-auto center py-20 bg-stone-900 mt-4 mx-3 min-h-[400px]">
@@ -113,6 +143,8 @@ const ArtistSchedule = ({
   if (error || !data || data.length === 0) {
     return null;
   }
+
+  console.log(data, "dattttttttt");
 
   return (
     <SectionContainer title={title} description={description} className="mt-10">
@@ -130,18 +162,30 @@ const ArtistSchedule = ({
               <section className="grid grid-cols-1 lg:grid-cols-3 gap-1 lg:gap-0">
                 {/* Date */}
                 <div className="flex items-center gap-2 text-gold">
-                  {/* Edit Button - Only visible to admin or owner */}
+                  {/* Edit & Delete Buttons - Only visible to admin or owner */}
                   {canEdit() && (
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleEditEvent(schedule);
-                      }}
-                      className="p-1 bg-gold/20 hover:bg-gold/40 cursor-pointer duration-200 z-10 relative"
-                      title="Edit event"
-                    >
-                      <MdEdit className="text-gold text-xs lg:text-sm" />
-                    </button>
+                    <>
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleEditEvent(schedule);
+                        }}
+                        className="p-1 bg-gold/20 hover:bg-gold/40 cursor-pointer duration-200 z-10 relative"
+                        title="Edit event"
+                      >
+                        <MdEdit className="text-gold text-xs lg:text-sm" />
+                      </button>
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleDeleteEvent(schedule.id);
+                        }}
+                        className="p-1 bg-red-500/20 hover:bg-red-500/40 cursor-pointer duration-200 z-10 relative"
+                        title="Delete event"
+                      >
+                        <MdDelete className="text-red-500 text-xs lg:text-sm" />
+                      </button>
+                    </>
                   )}
                   <MdCalendarToday size={18} />
                   <span className="font-semibold text-xs lg:text-lg  pointer-events-none">
@@ -170,9 +214,15 @@ const ArtistSchedule = ({
                   text={
                     clubId
                       ? schedule.event_name
-                      : schedule.event_title || schedule.club_name
+                      : (schedule.event_title || schedule.club_name)?.length >
+                          40
+                        ? (schedule.event_title || schedule.club_name).slice(
+                            0,
+                            30
+                          ) + "..."
+                        : schedule.event_title || schedule.club_name
                   }
-                  className="pointer-events-none"
+                  className="pointer-events-none text-end"
                 />
                 <FlexBox type="row-center" className="gap-4">
                   {schedule.event_link && (

@@ -353,7 +353,7 @@ export default function RaEvents() {
               <label className="block text-sm font-bold uppercase text-cream mb-2">
                 Search Artist by Name
               </label>
-              <div className="flex gap-2">
+              {/* <div className="flex gap-2">
                 <input
                   type="text"
                   value={artistSearch}
@@ -367,7 +367,7 @@ export default function RaEvents() {
                   onClick={handleArtistSearch}
                   disabled={searchingArtist}
                 />
-              </div>
+              </div> */}
             </div>
 
             {artistResults.length > 0 && (

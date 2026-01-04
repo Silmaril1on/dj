@@ -1,12 +1,17 @@
 "use client";
+import { useState, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { selectUser } from "@/app/features/userSlice";
 import { setError, openAddAlbumModal } from "@/app/features/modalSlice";
-import { MdAlbum } from "react-icons/md";
 
 const AddArtistAlbum = ({ className, artist, desc, userSubmittedArtistId }) => {
   const dispatch = useDispatch();
   const user = useSelector(selectUser);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   // Check if current user is admin or submitted this artist
   const canAddAlbum =
@@ -33,7 +38,7 @@ const AddArtistAlbum = ({ className, artist, desc, userSubmittedArtistId }) => {
     dispatch(openAddAlbumModal({ artist }));
   };
 
-  if (!canAddAlbum) {
+  if (!mounted || !canAddAlbum) {
     return null;
   }
 
@@ -42,7 +47,6 @@ const AddArtistAlbum = ({ className, artist, desc, userSubmittedArtistId }) => {
       onClick={handleAddAlbum}
       className={`bg-gold/30 hover:bg-gold/40 text-gold w-fit secondary center gap-1 cursor-pointer duration-300 p-1 rounded-xs text-sm font-bold ${className}`}
     >
-      <MdAlbum size={20} />
       {desc && <h1>{desc}</h1>}
     </div>
   );

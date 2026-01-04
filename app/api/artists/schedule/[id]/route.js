@@ -73,6 +73,9 @@ export async function PUT(request, { params }) {
       city: updateData.city || null,
       club_name: updateData.club_name,
       event_link: updateData.event_link || null,
+      event_title: updateData.event_title || null,
+      event_type: updateData.event_type || null,
+      event_image: updateData.event_image || null,
       updated_at: new Date().toISOString(),
     };
 

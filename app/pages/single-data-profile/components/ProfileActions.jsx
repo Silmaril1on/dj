@@ -1,8 +1,8 @@
 "use client";
 import { useState } from "react";
-import Motion from '@/app/components/containers/Motion';
-import SpanText from '@/app/components/ui/SpanText';
-import { FaUsers } from 'react-icons/fa';
+import Motion from "@/app/components/containers/Motion";
+import SpanText from "@/app/components/ui/SpanText";
+import { FaUsers } from "react-icons/fa";
 import LikeButton from "@/app/components/buttons/artist-buttons/LikeButton";
 
 const ProfileActions = ({ data, type }) => {
@@ -16,22 +16,22 @@ const ProfileActions = ({ data, type }) => {
 
   const getInterestLabel = () => {
     switch (type) {
-      case 'events':
-        return 'Interested';
-      case 'clubs':
-        return 'Likes';
-      case 'festivals':
-        return 'Going';
+      case "event":
+        return "Interested";
+      case "clubs":
+        return "Likes";
+      case "festivals":
+        return "Going";
       default:
-        return 'Likes';
+        return "Likes";
     }
   };
 
   return (
     <Motion animation="pop" className="center space-x-4 pl-2 lg:px-4">
       <SpanText
-        icon={<FaUsers />}
-        size="sm"
+        icon={<FaUsers size={15} />}
+        size="xs"
         text={`${likesCount} ${getInterestLabel()}`}
         className="ml-2 secondary pointer-events-none"
       />

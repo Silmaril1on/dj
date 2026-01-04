@@ -21,14 +21,20 @@ const SingleDataProfile = ({ data, type = "events", currentUserId = null }) => {
     profileData.id
   );
 
+  console.log(data, "////");
+
   return (
     <div className="flex flex-col pb-5">
       {/* Header with Lineup and Actions/Controls */}
-      <div className="flex flex-col lg:pl-2 lg:flex-row justify-between items-start lg:items-center gap-2">
-        {config.hasLineup && profileData.lineup && (
-          <ProfileLineup title={config.lineupTitle} data={profileData.lineup} />
-        )}
-
+      <div className="flex flex-col lg:pl-2 lg:flex-row justify-between items-start lg:items-center gap-2 mb-3 lg:mb-0">
+        <div className="lg:w-6xl lg:py-3 ">
+          {config.hasLineup && profileData.lineup && (
+            <ProfileLineup
+              title={config.lineupTitle}
+              data={profileData.lineup}
+            />
+          )}
+        </div>
         {config.hasOwnerControls && (
           <ProfileOwnerControls
             data={profileData}
@@ -43,7 +49,7 @@ const SingleDataProfile = ({ data, type = "events", currentUserId = null }) => {
       </div>
 
       {/* Main Content: Info + Poster */}
-      <div className={`flex flex-col lg:flex-row`}>
+      <div className={`flex flex-col-reverse lg:flex-row`}>
         <article
           className={`flex flex-1 justify-between items-start flex-col bg-stone-900 p-4`}
         >

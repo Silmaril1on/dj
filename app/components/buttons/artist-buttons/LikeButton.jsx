@@ -90,9 +90,9 @@ const LikeButton = ({
       {isLoading ? (
         <Spinner />
       ) : isLiked ? (
-        <FaHeart size={19} />
+        <FaHeart size={17} />
       ) : (
-        <FaRegHeart size={19} />
+        <FaRegHeart size={17} />
       )}
       {desc && <h1 className="pl-1">{desc}</h1>}
     </div>

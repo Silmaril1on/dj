@@ -13,6 +13,7 @@ import SpanText from "@/app/components/ui/SpanText";
 import { FaArrowRight } from "react-icons/fa";
 import SectionContainer from "@/app/components/containers/SectionContainer";
 import LikeButton from "@/app/components/buttons/artist-buttons/LikeButton";
+import { formatBirthdate, truncateString } from "@/app/helpers/utils";
 
 const Events = ({ events = [] }) => {
   const [open, setOpen] = useState(null);
@@ -93,7 +94,7 @@ const Panel = ({ open, setOpen, event }) => {
               }}
               className="hidden lg:block text-2xl font-bold duration-300 text-chino rotate-180 uppercase"
             >
-              {event.event_name}
+              {truncateString(event.event_name, 50)}
             </span>
             <span className="block lg:hidden text-lg font-medium text-chino truncate w-full">
               {event.event_name}
@@ -160,8 +161,8 @@ const Panel = ({ open, setOpen, event }) => {
                   />
                 </div>
                 <Title
-                  size="xxl"
-                  className="uppercase"
+                  size="xl"
+                  className="uppercase text-start"
                   text={event.event_name}
                 />
                 <FlexBox type="column-start" className="my-2 lg:my-4">
@@ -175,8 +176,8 @@ const Panel = ({ open, setOpen, event }) => {
                     Doors Open: {event.doors_open}
                   </p>
                   <Dot />
-                  <p className="text-gold text-[10px] lg:text-base font-medium">
-                    {event.date}
+                  <p className="text-gold text-[10px] lg:text-base uppercase">
+                    {formatBirthdate(event.date)}
                   </p>
                 </FlexBox>
                 <Title

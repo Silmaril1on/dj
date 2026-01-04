@@ -14,7 +14,7 @@ const Avatar = ({ data }) => {
     >
       <div className="relative overflow-hidden shadow-2xl ">
         <Motion
-          className="absolute top-5 left-5 text-2xl z-10"
+          className="absolute top-5 left-5 text-2xl z-20"
           animation="fade"
           delay={1.5}
         >
