@@ -17,15 +17,17 @@ export async function GET(request) {
         .from("events")
         .select("id, event_image, event_name, date, country, city, artists")
         .order("date", { ascending: true })
+        .order("id", { ascending: true }) // Secondary sort for consistent pagination
         .range(offset, offset + limit - 1),
-      
-      supabase
-        .from("event_likes")
-        .select("event_id")
+
+      supabase.from("event_likes").select("event_id"),
     ]);
 
     if (eventsResult.error) {
-      return NextResponse.json({ error: eventsResult.error.message }, { status: 500 });
+      return NextResponse.json(
+        { error: eventsResult.error.message },
+        { status: 500 }
+      );
     }
 
     const events = eventsResult.data || [];

@@ -2,6 +2,7 @@
 import React, { useState } from "react";
 import BandsinTown from "./BandsinTown";
 import RaEvents from "./RaEvents";
+import RaArtists from "./RaArtists";
 import MusicBrainzAlbums from "./MusicBrainzAlbums";
 
 const ApifyPage = () => {
@@ -37,6 +38,16 @@ const ApifyPage = () => {
           RA Events
         </button>
         <button
+          onClick={() => setActiveTab("ra-artists")}
+          className={`px-6 py-3 font-bold transition-colors ${
+            activeTab === "ra-artists"
+              ? "bg-gold text-black"
+              : "bg-neutral-900 text-cream border border-gold/30 hover:border-gold"
+          }`}
+        >
+          RA Artists
+        </button>
+        <button
           onClick={() => setActiveTab("musicbrainz")}
           className={`px-6 py-3 font-bold transition-colors ${
             activeTab === "musicbrainz"
@@ -51,6 +62,7 @@ const ApifyPage = () => {
       {/* Render active component */}
       {activeTab === "bandsintown" && <BandsinTown />}
       {activeTab === "ra-events" && <RaEvents />}
+      {activeTab === "ra-artists" && <RaArtists />}
       {activeTab === "musicbrainz" && <MusicBrainzAlbums />}
     </div>
   );

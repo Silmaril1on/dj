@@ -1,9 +1,10 @@
-"use client"
+"use client";
 import { useState, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { FaSearch } from "react-icons/fa";
-import {motion} from "framer-motion"
+import { motion } from "framer-motion";
 import Spinner from "../ui/Spinner";
+import ArtistCountry from "../materials/ArtistCountry";
 
 const SearchBar = () => {
   const [query, setQuery] = useState("");
@@ -44,17 +45,22 @@ const SearchBar = () => {
   };
 
   return (
-    <motion.div initial={{ y: "-100px"}} animate={{y: 0}} transition={{duration: 0.4, delay: 0.7}} className="relative center w-full">
+    <motion.div
+      initial={{ y: "-100px" }}
+      animate={{ y: 0 }}
+      transition={{ duration: 0.4, delay: 0.7 }}
+      className="relative center w-full"
+    >
       <div className="relative w-full">
         <input
-        id="search-bar"
+          id="search-bar"
           type="text"
           value={query}
           onChange={handleChange}
           placeholder="Search artists, clubs, events..."
           onFocus={() => query.length > 1 && setShowDropdown(true)}
           onBlur={() => setTimeout(() => setShowDropdown(false), 200)}
-          className="w-full pr-10 lg:py-1" 
+          className="w-full pr-10 lg:py-1"
         />
         <FaSearch
           className="absolute right-3 top-1/2 -translate-y-1/2 text-gold pointer-events-none"
@@ -81,8 +87,8 @@ const SearchBar = () => {
                   item.type === "artist"
                     ? item.artist_image
                     : item.type === "club"
-                    ? item.club_image
-                    : item.event_image
+                      ? item.club_image
+                      : item.event_image
                 }
                 alt={item.name || item.stage_name || item.event_name}
                 className="w-8 h-8 rounded object-cover"
@@ -95,12 +101,12 @@ const SearchBar = () => {
                   {item.type === "event" && item.event_name}
                 </div>
                 <div className="text-[10px] lg:text-xs text-stone-400 flex items-center">
-                  {item.country}, {item.city}
-                 <div className="hidden lg:block ">
-                   {item.type === "artist" &&
-                    item.genres &&
-                    ` • ${item.genres.join(", ")}`}
-                 </div>
+                  <ArtistCountry artistCountry={{ country: item.country }} />
+                  <div className="hidden lg:block  text-cream/90 ml-1">
+                    {item.type === "artist" &&
+                      item.genres &&
+                      ` • ${item.genres.slice(0, 3).join(", ")}`}
+                  </div>
                   {item.type === "event" &&
                     item.venue_name &&
                     ` • ${item.venue_name}`}

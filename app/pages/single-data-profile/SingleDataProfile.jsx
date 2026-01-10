@@ -21,7 +21,7 @@ const SingleDataProfile = ({ data, type = "events", currentUserId = null }) => {
     profileData.id
   );
 
-  console.log(data, "////");
+  console.log(data, "Data from Events, Clubs, Festivals Page");
 
   return (
     <div className="flex flex-col pb-5">

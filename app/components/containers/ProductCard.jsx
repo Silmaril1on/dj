@@ -54,7 +54,7 @@ const ProductCard = ({
         <Title
           color="cream"
           className="uppercase text-start text-[12px] lg:text-lg xl:text-xl"
-          text={truncateString(name, 28)}
+          text={truncateString(name, 50)}
         />
         {date && (
           <p className="text-chino uppercase text-[10px] lg:text-sm">{date}</p>

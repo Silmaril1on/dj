@@ -15,13 +15,20 @@ export default function MusicBrainzAlbums() {
   const dispatch = useDispatch();
   const user = useSelector(selectUser);
 
+  // Search mode toggle
+  const [searchMode, setSearchMode] = useState("database"); // "database" or "musicbrainz"
+
   // MusicBrainz states
   const [searchTerm, setSearchTerm] = useState("");
   const [artists, setArtists] = useState([]);
   const [selectedArtist, setSelectedArtist] = useState(null);
+  const [artistBasicInfo, setArtistBasicInfo] = useState(null);
   const [albums, setAlbums] = useState([]);
   const [isSearching, setIsSearching] = useState(false);
   const [isLoadingAlbums, setIsLoadingAlbums] = useState(false);
+  const [isLoadingBasicInfo, setIsLoadingBasicInfo] = useState(false);
+  const [selectedGenres, setSelectedGenres] = useState(new Set());
+  const [isInsertingArtist, setIsInsertingArtist] = useState(false);
   const [importingAlbumId, setImportingAlbumId] = useState(null);
   const [importedAlbums, setImportedAlbums] = useState(new Set());
 
@@ -43,11 +50,15 @@ export default function MusicBrainzAlbums() {
     setIsSearching(true);
     setArtists([]);
     setAlbums([]);
+    setSelectedArtist(null);
+    setArtistBasicInfo(null);
 
     try {
-      const url = `/api/automation/search-artists?q=${encodeURIComponent(
-        trimmedSearch
-      )}`;
+      const url =
+        searchMode === "database"
+          ? `/api/automation/search-artists?q=${encodeURIComponent(trimmedSearch)}`
+          : `/api/automation/artist-album/search-musicbrainz?q=${encodeURIComponent(trimmedSearch)}`;
+
       const response = await fetch(url);
       const data = await response.json();
 
@@ -67,10 +78,34 @@ export default function MusicBrainzAlbums() {
     setSelectedArtist(artist);
     setAlbums([]);
     setImportedAlbums(new Set());
-    setIsLoadingAlbums(true);
+    setArtistBasicInfo(null);
+    setSelectedGenres(new Set());
 
+    // If MusicBrainz artist, fetch basic info first
+    if (searchMode === "musicbrainz" && artist.musicbrainz_id) {
+      setIsLoadingBasicInfo(true);
+      try {
+        const response = await fetch(
+          `/api/automation/artist-album/artist-basic-info?mbid=${artist.musicbrainz_id}`
+        );
+        const data = await response.json();
+
+        if (data.success) {
+          setArtistBasicInfo(data.data);
+        }
+      } catch (err) {
+        console.error("Error fetching artist basic info:", err);
+      } finally {
+        setIsLoadingBasicInfo(false);
+      }
+    }
+
+    // Then fetch albums
+    setIsLoadingAlbums(true);
     try {
-      const url = `/api/automation/artist-album/preview-albums?artistId=${artist.id}`;
+      const artistId =
+        searchMode === "database" ? artist.id : artist.musicbrainz_id;
+      const url = `/api/automation/artist-album/preview-albums?artistId=${artistId}`;
       const response = await fetch(url);
       const data = await response.json();
 
@@ -191,6 +226,74 @@ export default function MusicBrainzAlbums() {
     }
   };
 
+  const toggleGenreSelection = (genre) => {
+    setSelectedGenres((prev) => {
+      const newSet = new Set(prev);
+      if (newSet.has(genre)) {
+        newSet.delete(genre);
+      } else {
+        newSet.add(genre);
+      }
+      return newSet;
+    });
+  };
+
+  const handleInsertArtist = async () => {
+    if (!artistBasicInfo) return;
+
+    setIsInsertingArtist(true);
+    try {
+      const socialLinks = Object.values(
+        artistBasicInfo.externalLinks || {}
+      ).filter(Boolean);
+      const selectedGenresArray = Array.from(selectedGenres);
+
+      const artistData = {
+        name: artistBasicInfo.name, // Real name (legalName if exists, otherwise artist name)
+        stage_name: artistBasicInfo.stageName, // Stage name (null if artist uses real name)
+        sex: artistBasicInfo.gender,
+        birth: artistBasicInfo.birthDate,
+        country: artistBasicInfo.country, // Full country name
+        city: artistBasicInfo.birthCity || artistBasicInfo.beginArea,
+        social_links: socialLinks,
+        genres: selectedGenresArray,
+        musicbrainz_artist_id: artistBasicInfo.mbid,
+      };
+
+      const response = await fetch(
+        "/api/automation/artist-album/insert-artist",
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(artistData),
+        }
+      );
+
+      const data = await response.json();
+
+      if (data.success) {
+        dispatch(
+          setError({
+            message: "Artist inserted successfully!",
+            type: "success",
+          })
+        );
+        // Optionally reset or update UI
+      } else {
+        dispatch(
+          setError({
+            message: data.error || "Failed to insert artist",
+            type: "error",
+          })
+        );
+      }
+    } catch (err) {
+      dispatch(setError({ message: "Failed to insert artist", type: "error" }));
+    } finally {
+      setIsInsertingArtist(false);
+    }
+  };
+
   if (!user?.is_admin) {
     return (
       <div className="min-h-screen bg-black p-8 flex items-center justify-center">
@@ -198,15 +301,58 @@ export default function MusicBrainzAlbums() {
       </div>
     );
   }
+
+  console.log(artists, "////////");
+  console.log(artistBasicInfo, "ARTISTS");
+
   return (
     <div className="space-y-6">
       <div className="bg-neutral-900 border border-gold/30 p-6 mb-6">
         <div className="mb-4">
           <label className="block text-sm font-bold uppercase text-cream ">
-            Search MusicBrainz
+            Search Mode
+          </label>
+          <div className="flex gap-2 mb-4">
+            <button
+              onClick={() => {
+                setSearchMode("database");
+                setArtists([]);
+                setSelectedArtist(null);
+                setArtistBasicInfo(null);
+              }}
+              className={`px-4 py-2 font-bold rounded transition-colors ${
+                searchMode === "database"
+                  ? "bg-gold text-black"
+                  : "bg-stone-800 text-cream hover:bg-stone-700"
+              }`}
+            >
+              Database Artists
+            </button>
+            <button
+              onClick={() => {
+                setSearchMode("musicbrainz");
+                setArtists([]);
+                setSelectedArtist(null);
+                setArtistBasicInfo(null);
+              }}
+              className={`px-4 py-2 font-bold rounded transition-colors ${
+                searchMode === "musicbrainz"
+                  ? "bg-gold text-black"
+                  : "bg-stone-800 text-cream hover:bg-stone-700"
+              }`}
+            >
+              <SiMusicbrainz className="inline mr-2" />
+              MusicBrainz Direct
+            </button>
+          </div>
+
+          <label className="block text-sm font-bold uppercase text-cream ">
+            Search {searchMode === "database" ? "Your Artists" : "MusicBrainz"}
           </label>
           <p className="secondary text-[10px] mb-2">
-            Import artist albums from musicbrainz
+            {searchMode === "database"
+              ? "Search your database and import albums from MusicBrainz"
+              : "Search MusicBrainz directly for artist info and albums"}
           </p>
           <div className="flex gap-2">
             <input
@@ -214,7 +360,11 @@ export default function MusicBrainzAlbums() {
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               onKeyDown={(e) => e.key === "Enter" && handleSearch()}
-              placeholder="Search for artist (e.g., Martin Garrix)"
+              placeholder={
+                searchMode === "database"
+                  ? "Search for artist in your database..."
+                  : "Search MusicBrainz (e.g., Argy, Axwell)..."
+              }
               className="flex-1"
             />
             <Button
@@ -227,9 +377,9 @@ export default function MusicBrainzAlbums() {
 
         {artists.length > 0 && (
           <div className="space-y-2 mb-4">
-            {artists.map((artist) => (
+            {artists.map((artist, index) => (
               <button
-                key={artist.id}
+                key={artist.musicbrainz_id || artist.id || `artist-${index}`}
                 onClick={() => handleSelectArtist(artist)}
                 className="w-full px-4 py-3 bg-black border border-gold/30 hover:border-gold transition-colors flex items-center gap-4"
               >
@@ -257,6 +407,223 @@ export default function MusicBrainzAlbums() {
 
         {selectedArtist && (
           <div className="mt-6 space-y-4">
+            {/* Artist Basic Info Section (for MusicBrainz mode) */}
+            {searchMode === "musicbrainz" && artistBasicInfo && (
+              <div className="bg-stone-900 border border-gold/30 p-6 rounded space-y-4">
+                <Title text="Artist Basic Information" />
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="text-xs text-chino/70 uppercase">
+                      Performance Name
+                    </label>
+                    <p className="text-cream font-semibold">
+                      {artistBasicInfo.stageName || artistBasicInfo.name}
+                    </p>
+                  </div>
+                  {artistBasicInfo.legalName && (
+                    <div>
+                      <label className="text-xs text-chino/70 uppercase">
+                        Legal Name
+                      </label>
+                      <p className="text-cream font-semibold">
+                        {artistBasicInfo.legalName}
+                      </p>
+                    </div>
+                  )}
+                  {artistBasicInfo.gender && (
+                    <div>
+                      <label className="text-xs text-chino/70 uppercase">
+                        Gender
+                      </label>
+                      <p className="text-cream capitalize">
+                        {artistBasicInfo.gender}
+                      </p>
+                    </div>
+                  )}
+                  {artistBasicInfo.birthDate && (
+                    <div>
+                      <label className="text-xs text-chino/70 uppercase">
+                        Born
+                      </label>
+                      <p className="text-cream">{artistBasicInfo.birthDate}</p>
+                    </div>
+                  )}
+                  {(artistBasicInfo.birthCity ||
+                    artistBasicInfo.birthCountry ||
+                    artistBasicInfo.beginArea) && (
+                    <div>
+                      <label className="text-xs text-chino/70 uppercase">
+                        Born In
+                      </label>
+                      <p className="text-cream">
+                        {[
+                          artistBasicInfo.birthCity,
+                          artistBasicInfo.birthCountry,
+                          artistBasicInfo.beginArea,
+                        ]
+                          .filter(Boolean)
+                          .join(", ") || "N/A"}
+                      </p>
+                    </div>
+                  )}
+                  {artistBasicInfo.area && (
+                    <div>
+                      <label className="text-xs text-chino/70 uppercase">
+                        Area
+                      </label>
+                      <p className="text-cream">{artistBasicInfo.area}</p>
+                    </div>
+                  )}
+                </div>
+
+                {/* Genres */}
+                {artistBasicInfo.genres &&
+                  artistBasicInfo.genres.length > 0 && (
+                    <div>
+                      <label className="text-xs text-chino/70 uppercase">
+                        Genres (Click to Select)
+                      </label>
+                      <p className="text-[10px] text-chino/60 mb-2">
+                        Select genres you want to add to the artist profile
+                      </p>
+                      <div className="flex flex-wrap gap-2 mt-2">
+                        {artistBasicInfo.genres.map((genre, idx) => (
+                          <button
+                            key={idx}
+                            onClick={() => toggleGenreSelection(genre)}
+                            className={`px-3 py-1 text-xs rounded-full transition-all ${
+                              selectedGenres.has(genre)
+                                ? "bg-gold text-black font-bold"
+                                : "bg-gold/20 text-gold hover:bg-gold/30"
+                            }`}
+                          >
+                            {genre}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                {/* External Links */}
+                {artistBasicInfo.externalLinks &&
+                  Object.keys(artistBasicInfo.externalLinks).length > 0 && (
+                    <div>
+                      <label className="text-xs text-chino/70 uppercase">
+                        External Links
+                      </label>
+                      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2 mt-2">
+                        {artistBasicInfo.externalLinks.instagram && (
+                          <a
+                            href={artistBasicInfo.externalLinks.instagram}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="px-3 py-2 bg-pink-500/20 text-pink-400 hover:bg-pink-500/30 text-xs rounded flex items-center gap-2"
+                          >
+                            Instagram
+                          </a>
+                        )}
+                        {artistBasicInfo.externalLinks.facebook && (
+                          <a
+                            href={artistBasicInfo.externalLinks.facebook}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="px-3 py-2 bg-blue-500/20 text-blue-400 hover:bg-blue-500/30 text-xs rounded flex items-center gap-2"
+                          >
+                            Facebook
+                          </a>
+                        )}
+                        {artistBasicInfo.externalLinks.spotify && (
+                          <a
+                            href={artistBasicInfo.externalLinks.spotify}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="px-3 py-2 bg-green-500/20 text-green-400 hover:bg-green-500/30 text-xs rounded flex items-center gap-2"
+                          >
+                            Spotify
+                          </a>
+                        )}
+                        {artistBasicInfo.externalLinks.soundcloud && (
+                          <a
+                            href={artistBasicInfo.externalLinks.soundcloud}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="px-3 py-2 bg-orange-500/20 text-orange-400 hover:bg-orange-500/30 text-xs rounded flex items-center gap-2"
+                          >
+                            SoundCloud
+                          </a>
+                        )}
+                        {artistBasicInfo.externalLinks.appleMusic && (
+                          <a
+                            href={artistBasicInfo.externalLinks.appleMusic}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="px-3 py-2 bg-gray-500/20 text-gray-300 hover:bg-gray-500/30 text-xs rounded flex items-center gap-2"
+                          >
+                            Apple Music
+                          </a>
+                        )}
+                        {artistBasicInfo.externalLinks.residentAdvisor && (
+                          <a
+                            href={artistBasicInfo.externalLinks.residentAdvisor}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="px-3 py-2 bg-purple-500/20 text-purple-400 hover:bg-purple-500/30 text-xs rounded flex items-center gap-2"
+                          >
+                            Resident Advisor
+                          </a>
+                        )}
+                        {artistBasicInfo.externalLinks.beatport && (
+                          <a
+                            href={artistBasicInfo.externalLinks.beatport}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="px-3 py-2 bg-teal-500/20 text-teal-400 hover:bg-teal-500/30 text-xs rounded flex items-center gap-2"
+                          >
+                            Beatport
+                          </a>
+                        )}
+                        {artistBasicInfo.externalLinks.youtube && (
+                          <a
+                            href={artistBasicInfo.externalLinks.youtube}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="px-3 py-2 bg-red-500/20 text-red-400 hover:bg-red-500/30 text-xs rounded flex items-center gap-2"
+                          >
+                            YouTube
+                          </a>
+                        )}
+                        {artistBasicInfo.externalLinks.homepage && (
+                          <a
+                            href={artistBasicInfo.externalLinks.homepage}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="px-3 py-2 bg-gold/20 text-gold hover:bg-gold/30 text-xs rounded flex items-center gap-2"
+                          >
+                            Official Website
+                          </a>
+                        )}
+                      </div>
+                    </div>
+                  )}
+
+                {/* Insert Artist Button */}
+                <div className="pt-4 border-t border-gold/30">
+                  <Button
+                    text={isInsertingArtist ? "Inserting..." : "INSERT ARTIST"}
+                    onClick={handleInsertArtist}
+                    disabled={isInsertingArtist}
+                    className="w-full bg-green-500/30 hover:bg-green-500/40 disabled:bg-gray-600"
+                  />
+                  <p className="text-[10px] text-chino/60 mt-2 text-center">
+                    {selectedGenres.size > 0
+                      ? `Will insert with ${selectedGenres.size} selected genre(s)`
+                      : "No genres selected"}
+                  </p>
+                </div>
+              </div>
+            )}
+
+            {/* Albums Section */}
             <div className="flex items-center justify-between bg-stone-900 border border-gold/30 p-4 rounded">
               <div>
                 <Title

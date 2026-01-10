@@ -144,7 +144,7 @@ const ArtistSchedule = ({
     return null;
   }
 
-  console.log(data, "dattttttttt");
+  console.log(data, "Artist Schedule data from ARTISTTSCHEDULE.jsx");
 
   return (
     <SectionContainer title={title} description={description} className="mt-10">
@@ -214,13 +214,7 @@ const ArtistSchedule = ({
                   text={
                     clubId
                       ? schedule.event_name
-                      : (schedule.event_title || schedule.club_name)?.length >
-                          40
-                        ? (schedule.event_title || schedule.club_name).slice(
-                            0,
-                            30
-                          ) + "..."
-                        : schedule.event_title || schedule.club_name
+                      : schedule.club_name || schedule.event_title
                   }
                   className="pointer-events-none text-end"
                 />

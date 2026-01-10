@@ -14,7 +14,7 @@ const FormContainer = ({
   return (
     <div className="min-h-screen flex flex-1 items-center justify-center bg-black py-5 px-3">
       <div
-        className={`${maxWidth} center flex-col p-8 bg-stone-900 border border-gold/30 shadow-xl dark:shadow-gold/15`}
+        className={`${maxWidth} center w-full max-w-md flex-col p-8 bg-stone-900 border border-gold/30 shadow-xl dark:shadow-gold/15`}
       >
         <Title text={title} />
         <Paragraph text={description} />

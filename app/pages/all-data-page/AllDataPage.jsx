@@ -1,11 +1,11 @@
 "use client";
-import { useState, useMemo } from 'react';
-import ErrorCode from '@/app/components/ui/ErrorCode';
-import ProductCard from '@/app/components/containers/ProductCard';
-import FilterBar from '@/app/components/forms/FilterBar';
-import PageHeadline from '@/app/components/containers/PageHeadline';
-import Button from '@/app/components/buttons/Button';
-import { filterConfigs } from '@/app/helpers/filterSearch/filterConfig';
+import { useState, useMemo } from "react";
+import ErrorCode from "@/app/components/ui/ErrorCode";
+import ProductCard from "@/app/components/containers/ProductCard";
+import FilterBar from "@/app/components/forms/FilterBar";
+import PageHeadline from "@/app/components/containers/PageHeadline";
+import Button from "@/app/components/buttons/Button";
+import { filterConfigs } from "@/app/helpers/filterSearch/filterConfig";
 import {
   filterClubs,
   sortClubs,
@@ -16,30 +16,30 @@ import {
   getCountryOptions,
   getCityOptions,
   mapCardProps,
-} from './dataFilterConfigs';
+} from "./dataFilterConfigs";
 
 // Configuration for different data types
 const DATA_TYPE_CONFIG = {
   clubs: {
-    apiEndpoint: '/api/club',
+    apiEndpoint: "/api/club",
     limit: 15,
-    gridCols: 'grid-cols-2 lg:grid-cols-3',
+    gridCols: "grid-cols-2 lg:grid-cols-3",
     filterFn: filterClubs,
     sortFn: sortClubs,
     hasCityFilter: true,
   },
   events: {
-    apiEndpoint: '/api/events/events-page-route',
+    apiEndpoint: "/api/events/events-page-route",
     limit: 15,
-    gridCols: 'grid-cols-2 lg:grid-cols-4 xl:grid-cols-5',
+    gridCols: "grid-cols-2 lg:grid-cols-4 xl:grid-cols-5",
     filterFn: filterEvents,
     sortFn: sortEvents,
     hasCityFilter: true,
   },
   festivals: {
-    apiEndpoint: '/api/festivals/all-festivals',
+    apiEndpoint: "/api/festivals/all-festivals",
     limit: 20,
-    gridCols: 'grid-cols-2 lg:grid-cols-5',
+    gridCols: "grid-cols-2 lg:grid-cols-5",
     filterFn: filterFestivals,
     sortFn: sortFestivals,
     hasCityFilter: false,
@@ -47,11 +47,11 @@ const DATA_TYPE_CONFIG = {
 };
 
 const AllDataPage = ({
-  type = 'clubs', // 'clubs' | 'events' | 'festivals'
+  type = "clubs", // 'clubs' | 'events' | 'festivals'
   initialData = [],
   error: initialError = null,
-  title = '',
-  description = '',
+  title = "",
+  description = "",
 }) => {
   const config = DATA_TYPE_CONFIG[type];
   const [data, setData] = useState(initialData);
@@ -71,7 +71,7 @@ const AllDataPage = ({
 
   // Build filter config with dynamic options
   const dynamicFilterConfig = useMemo(() => {
-    return filterConfigs[type].map(field => {
+    return filterConfigs[type].map((field) => {
       if (field.name === "country") {
         return { ...field, options: countryOptions };
       }
@@ -85,9 +85,9 @@ const AllDataPage = ({
   const handleFilterChange = (name, value) => {
     // Reset city if country changes
     if (name === "country" && config.hasCityFilter) {
-      setFilters(prev => ({ ...prev, country: value, city: "" }));
+      setFilters((prev) => ({ ...prev, country: value, city: "" }));
     } else {
-      setFilters(prev => ({ ...prev, [name]: value }));
+      setFilters((prev) => ({ ...prev, [name]: value }));
     }
   };
 
@@ -103,14 +103,16 @@ const AllDataPage = ({
   const loadMore = async () => {
     setLoading(true);
     try {
-      const res = await fetch(`${config.apiEndpoint}?limit=${config.limit}&offset=${offset}`);
+      const res = await fetch(
+        `${config.apiEndpoint}?limit=${config.limit}&offset=${offset}`
+      );
       const result = await res.json();
       const newData = result?.data || [];
-      setData(prev => [...prev, ...newData]);
-      setOffset(prev => prev + newData.length);
+      setData((prev) => [...prev, ...newData]);
+      setOffset((prev) => prev + newData.length);
       setHasMore(newData.length === config.limit);
     } catch (err) {
-      console.error('Load more failed:', err);
+      console.error("Load more failed:", err);
     }
     setLoading(false);
   };
@@ -128,13 +130,15 @@ const AllDataPage = ({
     return (
       <div className="space-y-3 px-3 lg:px-4 pb-5">
         <PageHeadline title={title} description={description} />
-        <ErrorCode 
-          title={`No ${type} available`} 
-          description={`Check back later for new ${type}.`} 
+        <ErrorCode
+          title={`No ${type} available`}
+          description={`Check back later for new ${type}.`}
         />
       </div>
     );
   }
+
+  console.log(data, "Data from ALL artists, clubs, festivals PAGE");
 
   return (
     <div className="space-y-3 px-3 lg:px-4 pb-5">

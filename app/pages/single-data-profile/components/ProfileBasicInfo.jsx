@@ -34,7 +34,7 @@ const ProfileBasicInfo = ({ data, type }) => {
       </Motion>
       <div className="space-y-3 py-5">
         <Motion animation="fade" delay={0.3} className="space-y-1 w-full">
-          <Title size="xl" text={data.name} />
+          <Title size="xl" text={data.name} className="text-start" />
           <Paragraph text={data.description} className=" lg:pr-[15%]" />
         </Motion>
         <Motion animation="left" delay={1}>

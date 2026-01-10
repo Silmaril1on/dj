@@ -1,4 +1,5 @@
 "use client";
+import { useState, useEffect } from "react";
 import { FaRegStar, FaStar } from "react-icons/fa6";
 import { useDispatch, useSelector } from "react-redux";
 import { selectUser } from "@/app/features/userSlice";
@@ -9,8 +10,15 @@ const RatingButton = ({ artist, ratingStats, userRating, className, desc }) => {
   const dispatch = useDispatch();
   const user = useSelector(selectUser);
   const reduxRating = useSelector(selectUserRating(artist.id));
+  const [mounted, setMounted] = useState(false);
+
+  // Prevent hydration mismatch by only using dynamic data after mount
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
   const currentRating = reduxRating || userRating || 0;
-  const hasUserRating = user && currentRating > 0;
+  const hasUserRating = mounted && user && currentRating > 0;
 
   const handleRatingClick = (e) => {
     e.preventDefault();
@@ -41,7 +49,7 @@ const RatingButton = ({ artist, ratingStats, userRating, className, desc }) => {
       {hasUserRating ? (
         <div>
           <FaStar size={18} />
-          <span>{currentRating}</span>
+          <span suppressHydrationWarning>{currentRating}</span>
         </div>
       ) : (
         <div>
