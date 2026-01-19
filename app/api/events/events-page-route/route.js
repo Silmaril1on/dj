@@ -11,11 +11,17 @@ export async function GET(request) {
     const cookieStore = await cookies();
     const supabase = await createSupabaseServerClient(cookieStore);
 
-    // ✅ OPTIMIZED: Fetch events and likes in parallel
+    // Start-of-day ISO date string for filtering upcoming events only
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const todayStr = today.toISOString().split("T")[0];
+
+    // ✅ OPTIMIZED: Fetch upcoming events and likes in parallel
     const [eventsResult, likesResult] = await Promise.all([
       supabase
         .from("events")
         .select("id, event_image, event_name, date, country, city, artists")
+        .gte("date", todayStr)
         .order("date", { ascending: true })
         .order("id", { ascending: true }) // Secondary sort for consistent pagination
         .range(offset, offset + limit - 1),
@@ -26,7 +32,7 @@ export async function GET(request) {
     if (eventsResult.error) {
       return NextResponse.json(
         { error: eventsResult.error.message },
-        { status: 500 }
+        { status: 500 },
       );
     }
 

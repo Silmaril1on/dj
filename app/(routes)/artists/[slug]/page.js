@@ -21,10 +21,36 @@ export const generateMetadata = async ({ params }) => {
     const artistName = capitalizeTitle(
       artist?.stage_name || artist?.name || "Artist",
     );
+    const description =
+      artist?.bio?.substring(0, 160) ||
+      `Check out ${artistName} on Soundfolio - DJ profile, music, events, and more.`;
+    const artistImage =
+      artist?.image || `${process.env.PROJECT_URL}/assets/default-artist.jpg`;
 
-    // Just the browser title - no social media metadata
     return {
       title: `Soundfolio | ${artistName}`,
+      description,
+      openGraph: {
+        title: `${artistName} | Soundfolio`,
+        description,
+        type: "profile",
+        url: `${process.env.PROJECT_URL}/artists/${slug}`,
+        images: [
+          {
+            url: artistImage,
+            width: 1200,
+            height: 630,
+            alt: artistName,
+          },
+        ],
+        siteName: "Soundfolio",
+      },
+      twitter: {
+        card: "summary_large_image",
+        title: `${artistName} | Soundfolio`,
+        description,
+        images: [artistImage],
+      },
     };
   } catch (error) {
     console.error("Metadata generation error:", error);

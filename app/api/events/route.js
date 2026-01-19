@@ -5,21 +5,39 @@ import {
   getServerUser,
 } from "@/app/lib/config/supabaseServer";
 
-export async function GET() {
+// GET /api/events
+// Used by the home page hero to show upcoming events.
+// Behaviour:
+//   - only approved events with date >= today
+//   - sort by closest date, then by likesCount (most interested)
+//   - configurable `limit` query param (default 7)
+export async function GET(request) {
   try {
+    const { searchParams } = new URL(request.url);
+    const limit = parseInt(searchParams.get("limit") || "7", 10);
+    // Fetch more rows than we will finally return so we can sort
+    // by likes in-memory without missing popular events.
+    const fetchLimit = Math.max(limit * 4, limit, 40);
+
     const cookieStore = await cookies();
     const supabase = await createSupabaseServerClient(cookieStore);
 
     const { user, error: userError } = await getServerUser(cookieStore);
 
-    // ✅ OPTIMIZED: Fetch events and likes in parallel
+    // Start-of-day ISO date string for filtering upcoming events
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const todayStr = today.toISOString().split("T")[0];
+
+    // ✅ Fetch upcoming events and likes in parallel
     const [eventsResult, likesResult] = await Promise.all([
       supabase
         .from("events")
         .select("*")
         .eq("status", "approved")
-        .order("created_at", { ascending: false })
-        .limit(7),
+        .gte("date", todayStr)
+        .order("date", { ascending: true })
+        .limit(fetchLimit),
 
       supabase.from("event_likes").select("event_id, user_id"),
     ]);
@@ -27,13 +45,13 @@ export async function GET() {
     if (eventsResult.error) {
       return NextResponse.json(
         { success: false, error: "Failed to fetch events" },
-        { status: 500 }
+        { status: 500 },
       );
     }
 
-    const events = eventsResult.data;
+    const events = eventsResult.data || [];
 
-    if (!events || events.length === 0) {
+    if (events.length === 0) {
       return NextResponse.json({ success: true, data: [] });
     }
 
@@ -59,12 +77,23 @@ export async function GET() {
       isLiked: userLikesSet.has(event.id),
     }));
 
-    return NextResponse.json({ success: true, data: enrichedEvents });
+    // Sort by closest date first, then by popularity (likesCount desc)
+    enrichedEvents.sort((a, b) => {
+      const dateA = a.date ? new Date(a.date) : new Date(8640000000000000);
+      const dateB = b.date ? new Date(b.date) : new Date(8640000000000000);
+      const diff = dateA - dateB;
+      if (diff !== 0) return diff;
+      return (b.likesCount || 0) - (a.likesCount || 0);
+    });
+
+    const limitedEvents = enrichedEvents.slice(0, limit);
+
+    return NextResponse.json({ success: true, data: limitedEvents });
   } catch (err) {
     console.error("Unexpected error in GET /api/events:", err);
     return NextResponse.json(
       { success: false, error: "Internal server error" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
@@ -77,7 +106,7 @@ export async function POST(request) {
     if (userError || !user) {
       return NextResponse.json(
         { success: false, error: "User not authenticated" },
-        { status: 401 }
+        { status: 401 },
       );
     }
 
@@ -112,7 +141,7 @@ export async function POST(request) {
       "promoter",
     ];
     const missing = required.filter(
-      (f) => !fields[f] || fields[f].trim() === ""
+      (f) => !fields[f] || fields[f].trim() === "",
     );
 
     if (missing.length) {
@@ -121,7 +150,7 @@ export async function POST(request) {
           success: false,
           error: `Missing required fields: ${missing.join(", ")}`,
         },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -146,7 +175,7 @@ export async function POST(request) {
     if (!artists.length) {
       return NextResponse.json(
         { success: false, error: "At least one artist is required" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -165,14 +194,14 @@ export async function POST(request) {
             success: false,
             error: "Invalid file type. Only images are allowed.",
           },
-          { status: 400 }
+          { status: 400 },
         );
       }
 
       if (event_image.size > 1 * 1024 * 1024) {
         return NextResponse.json(
           { success: false, error: "File too large. Max 1MB allowed." },
-          { status: 400 }
+          { status: 400 },
         );
       }
 
@@ -183,7 +212,7 @@ export async function POST(request) {
       if (uploadError) {
         return NextResponse.json(
           { success: false, error: "Failed to upload image" },
-          { status: 500 }
+          { status: 500 },
         );
       }
 
@@ -207,7 +236,7 @@ export async function POST(request) {
       } else if (matchedClubs && matchedClubs.length > 0) {
         // Find exact match or closest match
         const exactMatch = matchedClubs.find(
-          (club) => club.name.toLowerCase() === fields.venue_name.toLowerCase()
+          (club) => club.name.toLowerCase() === fields.venue_name.toLowerCase(),
         );
         matchedClubId = exactMatch ? exactMatch.id : matchedClubs[0].id;
         console.log("Matched club:", exactMatch || matchedClubs[0]);
@@ -234,7 +263,7 @@ export async function POST(request) {
       console.error("Event insert error:", insertError);
       return NextResponse.json(
         { success: false, error: "Failed to create event" },
-        { status: 500 }
+        { status: 500 },
       );
     }
 
@@ -248,9 +277,9 @@ export async function POST(request) {
           artists
             .map(
               (artistName) =>
-                `name.ilike.${artistName},stage_name.ilike.${artistName}`
+                `name.ilike.${artistName},stage_name.ilike.${artistName}`,
             )
-            .join(",")
+            .join(","),
         );
 
       if (artistError) {
@@ -286,7 +315,7 @@ export async function POST(request) {
           // Don't fail the entire event creation if schedule insert fails
         } else {
           console.log(
-            `Successfully created ${scheduleData.length} artist schedule entries`
+            `Successfully created ${scheduleData.length} artist schedule entries`,
           );
         }
       } else {
@@ -317,7 +346,7 @@ export async function POST(request) {
   } catch (err) {
     return NextResponse.json(
       { success: false, error: "Internal server error" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
@@ -330,7 +359,7 @@ export async function PATCH(request) {
     if (userError || !user) {
       return NextResponse.json(
         { success: false, error: "User not authenticated" },
-        { status: 401 }
+        { status: 401 },
       );
     }
 
@@ -342,13 +371,13 @@ export async function PATCH(request) {
       "📝 PATCH /api/events - eventId:",
       eventId,
       "Type:",
-      typeof eventId
+      typeof eventId,
     );
 
     if (!eventId) {
       return NextResponse.json(
         { success: false, error: "Missing eventId" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -375,7 +404,7 @@ export async function PATCH(request) {
           error: "Error checking event",
           details: checkError.message,
         },
-        { status: 500 }
+        { status: 500 },
       );
     }
 
@@ -383,7 +412,7 @@ export async function PATCH(request) {
       console.error("❌ Event not found with ID:", eventId);
       return NextResponse.json(
         { success: false, error: `Event with ID ${eventId} not found` },
-        { status: 404 }
+        { status: 404 },
       );
     }
 
@@ -423,13 +452,13 @@ export async function PATCH(request) {
               success: false,
               error: "Invalid file type. Only images are allowed.",
             },
-            { status: 400 }
+            { status: 400 },
           );
         }
         if (event_image.size > 1 * 1024 * 1024) {
           return NextResponse.json(
             { success: false, error: "File too large. Max 1MB allowed." },
-            { status: 400 }
+            { status: 400 },
           );
         }
         const { error: uploadError } = await supabase.storage
@@ -441,7 +470,7 @@ export async function PATCH(request) {
         if (uploadError) {
           return NextResponse.json(
             { success: false, error: "Failed to upload image" },
-            { status: 500 }
+            { status: 500 },
           );
         }
         const { data } = supabase.storage
@@ -472,7 +501,7 @@ export async function PATCH(request) {
           error: "Failed to update event",
           details: updateError.message,
         },
-        { status: 500 }
+        { status: 500 },
       );
     }
 
@@ -487,7 +516,7 @@ export async function PATCH(request) {
     console.error("❌ PATCH /api/events error:", err);
     return NextResponse.json(
       { success: false, error: "Internal server error", details: err.message },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

@@ -117,9 +117,9 @@ const Panel = ({ open, setOpen, event }) => {
               <Image
                 src={event.event_image}
                 alt={event.event_name}
-                fill
-                sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-                className="object-cover"
+                width={800}
+                height={800}
+                className="absolute  right-0"
               />
             )}
             <motion.div
@@ -127,9 +127,9 @@ const Panel = ({ open, setOpen, event }) => {
               initial="closed"
               animate="open"
               exit="closed"
-              className="relative w-full h-full flex flex-col justify-between items-start bg-black/50 "
+              className="relative w-full h-full flex flex-col justify-between items-start bg-gradient-to-r from-black via-black/80 to-black/0 p-2 lg:p-4"
             >
-              <div className="p-2 lg:p-4 lg:space-y-1">
+              <div className="lg:space-y-1">
                 <MyLink
                   href={event.links}
                   target="_blank"
@@ -142,8 +142,8 @@ const Panel = ({ open, setOpen, event }) => {
                   icon={<FaArrowRight />}
                 />
               </div>
-              <div className="p-2 lg:p-4">
-                <div className="absolute center space-x-2 top-2 lg:top-4 right-2 lg:right-4">
+              <div>
+                <div className="absolute px-3 py-1.5 bg-black/50 shadow-lg rounded-md backdrop-blur-lg center space-x-2 top-2 lg:top-4 right-2 lg:right-4">
                   <SpanText
                     icon={<FaUsers />}
                     size="xs"
@@ -161,7 +161,6 @@ const Panel = ({ open, setOpen, event }) => {
                   />
                 </div>
                 <Title
-                  size="xl"
                   className="uppercase text-start"
                   text={event.event_name}
                 />
@@ -190,7 +189,7 @@ const Panel = ({ open, setOpen, event }) => {
                   type="row-start"
                   className="flex-wrap gap-2 items-center"
                 >
-                  {event.artists.map((artist, index) => (
+                  {event.artists.slice(0, 10).map((artist, index) => (
                     <div
                       key={index}
                       className="flex items-center space-x-0.5 lg:space-x-2"
@@ -204,9 +203,11 @@ const Panel = ({ open, setOpen, event }) => {
                     </div>
                   ))}
                 </FlexBox>
-                <div className="w-[80%] mt-2">
-                  <Paragraph text={event.description} />
-                </div>
+                {event?.description && (
+                  <div className="w-[80%] mt-2">
+                    <Paragraph text={truncateString(event?.description, 500)} />
+                  </div>
+                )}
               </div>
             </motion.div>
           </motion.div>

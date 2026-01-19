@@ -1,15 +1,12 @@
 "use client";
 import { useState, useEffect } from "react";
 import { MdEdit } from "react-icons/md";
-import { useDispatch, useSelector } from "react-redux";
+import { useSelector } from "react-redux";
 import { selectUser } from "@/app/features/userSlice";
-import { setError } from "@/app/features/modalSlice";
-import { useRouter } from "next/navigation";
+import NavigationActionButton from "./artist-buttons/base/NavigationActionButton";
 
 const EditProduct = ({ className, data, type, desc }) => {
-  const dispatch = useDispatch();
   const user = useSelector(selectUser);
-  const router = useRouter();
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
@@ -32,63 +29,37 @@ const EditProduct = ({ className, data, type, desc }) => {
                 user.submitted_club_id.includes(data?.id)))
           : type === "festival"
             ? user && (user.is_admin || user.submitted_festival_id === data?.id)
-            : user && (user.is_admin || user.submitted_artist_id === data?.id); // Default fallback
+            : user && (user.is_admin || user.submitted_artist_id === data?.id);
 
-  const handleEdit = (e) => {
-    e.preventDefault();
-    e.stopPropagation();
-    if (!user) {
-      dispatch(
-        setError({
-          message: `Please login to edit this ${type}`,
-          type: "error",
-        })
-      );
-      return;
-    }
-    if (!canEdit) {
-      dispatch(
-        setError({
-          message: `You can only edit your own submitted ${type}`,
-          type: "error",
-        })
-      );
-      return;
-    }
-    if (type === "artist") {
-      router.push(`/add-product/add-artist?edit=true&artistId=${data.id}`);
-    } else if (type === "event") {
-      router.push(`/add-product/add-event?edit=true&eventId=${data.id}`);
-    } else if (type === "club") {
-      router.push(`/add-product/add-club?edit=true&clubId=${data.id}`);
-    } else if (type === "festival") {
-      router.push(`/add-product/add-festival?edit=true&festivalId=${data.id}`);
-    } else {
-      // Default to artist when no type provided
-      router.push(`/add-product/add-artist?edit=true&artistId=${data.id}`);
-    }
+  if (!canEdit || !mounted) {
+    return null;
+  }
+
+  const getEditPath = () => {
+    if (type === "artist")
+      return `/add-product/add-artist?edit=true&artistId=${data.id}`;
+    if (type === "event")
+      return `/add-product/add-event?edit=true&eventId=${data.id}`;
+    if (type === "club")
+      return `/add-product/add-club?edit=true&clubId=${data.id}`;
+    if (type === "festival")
+      return `/add-product/add-festival?edit=true&festivalId=${data.id}`;
+    return `/add-product/add-artist?edit=true&artistId=${data.id}`;
   };
 
-  if (!canEdit) {
-    return null;
-  }
-
-  // Prevent hydration mismatch - don't render until mounted
-  if (!mounted) {
-    return null;
-  }
-
-  // Rounded button ONLY when type="artist" is explicitly passed
-  const buttonClassName =
-    type === "artist"
-      ? `bg-gold/20 hover:bg-gold/30 text-gold w-10 h-10 flex items-center justify-center cursor-pointer duration-300 rounded-full ${className}`
-      : `bg-gold/30 hover:bg-gold/40 text-gold w-fit secondary center gap-1 cursor-pointer duration-300 p-1 rounded-xs text-sm font-bold ${className}`;
+  const buttonClassName = type === "artist" ? className : `${className}`;
 
   return (
-    <div onClick={handleEdit} className={buttonClassName}>
-      <MdEdit size={20} />
-      {type !== "artist" && desc && <h1>{desc}</h1>}
-    </div>
+    <NavigationActionButton
+      href={getEditPath()}
+      icon={<MdEdit size={20} />}
+      label={type !== "artist" ? desc : null}
+      authMessage={`Please login to edit this ${type}`}
+      requirePermission={() => canEdit}
+      permissionMessage={`You can only edit your own submitted ${type}`}
+      variant={type === "artist" ? "rounded" : "default"}
+      className={buttonClassName}
+    />
   );
 };
 

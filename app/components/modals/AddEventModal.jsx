@@ -10,7 +10,7 @@ import SubmissionForm from "@/app/components/forms/SubmissionForm";
 const AddEventModal = () => {
   const dispatch = useDispatch();
   const { isOpen, artist, eventData, isEditMode } = useSelector(
-    (state) => state.modal.addEventModal || {}
+    (state) => state.modal.addEventModal || {},
   );
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -192,7 +192,7 @@ const AddEventModal = () => {
       if (!response.ok) {
         const errorData = await response.json();
         throw new Error(
-          errorData.error || `Failed to ${isEditMode ? "update" : "add"} event`
+          errorData.error || `Failed to ${isEditMode ? "update" : "add"} event`,
         );
       }
 
@@ -202,7 +202,7 @@ const AddEventModal = () => {
           type: "artist_date",
           message: `Artist date ${isEditMode ? "updated" : "added"} successfully!`,
           data: result.data,
-        })
+        }),
       );
       dispatch(closeAddEventModal());
 
@@ -213,7 +213,7 @@ const AddEventModal = () => {
     } catch (error) {
       console.error(
         `Error ${isEditMode ? "updating" : "adding"} event:`,
-        error
+        error,
       );
     } finally {
       setIsSubmitting(false);
@@ -227,7 +227,7 @@ const AddEventModal = () => {
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
       <div className="bg-black border border-gold/30 max-w-2xl w-full max-h-[90vh] overflow-y-auto">
         <div className="p-6">
           <div className="flex items-center justify-between mb-6">

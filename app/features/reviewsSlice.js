@@ -45,18 +45,8 @@ const reviewsSlice = createSlice({
       };
     },
     closeReviewModal: (state) => {
-      state.reviewModal = {
-        isOpen: false,
-        artistId: null,
-        name: "",
-        stage_name: "",
-        isLowRating: false,
-        rating: null,
-        isEditMode: false,
-        editReviewId: null,
-        editReviewTitle: "",
-        editReviewText: "",
-      };
+      // Only toggle isOpen so content can fade out with GlobalModal
+      state.reviewModal.isOpen = false;
     },
   },
 });

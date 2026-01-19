@@ -43,16 +43,9 @@ const ratingSlice = createSlice({
       };
     },
     closeRatingModal: (state) => {
-      state.ratingModal = {
-        isOpen: false,
-        artistId: null,
-        name: "",
-        stage_name: "",
-        currentRating: 0,
-        userRating: null,
-        averageScore: 0,
-        totalRatings: 0,
-      };
+      // Keep the last rating data so the modal content
+      // can fade out smoothly with the GlobalModal overlay
+      state.ratingModal.isOpen = false;
     },
     setRatingModalRating: (state, action) => {
       state.ratingModal.currentRating = action.payload;

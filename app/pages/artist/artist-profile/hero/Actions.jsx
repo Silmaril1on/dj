@@ -48,11 +48,7 @@ const Actions = ({ data, userRating, onLikeChange }) => {
         artist={data}
         userSubmittedArtistId={userSubmittedArtistId}
       />
-      <RatingButton
-        desc={userRating ? " " : "Rate"}
-        artist={data}
-        userRating={userRating}
-      />
+      <RatingButton desc="Rate" artist={data} userRating={userRating} />
       <LikeButton desc="Like" artist={data} onLikeChange={onLikeChange} />
       <ReviewButton desc="Review" artist={data} />
     </motion.div>
