@@ -37,6 +37,11 @@ export default function MusicBrainzAlbums() {
   const [selectedAlbums, setSelectedAlbums] = useState(new Set());
   const [isImportingSelected, setIsImportingSelected] = useState(false);
 
+  // Automation states
+  const [isAutoFetching, setIsAutoFetching] = useState(false);
+  const [automationReport, setAutomationReport] = useState(null);
+  const [showReport, setShowReport] = useState(false);
+
   const [apiResponses, setApiResponses] = useState({
     preview: null,
     singleImport: null,
@@ -294,6 +299,59 @@ export default function MusicBrainzAlbums() {
     }
   };
 
+  const handleAutoFetchAlbums = async () => {
+    if (
+      !confirm(
+        "This will fetch albums for ALL artists in your database that don't have albums yet. This may take a while. Continue?"
+      )
+    ) {
+      return;
+    }
+
+    setIsAutoFetching(true);
+    setAutomationReport(null);
+    setShowReport(false);
+
+    try {
+      const response = await fetch(
+        "/api/automation/artist-album/fetch-all-albums",
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+        }
+      );
+
+      const data = await response.json();
+
+      if (data.success) {
+        setAutomationReport(data.report);
+        setShowReport(true);
+        dispatch(
+          setError({
+            message: data.message,
+            type: "success",
+          })
+        );
+      } else {
+        dispatch(
+          setError({
+            message: data.error || "Failed to fetch albums automatically",
+            type: "error",
+          })
+        );
+      }
+    } catch (err) {
+      dispatch(
+        setError({
+          message: "Failed to fetch albums automatically",
+          type: "error",
+        })
+      );
+    } finally {
+      setIsAutoFetching(false);
+    }
+  };
+
   if (!user?.is_admin) {
     return (
       <div className="min-h-screen bg-black p-8 flex items-center justify-center">
@@ -307,6 +365,189 @@ export default function MusicBrainzAlbums() {
 
   return (
     <div className="space-y-6">
+      {/* Automation Button - Top of Page */}
+      {searchMode === "database" && (
+        <div className="bg-gradient-to-r from-purple-900/30 to-blue-900/30 border border-purple-500/50 p-6 rounded">
+          <div className="flex items-center justify-between">
+            <div>
+              <Title text="🤖 Automatic Album Import" size="lg" />
+              <Paragraph
+                text="Automatically fetch and import albums for all artists in your database that don't have albums yet."
+                color="chino"
+                className="mt-2"
+              />
+            </div>
+            <Button
+              text={
+                isAutoFetching ? "Processing..." : "FETCH ALBUMS AUTOMATICALLY"
+              }
+              onClick={handleAutoFetchAlbums}
+              disabled={isAutoFetching}
+              className="bg-purple-500/30 hover:bg-purple-500/40 disabled:bg-gray-600 whitespace-nowrap"
+            />
+          </div>
+          {isAutoFetching && (
+            <div className="mt-4 flex items-center gap-3">
+              <Spinner type="logo" />
+              <p className="text-chino text-sm">
+                This may take several minutes depending on the number of
+                artists...
+              </p>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Automation Report */}
+      {showReport && automationReport && (
+        <div className="bg-stone-900 border border-gold/30 p-6 rounded space-y-4">
+          <div className="flex items-center justify-between">
+            <Title text="📊 Automation Report" />
+            <button
+              onClick={() => setShowReport(false)}
+              className="text-chino hover:text-cream transition-colors"
+            >
+              ✕ Close Report
+            </button>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <div className="bg-black/50 p-4 rounded border border-gold/20">
+              <p className="text-chino text-xs uppercase">Total Artists</p>
+              <p className="text-cream text-2xl font-bold">
+                {automationReport.totalArtists}
+              </p>
+            </div>
+            <div className="bg-green-900/20 p-4 rounded border border-green-500/30">
+              <p className="text-chino text-xs uppercase">Albums Imported</p>
+              <p className="text-green-400 text-2xl font-bold">
+                {automationReport.withAlbumsImported.length}
+              </p>
+            </div>
+            <div className="bg-blue-900/20 p-4 rounded border border-blue-500/30">
+              <p className="text-chino text-xs uppercase">Already Had Albums</p>
+              <p className="text-blue-400 text-2xl font-bold">
+                {automationReport.alreadyHadAlbums.length}
+              </p>
+            </div>
+            <div className="bg-yellow-900/20 p-4 rounded border border-yellow-500/30">
+              <p className="text-chino text-xs uppercase">No Albums Found</p>
+              <p className="text-yellow-400 text-2xl font-bold">
+                {automationReport.noAlbumsFound.length}
+              </p>
+            </div>
+          </div>
+
+          {/* Artists with Albums Imported */}
+          {automationReport.withAlbumsImported.length > 0 && (
+            <div className="space-y-2">
+              <Title
+                text="✅ Artists with Albums Imported"
+                size="sm"
+                color="text-green-400"
+              />
+              <div className="max-h-96 overflow-y-auto space-y-2">
+                {automationReport.withAlbumsImported.map((item, idx) => (
+                  <div
+                    key={idx}
+                    className="bg-green-900/10 border border-green-500/30 p-4 rounded"
+                  >
+                    <div className="flex items-center justify-between mb-2">
+                      <p className="text-cream font-semibold">
+                        {item.artistName}
+                      </p>
+                      <span className="text-green-400 text-sm">
+                        {item.albumsCount} albums
+                      </span>
+                    </div>
+                    <div className="space-y-1">
+                      {item.albums.map((album, aIdx) => (
+                        <p key={aIdx} className="text-chino text-xs pl-4">
+                          • {album.albumName} ({album.albumType})
+                          {album.releaseDate
+                            ? ` - ${new Date(album.releaseDate).getFullYear()}`
+                            : ""}
+                        </p>
+                      ))}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Artists with No Albums Found */}
+          {automationReport.noAlbumsFound.length > 0 && (
+            <div className="space-y-2">
+              <Title
+                text="⚠️ Artists with No Albums Found"
+                size="sm"
+                color="text-yellow-400"
+              />
+              <div className="max-h-64 overflow-y-auto space-y-2">
+                {automationReport.noAlbumsFound.map((item, idx) => (
+                  <div
+                    key={idx}
+                    className="bg-yellow-900/10 border border-yellow-500/30 p-3 rounded"
+                  >
+                    <p className="text-cream font-semibold">
+                      {item.artistName}
+                    </p>
+                    <p className="text-chino text-xs">{item.reason}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Artists Already Had Albums */}
+          {automationReport.alreadyHadAlbums.length > 0 && (
+            <div className="space-y-2">
+              <Title
+                text="ℹ️ Artists Already Had Albums"
+                size="sm"
+                color="text-blue-400"
+              />
+              <div className="max-h-64 overflow-y-auto space-y-2">
+                {automationReport.alreadyHadAlbums.map((item, idx) => (
+                  <div
+                    key={idx}
+                    className="bg-blue-900/10 border border-blue-500/30 p-3 rounded"
+                  >
+                    <p className="text-cream font-semibold">
+                      {item.artistName}
+                    </p>
+                    <p className="text-chino text-xs">
+                      {item.existingAlbumsCount} albums already in database
+                    </p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Errors */}
+          {automationReport.errors.length > 0 && (
+            <div className="space-y-2">
+              <Title text="❌ Errors" size="sm" color="text-red-400" />
+              <div className="max-h-64 overflow-y-auto space-y-2">
+                {automationReport.errors.map((item, idx) => (
+                  <div
+                    key={idx}
+                    className="bg-red-900/10 border border-red-500/30 p-3 rounded"
+                  >
+                    <p className="text-cream font-semibold">
+                      {item.artistName}
+                    </p>
+                    <p className="text-chino text-xs">{item.error}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+
       <div className="bg-neutral-900 border border-gold/30 p-6 mb-6">
         <div className="mb-4">
           <label className="block text-sm font-bold uppercase text-cream ">

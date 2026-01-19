@@ -17,6 +17,8 @@ const initialState = {
   addAlbumModal: {
     isOpen: false,
     artist: null,
+    albumData: null,
+    isEditMode: false,
   },
 };
 
@@ -72,12 +74,16 @@ const modalSlice = createSlice({
       state.addAlbumModal = {
         isOpen: true,
         artist: action.payload.artist,
+        albumData: action.payload.albumData || null,
+        isEditMode: !!action.payload.albumData,
       };
     },
     closeAddAlbumModal: (state) => {
       state.addAlbumModal = {
         isOpen: false,
         artist: null,
+        albumData: null,
+        isEditMode: false,
       };
     },
   },

@@ -24,7 +24,7 @@ const AddArtistDates = ({ className, artist, desc, userSubmittedArtistId }) => {
     e.stopPropagation();
     if (!user) {
       dispatch(
-        setError({ message: "Please login to add events", type: "error" })
+        setError({ message: "Please login to add events", type: "error" }),
       );
       return;
     }
@@ -33,7 +33,7 @@ const AddArtistDates = ({ className, artist, desc, userSubmittedArtistId }) => {
         setError({
           message: "You can only add events for your own artist profile",
           type: "error",
-        })
+        }),
       );
       return;
     }
@@ -48,7 +48,7 @@ const AddArtistDates = ({ className, artist, desc, userSubmittedArtistId }) => {
   return (
     <div
       onClick={handleAddEvent}
-      className={`bg-gold/30 hover:bg-gold/40 text-gold w-fit secondary center gap-1 cursor-pointer duration-300 p-1 rounded-xs text-sm font-bold ${className}`}
+      className={`bg-gold/30 hover:bg-gold/40 text-gold w-fit seconday center gap-1 cursor-pointer duration-300 p-1 rounded-xs text-sm font-bold ${className}`}
     >
       {desc && <h1>{desc}</h1>}
     </div>

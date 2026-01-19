@@ -23,14 +23,14 @@ export async function GET(request) {
     } catch (clientError) {
       return NextResponse.json(
         { error: "Database connection failed" },
-        { status: 500 }
+        { status: 500 },
       );
     }
 
     // Query all approved artists with birth dates
     const { data: artists, error } = await supabase
       .from("artists")
-      .select("id, name, stage_name, artist_image, birth")
+      .select("id, name, stage_name, artist_image, artist_slug, birth")
       .eq("status", "approved")
       .not("birth", "is", null);
 
@@ -57,7 +57,7 @@ export async function GET(request) {
           // Check if the date is valid
           if (isNaN(birthDate.getTime())) {
             console.warn(
-              `Invalid birth date for artist ${artist.id}: ${artist.birth}`
+              `Invalid birth date for artist ${artist.id}: ${artist.birth}`,
             );
             return false;
           }
@@ -104,7 +104,7 @@ export async function GET(request) {
     console.error("Error fetching artists born today:", error);
     return NextResponse.json(
       { error: "Internal server error" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

@@ -1,7 +1,11 @@
 "use client";
 import { useState, useEffect } from "react";
+import { useDispatch, useSelector } from "react-redux";
 import { motion } from "framer-motion";
 import Image from "next/image";
+import { selectUser } from "@/app/features/userSlice";
+import { openAddAlbumModal } from "@/app/features/modalSlice";
+import { FaEdit } from "react-icons/fa";
 import SectionContainer from "@/app/components/containers/SectionContainer";
 import Title from "@/app/components/ui/Title";
 import Paragraph from "@/app/components/ui/Paragraph";
@@ -9,33 +13,46 @@ import SpanText from "@/app/components/ui/SpanText";
 import { truncateString } from "@/app/helpers/utils";
 
 const Albums = ({ artistId }) => {
+  const dispatch = useDispatch();
+  const user = useSelector(selectUser);
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [selectedAlbum, setSelectedAlbum] = useState(null);
   const [hasMore, setHasMore] = useState(false);
+  const [artistData, setArtistData] = useState(null);
 
   useEffect(() => {
-    const fetchAlbums = async () => {
+    const fetchData = async () => {
       try {
         setLoading(true);
-        const response = await fetch(
-          `/api/artists/${artistId}/albums?limit=15`
-        );
-        const result = await response.json();
 
-        if (result.success) {
-          setData(result.data || []);
-          setHasMore(result.hasMore || false);
-          // Set the first album as selected by default
-          if (result.data && result.data.length > 0) {
-            setSelectedAlbum(result.data[0]);
+        // Fetch albums
+        const albumsResponse = await fetch(
+          `/api/artists/${artistId}/albums?limit=15`,
+        );
+        const albumsResult = await albumsResponse.json();
+
+        if (albumsResult.success) {
+          setData(albumsResult.data || []);
+          setHasMore(albumsResult.hasMore || false);
+          if (albumsResult.data && albumsResult.data.length > 0) {
+            setSelectedAlbum(albumsResult.data[0]);
           }
         } else {
-          setError(result.error);
+          setError(albumsResult.error);
+        }
+
+        // Fetch artist data for permission checking
+        const artistResponse = await fetch(`/api/artists/${artistId}`);
+        const artistResult = await artistResponse.json();
+        if (!artistResponse.ok) {
+          console.error("Failed to fetch artist data");
+        } else {
+          setArtistData(artistResult);
         }
       } catch (err) {
-        console.error("Error fetching albums:", err);
+        console.error("Error fetching data:", err);
         setError("Failed to load albums");
       } finally {
         setLoading(false);
@@ -43,7 +60,7 @@ const Albums = ({ artistId }) => {
     };
 
     if (artistId) {
-      fetchAlbums();
+      fetchData();
     }
   }, [artistId]);
 
@@ -64,6 +81,22 @@ const Albums = ({ artistId }) => {
   if (error || !data || data.length === 0) {
     return null;
   }
+
+  console.log(data, "ARTIST Albums from ALBUMS.jsx");
+
+  // Check if user can edit albums (admin or owner)
+  const canEditAlbums =
+    user && artistData && (user.is_admin || user.id === artistData.user_id);
+
+  const handleEditAlbum = (album, e) => {
+    e.stopPropagation();
+    dispatch(
+      openAddAlbumModal({
+        artist: artistData,
+        albumData: album,
+      }),
+    );
+  };
 
   return (
     <SectionContainer
@@ -86,9 +119,9 @@ const Albums = ({ artistId }) => {
                 whileInView={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.5, delay: index * 0.1 }}
                 onClick={() => setSelectedAlbum(album)}
-                className={`relative aspect-square bg-black duration-300 cursor-pointer ${
+                className={`relative aspect-square bg-black duration-300 cursor-pointer group ${
                   selectedAlbum?.id === album.id
-                    ? "border-3 border-gold"
+                    ? ""
                     : "opacity-50 brightness-70 hover:brightness-100"
                 }`}
               >
@@ -100,6 +133,15 @@ const Albums = ({ artistId }) => {
                     className="object-cover"
                   />
                 </div>
+                {canEditAlbums && (
+                  <button
+                    onClick={(e) => handleEditAlbum(album, e)}
+                    className="absolute top-1 right-1 z-10 bg-gold/90 hover:bg-gold text-black p-1.5 rounded opacity-0 group-hover:opacity-100 transition-opacity duration-200"
+                    title="Edit album"
+                  >
+                    <FaEdit size={12} />
+                  </button>
+                )}
               </motion.div>
             ))}
           </div>

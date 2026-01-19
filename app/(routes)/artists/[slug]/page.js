@@ -6,11 +6,11 @@ import { cookies } from "next/headers";
 export const dynamic = "force-dynamic";
 
 export const generateMetadata = async ({ params }) => {
-  const { id } = await params;
+  const { slug } = await params;
   try {
     const response = await fetch(
-      `${process.env.PROJECT_URL}/api/artists/artist-profile?id=${id}`,
-      { next: { revalidate: 0 } }
+      `${process.env.PROJECT_URL}/api/artists/artist-profile?slug=${slug}`,
+      { next: { revalidate: 0 } },
     );
 
     if (!response.ok) {
@@ -18,40 +18,17 @@ export const generateMetadata = async ({ params }) => {
     }
 
     const { artist } = await response.json();
-    const artistName = capitalizeTitle(artist?.stage_name || artist?.name || "Artist");
-    const artistImage = artist?.artist_image || '/assets/default-artist.jpg';
-    const pageUrl = `${process.env.PROJECT_URL}/artists/${id}`;
+    const artistName = capitalizeTitle(
+      artist?.stage_name || artist?.name || "Artist",
+    );
 
-    // Ensure the image URL is absolute
-    const absoluteImageUrl = artistImage.startsWith('http') 
-      ? artistImage 
-      : `${process.env.PROJECT_URL}${artistImage}`;
-
+    // Just the browser title - no social media metadata
     return {
       title: `Soundfolio | ${artistName}`,
-      openGraph: {
-        title: `${artistName} - Artist Profile on Soundfolio`,
-        url: pageUrl,
-        siteName: 'Soundfolio',
-        images: [
-          {
-            url: absoluteImageUrl,
-            width: 1200,
-            height: 630,
-            alt: `${artistName} - Artist Profile Picture`,
-          },
-        ],
-        type: 'profile',
-      },
-      twitter: {
-        card: 'summary_large_image',
-        title: `${artistName} - Artist Profile on Soundfolio`,
-        images: [absoluteImageUrl],
-      },
     };
   } catch (error) {
     console.error("Metadata generation error:", error);
-    return { 
+    return {
       title: "Soundfolio - Artist",
     };
   }
@@ -59,13 +36,15 @@ export const generateMetadata = async ({ params }) => {
 
 const ArtistProfilePage = async ({ params }) => {
   try {
-    const { id } = await params;
+    const { slug } = await params;
     const cookieStore = await cookies();
     const { user } = await getServerUser(cookieStore);
 
     // Fetch artist profile data
-    const url = new URL(`${process.env.PROJECT_URL}/api/artists/artist-profile`);
-    url.searchParams.set("id", id);
+    const url = new URL(
+      `${process.env.PROJECT_URL}/api/artists/artist-profile`,
+    );
+    url.searchParams.set("slug", slug);
     if (user?.id) {
       url.searchParams.set("userId", user.id);
     }
@@ -87,7 +66,7 @@ const ArtistProfilePage = async ({ params }) => {
       throw new Error("Artist not found");
     }
 
-    return <ArtistProfile data={artist} artistId={id} />;
+    return <ArtistProfile data={artist} artistId={artist.id} />;
   } catch (error) {
     console.error("Artist page error:", error);
     return (

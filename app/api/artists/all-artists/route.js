@@ -28,8 +28,8 @@ export async function GET(request) {
     let query = supabase
       .from("artists")
       .select(
-        `id, name, stage_name, artist_image, country, rating_stats, birth, sex, genres, created_at`,
-        { count: "exact" }
+        `id, name, stage_name, artist_image, artist_slug, country, rating_stats, birth, sex, genres, created_at`,
+        { count: "exact" },
       )
       .eq("status", "approved");
 
@@ -37,7 +37,7 @@ export async function GET(request) {
     if (name) {
       // use ilike for partial match
       query = query.or(
-        `name.ilike.%${escapeLike(name)}%,stage_name.ilike.%${escapeLike(name)}%`
+        `name.ilike.%${escapeLike(name)}%,stage_name.ilike.%${escapeLike(name)}%`,
       );
     }
 
@@ -59,7 +59,9 @@ export async function GET(request) {
     if (birthDecade) {
       const years = decadeToYearRange(birthDecade);
       if (years) {
-        query = query.gte("birth", years[0].toString()).lte("birth", years[1].toString());
+        query = query
+          .gte("birth", years[0].toString())
+          .lte("birth", years[1].toString());
       }
     }
 
@@ -69,7 +71,9 @@ export async function GET(request) {
       if (ratingRange === "high") {
         query = query.gte("rating_stats->>average_score", "8"); // >= 8.0
       } else if (ratingRange === "medium") {
-        query = query.gte("rating_stats->>average_score", "6").lt("rating_stats->>average_score", "8");
+        query = query
+          .gte("rating_stats->>average_score", "6")
+          .lt("rating_stats->>average_score", "8");
       } else if (ratingRange === "low") {
         query = query.lt("rating_stats->>average_score", "6");
       }
@@ -84,13 +88,17 @@ export async function GET(request) {
       // Supabase supports ordering by column; ordering by JSON path may depend on version.
       // As a fallback we will not break if order by path fails (client can sort)
       try {
-        query = query.order("rating_stats->>average_score", { ascending: false });
+        query = query.order("rating_stats->>average_score", {
+          ascending: false,
+        });
       } catch (e) {
         // ignore ordering failure; we'll apply client-side fallback
       }
     } else if (sort === "rating_low") {
       try {
-        query = query.order("rating_stats->>average_score", { ascending: true });
+        query = query.order("rating_stats->>average_score", {
+          ascending: true,
+        });
       } catch (e) {
         // ignore
       }
@@ -109,7 +117,10 @@ export async function GET(request) {
 
     if (artistsError) {
       console.error("Error fetching artists (filtered):", artistsError);
-      return NextResponse.json({ error: artistsError.message }, { status: 500 });
+      return NextResponse.json(
+        { error: artistsError.message },
+        { status: 500 },
+      );
     }
 
     // If no results just return empty page
@@ -143,7 +154,9 @@ export async function GET(request) {
     // apply client-side stable sort to guarantee expected order.
     let finalList = artistsWithLikes;
     if (sort === "most_liked") {
-      finalList = finalList.sort((a, b) => (b.likesCount || 0) - (a.likesCount || 0));
+      finalList = finalList.sort(
+        (a, b) => (b.likesCount || 0) - (a.likesCount || 0),
+      );
     } else if (sort === "rating_high") {
       finalList = finalList.sort((a, b) => (b.rating || 0) - (a.rating || 0));
     } else if (sort === "rating_low") {
@@ -157,11 +170,17 @@ export async function GET(request) {
       total,
       limit,
       offset,
-      hasMore: total !== null ? offset + finalList.length < total : finalList.length === limit,
+      hasMore:
+        total !== null
+          ? offset + finalList.length < total
+          : finalList.length === limit,
     });
   } catch (error) {
     console.error("Error in GET all-artists API:", error);
-    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
+    return NextResponse.json(
+      { error: "Internal server error" },
+      { status: 500 },
+    );
   }
 }
 
@@ -175,13 +194,21 @@ function escapeLike(input) {
 function decadeToYearRange(decade) {
   // returns [startYear, endYear]
   switch (decade) {
-    case "1960s": return [1960, 1969];
-    case "1970s": return [1970, 1979];
-    case "1980s": return [1980, 1989];
-    case "1990s": return [1990, 1999];
-    case "2000s": return [2000, 2009];
-    case "2010s": return [2010, 2019];
-    case "2020s": return [2020, 2099];
-    default: return null;
+    case "1960s":
+      return [1960, 1969];
+    case "1970s":
+      return [1970, 1979];
+    case "1980s":
+      return [1980, 1989];
+    case "1990s":
+      return [1990, 1999];
+    case "2000s":
+      return [2000, 2009];
+    case "2010s":
+      return [2010, 2019];
+    case "2020s":
+      return [2020, 2099];
+    default:
+      return null;
   }
 }

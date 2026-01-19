@@ -12,9 +12,16 @@ import Spinner from "@/app/components/ui/Spinner";
 const PAGE_LIMIT = 20;
 const DEBOUNCE_MS = 300;
 
-const AllArtistsClient = ({ initialArtists = [], initialTotal = 0, initialFilters = {}, error: initialError = null }) => {
+const AllArtistsClient = ({
+  initialArtists = [],
+  initialTotal = 0,
+  initialFilters = {},
+  error: initialError = null,
+}) => {
   const [artists, setArtists] = useState(initialArtists || []);
-  const [offset, setOffset] = useState(initialArtists.length > 0 ? PAGE_LIMIT : 0);
+  const [offset, setOffset] = useState(
+    initialArtists.length > 0 ? PAGE_LIMIT : 0,
+  );
   const [total, setTotal] = useState(initialTotal || null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(initialError);
@@ -25,15 +32,17 @@ const AllArtistsClient = ({ initialArtists = [], initialTotal = 0, initialFilter
 
   // STATIC options - extracted from ALL artists data, not filtered results
   const countryOptions = useMemo(() => {
-    const set = new Set((allArtistsData || []).map(a => a.country).filter(Boolean));
+    const set = new Set(
+      (allArtistsData || []).map((a) => a.country).filter(Boolean),
+    );
     return Array.from(set).sort();
   }, [allArtistsData]);
 
   const genreOptions = useMemo(() => {
     const allGenres = new Set();
-    (allArtistsData || []).forEach(artist => {
+    (allArtistsData || []).forEach((artist) => {
       if (artist.genres && Array.isArray(artist.genres)) {
-        artist.genres.forEach(g => allGenres.add(g));
+        artist.genres.forEach((g) => allGenres.add(g));
       }
     });
     return Array.from(allGenres).sort();
@@ -43,7 +52,10 @@ const AllArtistsClient = ({ initialArtists = [], initialTotal = 0, initialFilter
   useEffect(() => {
     const fetchAllForFilters = async () => {
       try {
-        const res = await fetch(`${process.env.NEXT_PUBLIC_PROJECT_URL || ""}/api/artists/all-artists?limit=9999`, { cache: "no-store" });
+        const res = await fetch(
+          `${process.env.NEXT_PUBLIC_PROJECT_URL || ""}/api/artists/all-artists?limit=9999`,
+          { cache: "no-store" },
+        );
         const json = await res.json();
         if (!json.error && json.data) {
           setAllArtistsData(json.data);
@@ -59,20 +71,26 @@ const AllArtistsClient = ({ initialArtists = [], initialTotal = 0, initialFilter
 
   const dynamicFilterConfig = useMemo(() => {
     return filterConfigs.artists
-      .filter(f => f.name !== "city")
-      .map(field => {
+      .filter((f) => f.name !== "city")
+      .map((field) => {
         if (field.name === "country") {
-          return { ...field, options: countryOptions.map(c => ({ value: c, label: c })) };
+          return {
+            ...field,
+            options: countryOptions.map((c) => ({ value: c, label: c })),
+          };
         }
         if (field.name === "genres") {
-          return { ...field, options: genreOptions.map(g => ({ value: g, label: g })) };
+          return {
+            ...field,
+            options: genreOptions.map((g) => ({ value: g, label: g })),
+          };
         }
         return field;
       });
   }, [countryOptions, genreOptions]);
 
   useEffect(() => {
-    console.log('Filters changed:', filters);
+    console.log("Filters changed:", filters);
     // Always fetch when filters change (including when reset)
     fetchFirstPage();
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -81,7 +99,7 @@ const AllArtistsClient = ({ initialArtists = [], initialTotal = 0, initialFilter
   // debounce for name filter: bump queryVersion after a short delay
   useEffect(() => {
     const t = setTimeout(() => {
-      setQueryVersion(v => v + 1);
+      setQueryVersion((v) => v + 1);
       fetchFirstPage();
     }, DEBOUNCE_MS);
     return () => clearTimeout(t);
@@ -111,7 +129,10 @@ const AllArtistsClient = ({ initialArtists = [], initialTotal = 0, initialFilter
 
     try {
       const qs = buildQuery(PAGE_LIMIT, 0);
-      const res = await fetch(`${process.env.NEXT_PUBLIC_PROJECT_URL || ""}/api/artists/all-artists?${qs}`, { cache: "no-store" });
+      const res = await fetch(
+        `${process.env.NEXT_PUBLIC_PROJECT_URL || ""}/api/artists/all-artists?${qs}`,
+        { cache: "no-store" },
+      );
       const json = await res.json();
       if (json.error) {
         setError(json.error);
@@ -138,12 +159,15 @@ const AllArtistsClient = ({ initialArtists = [], initialTotal = 0, initialFilter
     setError(null);
     try {
       const qs = buildQuery(PAGE_LIMIT, nextOffset);
-      const res = await fetch(`${process.env.NEXT_PUBLIC_PROJECT_URL || ""}/api/artists/all-artists?${qs}`, { cache: "no-store" });
+      const res = await fetch(
+        `${process.env.NEXT_PUBLIC_PROJECT_URL || ""}/api/artists/all-artists?${qs}`,
+        { cache: "no-store" },
+      );
       const json = await res.json();
       if (json.error) {
         setError(json.error);
       } else {
-        setArtists(prev => [...prev, ...(json.data || [])]);
+        setArtists((prev) => [...prev, ...(json.data || [])]);
         setOffset(nextOffset);
         if (typeof json.total === "number") setTotal(json.total);
       }
@@ -156,7 +180,7 @@ const AllArtistsClient = ({ initialArtists = [], initialTotal = 0, initialFilter
   };
 
   const handleFilterChange = (name, value) => {
-    setFilters(prev => {
+    setFilters((prev) => {
       const newFilters = { ...prev };
       // If value is empty (clicked placeholder), remove that filter completely
       if (!value || value === "" || value === null || value === undefined) {
@@ -171,14 +195,26 @@ const AllArtistsClient = ({ initialArtists = [], initialTotal = 0, initialFilter
   };
 
   // computed UI flags
-  const hasMore = total === null ? artists.length % PAGE_LIMIT === 0 && artists.length > 0 : artists.length < total;
+  const hasMore =
+    total === null
+      ? artists.length % PAGE_LIMIT === 0 && artists.length > 0
+      : artists.length < total;
 
   return (
     <div className="px-2 lg:px-4">
-      <PageHeadline title="All Artists" description="Discover talented artists from around the world." />
-      <FilterBar config={dynamicFilterConfig} values={filters} onChange={handleFilterChange} />
+      <PageHeadline
+        title="All Artists"
+        description="Discover talented artists from around the world."
+      />
+      <FilterBar
+        config={dynamicFilterConfig}
+        values={filters}
+        onChange={handleFilterChange}
+      />
 
-      {error && <ErrorCode title="Error loading artists" description={String(error)} />}
+      {error && (
+        <ErrorCode title="Error loading artists" description={String(error)} />
+      )}
 
       <div className="mt-4 ">
         {artists.length > 0 ? (
@@ -192,7 +228,7 @@ const AllArtistsClient = ({ initialArtists = [], initialTotal = 0, initialFilter
                   name={artist.stage_name || artist.name}
                   country={artist.country}
                   likesCount={artist.likesCount}
-                  href={`/artists/${artist.id}`}
+                  href={`/artists/${artist.artist_slug}`}
                   delay={idx}
                   score={artist.rating_stats?.average_score}
                 />
@@ -201,7 +237,11 @@ const AllArtistsClient = ({ initialArtists = [], initialTotal = 0, initialFilter
 
             <div className="center my-5">
               {hasMore ? (
-                <Button text={loading ? "Loading..." : "Load more"} onClick={loadMore} disabled={loading}/>
+                <Button
+                  text={loading ? "Loading..." : "Load more"}
+                  onClick={loadMore}
+                  disabled={loading}
+                />
               ) : (
                 <div className="text-sm text-muted">No more artists</div>
               )}
@@ -209,11 +249,14 @@ const AllArtistsClient = ({ initialArtists = [], initialTotal = 0, initialFilter
           </>
         ) : loading ? (
           <div className="py-12 center">
-            <Spinner/>
+            <Spinner />
           </div>
         ) : (
           <div className="text-center py-10">
-            <ErrorCode title="No artists found" description="Try adjusting your filters to see more results." />
+            <ErrorCode
+              title="No artists found"
+              description="Try adjusting your filters to see more results."
+            />
           </div>
         )}
       </div>

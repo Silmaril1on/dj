@@ -1,18 +1,15 @@
-import MotionCount from '@/app/components/ui/MotionCount';
-import SectionContainer from '@/app/components/containers/SectionContainer';
-import RecentActivityCard from '@/app/components/materials/RecentActivityCard';
-import Paragraph from '@/app/components/ui/Paragraph';
-import ErrorCode from '@/app/components/ui/ErrorCode';
+import MotionCount from "@/app/components/ui/MotionCount";
+import SectionContainer from "@/app/components/containers/SectionContainer";
+import RecentActivityCard from "@/app/components/materials/RecentActivityCard";
+import Paragraph from "@/app/components/ui/Paragraph";
+import ErrorCode from "@/app/components/ui/ErrorCode";
 
 const ReviewsStats = ({ data, error }) => {
   const { totalReviews, recentArtists } = data;
 
   if (error) {
     return (
-      <ErrorCode
-        title="Error loading reviews statistics"
-        description={error}
-      />
+      <ErrorCode title="Error loading reviews statistics" description={error} />
     );
   }
 
@@ -54,7 +51,7 @@ const ReviewsStats = ({ data, error }) => {
                 key={`${artist.id}-${index}`}
                 item={artist}
                 index={index}
-                href={`/artists/${artist.id}`}
+                href={`/artists/${artist.artist_slug}`}
                 imageField="artist_image"
                 primaryNameField="stage_name"
                 secondaryNameField="name"
@@ -68,12 +65,12 @@ const ReviewsStats = ({ data, error }) => {
         {/* FOOTER */}
         <div>
           <p className="text-chino/60 text-sm text-center secondary">
-            Total Reviews: <span className="text-gold font-semibold">{totalReviews}</span>
+            Total Reviews:{" "}
+            <span className="text-gold font-semibold">{totalReviews}</span>
           </p>
         </div>
       </div>
     </SectionContainer>
-
   );
 };
 

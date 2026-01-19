@@ -1,10 +1,10 @@
 import ArtistReviews from "@/app/pages/artist/artist-reviews/ArtistReviews";
 
 export async function generateMetadata({ params }) {
-  const { id } = await params;
+  const { slug } = await params;
 
   const response = await fetch(
-    `${process.env.PROJECT_URL}/api/artists/review?artistId=${id}&limit=10&page=1`,
+    `${process.env.PROJECT_URL}/api/artists/review?artistSlug=${slug}&limit=10&page=1`,
     { cache: "no-store" }
   );
   const { artist } = await response.json();
@@ -16,10 +16,10 @@ export async function generateMetadata({ params }) {
 }
 
 const ArtistReviewsPage = async ({ params }) => {
-  const { id } = await params;
+  const { slug } = await params;
 
   const response = await fetch(
-    `${process.env.PROJECT_URL}/api/artists/review?artistId=${id}&limit=20&page=1`,
+    `${process.env.PROJECT_URL}/api/artists/review?artistSlug=${slug}&limit=20&page=1`,
     { cache: "no-store" }
   );
   const { artist, reviews, error, pagination } = await response.json();
@@ -30,7 +30,7 @@ const ArtistReviewsPage = async ({ params }) => {
       data={reviews}
       error={error}
       pagination={pagination}
-      artistId={id}
+      artistId={artist?.id}
     />
   );
 };

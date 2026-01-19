@@ -1,12 +1,12 @@
-import { useState } from 'react'
-import { motion } from 'framer-motion'
-import RatingButton from '@/app/components/buttons/artist-buttons/RatingButton'
-import ArtistCountry from '@/app/components/materials/ArtistCountry'
-import ArtistName from '@/app/components/materials/ArtistName'
-import Image from 'next/image'
-import Link from 'next/link'
-import MetaScore from '@/app/components/materials/MetaScore'
-import LikeButton from '@/app/components/buttons/artist-buttons/LikeButton'
+import { useState } from "react";
+import { motion } from "framer-motion";
+import RatingButton from "@/app/components/buttons/artist-buttons/RatingButton";
+import ArtistCountry from "@/app/components/materials/ArtistCountry";
+import ArtistName from "@/app/components/materials/ArtistName";
+import Image from "next/image";
+import Link from "next/link";
+import MetaScore from "@/app/components/materials/MetaScore";
+import LikeButton from "@/app/components/buttons/artist-buttons/LikeButton";
 
 const ArtistCard = ({
   artist,
@@ -35,7 +35,7 @@ const ArtistCard = ({
       transition: {
         duration: 0.5,
         ease: "easeOut",
-        delay, 
+        delay,
       },
     }),
   };
@@ -50,7 +50,10 @@ const ArtistCard = ({
         style={cardStyle}
         className="border border-gold/30 hover:border-gold/50 bg-gold/20 duration-300 p-1 group relative"
       >
-        <Link href={`/artists/${artist.id}`} className='flex flex-col h-full relative'>
+        <Link
+          href={`/artists/${artist.artist_slug}`}
+          className="flex flex-col h-full relative"
+        >
           <div className="w-full h-44 lg:h-64 overflow-hidden">
             <Image
               className="brightness-90 group-hover:brightness-100 duration-300 w-full h-full object-cover"
@@ -62,10 +65,13 @@ const ArtistCard = ({
             />
           </div>
           <article className="w-full mt-1 flex-col flex grow-1 justify-between">
-            <ArtistName  artistName={artist} className="leading-5 text-lg lg:text-2xl" />
+            <ArtistName
+              artistName={artist}
+              className="leading-5 text-lg lg:text-2xl"
+            />
             <ArtistCountry artistCountry={artist} />
             <MetaScore scoreData={artist?.rating_stats} artistId={artist.id} />
-            <div  className="absolute top-[1px] left-[1px] space-y-1 p-1">
+            <div className="absolute top-[1px] left-[1px] space-y-1 p-1">
               <RatingButton
                 artist={artist}
                 ratingStats={artist.rating_stats}
@@ -90,7 +96,7 @@ const ArtistCard = ({
       onAnimationComplete={onAnimationComplete}
       className="border border-gold/30 hover:border-gold/50 bg-gold/20 duration-300 p-1 group relative"
     >
-      <Link href={`/artists/${artist.id}`}>
+      <Link href={`/artists/${artist.artist_slug}`}>
         <div className="w-full h-44 lg:h-64 overflow-hidden rounded-sm">
           <Image
             className="brightness-90 group-hover:brightness-100 duration-300 w-full h-full object-cover"
@@ -103,22 +109,24 @@ const ArtistCard = ({
         </div>
 
         <article className="w-full mt-1 flex-col flex grow-1 justify-between">
-            <ArtistName  artistName={artist} className="leading-5 text-lg lg:text-2xl" />
-            <ArtistCountry artistCountry={artist} />
-            <MetaScore scoreData={artist?.rating_stats} artistId={artist.id} />
-            <div  className="absolute top-[5px] left-[5px] space-y-1 p-1">
-              <RatingButton
-                artist={artist}
-                ratingStats={artist.rating_stats}
-                userRating={userRating}
-              />
-              <LikeButton artist={artist} onLikeChange={handleLikeChange} />
-            </div>
-          </article>
+          <ArtistName
+            artistName={artist}
+            className="leading-5 text-lg lg:text-2xl"
+          />
+          <ArtistCountry artistCountry={artist} />
+          <MetaScore scoreData={artist?.rating_stats} artistId={artist.id} />
+          <div className="absolute top-[5px] left-[5px] space-y-1 p-1">
+            <RatingButton
+              artist={artist}
+              ratingStats={artist.rating_stats}
+              userRating={userRating}
+            />
+            <LikeButton artist={artist} onLikeChange={handleLikeChange} />
+          </div>
+        </article>
       </Link>
     </motion.div>
   );
 };
 
-
-export default ArtistCard
+export default ArtistCard;

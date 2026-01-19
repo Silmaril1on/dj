@@ -15,6 +15,8 @@ const ProfileLineup = ({ title = "Lineup", data = [] }) => {
           // Handle both string (legacy) and object (with ID) formats
           const artistName = typeof artist === "string" ? artist : artist.name;
           const artistId = typeof artist === "object" ? artist.id : null;
+          const artistSlug =
+            typeof artist === "object" ? artist.artist_slug : null;
 
           return (
             <Motion
@@ -23,8 +25,8 @@ const ProfileLineup = ({ title = "Lineup", data = [] }) => {
               key={index}
               className="flex items-center space-x-2"
             >
-              {artistId ? (
-                <Link href={`/artists/${artistId}`}>
+              {artistSlug ? (
+                <Link href={`/artists/${artistSlug}`}>
                   <Title
                     size="xl"
                     color="cream"

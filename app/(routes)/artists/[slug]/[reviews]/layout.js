@@ -6,7 +6,7 @@ const ArtistReviewsLayout = async ({ children }) => {
     `${process.env.PROJECT_URL}/api/users/side-top-stats`,
     {
       cache: "no-store",
-    }
+    },
   );
 
   if (!res.ok) {

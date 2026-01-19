@@ -107,11 +107,21 @@ const SubmissionForm = ({
     const file = e.target.files[0];
     if (file) {
       if (!file.type.startsWith("image/")) {
-        dispatch(setError({ message: "Please upload a valid image file", type: "error" }));
+        dispatch(
+          setError({
+            message: "Please upload a valid image file",
+            type: "error",
+          })
+        );
         return;
       }
       if (file.size > 1 * 1024 * 1024) {
-        dispatch(setError({ message: "Image size must be less than 1MB", type: "error" }));
+        dispatch(
+          setError({
+            message: "Image size must be less than 1MB",
+            type: "error",
+          })
+        );
         return;
       }
       setSelectedFile(file);
@@ -216,7 +226,7 @@ const SubmissionForm = ({
       if (!icon) return inputElement;
 
       return (
-        <div className="relative">
+        <div className="relative ">
           {inputElement}
           {getIcon()}
           {type === "password" && (
@@ -264,7 +274,7 @@ const SubmissionForm = ({
         const editButtonClass =
           "absolute -bottom-2 -right-2 bg-gold hover:bg-gold/80 text-black p-2 rounded-full shadow-lg transition-colors";
         return (
-          <div id={fieldName} className="flex items-center space-x-6">
+          <div id={fieldName} className="flex items-center space-x-6 ">
             <div className="relative">
               <div
                 className={`${containerClass} overflow-hidden bg-stone-700 border-2 border-gold/30`}
@@ -335,7 +345,7 @@ const SubmissionForm = ({
       case "additional":
         return (
           <AdditionalInput
-            id={fieldName} 
+            id={fieldName}
             name={fieldName}
             fields={formData[fieldName] || [""]}
             onChange={(index, value) =>
@@ -365,7 +375,7 @@ const SubmissionForm = ({
             value={fieldValue}
             onChange={(e) => handleInputChange(fieldName, e.target.value)}
             placeholder={placeholder}
-            className={`${icon ? "pl-10" : ""}`}
+            className={`${icon ? "pl-10 " : ""}`}
             autoComplete={fieldConfig.autoComplete || "off"}
             {...otherProps}
           />
@@ -407,18 +417,19 @@ const SubmissionForm = ({
               return (
                 <div key={fieldName}>
                   {/* Render label for all types except image and additional */}
-                  {fieldConfig.type !== "image" && fieldConfig.type !== "additional" && (
-                    <label htmlFor={fieldName}>
-                      {fieldConfig.label ||
-                        fieldName
-                          .replace(/_/g, " ")
-                          .replace(/\b\w/g, (l) => l.toUpperCase())}
-                      {fieldConfig.required && (
-                        <span className="text-red-500 ml-1">*</span>
-                      )}
-                    </label>
-                  )}
-                  
+                  {fieldConfig.type !== "image" &&
+                    fieldConfig.type !== "additional" && (
+                      <label htmlFor={fieldName}>
+                        {fieldConfig.label ||
+                          fieldName
+                            .replace(/_/g, " ")
+                            .replace(/\b\w/g, (l) => l.toUpperCase())}
+                        {fieldConfig.required && (
+                          <span className="text-red-500 ml-1">*</span>
+                        )}
+                      </label>
+                    )}
+
                   {/* For additional type, render label without htmlFor */}
                   {fieldConfig.type === "additional" && (
                     <div className="mb-2">
@@ -433,7 +444,7 @@ const SubmissionForm = ({
                       </span>
                     </div>
                   )}
-                  
+
                   {renderField(fieldName, fieldConfig)}
                   {fieldName === "password" &&
                     formData[fieldName] &&
@@ -461,7 +472,7 @@ const SubmissionForm = ({
           className="hidden"
         />
       )}
-      <FlexBox type="row-between" className="mt-4">
+      <FlexBox type="row-between" className="mt-4 ">
         <Button
           type="submit"
           text={isLoading ? "Submitting..." : submitButtonText}

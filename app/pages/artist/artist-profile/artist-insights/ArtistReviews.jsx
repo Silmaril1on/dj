@@ -6,10 +6,12 @@ import Title from "@/app/components/ui/Title";
 import { formatTime, truncateString } from "@/app/helpers/utils";
 import Link from "next/link";
 
-const ArtistReviews = ({ data, artistId }) => {
+const ArtistReviews = ({ data, slug }) => {
   if (data.length === 0 || !data) {
     return null;
   }
+
+  console.log(data, "6 REVIEWS for current artist ARTISTREVIEWS.jsx");
 
   return (
     <SectionContainer
@@ -41,7 +43,7 @@ const ArtistReviews = ({ data, artistId }) => {
           })}
         </div>
         <Link
-          href={`/artists/${artistId}/reviews`}
+          href={`/artists/${slug}/reviews`}
           className="hover:text-cream duration-300"
         >
           View all Reviews

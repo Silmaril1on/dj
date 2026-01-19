@@ -1,9 +1,9 @@
-import ArtistGenres from '@/app/components/materials/ArtistGenres'
-import ArtistName from '@/app/components/materials/ArtistName'
-import ProfilePicture from '@/app/components/materials/ProfilePicture'
-import MyLink from '@/app/components/ui/MyLink'
-import Paragraph from '@/app/components/ui/Paragraph'
-import { FaArrowLeft } from 'react-icons/fa'
+import ArtistGenres from "@/app/components/materials/ArtistGenres";
+import ArtistName from "@/app/components/materials/ArtistName";
+import ProfilePicture from "@/app/components/materials/ProfilePicture";
+import MyLink from "@/app/components/ui/MyLink";
+import Paragraph from "@/app/components/ui/Paragraph";
+import { FaArrowLeft } from "react-icons/fa";
 
 const ReviewHeader = ({ artist, data }) => {
   return (
@@ -15,11 +15,11 @@ const ReviewHeader = ({ artist, data }) => {
           className="w-full h-full object-cover"
         />
       </div>
-      <div className='flex flex-col md:flex-row gap-5 bg-black/30 w-full h-full py-10 pl-5'>
+      <div className="flex flex-col md:flex-row gap-5 bg-black/30 w-full h-full py-10 pl-5">
         <ProfilePicture avatar_url={artist.artist_image} type="avatar" />
         <div className="lg:space-y-2">
           <MyLink
-            href={`/artists/${artist.id}`}
+            href={`/artists/${artist.artist_slug}`}
             text="Go to Artist Profile"
             icon={<FaArrowLeft />}
           />
@@ -37,6 +37,6 @@ const ReviewHeader = ({ artist, data }) => {
       </div>
     </div>
   );
-}
+};
 
-export default ReviewHeader
+export default ReviewHeader;

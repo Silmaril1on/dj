@@ -1,6 +1,9 @@
 import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
-import { createSupabaseServerClient, supabaseAdmin } from "@/app/lib/config/supabaseServer";
+import {
+  createSupabaseServerClient,
+  supabaseAdmin,
+} from "@/app/lib/config/supabaseServer";
 
 export async function GET(request, { params }) {
   try {
@@ -65,7 +68,6 @@ export async function PUT(request, { params }) {
     const cookieStore = await cookies();
     const supabase = await createSupabaseServerClient(cookieStore);
 
-
     if (!id) {
       return NextResponse.json(
         { error: "Artist ID is required" },
@@ -74,26 +76,37 @@ export async function PUT(request, { params }) {
     }
 
     const contentType = request.headers.get("content-type");
-    
+
     let type;
 
     // Handle FormData (for album with image)
     if (contentType && contentType.includes("multipart/form-data")) {
-      console.log('Processing FormData request');
+      console.log("Processing FormData request");
       const formData = await request.formData();
       type = formData.get("type");
       for (const [key, value] of formData.entries()) {
-        console.log(`  ${key}:`, value instanceof File ? `File: ${value.name}` : value);
+        console.log(
+          `  ${key}:`,
+          value instanceof File ? `File: ${value.name}` : value
+        );
       }
-      
+
       if (type === "artist_album") {
         const name = formData.get("name");
         const release_date = formData.get("release_date");
         const description = formData.get("description");
         const tracklistJson = formData.get("tracklist");
         const album_image = formData.get("album_image");
+        const album_id = formData.get("album_id"); // For edit mode
 
-        console.log('Album data:', { name, release_date, description, tracklistJson, hasImage: !!album_image });
+        console.log("Album data:", {
+          name,
+          release_date,
+          description,
+          tracklistJson,
+          hasImage: !!album_image,
+          album_id,
+        });
 
         if (!name) {
           return NextResponse.json(
@@ -118,20 +131,24 @@ export async function PUT(request, { params }) {
 
         // Upload album image if provided
         if (album_image && album_image.size > 0) {
-          console.log('Uploading album image...');
+          console.log("Uploading album image...");
           const fileExt = album_image.name.split(".").pop();
           const fileName = `${id}_${Date.now()}.${fileExt}`;
 
-          const { data: uploadData, error: uploadError } = await supabaseAdmin.storage
-            .from("album_images")
-            .upload(fileName, album_image, {
-              cacheControl: "3600",
-              upsert: false,
-            });
+          const { data: uploadData, error: uploadError } =
+            await supabaseAdmin.storage
+              .from("album_images")
+              .upload(fileName, album_image, {
+                cacheControl: "3600",
+                upsert: false,
+              });
 
           if (uploadError) {
             return NextResponse.json(
-              { error: "Failed to upload album image", details: uploadError.message },
+              {
+                error: "Failed to upload album image",
+                details: uploadError.message,
+              },
               { status: 500 }
             );
           }
@@ -143,32 +160,67 @@ export async function PUT(request, { params }) {
           albumImageUrl = publicUrl;
         }
 
-        // Insert album into artist_albums table
+        // Prepare album data
         const albumData = {
           artist_id: id,
           name,
           release_date,
           description,
           tracklist,
-          album_image: albumImageUrl,
         };
 
-        const { data: album, error: albumError } = await supabaseAdmin
-          .from("artist_albums")
-          .insert(albumData)
-          .select()
-          .single();
+        // Only add image URL if a new image was uploaded
+        if (albumImageUrl) {
+          albumData.album_image = albumImageUrl;
+        }
 
-        if (albumError) {
-          return NextResponse.json(
-            { error: "Failed to add album", details: albumError.message },
-            { status: 500 }
-          );
+        let album;
+
+        // If album_id is provided, update existing album
+        if (album_id) {
+          // Update existing album
+          const updateData = { ...albumData };
+          delete updateData.artist_id; // Don't update artist_id
+
+          const { data: updatedAlbum, error: updateError } = await supabaseAdmin
+            .from("artist_albums")
+            .update(updateData)
+            .eq("id", album_id)
+            .eq("artist_id", id) // Ensure album belongs to this artist
+            .select()
+            .single();
+
+          if (updateError) {
+            return NextResponse.json(
+              { error: "Failed to update album", details: updateError.message },
+              { status: 500 }
+            );
+          }
+
+          album = updatedAlbum;
+        } else {
+          // Insert new album
+          const { data: newAlbum, error: albumError } = await supabaseAdmin
+            .from("artist_albums")
+            .insert(albumData)
+            .select()
+            .single();
+
+          if (albumError) {
+            return NextResponse.json(
+              { error: "Failed to add album", details: albumError.message },
+              { status: 500 }
+            );
+          }
+
+          album = newAlbum;
         }
 
         return NextResponse.json({
           success: true,
-          message: "Album added successfully",
+          message: album_id
+            ? "Album updated successfully"
+            : "Album added successfully",
           data: album,
         });
       }
@@ -193,7 +245,10 @@ export async function PUT(request, { params }) {
         if (artistDateError) {
           console.error("Error adding artist date:", artistDateError);
           return NextResponse.json(
-            { error: "Failed to add artist date", details: artistDateError.message },
+            {
+              error: "Failed to add artist date",
+              details: artistDateError.message,
+            },
             { status: 500 }
           );
         }

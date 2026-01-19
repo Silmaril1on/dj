@@ -53,11 +53,11 @@ const ProductCard = ({
       <div className="flex flex-col *:leading-none">
         <Title
           color="cream"
-          className="uppercase text-start text-[12px] lg:text-lg xl:text-xl"
+          className="uppercase text-start text-[12px] lg:text-lg xl:text-xl leading-none"
           text={truncateString(name, 50)}
         />
         {date && (
-          <p className="text-chino uppercase text-[10px] lg:text-sm">{date}</p>
+          <p className="text-chino  uppercase text-[10px] lg:text-sm">{date}</p>
         )}
         <div className="py-2">
           <ArtistCountry artistCountry={{ country, city }} />

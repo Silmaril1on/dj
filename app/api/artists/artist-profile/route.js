@@ -10,12 +10,13 @@ export async function GET(request) {
   try {
     const { searchParams } = new URL(request.url);
     const artistId = searchParams.get("id");
+    const artistSlug = searchParams.get("slug");
     const userIdFromQuery = searchParams.get("userId");
 
-    if (!artistId) {
+    if (!artistId && !artistSlug) {
       return NextResponse.json(
-        { error: "Artist ID is required" },
-        { status: 400 }
+        { error: "Artist ID or slug is required" },
+        { status: 400 },
       );
     }
 
@@ -33,16 +34,20 @@ export async function GET(request) {
     }
     const supabase = await createSupabaseServerClient(cookieStore);
 
-    const { data: artist, error } = await supabase
-      .from("artists")
-      .select("*")
-      .eq("id", artistId)
-      .single();
+    let query = supabase.from("artists").select("*");
+
+    if (artistSlug) {
+      query = query.eq("artist_slug", artistSlug);
+    } else {
+      query = query.eq("id", artistId);
+    }
+
+    const { data: artist, error } = await query.single();
 
     if (error) {
       return NextResponse.json(
         { error: "Failed to fetch artist" },
-        { status: 500 }
+        { status: 500 },
       );
     }
 
@@ -50,16 +55,19 @@ export async function GET(request) {
       return NextResponse.json({ error: "Artist not found" }, { status: 404 });
     }
 
+    // Use the fetched artist's id for subsequent queries
+    const resolvedArtistId = artist.id;
+
     // Get likes count for the artist (this doesn't need RLS bypass as it's just counting)
     const { count: likesCount, error: countError } = await supabaseAdmin
       .from("artist_likes")
       .select("*", { count: "exact", head: true })
-      .eq("artist_id", artistId);
+      .eq("artist_id", resolvedArtistId);
 
     if (countError) {
       return NextResponse.json(
         { error: "Failed to get likes count" },
-        { status: 500 }
+        { status: 500 },
       );
     }
 
@@ -78,7 +86,7 @@ export async function GET(request) {
       if (userDataError) {
         return NextResponse.json(
           { error: "Failed to check user data" },
-          { status: 500 }
+          { status: 500 },
         );
       }
 
@@ -87,14 +95,14 @@ export async function GET(request) {
       const { data: userLike, error: userLikeError } = await supabaseAdmin
         .from("artist_likes")
         .select("id")
-        .eq("artist_id", artistId)
+        .eq("artist_id", resolvedArtistId)
         .eq("user_id", userId)
         .single();
 
       if (userLikeError && userLikeError.code !== "PGRST116") {
         return NextResponse.json(
           { error: "Failed to check user like status" },
-          { status: 500 }
+          { status: 500 },
         );
       }
 
@@ -103,14 +111,14 @@ export async function GET(request) {
         await supabaseAdmin
           .from("artist_ratings")
           .select("score")
-          .eq("artist_id", artistId)
+          .eq("artist_id", resolvedArtistId)
           .eq("user_id", userId)
           .single();
 
       if (userRatingError && userRatingError.code !== "PGRST116") {
         return NextResponse.json(
           { error: "Failed to check user rating status" },
-          { status: 500 }
+          { status: 500 },
         );
       }
 
@@ -131,7 +139,7 @@ export async function GET(request) {
   } catch (error) {
     return NextResponse.json(
       { error: "Internal server error" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
@@ -148,7 +156,7 @@ export async function PUT(request) {
           error: "Authentication failed",
           details: userError.message,
         },
-        { status: 401 }
+        { status: 401 },
       );
     }
 
@@ -158,7 +166,7 @@ export async function PUT(request) {
           success: false,
           error: "User not authenticated",
         },
-        { status: 401 }
+        { status: 401 },
       );
     }
 
@@ -168,7 +176,7 @@ export async function PUT(request) {
     if (!artistId) {
       return NextResponse.json(
         { error: "Artist ID is required" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -198,7 +206,7 @@ export async function PUT(request) {
     if (updateError) {
       return NextResponse.json(
         { error: "Failed to update artist" },
-        { status: 500 }
+        { status: 500 },
       );
     }
 
@@ -209,7 +217,7 @@ export async function PUT(request) {
   } catch (error) {
     return NextResponse.json(
       { error: "Internal server error" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

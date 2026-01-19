@@ -21,13 +21,15 @@ export async function GET() {
     // ✅ OPTIMIZED: Fetch artists using RPC, then get aggregated likes/ratings in fewer queries
     const { data: artists, error: artistsError } = await supabase
       .rpc("get_random_artists", { limit_count: 18 })
-      .select("id, name, stage_name, artist_image, country, city, rating_stats")
+      .select(
+        "id, name, stage_name, artist_image, artist_slug, country, city, rating_stats",
+      )
       .eq("status", "approved");
 
     if (artistsError) {
       return NextResponse.json(
         { error: artistsError.message },
-        { status: 500 }
+        { status: 500 },
       );
     }
 
@@ -60,7 +62,7 @@ export async function GET() {
       console.error("Error fetching likes:", likesResult.error);
       return NextResponse.json(
         { error: likesResult.error.message },
-        { status: 500 }
+        { status: 500 },
       );
     }
 
@@ -68,7 +70,7 @@ export async function GET() {
       console.error("Error fetching ratings:", ratingsResult.error);
       return NextResponse.json(
         { error: ratingsResult.error.message },
-        { status: 500 }
+        { status: 500 },
       );
     }
 
@@ -100,7 +102,7 @@ export async function GET() {
   } catch (error) {
     return NextResponse.json(
       { error: "Internal server error" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

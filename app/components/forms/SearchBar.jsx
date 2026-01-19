@@ -94,22 +94,27 @@ const SearchBar = () => {
                 className="w-8 h-8 rounded object-cover"
               />
 
-              <div className="w-full *:capitalize gap-1">
+              <div className="w-full *:capitalize leading-none">
                 <div className="font-bold text-gold uppercase">
                   {item.type === "artist" && (item.stage_name || item.name)}
                   {item.type === "club" && item.name}
-                  {item.type === "event" && item.event_name}
+                  {item.type === "event" && item.venue_name}
                 </div>
                 <div className="text-[10px] lg:text-xs text-stone-400 flex items-center">
-                  <ArtistCountry artistCountry={{ country: item.country }} />
-                  <div className="hidden lg:block  text-cream/90 ml-1">
+                  <ArtistCountry
+                    artistCountry={{ country: item.country }}
+                    size="small"
+                  />
+                  <div className="hidden lg:block text-[10px] text-cream/90 ml-1">
                     {item.type === "artist" &&
                       item.genres &&
                       ` • ${item.genres.slice(0, 3).join(", ")}`}
                   </div>
-                  {item.type === "event" &&
-                    item.venue_name &&
-                    ` • ${item.venue_name}`}
+                  <div className="text-cream/50">
+                    {item.type === "event" &&
+                      item.venue_name &&
+                      ` • ${item.venue_name}`}
+                  </div>
                 </div>
               </div>
               <span className="ml-auto text-xs px-2 py-1 bg-chino/30 text-cream font-bold">

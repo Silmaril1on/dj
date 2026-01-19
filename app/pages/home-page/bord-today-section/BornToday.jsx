@@ -71,7 +71,7 @@ const BornToday = () => {
             className="group cursor-pointer"
             style={{ minWidth: 260, margin: "0 8px" }}
           >
-            <Link href={`/artists/${artist.id}`}>
+            <Link href={`/artists/${artist.artist_slug}`}>
               <div className="bg-stone-900 bordered p-2 transition-colors duration-300">
                 <div className="relative w-full h-52 mb-3 overflow-hidden">
                   <Image
@@ -98,6 +98,3 @@ const BornToday = () => {
 };
 
 export default BornToday;
-
-
-

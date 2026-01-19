@@ -8,7 +8,7 @@ import { cookies } from "next/headers";
 
 export async function GET() {
   const startTime = performance.now();
-  console.log('🚀 [UNIFIED-STATISTICS] Starting fetch for all 7 datasets...');
+  console.log("🚀 [UNIFIED-STATISTICS] Starting fetch for all 7 datasets...");
 
   try {
     const cookieStore = await cookies();
@@ -21,7 +21,7 @@ export async function GET() {
           error: "Authentication failed",
           details: userError.message,
         },
-        { status: 401 }
+        { status: 401 },
       );
     }
 
@@ -31,7 +31,7 @@ export async function GET() {
           success: false,
           error: "User not authenticated",
         },
-        { status: 401 }
+        { status: 401 },
       );
     }
 
@@ -58,26 +58,31 @@ export async function GET() {
 
           const { data: recentLikes } = await supabase
             .from("artist_likes")
-            .select(`
+            .select(
+              `
               created_at,
               artists!inner(
                 id,
                 name,
                 stage_name,
-                artist_image
+                artist_image,
+                artist_slug
               )
-            `)
+            `,
+            )
             .eq("user_id", user.id)
             .order("created_at", { ascending: false })
             .limit(5);
 
-          const recentArtists = recentLikes?.map((like) => ({
-            id: like.artists.id,
-            name: like.artists.name,
-            stage_name: like.artists.stage_name,
-            artist_image: like.artists.artist_image,
-            liked_at: like.created_at,
-          })) || [];
+          const recentArtists =
+            recentLikes?.map((like) => ({
+              id: like.artists.id,
+              name: like.artists.name,
+              stage_name: like.artists.stage_name,
+              artist_image: like.artists.artist_image,
+              artist_slug: like.artists.artist_slug,
+              liked_at: like.created_at,
+            })) || [];
 
           const duration = (performance.now() - queryStart).toFixed(2);
           console.log(`  ✅ Likes: ${duration}ms`);
@@ -88,7 +93,7 @@ export async function GET() {
             timing: duration,
           };
         } catch (error) {
-          console.error('  ❌ Likes failed:', error);
+          console.error("  ❌ Likes failed:", error);
           return { success: false, error: error.message, data: null };
         }
       })(),
@@ -104,26 +109,31 @@ export async function GET() {
 
           const { data: recentReviews } = await supabase
             .from("artist_reviews")
-            .select(`
+            .select(
+              `
               created_at,
               artists!inner(
                 id,
                 name,
                 stage_name,
-                artist_image
+                artist_image,
+                artist_slug
               )
-            `)
+            `,
+            )
             .eq("user_id", user.id)
             .order("created_at", { ascending: false })
             .limit(5);
 
-          const recentArtists = recentReviews?.map((review) => ({
-            id: review.artists.id,
-            name: review.artists.name,
-            stage_name: review.artists.stage_name,
-            artist_image: review.artists.artist_image,
-            reviewed_at: review.created_at,
-          })) || [];
+          const recentArtists =
+            recentReviews?.map((review) => ({
+              id: review.artists.id,
+              name: review.artists.name,
+              stage_name: review.artists.stage_name,
+              artist_image: review.artists.artist_image,
+              artist_slug: review.artists.artist_slug,
+              reviewed_at: review.created_at,
+            })) || [];
 
           const duration = (performance.now() - queryStart).toFixed(2);
           console.log(`  ✅ Reviews: ${duration}ms`);
@@ -134,7 +144,7 @@ export async function GET() {
             timing: duration,
           };
         } catch (error) {
-          console.error('  ❌ Reviews failed:', error);
+          console.error("  ❌ Reviews failed:", error);
           return { success: false, error: error.message, data: null };
         }
       })(),
@@ -155,14 +165,14 @@ export async function GET() {
             }
           });
 
-            const totalRatings = ratings?.length || 0;
-            const ratingData = ratingCounts
-              .map((count, index) => ({
-                rating: index + 1,
-                count,
-                percentage: totalRatings > 0 ? (count / totalRatings) * 100 : 0,
-              }))
-              .reverse();
+          const totalRatings = ratings?.length || 0;
+          const ratingData = ratingCounts
+            .map((count, index) => ({
+              rating: index + 1,
+              count,
+              percentage: totalRatings > 0 ? (count / totalRatings) * 100 : 0,
+            }))
+            .reverse();
 
           const duration = (performance.now() - queryStart).toFixed(2);
           console.log(`  ✅ Ratings: ${duration}ms | Total: ${totalRatings}`);
@@ -173,7 +183,7 @@ export async function GET() {
             timing: duration,
           };
         } catch (error) {
-          console.error('  ❌ Ratings failed:', error);
+          console.error("  ❌ Ratings failed:", error);
           return { success: false, error: error.message, data: null };
         }
       })(),
@@ -187,9 +197,14 @@ export async function GET() {
             .select("response")
             .eq("receiver_id", user.id);
 
-          const confirmed = bookings?.filter(b => b.response === "confirmed").length || 0;
-          const declined = bookings?.filter(b => b.response === "declined").length || 0;
-          const pending = bookings?.filter(b => b.response === null || b.response === "pending").length || 0;
+          const confirmed =
+            bookings?.filter((b) => b.response === "confirmed").length || 0;
+          const declined =
+            bookings?.filter((b) => b.response === "declined").length || 0;
+          const pending =
+            bookings?.filter(
+              (b) => b.response === null || b.response === "pending",
+            ).length || 0;
           const total = bookings?.length || 0;
 
           const stats = { total, confirmed, declined, pending };
@@ -203,7 +218,7 @@ export async function GET() {
             timing: duration,
           };
         } catch (error) {
-          console.error('  ❌ Bookings failed:', error);
+          console.error("  ❌ Bookings failed:", error);
           return { success: false, error: error.message, data: null };
         }
       })(),
@@ -222,13 +237,17 @@ export async function GET() {
           if (userData?.submitted_artist_id) {
             const { data } = await supabase
               .from("artists")
-              .select("id, name, stage_name, artist_image, status, created_at, city, country")
+              .select(
+                "id, name, stage_name, artist_image, artist_slug, status, created_at, city, country",
+              )
               .eq("id", userData.submitted_artist_id);
             submittedArtists = data || [];
           }
 
           const duration = (performance.now() - queryStart).toFixed(2);
-          console.log(`  ✅ Submitted Artist: ${duration}ms | Found: ${submittedArtists.length}`);
+          console.log(
+            `  ✅ Submitted Artist: ${duration}ms | Found: ${submittedArtists.length}`,
+          );
 
           return {
             success: true,
@@ -236,7 +255,7 @@ export async function GET() {
             timing: duration,
           };
         } catch (error) {
-          console.error('  ❌ Submitted Artist failed:', error);
+          console.error("  ❌ Submitted Artist failed:", error);
           return { success: false, error: error.message, data: [] };
         }
       })(),
@@ -255,13 +274,17 @@ export async function GET() {
           if (userData?.submitted_club_id) {
             const { data } = await supabase
               .from("clubs")
-              .select("id, name, country, city, capacity, club_image, status, created_at, description")
+              .select(
+                "id, name, country, city, capacity, club_image, status, created_at, description",
+              )
               .eq("id", userData.submitted_club_id);
             submittedClubs = data || [];
           }
 
           const duration = (performance.now() - queryStart).toFixed(2);
-          console.log(`  ✅ Submitted Club: ${duration}ms | Found: ${submittedClubs.length}`);
+          console.log(
+            `  ✅ Submitted Club: ${duration}ms | Found: ${submittedClubs.length}`,
+          );
 
           return {
             success: true,
@@ -269,7 +292,7 @@ export async function GET() {
             timing: duration,
           };
         } catch (error) {
-          console.error('  ❌ Submitted Club failed:', error);
+          console.error("  ❌ Submitted Club failed:", error);
           return { success: false, error: error.message, data: [] };
         }
       })(),
@@ -285,15 +308,17 @@ export async function GET() {
             .single();
 
           const submittedIds = Array.isArray(userData?.submitted_event_id)
-          ? userData.submitted_event_id
-          : [];
+            ? userData.submitted_event_id
+            : [];
           const totalSubmittedEvents = submittedIds.length;
 
           let recentEvents = [];
           if (totalSubmittedEvents > 0) {
             const { data } = await supabase
               .from("events")
-              .select("id, event_name, promoter, event_image, created_at, city, country, date")
+              .select(
+                "id, event_name, promoter, event_image, created_at, city, country, date",
+              )
               .in("id", submittedIds)
               .order("created_at", { ascending: false })
               .limit(5);
@@ -301,7 +326,9 @@ export async function GET() {
           }
 
           const duration = (performance.now() - queryStart).toFixed(2);
-          console.log(`  ✅ Submitted Events: ${duration}ms | Total: ${totalSubmittedEvents}`);
+          console.log(
+            `  ✅ Submitted Events: ${duration}ms | Total: ${totalSubmittedEvents}`,
+          );
 
           return {
             success: true,
@@ -309,16 +336,22 @@ export async function GET() {
             timing: duration,
           };
         } catch (error) {
-          console.error('  ❌ Submitted Events failed:', error);
-          return { success: false, error: error.message, data: { totalSubmittedEvents: 0, recentEvents: [] } };
+          console.error("  ❌ Submitted Events failed:", error);
+          return {
+            success: false,
+            error: error.message,
+            data: { totalSubmittedEvents: 0, recentEvents: [] },
+          };
         }
       })(),
     ]);
 
     const totalDuration = (performance.now() - startTime).toFixed(2);
-    
+
     console.log(`✅ [UNIFIED-STATISTICS] Completed ALL in ${totalDuration}ms`);
-    console.log(`   Breakdown: Likes=${likesResult.timing}ms, Reviews=${reviewsResult.timing}ms, Ratings=${ratingsResult.timing}ms, Bookings=${bookingsResult.timing}ms, Artist=${submittedArtistResult.timing}ms, Club=${submittedClubResult.timing}ms, Events=${submittedEventsResult.timing}ms`);
+    console.log(
+      `   Breakdown: Likes=${likesResult.timing}ms, Reviews=${reviewsResult.timing}ms, Ratings=${ratingsResult.timing}ms, Bookings=${bookingsResult.timing}ms, Artist=${submittedArtistResult.timing}ms, Club=${submittedClubResult.timing}ms, Events=${submittedEventsResult.timing}ms`,
+    );
 
     return NextResponse.json({
       success: true,
@@ -346,7 +379,10 @@ export async function GET() {
     });
   } catch (error) {
     const totalDuration = (performance.now() - startTime).toFixed(2);
-    console.error(`❌ [UNIFIED-STATISTICS] Failed after ${totalDuration}ms:`, error);
+    console.error(
+      `❌ [UNIFIED-STATISTICS] Failed after ${totalDuration}ms:`,
+      error,
+    );
 
     return NextResponse.json(
       {
@@ -354,7 +390,7 @@ export async function GET() {
         error: "Internal server error",
         details: error.message,
       },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

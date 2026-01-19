@@ -10,6 +10,7 @@ export async function GET(request) {
   try {
     const { searchParams } = new URL(request.url);
     const artistId = searchParams.get("artistId");
+    const artistSlug = searchParams.get("artistSlug");
     const userReviews = searchParams.get("userReviews");
 
     // Handle user reviews request
@@ -24,7 +25,7 @@ export async function GET(request) {
             error: "Authentication failed",
             details: userError.message,
           },
-          { status: 401 }
+          { status: 401 },
         );
       }
 
@@ -34,7 +35,7 @@ export async function GET(request) {
             success: false,
             error: "User not authenticated",
           },
-          { status: 401 }
+          { status: 401 },
         );
       }
 
@@ -59,7 +60,7 @@ export async function GET(request) {
             stage_name,
             artist_image
           )
-        `
+        `,
         )
         .eq("user_id", user.id)
         .order("created_at", { ascending: false })
@@ -72,7 +73,7 @@ export async function GET(request) {
             error: "Failed to fetch user reviews",
             details: reviewsError.message,
           },
-          { status: 500 }
+          { status: 500 },
         );
       }
 
@@ -89,7 +90,7 @@ export async function GET(request) {
             error: "Failed to fetch reviews count",
             details: countError.message,
           },
-          { status: 500 }
+          { status: 500 },
         );
       }
 
@@ -126,28 +127,41 @@ export async function GET(request) {
     }
 
     // Handle artist reviews request (existing functionality)
-    if (!artistId) {
+    if (!artistId && !artistSlug) {
       return NextResponse.json(
-        { error: "Artist ID is required" },
-        { status: 400 }
+        { error: "Artist ID or slug is required" },
+        { status: 400 },
       );
     }
     // Fetch artist data separately
-    const { data: artist, error: artistError } = await supabaseAdmin
+    let artistQuery = supabaseAdmin
       .from("artists")
-      .select("id, name, stage_name, artist_image, genres")
-      .eq("id", artistId)
-      .single();
+      .select("id, name, stage_name, artist_image, genres, artist_slug");
+
+    if (artistSlug) {
+      artistQuery = artistQuery.eq("artist_slug", artistSlug);
+    } else {
+      artistQuery = artistQuery.eq("id", artistId);
+    }
+
+    const { data: artist, error: artistError } = await artistQuery.single();
 
     if (artistError) {
       return NextResponse.json({ error: "Artist not found" }, { status: 404 });
     }
+
+    const resolvedArtistId = artist.id;
+
     const page = parseInt(searchParams.get("page")) || 1;
     const limit = parseInt(searchParams.get("limit")) || 20;
     const offset = (page - 1) * limit;
 
     // Fetch paginated reviews for the specific artist
-    const { data: reviews, error: fetchError, count: totalReviews } = await supabaseAdmin
+    const {
+      data: reviews,
+      error: fetchError,
+      count: totalReviews,
+    } = await supabaseAdmin
       .from("artist_reviews")
       .select(
         `
@@ -158,16 +172,16 @@ export async function GET(request) {
           user_avatar
         )
       `,
-        { count: "exact" }
+        { count: "exact" },
       )
-      .eq("artist_id", artistId)
+      .eq("artist_id", resolvedArtistId)
       .order("created_at", { ascending: false })
       .range(offset, offset + limit - 1);
 
     if (fetchError) {
       return NextResponse.json(
         { error: "Failed to fetch reviews" },
-        { status: 500 }
+        { status: 500 },
       );
     }
 
@@ -179,7 +193,7 @@ export async function GET(request) {
       const { data: ratingsData, error: ratingsError } = await supabaseAdmin
         .from("artist_ratings")
         .select("user_id, score")
-        .eq("artist_id", artistId)
+        .eq("artist_id", resolvedArtistId)
         .in("user_id", reviewUserIds);
 
       if (ratingsError) {
@@ -217,7 +231,7 @@ export async function GET(request) {
     console.error("Error in GET reviews API:", error);
     return NextResponse.json(
       { error: "Internal server error" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
@@ -231,7 +245,7 @@ export async function POST(request) {
           error:
             "Artist ID, User ID, Review Title, and Review Text are required",
         },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -253,7 +267,7 @@ export async function POST(request) {
           userName,
           user_avatar
         )
-      `
+      `,
       )
       .single();
 
@@ -261,7 +275,7 @@ export async function POST(request) {
       console.error("Error inserting review:", insertError);
       return NextResponse.json(
         { error: "Failed to submit review" },
-        { status: 500 }
+        { status: 500 },
       );
     }
 
@@ -274,7 +288,7 @@ export async function POST(request) {
     console.error("Error in review API:", error);
     return NextResponse.json(
       { error: "Internal server error" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

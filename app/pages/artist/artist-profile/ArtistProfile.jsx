@@ -12,6 +12,8 @@ const ArtistProfile = ({ data, artistId }) => {
 
   useRecentlyViewed("artist", id);
 
+  console.log(data, "ARTIST DATA from ARTISTPROFILE.jsx");
+
   return (
     <div className="min-h-screen">
       <div className="grid lg:grid-cols-2 gap-2 lg:gap-5 items-center min-h-[80vh] p-3 lg:p-5 relative">
@@ -22,7 +24,7 @@ const ArtistProfile = ({ data, artistId }) => {
       <Bio data={data} />
       <ArtistSchedule artistId={id} artistData={data} />
       <Albums artistId={id} />
-      <ArtistInsight artistId={id} />
+      <ArtistInsight artistId={id} slug={data?.artist_slug} />
     </div>
   );
 };

@@ -17,7 +17,7 @@ export async function GET(request) {
           error: "Authentication failed",
           details: userError.message,
         },
-        { status: 401 }
+        { status: 401 },
       );
     }
 
@@ -27,7 +27,7 @@ export async function GET(request) {
           success: false,
           error: "User not authenticated",
         },
-        { status: 401 }
+        { status: 401 },
       );
     }
 
@@ -51,10 +51,11 @@ export async function GET(request) {
           name,
           stage_name,
           artist_image,
+          artist_slug,
           country,
           city
         )
-      `
+      `,
       )
       .eq("user_id", user.id)
       .order("created_at", { ascending: false })
@@ -68,7 +69,7 @@ export async function GET(request) {
           error: "Failed to fetch user ratings",
           details: ratingsError.message,
         },
-        { status: 500 }
+        { status: 500 },
       );
     }
 
@@ -86,7 +87,7 @@ export async function GET(request) {
           error: "Failed to fetch ratings count",
           details: countError.message,
         },
-        { status: 500 }
+        { status: 500 },
       );
     }
 
@@ -101,6 +102,7 @@ export async function GET(request) {
           name: rating.artists.name,
           stage_name: rating.artists.stage_name,
           artist_image: rating.artists.artist_image,
+          artist_slug: rating.artists.artist_slug,
           country: rating.artists.country,
           city: rating.artists.city,
         },
@@ -128,7 +130,7 @@ export async function GET(request) {
         error: "Internal server error",
         details: error.message,
       },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
