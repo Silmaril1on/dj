@@ -19,15 +19,15 @@
 
 /* Set Rationale as default font */
 body {
-  font-family: var(--font-rationale);
+  font-family: var(--font-teko);
 }
 
 .primary {
-  font-family: var(--font-rationale);
+  font-family: var(--font-teko);
 }
 
 .secondary {
-  font-family: var(--font-montserrat-alternates);
+  font-family: var(--font-jost);
 }
 
 @layer utilities {
@@ -35,15 +35,15 @@ body {
     @apply flex items-center justify-center;
   }
 
-  .bordered { 
-    @apply border border-gold/30 hover:border-gold/50 duration-300
+  .bordered {
+    @apply border border-gold/30 hover:border-gold/50 duration-300;
   }
 
   .brightness {
     @apply brightness-90 hover:brightness-100 duration-300;
   }
 
-  option { 
+  option {
     @apply bg-stone-900 text-gold;
   }
 
@@ -83,5 +83,3 @@ html {
 .left-clip {
   clip-path: polygon(30% 0, 100% 0, 100% 100%, 0% 100%);
 }
-
-

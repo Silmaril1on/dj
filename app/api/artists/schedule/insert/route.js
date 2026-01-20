@@ -1,7 +1,6 @@
 import { NextResponse } from "next/server";
 import { createSupabaseServerClient } from "@/app/lib/config/supabaseServer";
 import { cookies } from "next/headers";
-import sharp from "sharp";
 
 export async function POST(req) {
   try {
@@ -10,7 +9,7 @@ export async function POST(req) {
     if (!artistId || !events || !Array.isArray(events)) {
       return NextResponse.json(
         { error: "Artist ID and events array are required" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -22,61 +21,6 @@ export async function POST(req) {
 
     for (const event of events) {
       try {
-        let eventImageUrl = null;
-
-        // Determine image source based on event type (Bandsintown or RA)
-        const imageSource =
-          event.artistImage ||
-          (event.images && event.images.length > 0 && event.images[0].filename);
-
-        // Download, resize, and upload image if exists
-        if (imageSource) {
-          try {
-            console.log(`📥 Downloading image: ${imageSource}`);
-            const imageResponse = await fetch(imageSource);
-            const imageBuffer = await imageResponse.arrayBuffer();
-
-            // Resize to 512x512
-            console.log("✂️ Resizing image to 512x512...");
-            const resizedBuffer = await sharp(Buffer.from(imageBuffer))
-              .resize(512, 512, { fit: "cover" })
-              .jpeg({ quality: 90 })
-              .toBuffer();
-
-            // Generate unique filename
-            const filename = `${artistId}_${Date.now()}_${Math.random()
-              .toString(36)
-              .substring(7)}.jpg`;
-            const filePath = `schedule_images/${filename}`;
-
-            // Upload to Supabase Storage
-            console.log(`📤 Uploading to Supabase: ${filePath}`);
-            const { data: uploadData, error: uploadError } =
-              await supabase.storage
-                .from("event_images")
-                .upload(filePath, resizedBuffer, {
-                  contentType: "image/jpeg",
-                  upsert: false,
-                });
-
-            if (uploadError) {
-              console.error("Upload error:", uploadError);
-              throw uploadError;
-            }
-
-            // Get public URL
-            const {
-              data: { publicUrl },
-            } = supabase.storage.from("event_images").getPublicUrl(filePath);
-
-            eventImageUrl = publicUrl;
-            console.log(`✅ Image uploaded: ${publicUrl}`);
-          } catch (imageError) {
-            console.error("Image processing error:", imageError);
-            // Continue without image if processing fails
-          }
-        }
-
         // Extract date and time - handle both Bandsintown and RA formats
         let date = null;
         let time = null;
@@ -142,7 +86,6 @@ export async function POST(req) {
           event_link: eventLink,
           event_id: null,
           status: "approved",
-          event_image: eventImageUrl,
           event_type: eventType,
           event_title: eventTitle,
         };
@@ -185,7 +128,7 @@ export async function POST(req) {
     console.error("❌ Schedule insert error:", error);
     return NextResponse.json(
       { error: "Failed to insert schedules", details: error.message },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

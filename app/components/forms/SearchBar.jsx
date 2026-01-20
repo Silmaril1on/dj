@@ -39,10 +39,12 @@ const SearchBar = () => {
   const handleSelect = (item) => {
     setShowDropdown(false);
     setQuery("");
-    if (item.type === "artist") router.push(`/artists/${item.id}`);
+    if (item.type === "artist") router.push(`/artists/${item.artist_slug}`);
     if (item.type === "club") router.push(`/clubs/${item.id}`);
     if (item.type === "event") router.push(`/events/${item.id}`);
   };
+
+  console.log(results, "res");
 
   return (
     <motion.div

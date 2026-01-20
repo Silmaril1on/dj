@@ -19,7 +19,9 @@ export async function GET(request) {
       // Search Artists by name or stage_name
       supabase
         .from("artists")
-        .select("id, name, stage_name, artist_image, country, city, genres")
+        .select(
+          "id, name, stage_name, artist_image, country, city, genres, artist_slug",
+        )
         .or(`name.ilike.%${query}%,stage_name.ilike.%${query}%`)
         .limit(10),
 
@@ -65,7 +67,7 @@ export async function GET(request) {
     console.error("Search API error:", err);
     return NextResponse.json(
       { error: "Search failed", message: err.message },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

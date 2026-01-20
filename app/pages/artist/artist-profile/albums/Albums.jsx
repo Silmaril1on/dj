@@ -116,6 +116,7 @@ const Albums = ({ artistId }) => {
               <motion.div
                 key={album.id}
                 initial={{ opacity: 0, y: 20 }}
+                viewport={{ once: true }}
                 whileInView={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.5, delay: index * 0.1 }}
                 onClick={() => setSelectedAlbum(album)}

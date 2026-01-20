@@ -15,73 +15,72 @@ const SubmitSection = () => {
   const dispatch = useDispatch();
   const user = useSelector(selectUser);
 
-const handleSubmit = (type) => {
-  // Check if user is logged in
-  if (!user) {
-    dispatch(
-      setError({ message: "Please login to continue", type: "error" })
-    );
-    return;
-  }
-  // Check if email is verified
-  if (!user.email_verified) {
-    dispatch(
-      setError({
-        message: "Please verify your email before submitting content",
-        type: "error",
-      })
-    );
-    return;
-  }
-  switch (type) {
-    case "artist":
-      if (user?.submitted_artist_id) {
-        dispatch(
-          setError({
-            message: "You have already submitted an artist",
-            type: "error",
-          })
-        );
-      } else {
-        router.push("/add-product/add-artist");
-      }
-      break;
+  const handleSubmit = (type) => {
+    // Check if user is logged in
+    if (!user) {
+      dispatch(
+        setError({ message: "Please login to continue", type: "error" }),
+      );
+      return;
+    }
+    // Check if email is verified
+    if (!user.email_verified) {
+      dispatch(
+        setError({
+          message: "Please verify your email before submitting content",
+          type: "error",
+        }),
+      );
+      return;
+    }
+    switch (type) {
+      case "artist":
+        if (user?.submitted_artist_id) {
+          dispatch(
+            setError({
+              message: "You have already submitted an artist",
+              type: "error",
+            }),
+          );
+        } else {
+          router.push("/add-product/add-artist");
+        }
+        break;
 
-    case "club":
-      if (user?.submitted_club_id) {
-        dispatch(
-          setError({
-            message: "You have already submitted a club",
-            type: "error",
-          })
-        );
-      } else {
-        router.push("/add-product/add-club");
-      }
-      break;
+      case "club":
+        if (user?.submitted_club_id) {
+          dispatch(
+            setError({
+              message: "You have already submitted a club",
+              type: "error",
+            }),
+          );
+        } else {
+          router.push("/add-product/add-club");
+        }
+        break;
 
-    case "event":
-      router.push("/add-product/add-event");
-      break;
+      case "event":
+        router.push("/add-product/add-event");
+        break;
 
-    case "festival":
-      if (user?.submitted_festival_id) {
-        dispatch(
-          setError({
-            message: "You have already submitted a festival",
-            type: "error",
-          })
-        );
-      } else {
-        router.push("/add-product/add-festival");
-      }
-      break;
+      case "festival":
+        if (user?.submitted_festival_id) {
+          dispatch(
+            setError({
+              message: "You have already submitted a festival",
+              type: "error",
+            }),
+          );
+        } else {
+          router.push("/add-product/add-festival");
+        }
+        break;
 
-    default:
-      break;
-  }
-};
-
+      default:
+        break;
+    }
+  };
 
   const cards = [
     {
@@ -96,7 +95,7 @@ const handleSubmit = (type) => {
       title: "Register Club",
       description:
         "Add a new venue or club to our directory. Share the best spots for electronic music events.",
-      icon: <SiNeteasecloudmusic/>,
+      icon: <SiNeteasecloudmusic />,
     },
     {
       type: "event",
@@ -116,18 +115,31 @@ const handleSubmit = (type) => {
 
   return (
     <div className="py-20 overflow-hidden relative">
-      <Motion animation="fade" delay={1} className="absolute w-98 h-98 -right-10 sepia -bottom-22 rotate-[65deg] -z-[1] brightness-20 blur-[2px]">
-        <Image src="/assets/elivagar-logo.png" alt="Elivagar Logo" width={300} height={300} className="w-full h-full"/>
+      <Motion
+        animation="fade"
+        delay={1}
+        className="absolute w-98 h-98 -right-10 sepia -bottom-22 rotate-[65deg] -z-[1] brightness-20 blur-[2px]"
+      >
+        <Image
+          src="/assets/elivagar-logo.png"
+          alt="Elivagar Logo"
+          width={300}
+          height={300}
+          className="w-full h-full"
+        />
       </Motion>
       <div className="w-full center flex-col mb-5">
         <Title text="Submit New Content" />
-        <Paragraph className="text-center" text="Contribute to our community by adding new artists, clubs, or events. Your submissions help keep our platform vibrant and up-to-date." />
+        <Paragraph
+          className="text-center"
+          text="Contribute to our community by adding new artists, clubs, or events. Your submissions help keep our platform vibrant and up-to-date."
+        />
       </div>
       <div className="w-full grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 px-[10%] overflow-hidden">
         {cards.map(({ type, title, description, icon: Icon }, index) => (
           <Motion
             animation="fade"
-            delay={index* 0.2}
+            delay={index * 0.2}
             key={type}
             onClick={() => handleSubmit(type)}
             className="group relative bg-gradient-to-br from-gold/20 to-gold/10 border border-gold/30 rounded-lg p-6 cursor-pointer hover:border-gold/60 hover:bg-gradient-to-br hover:from-gold/30 hover:to-gold/20 transition-all duration-300"
@@ -139,7 +151,7 @@ const handleSubmit = (type) => {
               <h3 className="text-xl font-bold text-gold group-hover:text-gold/90 transition-colors duration-300">
                 {title}
               </h3>
-              <p className="text-sm text-chino/80 leading-relaxed">
+              <p className="text-sm text-chino/80 secondary  leading-relaxed">
                 {description}
               </p>
             </div>

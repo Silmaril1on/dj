@@ -104,7 +104,7 @@ const AllDataPage = ({
     setLoading(true);
     try {
       const res = await fetch(
-        `${config.apiEndpoint}?limit=${config.limit}&offset=${offset}`
+        `${config.apiEndpoint}?limit=${config.limit}&offset=${offset}`,
       );
       const result = await res.json();
       const newData = result?.data || [];

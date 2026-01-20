@@ -50,7 +50,7 @@ const ProductCard = ({
           />
         )}
       </div>
-      <div className="flex flex-col *:leading-none">
+      <div className="flex flex-col *:leading-none mt-1">
         <Title
           color="cream"
           className="uppercase text-start text-[12px] lg:text-lg xl:text-xl leading-none"
@@ -59,7 +59,7 @@ const ProductCard = ({
         {date && (
           <p className="text-chino  uppercase text-[10px] lg:text-sm">{date}</p>
         )}
-        <div className="py-2">
+        <div>
           <ArtistCountry artistCountry={{ country, city }} />
         </div>
         {/* Add capacity display here */}

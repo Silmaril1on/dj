@@ -1,5 +1,5 @@
 import "./globals.css";
-import { Rationale, Montserrat_Alternates } from "next/font/google";
+import { Teko, Jost } from "next/font/google";
 import { StoreProvider } from "@/app/lib/store/StoreProvider";
 import AuthProvider from "@/app/lib/store/AuthProvider";
 import ErrorMsg from "./components/ui/ErrorMsg";
@@ -11,16 +11,16 @@ import WelcomeUser from "./components/materials/WelcomeUser";
 import GlobalModal from "./components/modals/GlobalModal";
 import EventRequestModal from "./components/modals/EventRequestModal";
 
-const rationale = Rationale({
-  variable: "--font-rationale",
-  subsets: ["latin"],
-  weight: "400",
-});
-
-const montserratAlternates = Montserrat_Alternates({
-  variable: "--font-montserrat-alternates",
+const josh = Jost({
+  variable: "--font-jost",
   subsets: ["latin"],
   weight: ["100", "200", "300", "400", "500", "600", "700", "800", "900"],
+});
+
+const teko = Teko({
+  variable: "--font-teko",
+  subsets: ["latin"],
+  weight: ["300", "400", "500", "600", "700"],
 });
 
 export const metadata = {
@@ -32,7 +32,7 @@ export default function RootLayout({ children }) {
   return (
     <html lang="en">
       <body
-        className={`${rationale.variable} ${montserratAlternates.variable} min-h-screen relative flex flex-col duration-300 bg-black text-gold mx-auto max-w-[1800px]`}
+        className={` ${josh.variable} ${teko.variable} min-h-screen relative flex flex-col duration-300 bg-black text-gold mx-auto max-w-[1800px]`}
       >
         <StoreProvider>
           <AuthProvider>
@@ -41,7 +41,7 @@ export default function RootLayout({ children }) {
             {children}
             <ErrorMsg />
             <GlobalModal />
-            {/* <MobileNavBar /> */}
+            <MobileNavBar />
             <WelcomeUser />
             <EventRequestModal />
             <Footer />

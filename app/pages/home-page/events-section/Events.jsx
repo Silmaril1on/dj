@@ -92,9 +92,9 @@ const Panel = ({ open, setOpen, event }) => {
               style={{
                 writingMode: "vertical-lr",
               }}
-              className="hidden lg:block text-2xl font-bold duration-300 text-chino rotate-180 uppercase"
+              className="hidden lg:block text-2xl font-bold duration-300 text-chino rotate-180 uppercase "
             >
-              {truncateString(event.event_name, 50)}
+              {truncateString(event.event_name, 40)}
             </span>
             <span className="block lg:hidden text-lg font-medium text-chino truncate w-full">
               {event.event_name}
@@ -182,7 +182,7 @@ const Panel = ({ open, setOpen, event }) => {
                 <Title
                   color="cream"
                   size="xs"
-                  className="uppercase"
+                  className="uppercase font-medium"
                   text="lineup"
                 />
                 <FlexBox
@@ -192,11 +192,11 @@ const Panel = ({ open, setOpen, event }) => {
                   {event.artists.slice(0, 10).map((artist, index) => (
                     <div
                       key={index}
-                      className="flex items-center space-x-0.5 lg:space-x-2"
+                      className="flex items-center space-x-0.5 lg:space-x-2 *:leading-none"
                     >
                       <Title
                         color="cream"
-                        className="uppercase text-sm leading-2 lg:leading-none lg:text-4xl"
+                        className="uppercase text-sm leading-2 lg:text-4xl"
                         text={artist}
                       />
                       {index < event.artists.length - 1 && <Dot />}

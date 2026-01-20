@@ -33,7 +33,7 @@ export async function GET(request, { params }) {
           success: false,
           error: eventResult.error?.message || "Event not found",
         },
-        { status: 404 }
+        { status: 404 },
       );
     }
 
@@ -51,7 +51,7 @@ export async function GET(request, { params }) {
       // Get all artists from database
       const { data: allArtistsData } = await supabase
         .from("artists")
-        .select("id, name, stage_name");
+        .select("id, name, stage_name, artist_slug");
 
       if (allArtistsData) {
         // Create a map for quick lookup (normalized name -> artist)
@@ -73,8 +73,9 @@ export async function GET(request, { params }) {
             ? {
                 name: artistName, // Keep original name from event
                 id: foundArtist.id,
+                artist_slug: foundArtist.artist_slug,
               }
-            : { name: artistName, id: null };
+            : { name: artistName, id: null, artist_slug: null };
         });
       }
     }
@@ -90,7 +91,7 @@ export async function GET(request, { params }) {
   } catch (err) {
     return NextResponse.json(
       { success: false, error: err.message },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
