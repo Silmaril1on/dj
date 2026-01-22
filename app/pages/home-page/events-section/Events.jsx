@@ -187,16 +187,16 @@ const Panel = ({ open, setOpen, event }) => {
                 />
                 <FlexBox
                   type="row-start"
-                  className="flex-wrap gap-2 items-center"
+                  className="flex-wrap items-center pt-1"
                 >
                   {event.artists.slice(0, 10).map((artist, index) => (
                     <div
                       key={index}
-                      className="flex items-center space-x-0.5 lg:space-x-2 *:leading-none"
+                      className="flex items-center space-x-0.5 lg:space-x-2"
                     >
                       <Title
                         color="cream"
-                        className="uppercase text-sm leading-2 lg:text-4xl"
+                        className="uppercase text-sm lg:text-4xl leading-4"
                         text={artist}
                       />
                       {index < event.artists.length - 1 && <Dot />}

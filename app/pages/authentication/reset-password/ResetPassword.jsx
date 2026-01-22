@@ -25,7 +25,12 @@ const ResetPassword = () => {
       if (!response.ok) {
         dispatch(setError(data.error || "Failed to send reset email."));
       } else {
-        dispatch(setError({ message: "Password reset link sent to your email.", type: "success" }));
+        dispatch(
+          setError({
+            message: "Password reset link sent to your email.",
+            type: "success",
+          }),
+        );
         router.push("/");
       }
     } catch {
@@ -41,6 +46,7 @@ const ResetPassword = () => {
       footerText="Remember password? "
       footerLinkText="Sign In"
       footerHref="/sign-in"
+      className="w-full lg:w-md"
     >
       <SubmissionForm
         showGoogle={false}

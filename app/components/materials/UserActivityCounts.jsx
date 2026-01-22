@@ -1,107 +1,107 @@
-'use client'
-import { useState, useEffect } from 'react'
-import { FaHeart, FaStar, FaComment, FaCalendarAlt } from 'react-icons/fa'
+"use client";
+import { useState, useEffect } from "react";
+import { FaHeart, FaStar, FaComment, FaCalendarAlt } from "react-icons/fa";
 
 const UserActivityCounts = ({ showStats = true, className = "" }) => {
-    const [stats, setStats] = useState({
-        totalReviews: 0,
-        totalRatings: 0,
-        totalLikes: 0,
-        totalEvents: 0,
-    });
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState(null);
+  const [stats, setStats] = useState({
+    totalReviews: 0,
+    totalRatings: 0,
+    totalLikes: 0,
+    totalEvents: 0,
+  });
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
-    useEffect(() => {
-        const fetchStats = async () => {
-            try {
-                setLoading(true);
-                setError(null);
-                const response = await fetch('/api/users/activity-stats', {
-                    method: 'GET',
-                    cache: 'no-store',
-                });
+  useEffect(() => {
+    const fetchStats = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+        const response = await fetch("/api/users/activity-stats", {
+          method: "GET",
+          cache: "no-store",
+        });
 
-                if (!response.ok) {
-                    throw new Error(`HTTP error! status: ${response.status}`);
-                }
-                const data = await response.json();
-                if (data.success) {
-                    setStats(data.data);
-                } else {
-                    throw new Error(data.error || 'Failed to fetch stats');
-                }
-            } catch (err) {
-                console.error('Error fetching activity stats:', err);
-                setError(err.message);
-                setStats({
-                    totalReviews: 0,
-                    totalRatings: 0,
-                    totalLikes: 0,
-                    totalEvents: 0,
-                });
-            } finally {
-                setLoading(false);
-            }
-        };
-
-        if (showStats) {
-            fetchStats();
-        } else {
-            setLoading(false);
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
         }
-    }, [showStats]);
+        const data = await response.json();
+        if (data.success) {
+          setStats(data.data);
+        } else {
+          throw new Error(data.error || "Failed to fetch stats");
+        }
+      } catch (err) {
+        console.error("Error fetching activity stats:", err);
+        setError(err.message);
+        setStats({
+          totalReviews: 0,
+          totalRatings: 0,
+          totalLikes: 0,
+          totalEvents: 0,
+        });
+      } finally {
+        setLoading(false);
+      }
+    };
 
-    if (!showStats) {
-        return null;
+    if (showStats) {
+      fetchStats();
+    } else {
+      setLoading(false);
     }
+  }, [showStats]);
 
-    return (
-      <div className={`grid grid-cols-2 lg:grid-cols-4 gap-1 ${className}`}>
-        <div className="flex items-center gap-2 bg-stone-900/80 px-4 py-2 rounded-lg border border-gold/20">
-          <FaComment className="text-gold" size={16} />
-          <span className="text-gold font-bold">
-            {loading ? "..." : stats.totalReviews}
-          </span>
-          <span className="text-stone-400 text-sm">Reviews</span>
-        </div>
+  if (!showStats) {
+    return null;
+  }
 
-        <div className="flex items-center gap-2 bg-stone-900/80 px-4 py-2 rounded-lg border border-gold/20">
-          <FaStar className="text-gold" size={16} />
-          <span className="text-gold font-bold">
-            {loading ? "..." : stats.totalRatings}
-          </span>
-          <span className="text-stone-400 text-sm">Ratings</span>
-        </div>
-
-        <div className="flex items-center gap-2 bg-stone-900/80 px-4 py-2 rounded-lg border border-gold/20">
-          <FaHeart className="text-gold" size={16} />
-          <span className="text-gold font-bold">
-            {loading ? "..." : stats.totalLikes}
-          </span>
-          <span className="text-stone-400 text-sm">Likes</span>
-        </div>
-
-        {stats.totalEvents > 0 && (
-          <div className="flex items-center gap-2 bg-stone-900/80 px-4 py-2 rounded-lg border border-gold/20">
-            <FaCalendarAlt className="text-gold" size={16} />
-            <span className="text-gold font-bold">
-              {loading ? "..." : stats.totalEvents}
-            </span>
-            <span className="text-stone-400 text-sm">Submitted Events</span>
-          </div>
-        )}
-
-        {/* Error Message */}
-        {error && (
-          <div className="mt-4 p-3 bg-red-900/30 border border-red-500/50 rounded-lg">
-            <p className="text-red-300 text-sm">
-              Failed to load activity stats: {error}
-            </p>
-          </div>
-        )}
+  return (
+    <div className={`grid grid-cols-2 lg:grid-cols-4 gap-1 ${className}`}>
+      <div className="flex items-center gap-2 bg-stone-900/80 px-4 py-2 rounded-lg border border-gold/20">
+        <FaComment className="text-gold" size={16} />
+        <span className="text-gold font-bold">
+          {loading ? "..." : stats.totalReviews}
+        </span>
+        <span className="text-stone-400 text-sm">Reviews</span>
       </div>
-    );
-}
 
-export default UserActivityCounts
+      <div className="flex items-center gap-2 bg-stone-900/80 px-4 py-2 rounded-lg border border-gold/20">
+        <FaStar className="text-gold" size={16} />
+        <span className="text-gold font-bold">
+          {loading ? "..." : stats.totalRatings}
+        </span>
+        <span className="text-stone-400 text-sm">Ratings</span>
+      </div>
+
+      <div className="flex items-center gap-2 bg-stone-900/80 px-4 py-2 rounded-lg border border-gold/20">
+        <FaHeart className="text-gold" size={16} />
+        <span className="text-gold font-bold">
+          {loading ? "..." : stats.totalLikes}
+        </span>
+        <span className="text-stone-400 text-sm">Likes</span>
+      </div>
+
+      {stats.totalEvents > 0 && (
+        <div className="flex items-center gap-2 bg-stone-900/80 px-4 py-2 rounded-lg border border-gold/20">
+          <FaCalendarAlt className="text-gold" size={16} />
+          <span className="text-gold font-bold">
+            {loading ? "..." : stats.totalEvents}
+          </span>
+          <span className="text-stone-400 text-sm">Submitted Events</span>
+        </div>
+      )}
+
+      {/* Error Message */}
+      {error && (
+        <div className="mt-4 p-3 bg-red-900/30 border border-red-500/50 rounded-lg">
+          <p className="text-red-300 text-sm">
+            Failed to load activity stats: {error}
+          </p>
+        </div>
+      )}
+    </div>
+  );
+};
+
+export default UserActivityCounts;

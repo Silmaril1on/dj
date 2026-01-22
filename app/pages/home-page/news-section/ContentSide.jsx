@@ -6,32 +6,30 @@ import { truncateString } from "@/app/helpers/utils";
 import { motion } from "framer-motion";
 import { FaLink } from "react-icons/fa";
 
- const contentVariants = {
-         initial: {
-           x: "100%",
-           opacity: 0,
-         },
-         animate: {
-           x: 0,
-           opacity: 1,
-           transition: {
-             duration: 0.6,
-             ease: [0.25, 0.1, 0.25, 1],
-           },
-         },
-         exit: {
-           x: "100%",
-           opacity: 0,
-           transition: {
-             duration: 0.4,
-             ease: [0.25, 0.1, 0.25, 1],
-           },
-         },
-       };
+const contentVariants = {
+  initial: {
+    x: "100%",
+    opacity: 0,
+  },
+  animate: {
+    x: 0,
+    opacity: 1,
+    transition: {
+      duration: 0.6,
+      ease: [0.25, 0.1, 0.25, 1],
+    },
+  },
+  exit: {
+    x: "100%",
+    opacity: 0,
+    transition: {
+      duration: 0.4,
+      ease: [0.25, 0.1, 0.25, 1],
+    },
+  },
+};
 
-
-const ContentSide = ({  currentNews }) => {
-
+const ContentSide = ({ currentNews }) => {
   return (
     <motion.article
       className="left-clip bg-stone-900 absolute right-[7.5%] lg:right-30 top-0 w-2/4 h-full"
@@ -42,7 +40,11 @@ const ContentSide = ({  currentNews }) => {
     >
       <div className="pl-15 lg:pl-30 h-full flex flex-col items-end justify-between p-5">
         <FlexBox type="column-end" className="w-full lg:max-w-[70%]">
-          <Title text={currentNews.title} color="gold" className="text-end text-xs" />
+          <Title
+            text={currentNews.title}
+            color="gold"
+            className="text-end text-xs leading-6"
+          />
         </FlexBox>
         <div className="flex items-end flex-col">
           <p className="text-[9px] lg:text-sm text-cream secondary text-end">
@@ -50,13 +52,13 @@ const ContentSide = ({  currentNews }) => {
           </p>
           <MyLink
             href={`/news/${currentNews.id}`}
-            text="Read more..."
-            icon={<FaLink />}
+            text="Read more"
+            icon={<FaLink size={12} />}
           />
         </div>
       </div>
     </motion.article>
   );
-}
+};
 
-export default ContentSide
+export default ContentSide;

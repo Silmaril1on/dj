@@ -17,7 +17,7 @@ export async function GET() {
           error: "Authentication failed",
           details: userError.message,
         },
-        { status: 401 }
+        { status: 401 },
       );
     }
 
@@ -27,14 +27,20 @@ export async function GET() {
           success: false,
           error: "User not authenticated",
         },
-        { status: 401 }
+        { status: 401 },
       );
     }
 
     const supabase = await createSupabaseServerClient(cookieStore);
 
     // ✅ OPTIMIZED: Fetch all counts in parallel including event likes
-    const [reviewsResult, ratingsResult, artistLikesResult, eventLikesResult, eventsResult] = await Promise.all([
+    const [
+      reviewsResult,
+      ratingsResult,
+      artistLikesResult,
+      eventLikesResult,
+      eventsResult,
+    ] = await Promise.all([
       supabase
         .from("artist_reviews")
         .select("*", { count: "exact", head: true })
@@ -62,8 +68,8 @@ export async function GET() {
       data: {
         totalReviews: reviewsResult.count || 0,
         totalRatings: ratingsResult.count || 0,
-        totalArtistLikes: artistLikesResult.count || 0,
-        totalEventLikes: eventLikesResult.count || 0,
+        totalLikes:
+          (artistLikesResult.count || 0) + (eventLikesResult.count || 0),
         totalEvents: eventsResult.count || 0,
       },
     });
@@ -74,7 +80,7 @@ export async function GET() {
         error: "Internal server error",
         details: error.message,
       },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

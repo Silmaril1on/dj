@@ -32,6 +32,7 @@ export const getCountryCode = (countryName) => {
     estonia: "EE",
     latvia: "LV",
     lithuania: "LT",
+    "united arab emirates": "AE",
     luxembourg: "LU",
     malta: "MT",
     cyprus: "CY",

@@ -14,19 +14,7 @@ const ReviewsStats = ({ data, error }) => {
   }
 
   if (totalReviews === 0 || !recentArtists || recentArtists.length === 0) {
-    return (
-      <SectionContainer
-        size="sm"
-        title="My Reviews"
-        className="bg-stone-900"
-        description="My Review Statistics"
-      >
-        <ErrorCode
-          title="No reviews yet"
-          description="Start reviewing artists to see your review statistics!"
-        />
-      </SectionContainer>
-    );
+    return null;
   }
 
   return (

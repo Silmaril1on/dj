@@ -4,18 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { motion } from "framer-motion";
 
-const FEATURED_ARTISTS = [
-  "armin van buuren",
-  "tiesto",
-  "paul van dyk",
-  "atb",
-  "cosmic gate",
-];
-
 const SectionOne = () => {
-  const [artists, setArtists] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
   const videoRef = useRef(null);
 
   useEffect(() => {
@@ -23,29 +12,6 @@ const SectionOne = () => {
       videoRef.current.playbackRate = 0.7; // 70% speed
     }
   }, []);
-
-  useEffect(() => {
-    const fetchArtists = async () => {
-      try {
-        const namesParam = encodeURIComponent(JSON.stringify(FEATURED_ARTISTS));
-        const res = await fetch(`/api/artists/by-names?names=${namesParam}`);
-        if (!res.ok) {
-          throw new Error("Failed to fetch featured artists");
-        }
-        const data = await res.json();
-        setArtists(data.artists || []);
-      } catch (err) {
-        console.error("SectionOne artists fetch error:", err);
-        setError("Could not load featured artists");
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchArtists();
-  }, []);
-
-  console.log(artists, "artists from COMMERCIAL");
 
   const dummyData = [
     {
@@ -128,7 +94,7 @@ const SectionOne = () => {
               ease: "linear",
             },
           }}
-          className="w-34 h-34 absolute top-23 bg-cream/10 right-15 backdrop-blur-sm border border-cream/20 rounded-full center "
+          className="w-34 h-34 p-3 absolute top-23 bg-cream/10 right-15 backdrop-blur-sm border border-cream/20 rounded-full center "
         >
           <Image
             // className="sepia"

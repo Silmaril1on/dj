@@ -1,14 +1,17 @@
-import React from 'react';
-import SectionContainer from '@/app/components/containers/SectionContainer';
-import Title from '@/app/components/ui/Title';
-import Paragraph from '@/app/components/ui/Paragraph';
-import SpanText from '@/app/components/ui/SpanText';
+import React from "react";
+import SectionContainer from "@/app/components/containers/SectionContainer";
+import Title from "@/app/components/ui/Title";
+import Paragraph from "@/app/components/ui/Paragraph";
+import SpanText from "@/app/components/ui/SpanText";
 
 const Mybookings = ({ data, error }) => {
-
   if (error) {
     return (
-      <SectionContainer title="My Bookings" description="Error loading bookings" className="bg-stone-900">
+      <SectionContainer
+        title="My Bookings"
+        description="Error loading bookings"
+        className="bg-stone-900"
+      >
         <div className="text-center py-8">
           <Title text="Error" className="text-red-400 mb-2" />
           <Paragraph text={error} className="text-stone-400" />
@@ -19,7 +22,11 @@ const Mybookings = ({ data, error }) => {
 
   if (!data) {
     return (
-      <SectionContainer title="My Bookings" description="Loading..." className="bg-stone-900">
+      <SectionContainer
+        title="My Bookings"
+        description="Loading..."
+        className="bg-stone-900"
+      >
         <div className="text-center py-8">
           <Title text="Loading..." className="text-stone-400" />
         </div>
@@ -29,6 +36,10 @@ const Mybookings = ({ data, error }) => {
 
   const { stats } = data;
 
+  if (stats.total === 0) {
+    return null;
+  }
+
   return (
     <SectionContainer
       size="sm"
@@ -36,7 +47,7 @@ const Mybookings = ({ data, error }) => {
       description={`${stats.total} total booking requests received`}
       className="bg-stone-900"
     >
-      <section className='flex flex-col gap-3 w-full'>
+      <section className="flex flex-col gap-3 w-full">
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
           <div className="bg-stone-800 p-2 text-center border border-stone-700">
             <Title
@@ -81,23 +92,38 @@ const Mybookings = ({ data, error }) => {
             <Title text="Summary" size="sm" />
             <div className="grid grid-cols-3 gap-4 text-xs">
               <div>
-                <SpanText text="Success Rate:" color="chino" font="secondary" size="xs" />
+                <SpanText
+                  text="Success Rate:"
+                  color="chino"
+                  font="secondary"
+                  size="xs"
+                />
                 <SpanText
                   text={` ${Math.round(
-                    (stats.confirmed / stats.total) * 100
+                    (stats.confirmed / stats.total) * 100,
                   )}%`}
                   className="text-green-400 font-bold"
                 />
               </div>
               <div>
-                <SpanText text="Pending" color="chino" font="secondary" size="xs" />
+                <SpanText
+                  text="Pending"
+                  color="chino"
+                  font="secondary"
+                  size="xs"
+                />
                 <SpanText
                   text={` ${stats.pending} requests`}
                   className="text-gold font-bold"
                 />
               </div>
               <div>
-                <SpanText text="Decline Rate:" color="chino" font="secondary" size="xs" />
+                <SpanText
+                  text="Decline Rate:"
+                  color="chino"
+                  font="secondary"
+                  size="xs"
+                />
                 <SpanText
                   text={` ${Math.round((stats.declined / stats.total) * 100)}%`}
                   className="text-red-400 font-bold"

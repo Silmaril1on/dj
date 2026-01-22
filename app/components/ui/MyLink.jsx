@@ -26,9 +26,9 @@ const MyLink = ({
       target={target}
       onClick={onClick}
       href={href}
-      className={`${className} gap-1 duration-300 w-fit ${sizeClasses[size]} ${colorClasses[color]}`}
+      className={`${className} gap-1 duration-300 center w-fit ${sizeClasses[size]} ${colorClasses[color]}`}
     >
-      <span className="flex items-center">{icon}</span>
+      <span className="flex h-full items-center pb-1">{icon}</span>
       <span>{text}</span>
     </Link>
   );

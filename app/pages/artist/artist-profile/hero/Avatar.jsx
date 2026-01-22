@@ -7,12 +7,12 @@ import Image from "next/image";
 const Avatar = ({ data }) => {
   return (
     <motion.div
-      className="relative group"
+      className="relative group  h-full"
       initial={{ opacity: 0, x: -50 }}
       animate={{ opacity: 1, x: 0 }}
       transition={{ duration: 0.8, ease: "easeOut" }}
     >
-      <div className="relative overflow-hidden shadow-2xl ">
+      <div className="relative overflow-hidden shadow-2xl h-full">
         <Motion
           className="absolute top-5 left-5 text-2xl z-20"
           animation="fade"
@@ -28,7 +28,7 @@ const Avatar = ({ data }) => {
           <EditProduct data={data} type="artist" className="rounded-full" />
         </Motion>
         <motion.div
-          className="relative w-full h-[450px] lg:h-[700px]"
+          className="relative w-full h-[450px] lg:h-[700px] "
           whileHover={{ scale: 1.02 }}
           transition={{ duration: 0.6, ease: "easeInOut" }}
         >

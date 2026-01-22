@@ -20,19 +20,7 @@ const LikesStats = ({ data, error }) => {
   }
 
   if (totalLikes === 0 || !recentArtists || recentArtists.length === 0) {
-    return (
-      <SectionContainer
-        size="sm"
-        title="My Likes"
-        description="My Like Statistics"
-        className="bg-stone-900"
-      >
-        <ErrorCode
-          title="No likes yet"
-          description="Start liking artists to see your statistics!"
-        />
-      </SectionContainer>
-    );
+    return null;
   }
 
   return (

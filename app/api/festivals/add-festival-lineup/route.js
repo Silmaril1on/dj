@@ -1,36 +1,52 @@
 import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
-import { createSupabaseServerClient, getServerUser } from "@/app/lib/config/supabaseServer";
+import {
+  createSupabaseServerClient,
+  getServerUser,
+} from "@/app/lib/config/supabaseServer";
+
+// Helper function to normalize artist names for matching
+const normalizeArtistName = (name) => {
+  if (!name) return "";
+  return name
+    .toLowerCase()
+    .trim()
+    .replace(/[^\w\s]/g, "")
+    .replace(/\s+/g, " ");
+};
 
 // GET - Fetch existing lineup for a festival
 export async function GET(request) {
   try {
     const cookieStore = await cookies();
     const supabase = await createSupabaseServerClient(cookieStore);
-    
+
     const { searchParams } = new URL(request.url);
     const festivalId = searchParams.get("festival_id");
 
     if (!festivalId) {
       return NextResponse.json(
         { error: "Festival ID is required" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
     // Fetch stages with their artists
     const { data: stages, error: stagesError } = await supabase
       .from("festival_stages")
-      .select(`
+      .select(
+        `
         id,
         stage_name,
         stage_order,
         festival_lineup (
           id,
           artist_name,
+          artist_day,
           artist_order
         )
-      `)
+      `,
+      )
       .eq("festival_id", festivalId)
       .order("stage_order", { ascending: true });
 
@@ -38,24 +54,61 @@ export async function GET(request) {
       console.error("Error fetching stages:", stagesError);
       return NextResponse.json(
         { error: "Failed to fetch lineup" },
-        { status: 500 }
+        { status: 500 },
       );
     }
 
-    // Transform data to match form structure
-    const lineup = stages.map(stage => ({
+    // Fetch all artists from database for slug matching
+    const { data: allArtistsData } = await supabase
+      .from("artists")
+      .select("id, name, stage_name, artist_slug");
+
+    // Create a map for quick lookup (normalized name -> artist)
+    const artistMap = new Map();
+    if (allArtistsData) {
+      allArtistsData.forEach((artist) => {
+        const normalizedName = normalizeArtistName(artist.name);
+        const normalizedStageName = normalizeArtistName(artist.stage_name);
+
+        if (normalizedName) artistMap.set(normalizedName, artist);
+        if (normalizedStageName) artistMap.set(normalizedStageName, artist);
+      });
+    }
+
+    // Transform data to match form structure with artist slugs
+    const lineup = stages.map((stage) => ({
       stage_name: stage.stage_name,
       artists: stage.festival_lineup
         .sort((a, b) => a.artist_order - b.artist_order)
-        .map(artist => artist.artist_name)
+        .map((artist) => {
+          const normalizedSearchName = normalizeArtistName(artist.artist_name);
+          const foundArtist = artistMap.get(normalizedSearchName);
+
+          return foundArtist
+            ? {
+                name: artist.artist_name,
+                day: artist.artist_day || "",
+                id: foundArtist.id,
+                artist_slug: foundArtist.artist_slug,
+              }
+            : {
+                name: artist.artist_name,
+                day: artist.artist_day || "",
+                id: null,
+                artist_slug: null,
+              };
+        }),
     }));
 
     return NextResponse.json({ success: true, lineup });
   } catch (err) {
-    console.error("Unexpected error in GET /api/festivals/add-festival-lineup:", err);
+    console.error(
+      "Unexpected error in GET /api/festivals/add-festival-lineup:",
+      err,
+    );
     return NextResponse.json(
       { error: "Internal server error" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
@@ -69,17 +122,18 @@ export async function POST(request) {
     if (userError || !user) {
       return NextResponse.json(
         { error: "Authentication required" },
-        { status: 401 }
+        { status: 401 },
       );
     }
 
     const supabase = await createSupabaseServerClient(cookieStore);
-    const { festival_id, festival_name, stages } = await request.json();
+    const { festival_id, festival_name, stages, lineup_status } =
+      await request.json();
 
     if (!festival_id || !stages || stages.length === 0) {
       return NextResponse.json(
         { error: "Festival ID and stages are required" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -93,7 +147,7 @@ export async function POST(request) {
     if (festivalError || !festival || festival.user_id !== user.id) {
       return NextResponse.json(
         { error: "Unauthorized to modify this festival" },
-        { status: 403 }
+        { status: 403 },
       );
     }
 
@@ -116,14 +170,15 @@ export async function POST(request) {
         console.error("Error inserting stage:", stageError);
         return NextResponse.json(
           { error: "Failed to create stage" },
-          { status: 500 }
+          { status: 500 },
         );
       }
 
       // Insert artists for this stage
-      const artistsToInsert = stage.artists.map((artistName, artistIndex) => ({
+      const artistsToInsert = stage.artists.map((artist, artistIndex) => ({
         stage_id: insertedStage.id,
-        artist_name: artistName,
+        artist_name: artist.name,
+        artist_day: artist.day || null,
         artist_order: artistIndex,
       }));
 
@@ -135,8 +190,20 @@ export async function POST(request) {
         console.error("Error inserting artists:", artistsError);
         return NextResponse.json(
           { error: "Failed to create lineup" },
-          { status: 500 }
+          { status: 500 },
         );
+      }
+    }
+
+    // Update lineup_status in festivals table if provided
+    if (lineup_status !== undefined) {
+      const { error: updateStatusError } = await supabase
+        .from("festivals")
+        .update({ lineup_status })
+        .eq("id", festival_id);
+
+      if (updateStatusError) {
+        console.error("Error updating lineup status:", updateStatusError);
       }
     }
 
@@ -145,10 +212,13 @@ export async function POST(request) {
       message: "Lineup created successfully",
     });
   } catch (err) {
-    console.error("Unexpected error in POST /api/festivals/add-festival-lineup:", err);
+    console.error(
+      "Unexpected error in POST /api/festivals/add-festival-lineup:",
+      err,
+    );
     return NextResponse.json(
       { error: "Internal server error" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
@@ -162,17 +232,18 @@ export async function PATCH(request) {
     if (userError || !user) {
       return NextResponse.json(
         { error: "Authentication required" },
-        { status: 401 }
+        { status: 401 },
       );
     }
 
     const supabase = await createSupabaseServerClient(cookieStore);
-    const { festival_id, festival_name, stages } = await request.json();
+    const { festival_id, festival_name, stages, lineup_status } =
+      await request.json();
 
     if (!festival_id || !stages || stages.length === 0) {
       return NextResponse.json(
         { error: "Festival ID and stages are required" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -186,7 +257,7 @@ export async function PATCH(request) {
     if (festivalError || !festival || festival.user_id !== user.id) {
       return NextResponse.json(
         { error: "Unauthorized to modify this festival" },
-        { status: 403 }
+        { status: 403 },
       );
     }
 
@@ -200,8 +271,20 @@ export async function PATCH(request) {
       console.error("Error deleting stages:", deleteStagesError);
       return NextResponse.json(
         { error: "Failed to update lineup" },
-        { status: 500 }
+        { status: 500 },
       );
+    }
+
+    // Update lineup_status in festivals table if provided
+    if (lineup_status !== undefined) {
+      const { error: updateStatusError } = await supabase
+        .from("festivals")
+        .update({ lineup_status })
+        .eq("id", festival_id);
+
+      if (updateStatusError) {
+        console.error("Error updating lineup status:", updateStatusError);
+      }
     }
 
     // Insert new stages and artists (same logic as POST)
@@ -222,13 +305,14 @@ export async function PATCH(request) {
         console.error("Error inserting stage:", stageError);
         return NextResponse.json(
           { error: "Failed to update stage" },
-          { status: 500 }
+          { status: 500 },
         );
       }
 
-      const artistsToInsert = stage.artists.map((artistName, artistIndex) => ({
+      const artistsToInsert = stage.artists.map((artist, artistIndex) => ({
         stage_id: insertedStage.id,
-        artist_name: artistName,
+        artist_name: artist.name,
+        artist_day: artist.day || null,
         artist_order: artistIndex,
       }));
 
@@ -240,7 +324,7 @@ export async function PATCH(request) {
         console.error("Error inserting artists:", artistsError);
         return NextResponse.json(
           { error: "Failed to update lineup" },
-          { status: 500 }
+          { status: 500 },
         );
       }
     }
@@ -250,10 +334,13 @@ export async function PATCH(request) {
       message: "Lineup updated successfully",
     });
   } catch (err) {
-    console.error("Unexpected error in PATCH /api/festivals/add-festival-lineup:", err);
+    console.error(
+      "Unexpected error in PATCH /api/festivals/add-festival-lineup:",
+      err,
+    );
     return NextResponse.json(
       { error: "Internal server error" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

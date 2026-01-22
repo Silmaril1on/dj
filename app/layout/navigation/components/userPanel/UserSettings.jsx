@@ -1,15 +1,20 @@
 import { MdPerson, MdSecurity, MdEventAvailable } from "react-icons/md";
 import { IoMusicalNotes } from "react-icons/io5";
-import PopUpBox from '@/app/components/containers/PopUpBox'
-import Button from '@/app/components/buttons/Button'
-import SpanText from '@/app/components/ui/SpanText'
-import FlexBox from '@/app/components/containers/FlexBox'
-import MyLink from '@/app/components/ui/MyLink'
-import ProfilePicture from '@/app/components/materials/ProfilePicture'
+import PopUpBox from "@/app/components/containers/PopUpBox";
+import Button from "@/app/components/buttons/Button";
+import SpanText from "@/app/components/ui/SpanText";
+import FlexBox from "@/app/components/containers/FlexBox";
+import MyLink from "@/app/components/ui/MyLink";
+import ProfilePicture from "@/app/components/materials/ProfilePicture";
 import { FaHouse } from "react-icons/fa6";
 
-const UserSettings = ({ onLogout, isOpen, toggleSettings, avatar_url, user }) => {
-
+const UserSettings = ({
+  onLogout,
+  isOpen,
+  toggleSettings,
+  avatar_url,
+  user,
+}) => {
   return (
     <PopUpBox
       isOpen={isOpen}
@@ -22,19 +27,27 @@ const UserSettings = ({ onLogout, isOpen, toggleSettings, avatar_url, user }) =>
       </div>
     </PopUpBox>
   );
-}
+};
 
 const SettingsHeader = ({ avatar_url }) => {
   return (
-    <FlexBox type="row-center" className="gap-2 items-center border-b border-gold/30">
+    <FlexBox
+      type="row-center"
+      className="gap-2 items-center border-b border-gold/30"
+    >
       <ProfilePicture avatar_url={avatar_url} />
-      <FlexBox type="column-start" className="flex-1 leading-none" >
-        <SpanText text="User Settings" font="primary" color="default" className="text-sm" />
+      <FlexBox type="column-start" className="flex-1 leading-none">
+        <SpanText
+          text="User Settings"
+          font="primary"
+          color="default"
+          className="text-sm"
+        />
         <SpanText text="Manage your account" size="xs" />
       </FlexBox>
     </FlexBox>
-  )
-}
+  );
+};
 
 const SettingsOption = ({ toggleSettings, user }) => {
   return (
@@ -45,17 +58,17 @@ const SettingsOption = ({ toggleSettings, user }) => {
         icon={<MdPerson />}
         onClick={toggleSettings}
       />
-      {user.submitted_artist_id && (
+      {user.submitted_artist_slug && (
         <MyLink
-          href={`/artists/${user.submitted_artist_id}`}
+          href={`/artists/${user.submitted_artist_slug}`}
           text="My Artist Profile"
           icon={<IoMusicalNotes />}
           onClick={toggleSettings}
         />
       )}
-      {user.submitted_club_id && (
+      {user.submitted_club_slug && (
         <MyLink
-          href={`/clubs/${user.submitted_club_id}`}
+          href={`/clubs/${user.submitted_club_slug}`}
           text="My Club Profile"
           icon={<FaHouse />}
           onClick={toggleSettings}
@@ -77,6 +90,6 @@ const SettingsOption = ({ toggleSettings, user }) => {
       />
     </div>
   );
-}
+};
 
-export default UserSettings
+export default UserSettings;

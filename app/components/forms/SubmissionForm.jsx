@@ -111,7 +111,7 @@ const SubmissionForm = ({
           setError({
             message: "Please upload a valid image file",
             type: "error",
-          })
+          }),
         );
         return;
       }
@@ -120,7 +120,7 @@ const SubmissionForm = ({
           setError({
             message: "Image size must be less than 1MB",
             type: "error",
-          })
+          }),
         );
         return;
       }
@@ -164,7 +164,7 @@ const SubmissionForm = ({
     formConfig.arrayFields?.forEach((field) => {
       if (filteredData[field]) {
         filteredData[field] = filteredData[field].filter(
-          (item) => item && typeof item === "string" && item.trim() !== ""
+          (item) => item && typeof item === "string" && item.trim() !== "",
         );
       }
     });
@@ -267,9 +267,7 @@ const SubmissionForm = ({
       case "image":
         const isAvatar =
           fieldName.includes("avatar") || fieldName.includes("profile");
-        const containerClass = isAvatar
-          ? "w-24 h-24 rounded-sm"
-          : "w-32 h-32 rounded-sm";
+        const containerClass = isAvatar ? "w-24 h-24" : "w-32 h-32";
         const iconSize = isAvatar ? "text-4xl" : "w-8 h-8";
         const editButtonClass =
           "absolute -bottom-2 -right-2 bg-gold hover:bg-gold/80 text-black p-2 rounded-full shadow-lg transition-colors";
@@ -316,7 +314,7 @@ const SubmissionForm = ({
               <button
                 type="button"
                 onClick={() => fileInputRef.current?.click()}
-                className="px-2 py-1 bg-gold/30 text-gold border border-gold/30 rounded-md transition-colors flex items-center gap-2"
+                className="px-2 py-1 bg-gold/30 text-gold border border-gold/30  transition-colors flex items-center gap-2"
               >
                 <MdUpload size={20} />
                 {imagePreview ? "Change Image" : "Upload Image"}
@@ -403,13 +401,15 @@ const SubmissionForm = ({
       className={`space-y-2 w-full ${className}`}
     >
       {formConfig.sections?.map((section, sectionIndex) => (
-        <div key={sectionIndex} className="space-y-2">
-          {section.title && <Title text={section.title} />}
-          <div
-            className={
-              section.gridClass || "grid grid-cols-1 md:grid-cols-1 gap-4"
-            }
-          >
+        <div key={sectionIndex}>
+          {section.title && (
+            <Title
+              color="cream"
+              className="leading-none mt-5"
+              text={section.title}
+            />
+          )}
+          <div className={section.gridClass || "grid grid-cols-1 gap-4"}>
             {section.fields?.map((fieldName) => {
               const fieldConfig = formConfig.fields[fieldName];
               if (!fieldConfig) return null;
@@ -472,7 +472,7 @@ const SubmissionForm = ({
           className="hidden"
         />
       )}
-      <FlexBox type="row-between" className="mt-4 ">
+      <FlexBox type="row-between" className="mt-4">
         <Button
           type="submit"
           text={isLoading ? "Submitting..." : submitButtonText}

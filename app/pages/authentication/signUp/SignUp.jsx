@@ -1,5 +1,5 @@
-import FormContainer from '@/app/components/forms/FormContainer'
-import RegisterForm from './RegisterForm'
+import FormContainer from "@/app/components/forms/FormContainer";
+import RegisterForm from "./RegisterForm";
 
 const SignUp = () => {
   return (
@@ -8,10 +8,11 @@ const SignUp = () => {
       footerText="Already have an account?"
       footerLinkText="Sign in"
       footerHref="/sign-in"
+      className="w-full lg:w-md"
     >
       <RegisterForm />
     </FormContainer>
-  )
-}
+  );
+};
 
-export default SignUp
+export default SignUp;

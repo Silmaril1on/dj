@@ -62,12 +62,12 @@ const AddArtist = () => {
         setArtistData(data);
       } else {
         dispatch(
-          setError({ message: "Failed to fetch artist data", type: "error" })
+          setError({ message: "Failed to fetch artist data", type: "error" }),
         );
       }
     } catch (error) {
       dispatch(
-        setError({ message: "Error fetching artist data", type: "error" })
+        setError({ message: "Error fetching artist data", type: "error" }),
       );
     } finally {
       setLoading(false);
@@ -97,7 +97,7 @@ const AddArtist = () => {
         const errorData = await response.json();
         throw new Error(
           errorData.error ||
-            `Failed to ${isEditMode ? "update" : "submit"} artist`
+            `Failed to ${isEditMode ? "update" : "submit"} artist`,
         );
       }
       const result = await response.json();
@@ -108,7 +108,7 @@ const AddArtist = () => {
           setError({
             message: "You updated info successfully",
             type: "success",
-          })
+          }),
         );
       } else {
         // Show success modal for new submission
@@ -120,7 +120,7 @@ const AddArtist = () => {
             stage_name: result.data?.stage_name || "",
             country: result.data?.country || "",
             city: result.data?.city || "",
-          })
+          }),
         );
       }
     } catch (err) {
@@ -142,6 +142,7 @@ const AddArtist = () => {
       ) : (
         <div className="flex-1 w-full">
           <FormContainer
+            className="w-full"
             title={isEditMode ? "Edit Artist" : "Add Artist"}
             description={
               isEditMode

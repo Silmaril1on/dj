@@ -71,6 +71,21 @@ export async function GET(request) {
       );
     }
 
+    // Get upcoming schedule count for the artist (only approved and future dates)
+    const today = new Date().toISOString().split("T")[0];
+    const { count: scheduleCount, error: scheduleCountError } =
+      await supabaseAdmin
+        .from("artist_schedule")
+        .select("*", { count: "exact", head: true })
+        .eq("artist_id", resolvedArtistId)
+        .eq("status", "approved")
+        .gte("date", today);
+
+    if (scheduleCountError) {
+      console.error("Error fetching schedule count:", scheduleCountError);
+      // Don't fail the entire request, just set count to 0
+    }
+
     let isLiked = false;
     let userRating = null;
     let userSubmittedArtistId = null;
@@ -129,6 +144,7 @@ export async function GET(request) {
       artist: {
         ...artist,
         likesCount: likesCount || 0,
+        scheduleCount: scheduleCount || 0,
         isLiked,
         userRating,
         userSubmittedArtistId,

@@ -1,9 +1,9 @@
-"use client"
-import { useState } from 'react';
-import PopUpBox from '@/app/components/containers/PopUpBox';
-import NtfFooter from './NtfFooter';
-import NtfHeader from './NtfHeader';
-import NtfContent from './NtfContent';
+"use client";
+import { useState } from "react";
+import PopUpBox from "@/app/components/containers/PopUpBox";
+import NtfFooter from "./NtfFooter";
+import NtfHeader from "./NtfHeader";
+import NtfContent from "./NtfContent";
 
 const NotificationModal = ({
   isOpen,
@@ -13,7 +13,7 @@ const NotificationModal = ({
   error,
   fetchNotifications,
   onNotificationsUpdate,
-  userId
+  userId,
 }) => {
   const [isClosing, setIsClosing] = useState(false);
 
@@ -23,7 +23,13 @@ const NotificationModal = ({
       className="absolute bottom-2.5 lg:bottom-auto lg:top-full md:top-full scale-80 md:scale-100 -right-[105px] lg:right-0 lg:mt-3 w-98 bg-stone-800 shadow-xl border h-[350px] border-gold/30 z-50 *:p-3 flex flex-col"
     >
       <NtfHeader onClose={onClose} setIsClosing={setIsClosing} />
-        <NtfContent loading={loading} error={error} notifications={notifications} />
+      <div className="flex grow-1">
+        <NtfContent
+          loading={loading}
+          error={error}
+          notifications={notifications}
+        />
+      </div>
       <NtfFooter
         userId={userId}
         notifications={notifications}

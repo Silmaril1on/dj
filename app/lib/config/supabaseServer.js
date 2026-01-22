@@ -27,14 +27,14 @@ export const createSupabaseServerClient = async (cookieStore) => {
         },
       },
       db: {
-        schema: 'public', // Explicitly set schema to reduce introspection queries
+        schema: "public", // Explicitly set schema to reduce introspection queries
       },
       global: {
         headers: {
-          'x-client-info': 'dj-app', // Add client identifier
+          "x-client-info": "dj-app", // Add client identifier
         },
       },
-    }
+    },
   );
 };
 
@@ -57,6 +57,33 @@ export const getServerUser = async (cookieStore) => {
     if (userError) {
       return { user: null, error: userError };
     }
+
+    // If user has submitted_artist_id, fetch the artist_slug
+    if (userData?.submitted_artist_id) {
+      const { data: artistData } = await supabase
+        .from("artists")
+        .select("artist_slug")
+        .eq("id", userData.submitted_artist_id)
+        .single();
+
+      if (artistData?.artist_slug) {
+        userData.submitted_artist_slug = artistData.artist_slug;
+      }
+    }
+
+    // If user has submitted_club_id, fetch the club_slug
+    if (userData?.submitted_club_id) {
+      const { data: clubData } = await supabase
+        .from("clubs")
+        .select("club_slug")
+        .eq("id", userData.submitted_club_id)
+        .single();
+
+      if (clubData?.club_slug) {
+        userData.submitted_club_slug = clubData.club_slug;
+      }
+    }
+
     return { user: userData, error: null };
   } catch (error) {
     return { user: null, error };
@@ -69,7 +96,7 @@ export const supabaseAdmin = createClient(
   process.env.SUPABASE_SERVICE_ROLE_KEY,
   {
     db: {
-      schema: 'public', // Explicitly set schema
+      schema: "public", // Explicitly set schema
     },
     auth: {
       autoRefreshToken: false, // Disable for admin client
@@ -77,8 +104,8 @@ export const supabaseAdmin = createClient(
     },
     global: {
       headers: {
-        'x-client-info': 'dj-app-admin',
+        "x-client-info": "dj-app-admin",
       },
     },
-  }
+  },
 );

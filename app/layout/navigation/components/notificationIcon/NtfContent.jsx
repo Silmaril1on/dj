@@ -1,8 +1,8 @@
-import FlexBox from '@/app/components/containers/FlexBox'
-import Paragraph from '@/app/components/ui/Paragraph'
-import SpanText from '@/app/components/ui/SpanText'
-import { formatTime } from '@/app/helpers/utils'
-import { IoIosNotifications } from 'react-icons/io'
+import FlexBox from "@/app/components/containers/FlexBox";
+import Paragraph from "@/app/components/ui/Paragraph";
+import SpanText from "@/app/components/ui/SpanText";
+import { formatTime } from "@/app/helpers/utils";
+import { IoIosNotifications } from "react-icons/io";
 
 const NtfContent = ({ loading, error, notifications }) => {
   return (
@@ -10,8 +10,8 @@ const NtfContent = ({ loading, error, notifications }) => {
       {error && <Paragraph text={error} />}
       {!loading && <NotificationItem notifications={notifications} />}
     </div>
-  )
-}
+  );
+};
 
 const NotificationItem = ({ notifications }) => {
   if (!notifications || notifications.length === 0) {
@@ -23,15 +23,14 @@ const NotificationItem = ({ notifications }) => {
   }
 
   return (
-    <div className='space-y-2'>
+    <div className="space-y-2 ">
       {notifications.map((notification) => (
         <div
           key={notification.id}
           className={`flex items-center p-2 cursor-pointer duration-300 hover:bg-black bg-stone-900 `}
         >
-          <div className="flex-1 space-y-1 ">
-            <Paragraph text={notification.message}
-            />
+          <div className="flex-1 space-y-1">
+            <Paragraph text={notification.message} />
             <FlexBox type="row-between">
               <SpanText
                 size="xs"
@@ -49,7 +48,7 @@ const NotificationItem = ({ notifications }) => {
         </div>
       ))}
     </div>
-  )
-}
+  );
+};
 
-export default NtfContent
+export default NtfContent;

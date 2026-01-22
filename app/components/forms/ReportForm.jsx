@@ -1,24 +1,25 @@
-import React, { useState } from 'react'
+import React, { useState } from "react";
 import { FaStar } from "react-icons/fa6";
-import { useDispatch, useSelector } from 'react-redux'
-import { closeReportModal } from '@/app/features/reportsSlice'
-import { selectUser } from '@/app/features/userSlice'
-import Button from '../buttons/Button'
-import Close from '../buttons/Close'
-import { setError } from '@/app/features/modalSlice';
+import { useDispatch, useSelector } from "react-redux";
+import { closeReportModal } from "@/app/features/reportsSlice";
+import { selectUser } from "@/app/features/userSlice";
+import Button from "../buttons/Button";
+import Close from "../buttons/Close";
+import { setError } from "@/app/features/modalSlice";
 
 const ReportForm = ({ type }) => {
   const dispatch = useDispatch();
   const user = useSelector(selectUser);
-  const [title, setTitle] = useState('');
-  const [content, setContent] = useState('');
+  const [title, setTitle] = useState("");
+  const [content, setContent] = useState("");
   const [rating, setRating] = useState(0);
   const [loading, setLoading] = useState(false);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
-    const endpoint = type === "feedback" ? "/api/reports/feedback" : "/api/reports/bug";
+    const endpoint =
+      type === "feedback" ? "/api/reports/feedback" : "/api/reports/bug";
     const payload = {
       title,
       content,
@@ -34,7 +35,15 @@ const ReportForm = ({ type }) => {
     });
     setLoading(false);
     if (res.ok) {
-     dispatch(setError({ type: 'success', message: type === 'feedback' ? 'Feedback submitted successfully!' : 'Bug report submitted successfully!' }));
+      dispatch(
+        setError({
+          type: "success",
+          message:
+            type === "feedback"
+              ? "Feedback submitted successfully!"
+              : "Bug report submitted successfully!",
+        }),
+      );
       setTimeout(() => {
         dispatch(closeReportModal());
       }, 1200);
@@ -49,7 +58,7 @@ const ReportForm = ({ type }) => {
       />
       <form onSubmit={handleSubmit} className="space-y-4">
         <h2 className="text-xl font-bold text-gold mb-2">
-          {type === "feedback" ? "Submit Feedback" : "Report a Bug"}
+          {type === "feedback" ? "Submit Feedback" : "Contact Us"}
         </h2>
         {type === "feedback" && (
           <div className="flex items-center gap-2">
@@ -76,7 +85,7 @@ const ReportForm = ({ type }) => {
           value={content}
           onChange={(e) => setContent(e.target.value)}
           required
-          className='h-40'
+          className="h-40"
         />
 
         <div className="flex gap-2">
@@ -89,6 +98,6 @@ const ReportForm = ({ type }) => {
       </form>
     </>
   );
-}
+};
 
-export default ReportForm
+export default ReportForm;
