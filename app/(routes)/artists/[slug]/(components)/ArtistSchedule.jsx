@@ -183,9 +183,7 @@ const ArtistSchedule = ({
   }
 
   const filteredData = data.filter((schedule) => {
-    const status = clubId
-      ? schedule.event_status || "upcoming"
-      : schedule.event_type || "upcoming";
+    const status = schedule.event_status || schedule.event_type || "upcoming";
     return status === activeType;
   });
 

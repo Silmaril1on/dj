@@ -231,13 +231,22 @@ export async function PUT(request, { params }) {
 
       // Check if this is an artist date addition request
       if (type === "artist_date") {
+        const normalizedEventType =
+          typeof eventData.event_type === "string" &&
+          ["event", "festival", "club", "concert"].includes(
+            eventData.event_type,
+          )
+            ? eventData.event_type
+            : null;
+
         // Add artist date to artist_schedule table
         const { data: artistDate, error: artistDateError } = await supabase
           .from("artist_schedule")
           .insert({
             artist_id: id,
             ...eventData,
-            event_type: "upcoming",
+            event_type: normalizedEventType,
+            event_status: "upcoming",
             created_at: new Date().toISOString(),
           })
           .select()

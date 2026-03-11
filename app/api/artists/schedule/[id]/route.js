@@ -51,6 +51,11 @@ export async function PUT(request, { params }) {
 
     // Get update data from request
     const updateData = await request.json();
+    const normalizedEventType =
+      typeof updateData.event_type === "string" &&
+      ["event", "festival", "club", "concert"].includes(updateData.event_type)
+        ? updateData.event_type
+        : null;
 
     // Validate required fields
     if (
@@ -74,7 +79,8 @@ export async function PUT(request, { params }) {
       club_name: updateData.club_name,
       event_link: updateData.event_link || null,
       event_title: updateData.event_title || null,
-      event_type: "upcoming",
+      event_type: normalizedEventType,
+      event_status: scheduleEvent.event_status || "upcoming",
       event_location: updateData.event_location || null,
       updated_at: new Date().toISOString(),
     };

@@ -130,6 +130,11 @@ export async function POST(req) {
           event_link: eventLink,
           event_title: eventTitle,
           event_location: eventLocation,
+          event_type: eventType || null,
+          event_status:
+            date && new Date(date) < new Date(new Date().toDateString())
+              ? "past"
+              : "upcoming",
         };
 
         console.log("💾 Inserting schedule:", scheduleData);

@@ -20,6 +20,12 @@ const initialState = {
     albumData: null,
     isEditMode: false,
   },
+  addClubDateModal: {
+    isOpen: false,
+    club: null,
+    eventData: null,
+    isEditMode: false,
+  },
 };
 
 const modalSlice = createSlice({
@@ -86,6 +92,22 @@ const modalSlice = createSlice({
         isEditMode: false,
       };
     },
+    openAddClubDateModal: (state, action) => {
+      state.addClubDateModal = {
+        isOpen: true,
+        club: action.payload.club,
+        eventData: action.payload.eventData || null,
+        isEditMode: !!action.payload.eventData,
+      };
+    },
+    closeAddClubDateModal: (state) => {
+      state.addClubDateModal = {
+        isOpen: false,
+        club: null,
+        eventData: null,
+        isEditMode: false,
+      };
+    },
   },
 });
 
@@ -99,6 +121,8 @@ export const {
   closeAddEventModal,
   openAddAlbumModal,
   closeAddAlbumModal,
+  openAddClubDateModal,
+  closeAddClubDateModal,
 } = modalSlice.actions;
 
 export const modalReducer = modalSlice.reducer;
@@ -110,3 +134,4 @@ export const selectErrorType = (state) => state.modal.errorType;
 export const selectGlobalModal = (state) => state.modal.globalModal;
 export const selectAddEventModal = (state) => state.modal.addEventModal;
 export const selectAddAlbumModal = (state) => state.modal.addAlbumModal;
+export const selectAddClubDateModal = (state) => state.modal.addClubDateModal;

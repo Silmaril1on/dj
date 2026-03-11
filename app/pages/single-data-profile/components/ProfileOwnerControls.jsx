@@ -1,14 +1,14 @@
 "use client";
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { selectUser } from "@/app/features/userSlice";
 import EditProduct from "@/app/components/buttons/EditProduct..jsx";
 import FlexBox from "@/app/components/containers/FlexBox";
 import { useRouter } from "next/navigation";
-import { FaUpload, FaMusic } from "react-icons/fa";
-import { getAddEventParams } from "../profileConfigs";
+import { openAddClubDateModal } from "@/app/features/modalSlice";
 
 const ProfileOwnerControls = ({ data, type, currentUserId }) => {
   const router = useRouter();
+  const dispatch = useDispatch();
   const user = useSelector(selectUser);
 
   // Check if user is the owner OR admin
@@ -20,8 +20,7 @@ const ProfileOwnerControls = ({ data, type, currentUserId }) => {
   if (type !== "clubs" && type !== "festivals") return null;
 
   const handleAddEvent = () => {
-    const params = getAddEventParams(data);
-    router.push(`/add-product/add-event?${params}`);
+    dispatch(openAddClubDateModal({ club: data }));
   };
 
   const handleAddLineup = () => {
@@ -48,7 +47,6 @@ const ProfileOwnerControls = ({ data, type, currentUserId }) => {
               onClick={handleAddEvent}
               className="bg-gold/30 flex hover:bg-gold/40 cursor-pointer duration-300 items-center gap-1 text-sm px-2 py-1 font-bold"
             >
-              <FaUpload />
               <span>Add Event</span>
             </button>
           </>

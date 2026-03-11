@@ -158,7 +158,6 @@ export async function POST(req) {
           event_type: event.isFestival ? "festival" : "event",
           status: "approved",
           venue_name: event.venue?.name || null,
-          club_id: null,
           minimum_age: event.minimumAge ? parseInt(event.minimumAge) : null,
         };
 

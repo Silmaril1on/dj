@@ -1,8 +1,17 @@
-"use client"
-import { FaFacebook, FaGlobe, FaInstagram, FaSoundcloud, FaSpotify, FaTwitter, FaYoutube , FaDeezer } from 'react-icons/fa'
-import { SiApplemusic } from "react-icons/si";
-import { motion } from 'framer-motion'
-import Icon from '@/app/components/ui/Icon'
+"use client";
+import {
+  FaFacebook,
+  FaGlobe,
+  FaInstagram,
+  FaSoundcloud,
+  FaSpotify,
+  FaTwitter,
+  FaYoutube,
+  FaDeezer,
+} from "react-icons/fa";
+import { SiApplemusic, SiBeatport } from "react-icons/si";
+import { motion } from "framer-motion";
+import Icon from "@/app/components/ui/Icon";
 
 const SocialLinks = ({
   social_links,
@@ -11,21 +20,25 @@ const SocialLinks = ({
   showTitle = false,
   title = "Social Links",
   animation = true,
-  animationDelay = 0
+  animationDelay = 0,
 }) => {
   if (!social_links || social_links.length === 0) {
-    return null
+    return null;
   }
 
   const getSocialIcon = (url) => {
-    if (url.includes('facebook')) return <FaFacebook className={iconSize} />;
-    if (url.includes('instagram')) return <FaInstagram className={iconSize} />;
-    if (url.includes('youtube')) return <FaYoutube className={iconSize} />;
-    if (url.includes('spotify')) return <FaSpotify className={iconSize} />;
-    if (url.includes('soundcloud')) return <FaSoundcloud className={iconSize} />;
-    if (url.includes('twitter') || url.includes('x.com')) return <FaTwitter className={iconSize} />;
-    if (url.includes('deezer')) return <FaDeezer className={iconSize} />;
-    if (url.includes('apple') || url.includes('music.apple')) return <SiApplemusic className={iconSize} />;
+    if (url.includes("facebook")) return <FaFacebook className={iconSize} />;
+    if (url.includes("instagram")) return <FaInstagram className={iconSize} />;
+    if (url.includes("youtube")) return <FaYoutube className={iconSize} />;
+    if (url.includes("spotify")) return <FaSpotify className={iconSize} />;
+    if (url.includes("soundcloud"))
+      return <FaSoundcloud className={iconSize} />;
+    if (url.includes("twitter") || url.includes("x.com"))
+      return <FaTwitter className={iconSize} />;
+    if (url.includes("beatport")) return <SiBeatport className={iconSize} />;
+    if (url.includes("deezer")) return <FaDeezer className={iconSize} />;
+    if (url.includes("apple") || url.includes("music.apple"))
+      return <SiApplemusic className={iconSize} />;
     return <FaGlobe className={iconSize} />;
   };
 
@@ -39,7 +52,7 @@ const SocialLinks = ({
       >
         <Icon icon={getSocialIcon(link)} />
       </a>
-    )
+    );
 
     if (animation) {
       return (
@@ -51,14 +64,14 @@ const SocialLinks = ({
         >
           {linkElement}
         </motion.div>
-      )
+      );
     }
 
-    return linkElement
-  }
+    return linkElement;
+  };
 
   return (
-    <div  className={className}>
+    <div className={className}>
       {showTitle && (
         <h4 className="text-md font-semibold text-gold mb-2">{title}</h4>
       )}
@@ -68,7 +81,7 @@ const SocialLinks = ({
         ))}
       </div>
     </div>
-  )
-}
+  );
+};
 
-export default SocialLinks
+export default SocialLinks;

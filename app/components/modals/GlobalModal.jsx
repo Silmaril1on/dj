@@ -1,6 +1,7 @@
 "use client";
 import {
   selectAddEventModal,
+  selectAddClubDateModal,
   selectAddAlbumModal,
   selectGlobalModal,
 } from "@/app/features/modalSlice";
@@ -17,6 +18,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import SuccessOnSubmit from "@/app/components/materials/SuccessOnSubmit";
 import ViewSubmittedInfo from "@/app/components/materials/ViewSubmittedInfo";
 import AddEventModal from "../modals/AddEventModal";
+import AddClubDateModal from "../modals/AddClubDateModal";
 import AddAlbumModal from "../modals/AddAlbumModal";
 import ReportForm from "../forms/ReportForm";
 import BookingForm from "../forms/BookingForm";
@@ -30,6 +32,7 @@ const GlobalModal = ({ children }) => {
   const successModal = useSelector(selectSuccess);
   const evaluationModal = useSelector(selectEvaluationModal);
   const addEventModal = useSelector(selectAddEventModal);
+  const addClubDateModal = useSelector(selectAddClubDateModal);
   const addAlbumModal = useSelector(selectAddAlbumModal);
   const reportsModal = useSelector(selectReportsModal);
   const bookingModal = useSelector(selectBookingModal);
@@ -40,6 +43,7 @@ const GlobalModal = ({ children }) => {
     if (acceptBookingModal?.isOpen) return "w-2xl";
     if (bookingModal?.isOpen) return "w-full lg:w-[60%]";
     if (addEventModal?.isOpen) return "max-w-3xl";
+    if (addClubDateModal?.isOpen) return "max-w-3xl";
     if (addAlbumModal?.isOpen) return "max-w-2xl";
     if (globalModal.content === "rating") return "w-lg";
     if (globalModal.content === "review") return "w-xl";
@@ -87,6 +91,7 @@ const GlobalModal = ({ children }) => {
         )}
       </AnimatePresence>
       <AddEventModal />
+      <AddClubDateModal />
       <AddAlbumModal />
     </>
   );
