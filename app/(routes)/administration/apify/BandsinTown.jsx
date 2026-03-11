@@ -115,8 +115,8 @@ export default function BandsinTown() {
   const [insertSuccess, setInsertSuccess] = useState(null);
 
   const handleStart = async () => {
-    if (!url) {
-      setError("Please enter a URL");
+    if (!url.trim()) {
+      setError("Please enter at least one URL");
       return;
     }
 
@@ -126,12 +126,17 @@ export default function BandsinTown() {
     setSelectedEvents([]);
 
     try {
+      const urls = url
+        .split(/\r?\n/)
+        .map((entry) => entry.trim())
+        .filter(Boolean);
+
       const response = await fetch("/api/apify", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ url }),
+        body: JSON.stringify({ urls }),
       });
 
       const data = await response.json();
@@ -140,9 +145,20 @@ export default function BandsinTown() {
         throw new Error(data.error || "Failed to scrape data");
       }
 
-      console.log("🎯 Apify Results:", data.data);
-      console.log("📊 Total items:", data.data.length);
-      setResults(data.data);
+      console.log("🎯 Apify Results:", data);
+      console.log("📊 Total scraped:", data.totalScraped);
+      console.log("📊 Filtered 2026 events:", data.filtered);
+      console.log("📋 Event data:", data.data);
+
+      if (data.data && data.data.length > 0) {
+        setResults(data.data);
+      } else if (data.totalScraped > 0) {
+        setError(
+          `Scraped ${data.totalScraped} events but none are in 2026. The events might be in past/future years.`,
+        );
+      } else {
+        setError("No events found at this URL");
+      }
     } catch (err) {
       console.error("❌ Error:", err);
       setError(err.message);
@@ -160,7 +176,7 @@ export default function BandsinTown() {
     setSearchingArtist(true);
     try {
       const response = await fetch(
-        `/api/artists/search?name=${encodeURIComponent(artistSearch)}`
+        `/api/artists/search?name=${encodeURIComponent(artistSearch)}`,
       );
       const data = await response.json();
 
@@ -186,7 +202,7 @@ export default function BandsinTown() {
 
   const toggleEventSelection = (index) => {
     setSelectedEvents((prev) =>
-      prev.includes(index) ? prev.filter((i) => i !== index) : [...prev, index]
+      prev.includes(index) ? prev.filter((i) => i !== index) : [...prev, index],
     );
   };
 
@@ -199,11 +215,6 @@ export default function BandsinTown() {
   };
 
   const handleAddToSchedule = async () => {
-    if (!selectedArtist) {
-      setError("Please select an artist first");
-      return;
-    }
-
     if (selectedEvents.length === 0) {
       setError("Please select at least one event");
       return;
@@ -222,7 +233,7 @@ export default function BandsinTown() {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          artistId: selectedArtist.id,
+          artistId: selectedArtist?.id || null,
           events: eventsToInsert,
         }),
       });
@@ -256,11 +267,13 @@ export default function BandsinTown() {
           <label className="block text-sm font-bold uppercase text-cream mb-2">
             Bandsintown URL
           </label>
-          <input
-            type="text"
+          <textarea
             value={url}
             onChange={(e) => setUrl(e.target.value)}
-            placeholder="https://www.bandsintown.com/a/289657-boris-brejcha"
+            placeholder={
+              "Paste one or multiple Bandsintown URLs (one per line)\nhttps://www.bandsintown.com/a/289657-boris-brejcha"
+            }
+            rows={4}
           />
         </div>
 
@@ -302,34 +315,22 @@ export default function BandsinTown() {
         </div>
       )}
 
-      {/* Results Section */}
-      {results && (
-        <>
-          <div className="bg-neutral-900 border border-gold/30 p-6 mb-6">
-            <h2 className="text-2xl font-bold text-cream mb-4">
-              SELECT ARTIST
-            </h2>
-            <div className="mb-4">
-              <label className="block text-sm font-bold uppercase text-cream mb-2">
-                Search Artist by Name
-              </label>
-              <div className="flex gap-2">
-                <input
-                  type="text"
-                  value={artistSearch}
-                  onChange={(e) => setArtistSearch(e.target.value)}
-                  onKeyDown={(e) => e.key === "Enter" && handleArtistSearch()}
-                  placeholder="Type artist name (e.g., Boris Brejcha)"
-                  className="flex-1"
-                />
-                <Button
-                  text={searchingArtist ? "🔍" : "Search"}
-                  onClick={handleArtistSearch}
-                  disabled={searchingArtist}
-                />
-              </div>
-            </div>
+      {/* No Results Message */}
+      {!loading && !error && results && results.length === 0 && (
+        <div className="bg-yellow-900/20 border border-yellow-500/50 text-yellow-300 px-4 py-3 rounded-lg mb-6">
+          <p className="font-semibold">⚠️ No Events Found</p>
+          <p>
+            The scraping completed but no 2026 events were found. The events
+            might be in different years.
+          </p>
+        </div>
+      )}
 
+      {/* Results Section */}
+      {results && results.length > 0 && (
+        <>
+          <div className="bg-neutral-900 border border-gold/30 p-6 mb-6 ">
+            <h1>Bandsintown event scrapper</h1>
             {artistResults.length > 0 && (
               <div className="space-y-2 mb-4">
                 {artistResults.map((artist) => (
@@ -468,7 +469,7 @@ export default function BandsinTown() {
                       : `➕ Add ${selectedEvents.length} Event${selectedEvents.length > 1 ? "s" : ""} to Schedule`
                   }
                   onClick={handleAddToSchedule}
-                  disabled={!selectedArtist || insertingSchedule}
+                  disabled={insertingSchedule}
                 />
               </div>
             )}

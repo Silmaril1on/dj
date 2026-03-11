@@ -1,9 +1,23 @@
 import { NextResponse } from "next/server";
+import { revalidateTag } from "next/cache";
 import { cookies } from "next/headers";
 import {
   createSupabaseServerClient,
   getServerUser,
 } from "@/app/lib/config/supabaseServer";
+
+const extractEventImagePath = (url) => {
+  if (!url) return null;
+  try {
+    const parsed = new URL(url);
+    const marker = "/storage/v1/object/public/event_images/";
+    const idx = parsed.pathname.indexOf(marker);
+    if (idx === -1) return null;
+    return parsed.pathname.slice(idx + marker.length);
+  } catch {
+    return null;
+  }
+};
 
 // GET /api/events
 // Used by the home page hero to show upcoming events.
@@ -338,6 +352,8 @@ export async function POST(request) {
         .eq("id", user.id);
     }
 
+    revalidateTag("events");
+
     return NextResponse.json({
       success: true,
       message: "Event created successfully",
@@ -384,7 +400,7 @@ export async function PATCH(request) {
     // Check if event exists first (try both as string and number for UUID compatibility)
     const { data: existingEvent, error: checkError } = await supabase
       .from("events")
-      .select("id, event_name, user_id")
+      .select("id, event_name, user_id, event_image")
       .eq("id", eventId)
       .maybeSingle();
 
@@ -443,6 +459,18 @@ export async function PATCH(request) {
     const event_image = formData.get("event_image");
     if (event_image) {
       if (event_image instanceof File) {
+        const oldImagePath = extractEventImagePath(existingEvent?.event_image);
+
+        if (oldImagePath) {
+          const { error: removeError } = await supabase.storage
+            .from("event_images")
+            .remove([oldImagePath]);
+
+          if (removeError) {
+            console.error("Failed to remove old event image:", removeError);
+          }
+        }
+
         // Handle file upload
         const fileExtension = event_image.name.split(".").pop();
         const fileName = `event_${eventId}_${Date.now()}.${fileExtension}`;
@@ -506,6 +534,8 @@ export async function PATCH(request) {
     }
 
     console.log("✅ Event updated successfully:", updated.id);
+
+    revalidateTag("events");
 
     return NextResponse.json({
       success: true,

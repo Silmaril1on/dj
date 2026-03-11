@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { revalidateTag } from "next/cache";
 import { createSupabaseServerClient } from "@/app/lib/config/supabaseServer";
 import { cookies } from "next/headers";
 import sharp from "sharp";
@@ -10,7 +11,7 @@ export async function POST(req) {
     if (!events || !Array.isArray(events)) {
       return NextResponse.json(
         { error: "Events array is required" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -26,7 +27,7 @@ export async function POST(req) {
     if (userError || !user) {
       return NextResponse.json(
         { error: "You must be logged in to insert events" },
-        { status: 401 }
+        { status: 401 },
       );
     }
 
@@ -104,23 +105,33 @@ export async function POST(req) {
           ? event.content.replace(/\\n/g, " ").replace(/\n/g, " ").trim()
           : null;
 
-        // Check if event already exists (by title, date, and venue)
-        const { data: existingEvent, error: checkError } = await supabase
+        const eventTitle =
+          typeof event.title === "string"
+            ? event.title.replace(/\s+/g, " ").trim()
+            : null;
+        const eventDate = event.date ? event.date.split("T")[0] : null;
+
+        // Check if event already exists (title, plus date when available)
+        let duplicateQuery = supabase
           .from("events")
-          .select("id, event_name, date, venue_name")
-          .eq("event_name", event.title || null)
-          .eq("date", event.date ? event.date.split("T")[0] : null)
-          .eq("venue_name", event.venue?.name || null)
-          .maybeSingle();
+          .select("id, event_name, date")
+          .ilike("event_name", eventTitle || "");
+
+        if (eventDate) {
+          duplicateQuery = duplicateQuery.eq("date", eventDate);
+        }
+
+        const { data: existingEvent, error: checkError } =
+          await duplicateQuery.maybeSingle();
 
         if (checkError) {
           console.error("Error checking for duplicate:", checkError);
         }
 
         if (existingEvent) {
-          console.log(`⏭️ Skipping duplicate event: ${event.title}`);
+          console.log(`⏭️ Skipping duplicate event: ${eventTitle}`);
           errors.push({
-            event: event.title || event.id,
+            event: eventTitle || event.id,
             error: "Event already exists in database",
           });
           continue; // Skip to next event
@@ -143,7 +154,7 @@ export async function POST(req) {
           event_image: eventImageUrl,
           description: cleanDescription,
           links: event.contentUrl ? `https://ra.co${event.contentUrl}` : null,
-          event_name: event.title || null,
+          event_name: eventTitle,
           event_type: event.isFestival ? "festival" : "event",
           status: "approved",
           venue_name: event.venue?.name || null,
@@ -169,63 +180,76 @@ export async function POST(req) {
           insertedEvents.push(insertedData);
           console.log(`✅ Inserted event: ${event.title}`);
 
-          // ---- Create artist_schedule entries for matching artists ----
-          if (artistsArray && artistsArray.length > 0) {
-            // Find matching artists in the database by name or stage_name
-            const { data: matchedArtists, error: artistError } = await supabase
-              .from("artists")
-              .select("id, name, stage_name")
-              .or(
-                artistsArray
-                  .map(
-                    (artistName) =>
-                      `name.ilike.${artistName},stage_name.ilike.${artistName}`
-                  )
-                  .join(",")
-              );
+          // Check if venue_name matches any club in clubs table
+          if (eventData.venue_name) {
+            try {
+              const normalizedVenueName = eventData.venue_name
+                .toLowerCase()
+                .replace(/\s+/g, " ")
+                .trim();
 
-            if (artistError) {
-              console.error("Error finding artists:", artistError);
-            } else if (matchedArtists && matchedArtists.length > 0) {
-              console.log("Matched artists:", matchedArtists);
+              console.log(`🔍 Checking for club match: ${normalizedVenueName}`);
 
-              // Prepare artist_schedule entries with pending status
-              const scheduleEntries = matchedArtists.map((artist) => ({
-                artist_id: artist.id,
-                event_id: insertedData.id,
-                date: eventData.date,
-                time: doorsOpen,
-                country: country,
-                city: city,
-                club_name: eventData.venue_name,
-                event_link: eventData.links,
-                event_title: eventData.event_name,
-                event_type: eventData.event_type,
-                event_image: eventImageUrl,
-                status: "approved",
-              }));
+              // Case-insensitive search for club by name
+              const { data: matchingClub, error: clubError } = await supabase
+                .from("clubs")
+                .select("id, name")
+                .ilike("name", normalizedVenueName)
+                .maybeSingle();
 
-              console.log("Inserting schedule entries:", scheduleEntries);
-
-              // Insert into artist_schedule
-              const { data: scheduleData, error: scheduleError } =
-                await supabase
-                  .from("artist_schedule")
-                  .insert(scheduleEntries)
-                  .select();
-
-              if (scheduleError) {
-                console.error(
-                  "Error inserting artist schedules:",
-                  scheduleError
+              if (clubError) {
+                console.error("Error checking for club:", clubError);
+              } else if (matchingClub) {
+                console.log(
+                  `🎯 Found matching club: ${matchingClub.name} (ID: ${matchingClub.id})`,
                 );
+
+                // Insert into club_dates table
+                const clubDateData = {
+                  club_id: matchingClub.id,
+                  date: eventData.date,
+                  time: eventData.doors_open,
+                  event_link: eventData.links,
+                  event_title: eventData.event_name,
+                  lineup: artistsArray,
+                  status: "approved",
+                  minimum_age: eventData.minimum_age,
+                };
+
+                console.log("💾 Inserting to club_dates:", clubDateData);
+
+                const { data: clubDateInserted, error: clubDateError } =
+                  await supabase
+                    .from("club_dates")
+                    .insert(clubDateData)
+                    .select()
+                    .single();
+
+                if (clubDateError) {
+                  // Check if it's a duplicate entry error
+                  if (clubDateError.code === "23505") {
+                    console.log(
+                      `⏭️ Club date already exists for ${matchingClub.name} on ${eventData.date}`,
+                    );
+                  } else {
+                    console.error("Error inserting club date:", clubDateError);
+                  }
+                } else {
+                  console.log(
+                    `✅ Added to club_dates for ${matchingClub.name}`,
+                  );
+                }
               } else {
                 console.log(
-                  `Successfully created ${scheduleData.length} artist schedule entries`
+                  `ℹ️ No matching club found for: ${eventData.venue_name}`,
                 );
               }
-            } else {
-              console.log("No matching artists found in database");
+            } catch (clubError) {
+              console.error(
+                "Error processing club_dates insertion:",
+                clubError,
+              );
+              // Don't fail the event insertion if club_dates fails
             }
           }
         }
@@ -236,6 +260,11 @@ export async function POST(req) {
           error: eventError.message,
         });
       }
+    }
+
+    if (insertedEvents.length > 0) {
+      revalidateTag("events");
+      revalidateTag("club_dates");
     }
 
     return NextResponse.json({
@@ -249,7 +278,7 @@ export async function POST(req) {
     console.error("❌ Events insert error:", error);
     return NextResponse.json(
       { error: "Failed to insert events", details: error.message },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

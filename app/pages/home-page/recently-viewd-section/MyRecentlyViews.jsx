@@ -1,43 +1,43 @@
-"use client"
-import { useState, useEffect } from 'react'
-import { useSelector } from 'react-redux'
-import { selectUser } from '@/app/features/userSlice'
-import ProductCard from '@/app/components/containers/ProductCard'
-import SectionContainer from '@/app/components/containers/SectionContainer'
-import Spinner from '@/app/components/ui/Spinner'
-import { motion } from 'framer-motion'
+"use client";
+import { useState, useEffect } from "react";
+import { useSelector } from "react-redux";
+import { selectUser } from "@/app/features/userSlice";
+import ProductCard from "@/app/components/containers/ProductCard";
+import SectionContainer from "@/app/components/containers/SectionContainer";
+import Spinner from "@/app/components/ui/Spinner";
+import { motion } from "framer-motion";
 
 const MyRecentlyViews = () => {
-  const user = useSelector(selectUser)
-  const [recentItems, setRecentItems] = useState([])
-  const [loading, setLoading] = useState(true)
+  const user = useSelector(selectUser);
+  const [recentItems, setRecentItems] = useState([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     if (!user?.id) {
-      setLoading(false)
-      return
+      setLoading(false);
+      return;
     }
 
     const fetchRecentlyViewed = async () => {
       try {
-        const response = await fetch(`/api/recently-viewed?user_id=${user.id}`)
-        const result = await response.json()
+        const response = await fetch(`/api/recently-viewed?user_id=${user.id}`);
+        const result = await response.json();
 
         if (response.ok && result.data) {
-          setRecentItems(result.data)
+          setRecentItems(result.data);
         }
       } catch (error) {
-        console.error('Error fetching recently viewed:', error)
+        console.error("Error fetching recently viewed:", error);
       } finally {
-        setLoading(false)
+        setLoading(false);
       }
-    }
+    };
 
-    fetchRecentlyViewed()
-  }, [user?.id])
+    fetchRecentlyViewed();
+  }, [user?.id]);
 
   if (!user) {
-    return null
+    return null;
   }
 
   if (loading) {
@@ -47,20 +47,22 @@ const MyRecentlyViews = () => {
         description="Your recently browsed items"
         className="bg-stone-900"
       >
-       <Spinner />
+        <Spinner />
       </SectionContainer>
-    )
+    );
   }
 
   if (recentItems.length === 0) {
-    return null
+    return null;
   }
 
-  const cardWidth = 176
-  const spacing = 12
-  const totalContentWidth = recentItems.length * (cardWidth + spacing)
-  const visibleWidth = typeof window !== 'undefined' ? window.innerWidth : 375
-  const maxScroll = totalContentWidth - visibleWidth + 50
+  console.log(recentItems, "///recentItems");
+
+  const cardWidth = 176;
+  const spacing = 12;
+  const totalContentWidth = recentItems.length * (cardWidth + spacing);
+  const visibleWidth = typeof window !== "undefined" ? window.innerWidth : 375;
+  const maxScroll = totalContentWidth - visibleWidth + 50;
 
   return (
     <SectionContainer
@@ -108,7 +110,7 @@ const MyRecentlyViews = () => {
               transition={{
                 duration: 0.5,
                 delay: index * 0.1,
-                ease: "easeOut"
+                ease: "easeOut",
               }}
             >
               <ProductCard
@@ -126,7 +128,7 @@ const MyRecentlyViews = () => {
         </motion.div>
       </section>
     </SectionContainer>
-  )
-}
+  );
+};
 
-export default MyRecentlyViews
+export default MyRecentlyViews;

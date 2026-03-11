@@ -1,5 +1,5 @@
 "use client";
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect, useRef } from "react";
 import ErrorCode from "@/app/components/ui/ErrorCode";
 import ProductCard from "@/app/components/containers/ProductCard";
 import FilterBar from "@/app/components/forms/FilterBar";
@@ -13,24 +13,38 @@ import {
   sortEvents,
   filterFestivals,
   sortFestivals,
+  filterArtists,
+  sortArtists,
   getCountryOptions,
   getCityOptions,
+  getGenreOptions,
   mapCardProps,
 } from "./dataFilterConfigs";
+import usePagination from "@/app/lib/hooks/usePagination";
+import Spinner from "@/app/components/ui/Spinner";
+import { normalizeCountriesInData } from "@/app/helpers/countryUtils";
 
 // Configuration for different data types
 const DATA_TYPE_CONFIG = {
   clubs: {
     apiEndpoint: "/api/club",
-    limit: 15,
-    gridCols: "grid-cols-2 lg:grid-cols-3",
+    limit: 30,
+    gridCols: "grid-cols-2 lg:grid-cols-4",
     filterFn: filterClubs,
     sortFn: sortClubs,
     hasCityFilter: true,
   },
+  artists: {
+    apiEndpoint: "/api/artists/all-artists",
+    limit: 30,
+    gridCols: "grid-cols-2 lg:grid-cols-5",
+    filterFn: filterArtists,
+    sortFn: sortArtists,
+    hasCityFilter: false,
+  },
   events: {
     apiEndpoint: "/api/events/events-page-route",
-    limit: 15,
+    limit: 30,
     gridCols: "grid-cols-2 lg:grid-cols-4 xl:grid-cols-5",
     filterFn: filterEvents,
     sortFn: sortEvents,
@@ -47,21 +61,74 @@ const DATA_TYPE_CONFIG = {
 };
 
 const AllDataPage = ({
-  type = "clubs", // 'clubs' | 'events' | 'festivals'
+  type = "clubs", // 'clubs' | 'artists' | 'events' | 'festivals'
   initialData = [],
   error: initialError = null,
   title = "",
   description = "",
 }) => {
-  const config = DATA_TYPE_CONFIG[type];
-  const [data, setData] = useState(initialData);
-  const [offset, setOffset] = useState(initialData.length);
-  const [loading, setLoading] = useState(false);
-  const [hasMore, setHasMore] = useState(initialData.length === config.limit);
+  const config = DATA_TYPE_CONFIG[type] || DATA_TYPE_CONFIG.clubs;
+  const safeType = DATA_TYPE_CONFIG[type] ? type : "clubs";
   const [filters, setFilters] = useState({});
+  const [fetchingFiltered, setFetchingFiltered] = useState(false);
+  const prevServerFiltersRef = useRef("");
+
+  // Build query params from filters (server-side only)
+  const buildQueryParams = (currentFilters, limit, offset) => {
+    const params = new URLSearchParams();
+    params.append("limit", limit);
+    params.append("offset", offset);
+
+    // Add server-side filters based on type
+    if (currentFilters.country)
+      params.append("country", currentFilters.country);
+    if (currentFilters.city) params.append("city", currentFilters.city);
+    if (currentFilters.sex) params.append("sex", currentFilters.sex);
+    if (currentFilters.genres) params.append("genres", currentFilters.genres);
+    if (currentFilters.rating_range)
+      params.append("rating_range", currentFilters.rating_range);
+    if (currentFilters.capacity)
+      params.append("capacity", currentFilters.capacity);
+    if (currentFilters.date) params.append("date", currentFilters.date);
+
+    return params.toString();
+  };
+
+  const { data, loading, hasMore, loadMore, reset } = usePagination({
+    initialData: normalizeCountriesInData(initialData),
+    limit: config.limit,
+    initialHasMore: initialData.length === config.limit,
+    fetchPage: async ({ limit, offset }) => {
+      const queryString = buildQueryParams(filters, limit, offset);
+      const res = await fetch(`${config.apiEndpoint}?${queryString}`, {
+        cache: "no-store",
+      });
+      const result = await res.json();
+      const rawData = result?.data || [];
+      return { data: normalizeCountriesInData(rawData) };
+    },
+    onError: (err) => {
+      console.error("Load more failed:", err);
+    },
+  });
+
+  // Server-side filters (exclude sort which is client-side)
+  const serverFilters = useMemo(() => {
+    const { sort, ...rest } = filters;
+    return rest;
+  }, [filters]);
+
+  // Build unique key for server filters to detect changes
+  const serverFiltersKey = useMemo(
+    () => JSON.stringify(serverFilters),
+    [serverFilters],
+  );
 
   // Get unique country options
   const countryOptions = useMemo(() => getCountryOptions(data), [data]);
+
+  // Get unique genre options (artists)
+  const genreOptions = useMemo(() => getGenreOptions(data), [data]);
 
   // Get unique city options (if applicable)
   const cityOptions = useMemo(() => {
@@ -71,16 +138,19 @@ const AllDataPage = ({
 
   // Build filter config with dynamic options
   const dynamicFilterConfig = useMemo(() => {
-    return filterConfigs[type].map((field) => {
+    return (filterConfigs[safeType] || []).map((field) => {
       if (field.name === "country") {
         return { ...field, options: countryOptions };
+      }
+      if (field.name === "genres" && safeType === "artists") {
+        return { ...field, options: genreOptions };
       }
       if (field.name === "city" && config.hasCityFilter) {
         return { ...field, options: cityOptions };
       }
       return field;
     });
-  }, [countryOptions, cityOptions, type, config.hasCityFilter]);
+  }, [countryOptions, cityOptions, genreOptions, type, config.hasCityFilter]);
 
   const handleFilterChange = (name, value) => {
     // Reset city if country changes
@@ -91,31 +161,51 @@ const AllDataPage = ({
     }
   };
 
-  // Apply filtering and sorting
-  const filteredData = useMemo(() => {
-    let result = config.filterFn(data, filters);
+  // Fetch filtered data from server when server-side filters change
+  useEffect(() => {
+    const fetchFilteredData = async () => {
+      // Skip if this is the initial load or filters haven't changed
+      if (prevServerFiltersRef.current === serverFiltersKey) return;
+
+      // Skip if no server filters and it's not a reset
+      if (serverFiltersKey === "{}" && prevServerFiltersRef.current === "")
+        return;
+
+      prevServerFiltersRef.current = serverFiltersKey;
+      setFetchingFiltered(true);
+
+      try {
+        const queryString = buildQueryParams(filters, config.limit, 0);
+        const res = await fetch(`${config.apiEndpoint}?${queryString}`, {
+          cache: "no-store",
+        });
+        const result = await res.json();
+        const rawData = result?.data || [];
+        const normalizedData = normalizeCountriesInData(rawData);
+
+        // Reset pagination with new filtered data
+        await reset(normalizedData);
+      } catch (err) {
+        console.error("Filter fetch failed:", err);
+      } finally {
+        setFetchingFiltered(false);
+      }
+    };
+
+    fetchFilteredData();
+  }, [serverFiltersKey, config.apiEndpoint, config.limit, filters, reset]);
+
+  // Apply client-side sorting
+  const displayedData = useMemo(() => {
+    let result = [...data];
+
+    // Apply sorting
     if (filters.sort) {
       result = config.sortFn(result, filters.sort);
     }
-    return result;
-  }, [data, filters, config]);
 
-  const loadMore = async () => {
-    setLoading(true);
-    try {
-      const res = await fetch(
-        `${config.apiEndpoint}?limit=${config.limit}&offset=${offset}`,
-      );
-      const result = await res.json();
-      const newData = result?.data || [];
-      setData((prev) => [...prev, ...newData]);
-      setOffset((prev) => prev + newData.length);
-      setHasMore(newData.length === config.limit);
-    } catch (err) {
-      console.error("Load more failed:", err);
-    }
-    setLoading(false);
-  };
+    return result;
+  }, [data, filters.sort, config]);
 
   if (initialError) {
     return (
@@ -138,7 +228,9 @@ const AllDataPage = ({
     );
   }
 
-  console.log(data, "Data from ALL artists, clubs, festivals PAGE");
+  const hasServerFilters = Object.keys(serverFilters).length > 0;
+
+  console.log(initialData, "////");
 
   return (
     <div className="space-y-3 px-3 lg:px-4 pb-5">
@@ -148,21 +240,59 @@ const AllDataPage = ({
         values={filters}
         onChange={handleFilterChange}
       />
-      <div className={`grid ${config.gridCols} gap-2 lg:gap-4`}>
-        {filteredData.map((item, idx) => {
-          const { key, ...cardProps } = mapCardProps(item, type, idx);
-          return <ProductCard key={key} {...cardProps} />;
-        })}
-      </div>
-      {hasMore && (
-        <div className="flex justify-center my-4">
-          <Button
-            text={loading ? "Loading..." : "Load More"}
-            onClick={loadMore}
-            loading={loading}
-            disabled={loading}
-          />
+      {/* Loading state for filter fetch */}
+      {fetchingFiltered && (
+        <div className="text-center py-10">
+          <Spinner />
         </div>
+      )}
+
+      {/* No results */}
+      {!fetchingFiltered && displayedData.length === 0 && (
+        <div className="text-center py-10">
+          <p className="text-gray-400 mb-2">
+            No {type} found
+            {hasServerFilters && " matching your filters"}
+          </p>
+          {hasServerFilters && (
+            <p className="text-sm text-gray-500">
+              Try adjusting your filters to see more results
+            </p>
+          )}
+        </div>
+      )}
+
+      {/* Results grid */}
+      {!fetchingFiltered && displayedData.length > 0 && (
+        <>
+          {/* Filter info */}
+          <div className={`grid ${config.gridCols} gap-2 lg:gap-4`}>
+            {displayedData.map((item, idx) => {
+              const { key, ...cardProps } = mapCardProps(item, type, idx);
+              return <ProductCard key={key} {...cardProps} />;
+            })}
+          </div>
+
+          {/* Load More button */}
+          {hasMore && (
+            <div className="flex flex-col items-center gap-2 my-4">
+              <Button
+                text={loading ? "Loading..." : "Load More"}
+                onClick={loadMore}
+                loading={loading}
+                disabled={loading}
+              />
+            </div>
+          )}
+
+          {/* End of results */}
+          {!hasMore && data.length >= config.limit && (
+            <div className="text-center py-4 text-sm text-gray-500">
+              All {type} loaded
+              {hasServerFilters && " (filtered results)"}
+            </div>
+          )}
+        </>
       )}
     </div>
   );

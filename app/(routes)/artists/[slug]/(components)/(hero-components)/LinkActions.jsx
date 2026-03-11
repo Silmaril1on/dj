@@ -1,7 +1,6 @@
 "use client";
 import { useSelector } from "react-redux";
 import { selectArtistRatingStats } from "@/app/features/ratingSlice";
-import FlexBox from "@/app/components/containers/FlexBox";
 import Motion from "@/app/components/containers/Motion";
 
 const LinkActions = ({ data }) => {

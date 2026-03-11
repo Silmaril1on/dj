@@ -6,9 +6,9 @@ export async function POST(req) {
   try {
     const { artistId, events } = await req.json();
 
-    if (!artistId || !events || !Array.isArray(events)) {
+    if (!events || !Array.isArray(events)) {
       return NextResponse.json(
-        { error: "Artist ID and events array are required" },
+        { error: "Events array is required" },
         { status: 400 },
       );
     }
@@ -18,6 +18,12 @@ export async function POST(req) {
 
     const insertedSchedules = [];
     const errors = [];
+
+    const isUuid = (value) =>
+      typeof value === "string" &&
+      /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(
+        value,
+      );
 
     for (const event of events) {
       try {
@@ -30,6 +36,40 @@ export async function POST(req) {
         let eventLink = null;
         let eventType = null;
         let eventTitle = null;
+        let eventLocation = null;
+        let artistIdToUse = artistId || event.artistId || null;
+
+        if (!artistIdToUse) {
+          throw new Error("Artist ID is missing for this event");
+        }
+
+        if (!isUuid(artistIdToUse)) {
+          const lookupName = event.artistName || event.name || null;
+
+          if (!lookupName) {
+            throw new Error(
+              "Artist ID is not UUID and no artist name to resolve",
+            );
+          }
+
+          const { data: matchedArtist, error: artistLookupError } =
+            await supabase
+              .from("artists")
+              .select("id, name, stage_name")
+              .or(`name.ilike.%${lookupName}%,stage_name.ilike.%${lookupName}%`)
+              .limit(1)
+              .maybeSingle();
+
+          if (artistLookupError) {
+            throw new Error(artistLookupError.message);
+          }
+
+          if (!matchedArtist?.id) {
+            throw new Error(`No matching artist found for ${lookupName}`);
+          }
+
+          artistIdToUse = matchedArtist.id;
+        }
 
         // Bandsintown format
         if (event.startsAt) {
@@ -53,6 +93,10 @@ export async function POST(req) {
           eventLink = event.url || null;
           eventType = event.eventType || null;
           eventTitle = event.title || null;
+
+          if (event.lat != null && event.lon != null) {
+            eventLocation = `https://www.google.com/maps?q=${event.lat},${event.lon}`;
+          }
         }
         // RA format
         else if (event.date) {
@@ -77,17 +121,15 @@ export async function POST(req) {
 
         // Insert into artist_schedule
         const scheduleData = {
-          artist_id: artistId,
+          artist_id: artistIdToUse,
           date: date,
           time: time,
           country: country,
           city: city,
           club_name: clubName,
           event_link: eventLink,
-          event_id: null,
-          status: "approved",
-          event_type: eventType,
           event_title: eventTitle,
+          event_location: eventLocation,
         };
 
         console.log("💾 Inserting schedule:", scheduleData);

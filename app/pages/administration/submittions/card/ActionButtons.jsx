@@ -1,112 +1,137 @@
-import Button from '@/app/components/buttons/Button'
-import FlexBox from '@/app/components/containers/FlexBox'
-import { openEvaluationModal } from '@/app/features/evaluationSlice'
-import { setError } from '@/app/features/modalSlice'
-import { MdCheck, MdClose, MdVisibility } from 'react-icons/md'
-import { useDispatch } from 'react-redux'
+import Button from "@/app/components/buttons/Button";
+import FlexBox from "@/app/components/containers/FlexBox";
+import { openEvaluationModal } from "@/app/features/evaluationSlice";
+import { setError } from "@/app/features/modalSlice";
+import { MdCheck, MdClose, MdVisibility } from "react-icons/md";
+import { useDispatch } from "react-redux";
 
-const ActionButtons = ({ submission, loadingStates, submissionsList, setLoadingStates, setSubmissionsList, type = 'artist' }) => {
-  const dispatch = useDispatch()
-  const isClub = type === 'club'
-  const isEvent = type === 'event'
-  const isFestival = type === 'festival'
-  const entityType = isClub ? 'club' : isEvent ? 'event' : isFestival ? 'festival' : 'artist'
-  const apiEndpoint = isClub
-    ? '/api/admin/submitted-clubs'
+const ActionButtons = ({
+  submission,
+  loadingStates,
+  submissionsList,
+  setLoadingStates,
+  setSubmissionsList,
+  type = "artist",
+}) => {
+  const dispatch = useDispatch();
+  const isClub = type === "club";
+  const isEvent = type === "event";
+  const isFestival = type === "festival";
+  const entityType = isClub
+    ? "club"
     : isEvent
-      ? '/api/admin/submitted-events'
+      ? "event"
       : isFestival
-        ? '/api/admin/submitted-festival'
-        : '/api/admin/submitted-artists'
+        ? "festival"
+        : "artist";
+  const apiEndpoint = isClub
+    ? "/api/admin/submitted-clubs"
+    : isEvent
+      ? "/api/admin/submitted-events"
+      : isFestival
+        ? "/api/admin/submitted-festival"
+        : "/api/admin/submitted-artists";
 
   const handleView = (submission) => {
-    dispatch(openEvaluationModal({ ...submission, __type: entityType }))
-  }
+    dispatch(openEvaluationModal({ ...submission, __type: entityType }));
+  };
 
   const handleAction = async (entityId, action) => {
-    const loadingKey = `${entityId}_${action}`
-    setLoadingStates(prev => ({ ...prev, [loadingKey]: true }))
+    const loadingKey = `${entityId}_${action}`;
+    setLoadingStates((prev) => ({ ...prev, [loadingKey]: true }));
     try {
       const response = await fetch(apiEndpoint, {
-        method: 'PATCH',
+        method: "PATCH",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          [isClub ? 'clubId' : isEvent ? 'eventId' : isFestival ? 'festivalId' : 'artistId']: entityId,
-          action
-        })
-      })
+          [isClub
+            ? "clubId"
+            : isEvent
+              ? "eventId"
+              : isFestival
+                ? "festivalId"
+                : "artistId"]: entityId,
+          action,
+        }),
+      });
       if (response.ok) {
-        if (action === 'approve' || action === 'decline') {
-          const submission = submissionsList.find(s => s.id === entityId)
+        if (action === "approve" || action === "decline") {
+          const submission = submissionsList.find((s) => s.id === entityId);
           if (submission?.submitter) {
-            await sendNotification(submission.submitter, action)
-            await sendEmailNotification(submission.submitter, action)
+            await sendNotification(submission.submitter, action);
+            await sendEmailNotification(submission.submitter, action);
           }
         }
-        setSubmissionsList(prev =>
-          prev.filter(submission => submission.id !== entityId)
-        )
-        dispatch(setError({ message: `${entityType.charAt(0).toUpperCase() + entityType.slice(1)} ${action}d successfully`, type: 'success' }))
+        setSubmissionsList((prev) =>
+          prev.filter((submission) => submission.id !== entityId),
+        );
+        dispatch(
+          setError({
+            message: `${entityType.charAt(0).toUpperCase() + entityType.slice(1)} ${action}d successfully`,
+            type: "success",
+          }),
+        );
       } else {
-        console.error('Failed to update submission')
+        console.error("Failed to update submission");
       }
     } catch (error) {
-      console.error('Error updating submission:', error)
+      console.error("Error updating submission:", error);
     } finally {
-      setLoadingStates(prev => ({ ...prev, [loadingKey]: false }))
+      setLoadingStates((prev) => ({ ...prev, [loadingKey]: false }));
     }
-  }
+  };
 
   const sendNotification = async (submitter, action) => {
     try {
-      const message = action === 'approve'
-        ? `Dear ${submitter.userName}, congratulations! Your submitted ${entityType} has been reviewed and approved. Your ${entityType} is now live on our platform.`
-        : `Dear ${submitter.userName}, we have reviewed your submitted ${entityType}. Unfortunately, it doesn't meet our current requirements. Please feel free to submit again with proper details.`
-      await fetch('/api/notifications', {
-        method: 'POST',
+      const message =
+        action === "approve"
+          ? `Dear ${submitter.userName}, congratulations! Your submitted ${entityType} has been reviewed and approved. Your ${entityType} is now live on our platform.`
+          : `Dear ${submitter.userName}, we have reviewed your submitted ${entityType}. Unfortunately, it doesn't meet our current requirements. Please feel free to submit again with proper details.`;
+      await fetch("/api/notifications", {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify({
           user_id: submitter.id,
-          type: "submission approve", 
+          type: "submission approve",
           title: "Submission Approved",
           message: message,
           read: false,
-        })
-      })
+        }),
+      });
     } catch (error) {
-      console.error('Error sending notification:', error)
+      console.error("Error sending notification:", error);
     }
-  }
+  };
 
   const sendEmailNotification = async (submitter, action) => {
     try {
-      const status = action === 'approve' ? 'approved' : 'declined'
-      const response = await fetch('/api/resend/send-submission-notification', {
-        method: 'POST',
+      const status = action === "approve" ? "approved" : "declined";
+      const response = await fetch("/api/resend/send-submission-notification", {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify({
           email: submitter.email,
           userName: submitter.userName,
           submissionType: entityType,
           status: status,
-        })
-      })
+        }),
+      });
       if (!response.ok) {
-        const errorData = await response.json()
-        console.error('Failed to send email:', errorData)
+        const errorData = await response.json();
+        console.error("Failed to send email:", errorData);
       } else {
-        console.log('Email sent successfully to:', submitter.email)
+        console.log("Email sent successfully to:", submitter.email);
       }
     } catch (error) {
-      console.error('Error sending email notification:', error)
+      console.error("Error sending email notification:", error);
     }
-  }
+  };
 
   return (
     <FlexBox className="gap-2 *:w-full">
@@ -121,7 +146,7 @@ const ActionButtons = ({ submission, loadingStates, submissionsList, setLoadingS
         icon={<MdCheck />}
         size="small"
         type="success"
-        onClick={() => handleAction(submission.id, 'approve')}
+        onClick={() => handleAction(submission.id, "approve")}
         loading={loadingStates[`${submission.id}_approve`]}
       />
       <Button
@@ -129,11 +154,11 @@ const ActionButtons = ({ submission, loadingStates, submissionsList, setLoadingS
         icon={<MdClose />}
         size="small"
         type="remove"
-        onClick={() => handleAction(submission.id, 'decline')}
+        onClick={() => handleAction(submission.id, "decline")}
         loading={loadingStates[`${submission.id}_decline`]}
       />
     </FlexBox>
-  )
-}
+  );
+};
 
-export default ActionButtons
+export default ActionButtons;

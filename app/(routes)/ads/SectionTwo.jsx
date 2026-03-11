@@ -1,7 +1,7 @@
 "use client";
 import { useState, useEffect, useRef } from "react";
-import Avatar from "@/app/pages/artist/artist-profile/hero/Avatar";
-import BasicInfo from "@/app/pages/artist/artist-profile/hero/BasicInfo";
+import Avatar from "@/app/(routes)/artists/[slug]/(components)/(hero-components)/Avatar";
+import BasicInfo from "@/app/(routes)/artists/[slug]/(components)/(hero-components)/BasicInfo";
 import { motion } from "framer-motion";
 import Image from "next/image";
 
@@ -11,7 +11,7 @@ const SectionTwo = () => {
   const [error, setError] = useState(null);
 
   // Set the artist name or slug you want to display
-  const dataArtist = "ferry-corsten"; // Change this to any artist slug
+  const dataArtist = "korolova"; // Change this to any artist slug
 
   useEffect(() => {
     const fetchArtistData = async () => {
@@ -66,7 +66,7 @@ const SectionTwo = () => {
         )}
       </div>
       <div className="flex pt-5 flex-1 flex-col items-start justify-center pl-10 relative w-full">
-        <motion.div className="text-7xl text-cream flex flex-row font-thin rounded-md  px-10 pt-5 pb-4 backdrop-blur-[4px] bg-gold/10 border border-gold/10">
+        <motion.div className="text-7xl text-cream flex flex-row font-thin rounded-md  px-10 pt-5 pb-4 backdrop-blur-[4px] bg-gold/20 border border-gold/10">
           <h1>Welcome to</h1>{" "}
           <TextAnim text="SOUNDFOLIO" shouldAnimate={!loading && artistData} />
         </motion.div>
@@ -82,7 +82,7 @@ const SectionTwo = () => {
               ease: "linear",
             },
           }}
-          className="w-34 h-34 p-3 absolute top-15 bg-gold/10 right-15 backdrop-blur-sm border border-gold/20 rounded-full center "
+          className="w-34 h-34 p-3 absolute top-15 bg-gold/20 right-15 backdrop-blur-sm border border-gold/20 rounded-full center "
         >
           <Image
             // className="sepia"

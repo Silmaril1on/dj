@@ -4,6 +4,7 @@ import {
   getServerUser,
 } from "@/app/lib/config/supabaseServer";
 import { cookies } from "next/headers";
+import { revalidateTag } from "next/cache";
 
 export async function GET(request) {
   try {
@@ -13,7 +14,7 @@ export async function GET(request) {
     if (!artistId) {
       return NextResponse.json(
         { error: "Artist ID is required" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -38,7 +39,7 @@ export async function GET(request) {
       console.error("Error getting likes count:", countError);
       return NextResponse.json(
         { error: "Failed to get likes count" },
-        { status: 500 }
+        { status: 500 },
       );
     }
 
@@ -57,7 +58,7 @@ export async function GET(request) {
         console.error("Error checking user like:", userLikeError);
         return NextResponse.json(
           { error: "Failed to check user like status" },
-          { status: 500 }
+          { status: 500 },
         );
       }
 
@@ -73,7 +74,7 @@ export async function GET(request) {
     console.error("Error in GET likes API:", error);
     return NextResponse.json(
       { error: "Internal server error" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
@@ -90,7 +91,7 @@ export async function POST(request) {
           error: "Authentication failed",
           details: userError.message,
         },
-        { status: 401 }
+        { status: 401 },
       );
     }
 
@@ -100,7 +101,7 @@ export async function POST(request) {
           success: false,
           error: "User not authenticated",
         },
-        { status: 401 }
+        { status: 401 },
       );
     }
 
@@ -109,7 +110,7 @@ export async function POST(request) {
     if (!artistId) {
       return NextResponse.json(
         { error: "Artist ID is required" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -128,7 +129,7 @@ export async function POST(request) {
       console.error("Error checking existing like:", checkError);
       return NextResponse.json(
         { error: "Failed to check like status" },
-        { status: 500 }
+        { status: 500 },
       );
     }
 
@@ -146,7 +147,7 @@ export async function POST(request) {
         console.error("Error removing like:", deleteError);
         return NextResponse.json(
           { error: "Failed to remove like" },
-          { status: 500 }
+          { status: 500 },
         );
       }
     } else {
@@ -162,7 +163,7 @@ export async function POST(request) {
         console.error("Error adding like:", insertError);
         return NextResponse.json(
           { error: "Failed to add like" },
-          { status: 500 }
+          { status: 500 },
         );
       }
     }
@@ -177,9 +178,13 @@ export async function POST(request) {
       console.error("Error getting likes count:", countError);
       return NextResponse.json(
         { error: "Failed to get likes count" },
-        { status: 500 }
+        { status: 500 },
       );
     }
+
+    revalidateTag("artists");
+    revalidateTag("artist-likes");
+    revalidateTag(`artist-${artistId}`);
 
     return NextResponse.json({
       success: true,
@@ -190,7 +195,7 @@ export async function POST(request) {
     console.error("Error in like API:", error);
     return NextResponse.json(
       { error: "Internal server error" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

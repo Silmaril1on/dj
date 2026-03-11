@@ -4,6 +4,7 @@ import {
   getServerUser,
 } from "@/app/lib/config/supabaseServer";
 import { cookies } from "next/headers";
+import { revalidateTag } from "next/cache";
 
 export async function GET(request) {
   try {
@@ -13,7 +14,7 @@ export async function GET(request) {
     if (!eventId) {
       return NextResponse.json(
         { error: "Event ID is required" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -35,7 +36,7 @@ export async function GET(request) {
     if (countError) {
       return NextResponse.json(
         { error: "Failed to get likes count" },
-        { status: 500 }
+        { status: 500 },
       );
     }
 
@@ -51,7 +52,7 @@ export async function GET(request) {
       if (userLikeError && userLikeError.code !== "PGRST116") {
         return NextResponse.json(
           { error: "Failed to check user like status" },
-          { status: 500 }
+          { status: 500 },
         );
       }
 
@@ -66,7 +67,7 @@ export async function GET(request) {
   } catch (error) {
     return NextResponse.json(
       { error: "Internal server error" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
@@ -83,13 +84,13 @@ export async function POST(request) {
           error: "Authentication failed",
           details: userError.message,
         },
-        { status: 401 }
+        { status: 401 },
       );
     }
     if (!user) {
       return NextResponse.json(
         { success: false, error: "User not authenticated" },
-        { status: 401 }
+        { status: 401 },
       );
     }
 
@@ -97,7 +98,7 @@ export async function POST(request) {
     if (!eventId) {
       return NextResponse.json(
         { error: "Event ID is required" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -113,7 +114,7 @@ export async function POST(request) {
     if (checkError && checkError.code !== "PGRST116") {
       return NextResponse.json(
         { error: "Failed to check like status" },
-        { status: 500 }
+        { status: 500 },
       );
     }
 
@@ -128,7 +129,7 @@ export async function POST(request) {
       if (deleteError) {
         return NextResponse.json(
           { error: "Failed to remove like" },
-          { status: 500 }
+          { status: 500 },
         );
       }
     } else {
@@ -138,7 +139,7 @@ export async function POST(request) {
       if (insertError) {
         return NextResponse.json(
           { error: "Failed to add like" },
-          { status: 500 }
+          { status: 500 },
         );
       }
     }
@@ -150,9 +151,13 @@ export async function POST(request) {
     if (countError) {
       return NextResponse.json(
         { error: "Failed to get likes count" },
-        { status: 500 }
+        { status: 500 },
       );
     }
+
+    revalidateTag("events");
+    revalidateTag("event-likes");
+    revalidateTag(`event-${eventId}`);
 
     return NextResponse.json({
       success: true,
@@ -162,7 +167,7 @@ export async function POST(request) {
   } catch (error) {
     return NextResponse.json(
       { error: "Internal server error" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

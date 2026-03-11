@@ -1,5 +1,5 @@
 "use client";
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useMemo } from "react";
 import { useDispatch } from "react-redux";
 import {
   MdUpload,
@@ -40,7 +40,17 @@ const SubmissionForm = ({
   const [existingImage, setExistingImage] = useState(null);
   const [showPassword, setShowPassword] = useState({});
   const [passwordStrength, setPasswordStrength] = useState({});
+  const [fieldErrors, setFieldErrors] = useState({});
   const fileInputRef = useRef(null);
+  const initialDataKey = useMemo(
+    () => JSON.stringify(formConfig.initialData || {}),
+    [formConfig.initialData],
+  );
+
+  const getAdditionalFieldValues = (value) => {
+    if (Array.isArray(value) && value.length > 0) return value;
+    return [""];
+  };
 
   // Initialize form data when config changes
   useEffect(() => {
@@ -54,13 +64,33 @@ const SubmissionForm = ({
     if (formConfig.initialData?.user_avatar) {
       setExistingImage(formConfig.initialData.user_avatar);
     }
-  }, [formConfig.initialData, formConfig.imageField]);
+  }, [initialDataKey, formConfig.imageField]);
 
   const handleInputChange = (field, value) => {
     setFormData((prev) => ({
       ...prev,
       [field]: value,
     }));
+
+    // Clear field error when user starts typing
+    if (fieldErrors[field]) {
+      setFieldErrors((prev) => ({
+        ...prev,
+        [field]: null,
+      }));
+    }
+
+    // Validate field if it has validation
+    const fieldConfig = formConfig.fields[field];
+    if (fieldConfig?.validation) {
+      const error = fieldConfig.validation(value, formData);
+      if (error) {
+        setFieldErrors((prev) => ({
+          ...prev,
+          [field]: error,
+        }));
+      }
+    }
 
     // Update password strength for password field (only if enabled)
     if (field === "password" && showPasswordStrength) {
@@ -69,7 +99,6 @@ const SubmissionForm = ({
     }
 
     // Call custom onChange if provided
-    const fieldConfig = formConfig.fields[field];
     if (fieldConfig?.onChange) {
       const result = fieldConfig.onChange(value);
       if (field === "password" && result) {
@@ -139,18 +168,32 @@ const SubmissionForm = ({
 
   const validateForm = () => {
     let isValid = true;
+    const errors = {};
+
     Object.keys(formConfig.fields).forEach((fieldName) => {
       const fieldConfig = formConfig.fields[fieldName];
       const value = formData[fieldName];
 
+      // Check required fields
       if (
         fieldConfig.required &&
         (!value || (typeof value === "string" && !value.trim()))
       ) {
         isValid = false;
+        errors[fieldName] = `${fieldConfig.label || fieldName} is required`;
+      }
+
+      // Run field validation if present
+      if (fieldConfig.validation && value) {
+        const error = fieldConfig.validation(value, formData);
+        if (error) {
+          isValid = false;
+          errors[fieldName] = error;
+        }
       }
     });
 
+    setFieldErrors(errors);
     return isValid;
   };
 
@@ -203,6 +246,8 @@ const SubmissionForm = ({
       icon,
       validation,
       onChange,
+      helpText,
+      label,
       ...otherProps
     } = fieldConfig;
     const fieldValue = formData[fieldName] || "";
@@ -345,7 +390,7 @@ const SubmissionForm = ({
           <AdditionalInput
             id={fieldName}
             name={fieldName}
-            fields={formData[fieldName] || [""]}
+            fields={getAdditionalFieldValues(formData[fieldName])}
             onChange={(index, value) =>
               handleArrayFieldChange(fieldName, index, value)
             }
@@ -353,7 +398,7 @@ const SubmissionForm = ({
             onRemove={(index) => removeArrayField(fieldName, index)}
             placeholder={placeholder}
             minFields={fieldConfig.minFields || 1}
-            maxFields={fieldConfig.maxFields || 10}
+            maxFields={fieldConfig.maxFields || Infinity}
           />
         );
 
@@ -446,6 +491,21 @@ const SubmissionForm = ({
                   )}
 
                   {renderField(fieldName, fieldConfig)}
+
+                  {/* Display field error if exists */}
+                  {fieldErrors[fieldName] && (
+                    <p className="text-red-500 text-xs mt-1">
+                      {fieldErrors[fieldName]}
+                    </p>
+                  )}
+
+                  {/* Display help text if exists and no error */}
+                  {!fieldErrors[fieldName] && fieldConfig.helpText && (
+                    <p className="text-chino/60 text-xs mt-1">
+                      {fieldConfig.helpText}
+                    </p>
+                  )}
+
                   {fieldName === "password" &&
                     formData[fieldName] &&
                     showPasswordStrength && (

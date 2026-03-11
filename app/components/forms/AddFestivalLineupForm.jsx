@@ -23,18 +23,21 @@ const AddFestivalLineupForm = ({
   // Festival days options
   const festivalDays = ["Friday", "Saturday", "Sunday"];
 
-  // Initialize stages - each stage has name and artists array with day info
+  // Initialize stages - each artist has their own phase
   const [stages, setStages] = useState(
     existingLineup && existingLineup.length > 0
       ? existingLineup
-      : [{ stage_name: "", artists: [{ name: "", day: "" }] }],
+      : [{ stage_name: "", artists: [{ name: "", day: "", phase: null }] }],
   );
 
-  // Add a new stage
+  // Add a new stage (new artists in new stages get the currently selected phase)
   const handleAddStage = () => {
     setStages([
       ...stages,
-      { stage_name: "", artists: [{ name: "", day: "", time: "" }] },
+      {
+        stage_name: "",
+        artists: [{ name: "", day: "", phase: lineupStatus }],
+      },
     ]);
   };
 
@@ -61,7 +64,12 @@ const AddFestivalLineupForm = ({
 
   const handleAddArtist = (stageIndex) => {
     const newStages = [...stages];
-    newStages[stageIndex].artists.push({ name: "", day: "" });
+    // New artists get the currently selected phase
+    newStages[stageIndex].artists.push({
+      name: "",
+      day: "",
+      phase: lineupStatus,
+    });
     setStages(newStages);
   };
 
@@ -71,6 +79,18 @@ const AddFestivalLineupForm = ({
       (_, index) => index !== artistIndex,
     );
     setStages(newStages);
+  };
+
+  // Calculate phase summary (count artists by phase)
+  const phaseSummary = () => {
+    const summary = {};
+    stages.forEach((stage) => {
+      stage.artists.forEach((artist) => {
+        const phase = artist.phase || "No phase";
+        summary[phase] = (summary[phase] || 0) + 1;
+      });
+    });
+    return summary;
   };
 
   const handleSubmit = async (e) => {
@@ -91,7 +111,16 @@ const AddFestivalLineupForm = ({
     // Filter out empty artists (artists without names)
     const cleanedStages = stages.map((stage) => ({
       ...stage,
-      artists: stage.artists.filter((artist) => artist.name.trim() !== ""),
+      artists: stage.artists
+        .filter((artist) => artist.name.trim() !== "")
+        .map((artist) => ({
+          ...artist,
+          // Ensure phase is set: existing artist phase OR currently selected phase
+          phase:
+            artist.phase !== null && artist.phase !== undefined
+              ? artist.phase
+              : lineupStatus,
+        })),
     }));
 
     const hasStageWithoutArtists = cleanedStages.some(
@@ -108,6 +137,13 @@ const AddFestivalLineupForm = ({
       return;
     }
 
+    // Debug: Log what we're sending
+    console.log("Submitting lineup:", {
+      lineup_status: lineupStatus,
+      stages: cleanedStages,
+      sample_artists: cleanedStages[0]?.artists.slice(0, 2),
+    });
+
     try {
       const response = await fetch("/api/festivals/add-festival-lineup", {
         method: existingLineup ? "PATCH" : "POST",
@@ -118,7 +154,7 @@ const AddFestivalLineupForm = ({
           festival_id: festivalId,
           festival_name: festivalName,
           stages: cleanedStages,
-          lineup_status: lineupStatus,
+          lineup_status: lineupStatus || null,
         }),
       });
 
@@ -128,11 +164,16 @@ const AddFestivalLineupForm = ({
       }
 
       const result = await response.json();
+
+      const phaseMessage = lineupStatus
+        ? ` New stages marked as "${lineupStatus}".`
+        : "";
+
       dispatch(
         showSuccess({
           type: "festival_lineup",
           name: festivalName,
-          description: `Lineup ${existingLineup ? "updated" : "added"} successfully!`,
+          description: `Lineup ${existingLineup ? "updated" : "added"} successfully!${phaseMessage}`,
         }),
       );
 
@@ -152,14 +193,18 @@ const AddFestivalLineupForm = ({
       title={`${existingLineup ? "Edit" : "Add"} Lineup for ${festivalName}`}
       description="Organize your festival lineup by stages. Add multiple stages and artists for each stage."
     >
-      <form onSubmit={handleSubmit} className="w-full space-y-6">
+      <form onSubmit={handleSubmit} className="w-full space-y-6 ">
         {/* Lineup Status Selection */}
-        <div className="bg-stone-900/50 p-4 border border-gold/20 space-y-1">
+        <div className="bg-stone-900/50 p-4 border border-gold/20 space-y-2">
           <div>
-            <label className="text-sm font-semibold text-gold block">
-              Announcement Phase
+            <label className="text-sm font-semibold text-gold block mb-2">
+              Announcement Phase (for new artists)
             </label>
-            <div className="flex gap-2">
+            <p className="text-xs text-stone-400 mb-3">
+              Select a phase to apply to all new artists you add. Existing
+              artists will keep their original phase.
+            </p>
+            <div className="flex gap-2 flex-wrap">
               {[
                 { value: "first phase", label: "First Phase" },
                 { value: "second phase", label: "Second Phase" },
@@ -249,6 +294,15 @@ const AddFestivalLineupForm = ({
                     key={artistIndex}
                     className="bg-stone-900/50 p-3 border border-stone-700/50 space-y-2"
                   >
+                    {/* Artist phase badge */}
+                    {artist.phase && (
+                      <div className="flex justify-end">
+                        <span className="text-[9px] px-2 py-0.5 bg-gold/20 text-gold rounded-full font-semibold uppercase">
+                          {artist.phase}
+                        </span>
+                      </div>
+                    )}
+
                     {/* Artist Name and Day on same line */}
                     <div className="grid grid-cols-[2fr_1fr] gap-2">
                       <div>

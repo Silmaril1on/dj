@@ -1,11 +1,11 @@
 "use client";
-import Avatar from "./hero/Avatar";
-import BasicInfo from "./hero/BasicInfo";
-import Bio from "./bio/Bio";
-import ArtistSchedule from "./schedule/ArtistSchedule";
-import ArtistInsight from "./artist-insights/ArtistInsight";
 import useRecentlyViewed from "@/app/lib/hooks/useRecentlViewed";
-import Albums from "./albums/Albums";
+import Albums from "@/app/(routes)/artists/[slug]/(components)/Albums";
+import ArtistInsight from "@/app/(routes)/artists/[slug]/(components)/ArtistInsight";
+import Bio from "@/app/(routes)/artists/[slug]/(components)/Bio";
+import Avatar from "@/app/(routes)/artists/[slug]/(components)/(hero-components)/Avatar";
+import BasicInfo from "@/app/(routes)/artists/[slug]/(components)/(hero-components)/BasicInfo";
+import ArtistSchedule from "@/app/(routes)/artists/[slug]/(components)/ArtistSchedule";
 
 const ArtistProfile = ({ data, artistId }) => {
   const id = artistId || data?.id;

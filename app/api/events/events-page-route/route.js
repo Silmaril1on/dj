@@ -20,10 +20,13 @@ export async function GET(request) {
     const [eventsResult, likesResult] = await Promise.all([
       supabase
         .from("events")
-        .select("id, event_image, event_name, date, country, city, artists")
+        .select(
+          "id, event_image, event_name, date, country, city, artists, event_type",
+        )
+        .eq("event_status", "upcoming")
         .gte("date", todayStr)
         .order("date", { ascending: true })
-        .order("id", { ascending: true }) // Secondary sort for consistent pagination
+        .order("id", { ascending: true })
         .range(offset, offset + limit - 1),
 
       supabase.from("event_likes").select("event_id"),

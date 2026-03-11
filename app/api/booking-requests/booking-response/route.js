@@ -13,47 +13,45 @@ export async function POST(request) {
     if (userError || !user) {
       return NextResponse.json(
         { success: false, error: "User not authenticated" },
-        { status: 401 }
+        { status: 401 },
       );
     }
 
     const supabase = await createSupabaseServerClient(cookieStore);
     const body = await request.json();
-    
-    const { 
-      title, 
-      content, 
-      requester_id,
-      booking_request_id 
-    } = body;
+
+    const { title, content, requester_id, booking_request_id } = body;
 
     // Validate required fields
     if (!content || !requester_id || !booking_request_id) {
       return NextResponse.json(
-        { error: "Missing required fields: content, requester_id, booking_request_id" }, 
-        { status: 400 }
+        {
+          error:
+            "Missing required fields: content, requester_id, booking_request_id",
+        },
+        { status: 400 },
       );
     }
 
     // 1. Verify that the current user is the receiver of this booking request
     const { data: bookingRequest, error: bookingError } = await supabase
       .from("booking_requests")
-      .select("id, receiver_id, requester_id, event_name, artist_id") 
+      .select("id, receiver_id, requester_id, event_name, artist_id")
       .eq("id", booking_request_id)
-      .eq("receiver_id", user.id) 
+      .eq("receiver_id", user.id)
       .single();
 
     if (bookingError || !bookingRequest) {
       return NextResponse.json(
         { error: "Booking request not found or unauthorized" },
-        { status: 404 }
+        { status: 404 },
       );
     }
 
     if (bookingRequest.requester_id !== requester_id) {
       return NextResponse.json(
         { error: "Requester ID mismatch" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -68,41 +66,46 @@ export async function POST(request) {
       console.error("Failed to fetch artist data:", artistError.message);
     }
 
-    const artistDisplayName = artistData ? 
-      (artistData.stage_name || artistData.name || "The DJ") : 
-      "The DJ";
+    const artistDisplayName = artistData
+      ? artistData.stage_name || artistData.name || "The DJ"
+      : "The DJ";
 
     // 3. Insert initial chat message using the new booking_chat table
     const { data: response, error: responseError } = await supabase
       .from("booking_chat")
       .insert({
-        message: `${title ? title + '\n\n' : ''}${content}`, // Combine title and content into message
+        message: `${title ? title + "\n\n" : ""}${content}`, // Combine title and content into message
         sender_id: user.id,
         requester_id: requester_id,
         booking_id: booking_request_id,
-        seen: false
+        seen: false,
       })
       .select()
       .single();
 
     if (responseError) {
       return NextResponse.json(
-        { error: `Failed to create booking response: ${responseError.message}` },
-        { status: 500 }
+        {
+          error: `Failed to create booking response: ${responseError.message}`,
+        },
+        { status: 500 },
       );
     }
 
     // 4. Update booking request response to 'pending'
     const { error: updateError } = await supabase
       .from("booking_requests")
-      .update({ 
-        response: 'pending',
-        updated_at: new Date().toISOString()
+      .update({
+        response: "pending",
+        updated_at: new Date().toISOString(),
       })
       .eq("id", booking_request_id);
 
     if (updateError) {
-      console.error("Failed to update booking request status:", updateError.message);
+      console.error(
+        "Failed to update booking request status:",
+        updateError.message,
+      );
     }
 
     // 5. Send professional notification to the requester
@@ -114,7 +117,7 @@ export async function POST(request) {
         title: "Booking Response Received",
         message: `${artistDisplayName} has responded to your booking request for "${bookingRequest.event_name}". Check your booking requests for details and next steps.`,
         read: false,
-        created_at: new Date().toISOString()
+        created_at: new Date().toISOString(),
       });
 
     if (notificationError) {
@@ -127,13 +130,15 @@ export async function POST(request) {
       data: {
         response,
         booking_request_id,
-        status: 'pending',
-        artist_name: artistDisplayName
-      }
+        status: "pending",
+        artist_name: artistDisplayName,
+      },
     });
-
   } catch (err) {
     console.error("Booking response error:", err);
-    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
+    return NextResponse.json(
+      { error: "Internal server error" },
+      { status: 500 },
+    );
   }
 }

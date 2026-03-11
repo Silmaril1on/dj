@@ -9,7 +9,7 @@ export async function PUT(request, { params }) {
     if (!scheduleId) {
       return NextResponse.json(
         { error: "Schedule ID is required" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -20,7 +20,7 @@ export async function PUT(request, { params }) {
     if (userError || !user) {
       return NextResponse.json(
         { error: "Authentication required" },
-        { status: 401 }
+        { status: 401 },
       );
     }
 
@@ -34,7 +34,7 @@ export async function PUT(request, { params }) {
     if (fetchError || !scheduleEvent) {
       return NextResponse.json(
         { error: "Schedule event not found" },
-        { status: 404 }
+        { status: 404 },
       );
     }
 
@@ -45,7 +45,7 @@ export async function PUT(request, { params }) {
     if (!isAdmin && !isOwner) {
       return NextResponse.json(
         { error: "You don't have permission to edit this event" },
-        { status: 403 }
+        { status: 403 },
       );
     }
 
@@ -61,7 +61,7 @@ export async function PUT(request, { params }) {
     ) {
       return NextResponse.json(
         { error: "Missing required fields: date, time, country, club_name" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -74,8 +74,8 @@ export async function PUT(request, { params }) {
       club_name: updateData.club_name,
       event_link: updateData.event_link || null,
       event_title: updateData.event_title || null,
-      event_type: updateData.event_type || null,
-      event_image: updateData.event_image || null,
+      event_type: "upcoming",
+      event_location: updateData.event_location || null,
       updated_at: new Date().toISOString(),
     };
 
@@ -91,7 +91,7 @@ export async function PUT(request, { params }) {
       console.error("Error updating schedule event:", updateError);
       return NextResponse.json(
         { error: "Failed to update event", details: updateError.message },
-        { status: 500 }
+        { status: 500 },
       );
     }
 
@@ -104,7 +104,7 @@ export async function PUT(request, { params }) {
     console.error("Schedule update API error:", error);
     return NextResponse.json(
       { error: "Internal server error", details: error.message },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
@@ -116,7 +116,7 @@ export async function DELETE(request, { params }) {
     if (!scheduleId) {
       return NextResponse.json(
         { error: "Schedule ID is required" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -127,7 +127,7 @@ export async function DELETE(request, { params }) {
     if (userError || !user) {
       return NextResponse.json(
         { error: "Authentication required" },
-        { status: 401 }
+        { status: 401 },
       );
     }
 
@@ -141,7 +141,7 @@ export async function DELETE(request, { params }) {
     if (fetchError || !scheduleEvent) {
       return NextResponse.json(
         { error: "Schedule event not found" },
-        { status: 404 }
+        { status: 404 },
       );
     }
 
@@ -152,7 +152,7 @@ export async function DELETE(request, { params }) {
     if (!isAdmin && !isOwner) {
       return NextResponse.json(
         { error: "You don't have permission to delete this event" },
-        { status: 403 }
+        { status: 403 },
       );
     }
 
@@ -166,7 +166,7 @@ export async function DELETE(request, { params }) {
       console.error("Error deleting schedule event:", deleteError);
       return NextResponse.json(
         { error: "Failed to delete event", details: deleteError.message },
-        { status: 500 }
+        { status: 500 },
       );
     }
 
@@ -178,7 +178,7 @@ export async function DELETE(request, { params }) {
     console.error("Schedule delete API error:", error);
     return NextResponse.json(
       { error: "Internal server error", details: error.message },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

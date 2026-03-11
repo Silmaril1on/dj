@@ -4,14 +4,14 @@ import { FaPlus, FaMinus } from "react-icons/fa6";
 const AdditionalInput = ({
   fields,
   onChange,
-  className, 
+  className,
   onAdd,
   onRemove,
   placeholder,
   minFields = 1,
-  maxFields = 10,
+  maxFields = Infinity,
   id = "",
-  name = "", 
+  name = "",
 }) => {
   const canAdd = fields.length < maxFields;
   const canRemove = fields.length > minFields;
@@ -21,7 +21,7 @@ const AdditionalInput = ({
       {fields.map((field, index) => {
         const inputId = `${id || name}-${index}`;
         const inputName = `${name || id}[${index}]`;
-        
+
         return (
           <div key={index} className="flex items-center gap-2">
             <label htmlFor={inputId} className="sr-only">

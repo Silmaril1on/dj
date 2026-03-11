@@ -12,7 +12,7 @@ export async function GET(request, { params }) {
     if (!id) {
       return NextResponse.json(
         { error: "Artist ID is required" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -39,7 +39,7 @@ export async function GET(request, { params }) {
         status,
         created_at,
         updated_at
-      `
+      `,
       )
       .eq("id", id)
       .single();
@@ -57,7 +57,7 @@ export async function GET(request, { params }) {
   } catch (error) {
     return NextResponse.json(
       { error: "Internal server error" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
@@ -71,7 +71,7 @@ export async function PUT(request, { params }) {
     if (!id) {
       return NextResponse.json(
         { error: "Artist ID is required" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -87,7 +87,7 @@ export async function PUT(request, { params }) {
       for (const [key, value] of formData.entries()) {
         console.log(
           `  ${key}:`,
-          value instanceof File ? `File: ${value.name}` : value
+          value instanceof File ? `File: ${value.name}` : value,
         );
       }
 
@@ -111,7 +111,7 @@ export async function PUT(request, { params }) {
         if (!name) {
           return NextResponse.json(
             { error: "Album name is required" },
-            { status: 400 }
+            { status: 400 },
           );
         }
 
@@ -122,7 +122,7 @@ export async function PUT(request, { params }) {
           } catch (parseError) {
             return NextResponse.json(
               { error: "Invalid tracklist format" },
-              { status: 400 }
+              { status: 400 },
             );
           }
         }
@@ -149,7 +149,7 @@ export async function PUT(request, { params }) {
                 error: "Failed to upload album image",
                 details: uploadError.message,
               },
-              { status: 500 }
+              { status: 500 },
             );
           }
 
@@ -193,7 +193,7 @@ export async function PUT(request, { params }) {
           if (updateError) {
             return NextResponse.json(
               { error: "Failed to update album", details: updateError.message },
-              { status: 500 }
+              { status: 500 },
             );
           }
 
@@ -209,7 +209,7 @@ export async function PUT(request, { params }) {
           if (albumError) {
             return NextResponse.json(
               { error: "Failed to add album", details: albumError.message },
-              { status: 500 }
+              { status: 500 },
             );
           }
 
@@ -237,6 +237,7 @@ export async function PUT(request, { params }) {
           .insert({
             artist_id: id,
             ...eventData,
+            event_type: "upcoming",
             created_at: new Date().toISOString(),
           })
           .select()
@@ -249,7 +250,7 @@ export async function PUT(request, { params }) {
               error: "Failed to add artist date",
               details: artistDateError.message,
             },
-            { status: 500 }
+            { status: 500 },
           );
         }
         return NextResponse.json({
@@ -265,7 +266,7 @@ export async function PUT(request, { params }) {
   } catch (error) {
     return NextResponse.json(
       { error: "Internal server error", details: error.message },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

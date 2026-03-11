@@ -1,6 +1,6 @@
 import AllDataPage from "@/app/pages/all-data-page/AllDataPage";
-import { cookies } from "next/headers";
-export const dynamic = "force-dynamic";
+
+export const revalidate = 1200;
 
 export const metadata = {
   title: "Soundfolio | Upcoming Events",
@@ -9,21 +9,14 @@ export const metadata = {
 
 const EventsPage = async () => {
   try {
-    const cookieStore = await cookies();
-    const cookieHeader = cookieStore
-      .getAll()
-      .map(({ name, value }) => `${name}=${value}`)
-      .join("; ");
-
     const response = await fetch(
-      `${process.env.PROJECT_URL}/api/events/events-page-route?limit=15&offset=0`,
+      `${process.env.PROJECT_URL}/api/events/events-page-route?limit=30&offset=0`,
       {
-        cache: "no-store",
+        next: { revalidate: 1200, tags: ["events"] },
         headers: {
           "Content-Type": "application/json",
-          Cookie: cookieHeader,
         },
-      }
+      },
     );
 
     if (!response.ok) {
@@ -34,7 +27,7 @@ const EventsPage = async () => {
     const result = await response.json();
     const events = result?.data || [];
     return (
-      <AllDataPage 
+      <AllDataPage
         type="events"
         initialData={events}
         title="Upcoming events"
@@ -43,7 +36,7 @@ const EventsPage = async () => {
     );
   } catch (error) {
     return (
-      <AllDataPage 
+      <AllDataPage
         type="events"
         initialData={[]}
         error={error.message}

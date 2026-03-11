@@ -17,6 +17,12 @@ const UploadArtistPage = () => {
     try {
       formData.append("include_album", "false");
 
+      // If is_band is true, set birth to null
+      const isBand = formData.get("is_band");
+      if (isBand === "true") {
+        formData.set("birth", "");
+      }
+
       const response = await fetch("/api/admin/upload-full-artist", {
         method: "POST",
         body: formData,
@@ -31,7 +37,7 @@ const UploadArtistPage = () => {
         setError({
           message: "Artist uploaded successfully!",
           type: "success",
-        })
+        }),
       );
 
       setTimeout(() => {
@@ -47,7 +53,7 @@ const UploadArtistPage = () => {
   return (
     <div className="min-h-screen">
       <FormContainer
-        maxWidth="w-full"
+        className="w-full"
         title="Upload Artist (Admin)"
         description="Upload a new artist directly to the platform. Artist will be automatically approved."
       >

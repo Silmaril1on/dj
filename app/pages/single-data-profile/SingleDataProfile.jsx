@@ -1,6 +1,6 @@
 "use client";
 import useRecentlyViewed from "@/app/lib/hooks/useRecentlViewed";
-import ArtistSchedule from "@/app/pages/artist/artist-profile/schedule/ArtistSchedule";
+import ArtistSchedule from "@/app/(routes)/artists/[slug]/(components)/ArtistSchedule";
 import ProfileLineup from "./components/ProfileLineup";
 import ProfileActions from "./components/ProfileActions";
 import ProfileBasicInfo from "./components/ProfileBasicInfo";
@@ -18,7 +18,7 @@ const SingleDataProfile = ({ data, type = "events", currentUserId = null }) => {
   // Track recently viewed id for user
   useRecentlyViewed(
     type === "clubs" ? "club" : type === "events" ? "event" : "festival",
-    profileData.id
+    profileData.id,
   );
 
   console.log(data, "Data from Events, Clubs, Festivals Page");

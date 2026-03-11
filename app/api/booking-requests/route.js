@@ -13,7 +13,7 @@ export async function GET() {
     if (userError || !user) {
       return NextResponse.json(
         { success: false, error: "User not authenticated" },
-        { status: 401 }
+        { status: 401 },
       );
     }
 
@@ -30,14 +30,14 @@ export async function GET() {
     if (bookingError) {
       return NextResponse.json(
         { error: bookingError.message },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
     if (!bookingRequests?.length) {
       return NextResponse.json(
         { bookingRequests: [], message: "No booking requests found" },
-        { status: 200 }
+        { status: 200 },
       );
     }
 
@@ -53,7 +53,7 @@ export async function GET() {
     if (userFetchError) {
       return NextResponse.json(
         { error: userFetchError.message },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -67,8 +67,9 @@ export async function GET() {
         requester: requester
           ? {
               id: requester.id,
-                userName: requester.userName, 
-                full_name: `${requester.first_name || ""} ${requester.last_name || ""}`.trim(),
+              userName: requester.userName,
+              full_name:
+                `${requester.first_name || ""} ${requester.last_name || ""}`.trim(),
               email: requester.email,
               avatar: requester.user_avatar || null,
             }
@@ -82,17 +83,16 @@ export async function GET() {
         bookingRequests: mergedData,
         message: "Booking requests fetched successfully",
       },
-      { status: 200 }
+      { status: 200 },
     );
   } catch (err) {
     console.error("❌ [BOOKING-REQUESTS] GET error:", err);
     return NextResponse.json(
       { error: "Internal server error" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
-
 
 export async function POST(req) {
   try {
@@ -106,7 +106,7 @@ export async function POST(req) {
           error: "Authentication failed",
           details: userError.message,
         },
-        { status: 401 }
+        { status: 401 },
       );
     }
 
@@ -116,7 +116,7 @@ export async function POST(req) {
           success: false,
           error: "User not authenticated",
         },
-        { status: 401 }
+        { status: 401 },
       );
     }
 
@@ -143,7 +143,7 @@ export async function POST(req) {
           message: "All booking requests marked as opened successfully",
           updatedCount: data?.length || 0,
         },
-        { status: 200 }
+        { status: 200 },
       );
     }
 
@@ -151,9 +151,9 @@ export async function POST(req) {
     if (action === "update-status" && booking_id && status) {
       const { data, error } = await supabase
         .from("booking_requests")
-        .update({ 
+        .update({
           status,
-          updated_at: new Date().toISOString()
+          updated_at: new Date().toISOString(),
         })
         .eq("id", booking_id)
         .eq("receiver_id", user.id) // Ensure user owns this booking request
@@ -168,14 +168,15 @@ export async function POST(req) {
       if (!data) {
         return NextResponse.json(
           { error: "Booking request not found or unauthorized" },
-          { status: 404 }
+          { status: 404 },
         );
       }
 
       // Send notification to the requester about the status update
-      const statusMessage = status === "accepted" 
-        ? `Your booking request for "${data.event_name}" has been accepted!`
-        : `Your booking request for "${data.event_name}" has been declined.`;
+      const statusMessage =
+        status === "accepted"
+          ? `Your booking request for "${data.event_name}" has been accepted!`
+          : `Your booking request for "${data.event_name}" has been declined.`;
 
       const { error: notificationError } = await supabase
         .from("notifications")
@@ -185,32 +186,31 @@ export async function POST(req) {
           title: `Booking Request ${status === "accepted" ? "Accepted" : "Declined"}`,
           message: statusMessage,
           read: false,
-          created_at: new Date().toISOString()
+          created_at: new Date().toISOString(),
         });
 
       if (notificationError) {
-        console.error("Failed to send status update notification:", notificationError.message);
+        console.error(
+          "Failed to send status update notification:",
+          notificationError.message,
+        );
       }
 
       return NextResponse.json(
         {
           message: `Booking request ${status} successfully`,
-          data
+          data,
         },
-        { status: 200 }
+        { status: 200 },
       );
     }
 
-    return NextResponse.json(
-      { error: "Invalid action" },
-      { status: 400 }
-    );
-
+    return NextResponse.json({ error: "Invalid action" }, { status: 400 });
   } catch (err) {
     console.error("❌ [BOOKING-REQUESTS] Unexpected error:", err);
     return NextResponse.json(
       { error: "Internal server error" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

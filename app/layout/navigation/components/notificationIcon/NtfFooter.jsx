@@ -1,19 +1,23 @@
-import Button from '@/app/components/buttons/Button'
-import FlexBox from '@/app/components/containers/FlexBox'
+import Button from "@/app/components/buttons/Button";
+import FlexBox from "@/app/components/containers/FlexBox";
 
-const NtfFooter = ({ userId, notifications, onNotificationsUpdate }) => {
-
+const NtfFooter = ({
+  userId,
+  notifications,
+  onNotificationsUpdate,
+  fetchNotifications,
+}) => {
   const handleMarkAllAsRead = async () => {
     if (!userId || !notifications || notifications.length === 0) return;
     try {
-      const response = await fetch('/api/notifications', {
-        method: 'POST',
+      const response = await fetch("/api/notifications", {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify({
           user_id: userId,
-          action: 'mark-all-read'
+          action: "mark-all-read",
         }),
       });
 
@@ -21,11 +25,14 @@ const NtfFooter = ({ userId, notifications, onNotificationsUpdate }) => {
         if (onNotificationsUpdate) {
           onNotificationsUpdate();
         }
+        if (fetchNotifications) {
+          await fetchNotifications();
+        }
       } else {
-        console.error('Failed to mark notifications as read');
+        console.error("Failed to mark notifications as read");
       }
     } catch (err) {
-      console.error('Error marking notifications as read:', err);
+      console.error("Error marking notifications as read:", err);
     }
   };
 
@@ -40,7 +47,7 @@ const NtfFooter = ({ userId, notifications, onNotificationsUpdate }) => {
       />
       {/* <Button size="small" type="bold" text="View All" /> */}
     </FlexBox>
-  )
-}
+  );
+};
 
-export default NtfFooter
+export default NtfFooter;

@@ -16,7 +16,7 @@ export async function POST(request) {
     if (!email || !password || !userName) {
       return NextResponse.json(
         { error: "Email, password, and username are required" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -25,7 +25,7 @@ export async function POST(request) {
     if (!emailRegex.test(email)) {
       return NextResponse.json(
         { error: "Please enter a valid email address" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -33,7 +33,7 @@ export async function POST(request) {
     if (password.length < 6) {
       return NextResponse.json(
         { error: "Password must be at least 6 characters long" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -48,14 +48,14 @@ export async function POST(request) {
       console.error("Error checking existing user:", existingUserError);
       return NextResponse.json(
         { error: "Failed to check if user exists" },
-        { status: 500 }
+        { status: 500 },
       );
     }
 
     if (existingUser) {
       return NextResponse.json(
         { error: "User with this email already exists" },
-        { status: 409 }
+        { status: 409 },
       );
     }
 
@@ -78,7 +78,7 @@ export async function POST(request) {
     if (!authData.user) {
       return NextResponse.json(
         { error: "Failed to create user" },
-        { status: 500 }
+        { status: 500 },
       );
     }
 
@@ -103,7 +103,7 @@ export async function POST(request) {
       }
       return NextResponse.json(
         { error: "Failed to create user profile" },
-        { status: 500 }
+        { status: 500 },
       );
     }
 
@@ -139,7 +139,7 @@ export async function POST(request) {
     console.error("Signup error:", error);
     return NextResponse.json(
       { error: "Internal server error" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

@@ -5,6 +5,19 @@ import {
   supabaseAdmin,
 } from "@/app/lib/config/supabaseServer";
 
+const extractArtistImagePath = (url) => {
+  if (!url) return null;
+  try {
+    const parsed = new URL(url);
+    const marker = "/storage/v1/object/public/artist_profile_images/";
+    const idx = parsed.pathname.indexOf(marker);
+    if (idx === -1) return null;
+    return parsed.pathname.slice(idx + marker.length);
+  } catch {
+    return null;
+  }
+};
+
 export async function PATCH(request) {
   try {
     // --- create supabase server client (same pattern you used elsewhere) ---
@@ -19,7 +32,7 @@ export async function PATCH(request) {
     if (!artistId) {
       return NextResponse.json(
         { error: "Artist ID is required" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -32,7 +45,7 @@ export async function PATCH(request) {
       console.error("Auth error or no user:", authError);
       return NextResponse.json(
         { error: "Unauthorized: Please log in" },
-        { status: 401 }
+        { status: 401 },
       );
     }
 
@@ -91,7 +104,7 @@ export async function PATCH(request) {
           submittedArtistId,
           artistId,
         },
-        { status: 403 }
+        { status: 403 },
       );
     }
 
@@ -102,6 +115,7 @@ export async function PATCH(request) {
       "country",
       "city",
       "sex",
+      "is_band",
       "birth",
       "desc",
       "bio",
@@ -121,16 +135,44 @@ export async function PATCH(request) {
 
     const updateFields = {};
 
+    // Fetch existing artist image for cleanup (only if we are uploading a new one)
+    let existingArtistImage = null;
+    if (formData.get("artist_image")) {
+      const { data: existingArtist, error: existingError } = await supabase
+        .from("artists")
+        .select("artist_image")
+        .eq("id", artistId)
+        .single();
+
+      if (existingError) {
+        console.error("Failed to fetch existing artist image:", existingError);
+      } else {
+        existingArtistImage = existingArtist?.artist_image || null;
+      }
+    }
+
     // Handle artist_image separately (file upload)
     const artist_image = formData.get("artist_image");
     let artistImageUrl = null;
 
     if (artist_image && artist_image instanceof File && artist_image.size > 0) {
+      const oldImagePath = extractArtistImagePath(existingArtistImage);
+
+      if (oldImagePath) {
+        const { error: removeError } = await supabaseAdmin.storage
+          .from("artist_profile_images")
+          .remove([oldImagePath]);
+
+        if (removeError) {
+          console.error("Failed to remove old artist image:", removeError);
+        }
+      }
+
       // Validate file type
       if (!artist_image.type.startsWith("image/")) {
         return NextResponse.json(
           { error: "Please upload a valid image file" },
-          { status: 400 }
+          { status: 400 },
         );
       }
 
@@ -138,7 +180,7 @@ export async function PATCH(request) {
       if (artist_image.size > 1 * 1024 * 1024) {
         return NextResponse.json(
           { error: "Image size must be less than 1MB" },
-          { status: 400 }
+          { status: 400 },
         );
       }
 
@@ -160,7 +202,7 @@ export async function PATCH(request) {
         console.error("Image upload error:", uploadError);
         return NextResponse.json(
           { error: "Failed to upload image", details: uploadError.message },
-          { status: 500 }
+          { status: 500 },
         );
       }
 
@@ -193,6 +235,17 @@ export async function PATCH(request) {
       updateFields[field] = parsed;
     }
 
+    // Convert is_band from string to boolean
+    if (updateFields.is_band !== undefined) {
+      updateFields.is_band =
+        updateFields.is_band === "true" || updateFields.is_band === true;
+
+      // If is_band is true, set birth to null
+      if (updateFields.is_band) {
+        updateFields.birth = null;
+      }
+    }
+
     updateFields.updated_at = new Date().toISOString();
 
     // --- perform update ---
@@ -207,7 +260,7 @@ export async function PATCH(request) {
       console.error("Supabase update error:", updateError);
       return NextResponse.json(
         { error: "Failed to update artist" },
-        { status: 500 }
+        { status: 500 },
       );
     }
 
@@ -219,7 +272,7 @@ export async function PATCH(request) {
     console.error("Unexpected error in update-artist:", err);
     return NextResponse.json(
       { error: "Internal server error" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

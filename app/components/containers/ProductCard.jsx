@@ -23,88 +23,98 @@ const ProductCard = ({
   delay = 0,
   className = "",
   score,
-}) => (
-  <motion.div
-    key={id}
-    initial={{ opacity: 0 }}
-    animate={{ opacity: 1 }}
-    transition={{ duration: 0.4, delay: delay * 0.05 }}
-    className={`relative bordered bg-stone-900 p-1 group cursor-pointer ${className}`}
-  >
-    <Link href={href}>
-      <div className="h-44 lg:h-80 brightness">
-        {image ? (
-          <Image
-            src={image}
-            alt={name}
-            className="w-full h-full object-cover"
-            width={300}
-            height={300}
+}) => {
+  const parsedScore = Number(score);
+  const hasScore = Number.isFinite(parsedScore) && parsedScore > 0;
+  const parsedLikesCount = Number(likesCount);
+  const hasLikesCount =
+    Number.isFinite(parsedLikesCount) && parsedLikesCount > 0;
+
+  return (
+    <motion.div
+      key={id}
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 0.4, delay: delay * 0.05 }}
+      className={`relative bordered bg-stone-900 p-1 group cursor-pointer ${className}`}
+    >
+      <Link href={href}>
+        <div className="h-44 lg:h-80 brightness">
+          {image ? (
+            <Image
+              src={image}
+              alt={name}
+              className="w-full h-full object-cover"
+              width={300}
+              height={300}
+            />
+          ) : (
+            <Image
+              src="/assets/elivagar-logo.png"
+              alt="soundfolio"
+              width={300}
+              height={300}
+            />
+          )}
+        </div>
+        <div className="flex flex-col *:leading-none mt-1">
+          <Title
+            color="cream"
+            className="uppercase text-start text-[12px] lg:text-lg xl:text-xl leading-none"
+            text={truncateString(name, 50)}
           />
-        ) : (
-          <Image
-            src="/assets/elivagar-logo.png"
-            alt="soundfolio"
-            width={300}
-            height={300}
-          />
+          {date && (
+            <p className="text-chino  uppercase text-[10px] lg:text-sm">
+              {date}
+            </p>
+          )}
+          <div>
+            <ArtistCountry artistCountry={{ country, city }} />
+          </div>
+          {/* Add capacity display here */}
+          {capacity && (
+            <p className="text-chino text-sm">
+              Capacity: {capacity.toLocaleString()}
+            </p>
+          )}
+        </div>
+        {artists.length > 0 && (
+          <div className="flex flex-wrap">
+            {artists.slice(0, 5).map((artist, idx) => (
+              <div className="flex mr-2 space-x-1  items-center" key={idx}>
+                <Title
+                  color="chino"
+                  className="uppercase text-[12px] lg:text-lg leading-none"
+                  text={artist}
+                />
+                {idx < artists.length - 1 && <Dot className="leading-none" />}
+              </div>
+            ))}
+          </div>
         )}
-      </div>
-      <div className="flex flex-col *:leading-none mt-1">
-        <Title
-          color="cream"
-          className="uppercase text-start text-[12px] lg:text-lg xl:text-xl leading-none"
-          text={truncateString(name, 50)}
-        />
-        {date && (
-          <p className="text-chino  uppercase text-[10px] lg:text-sm">{date}</p>
+        {hasScore && (
+          <div className="absolute z-10 top-4 left-4 ">
+            <SpanText
+              icon={<FaStar />}
+              size="xs"
+              text={`${parsedScore}`}
+              className="secondary pointer-events-none "
+            />
+          </div>
         )}
-        <div>
-          <ArtistCountry artistCountry={{ country, city }} />
-        </div>
-        {/* Add capacity display here */}
-        {capacity && (
-          <p className="text-chino text-sm">
-            Capacity: {capacity.toLocaleString()}
-          </p>
+        {hasLikesCount && (
+          <div className="absolute center space-x-2 top-4 right-4 ">
+            <SpanText
+              icon={<FaUsers />}
+              size="xs"
+              text={`${parsedLikesCount} ${artists.length > 0 ? "Interested" : "Followers"}`}
+              className="ml-2 secondary pointer-events-none"
+            />
+          </div>
         )}
-      </div>
-      {artists.length > 0 && (
-        <div className="flex flex-wrap">
-          {artists.slice(0, 5).map((artist, idx) => (
-            <div className="flex mr-2 space-x-1  items-center" key={idx}>
-              <Title
-                color="chino"
-                className="uppercase text-[12px] lg:text-lg leading-none"
-                text={artist}
-              />
-              {idx < artists.length - 1 && <Dot className="leading-none" />}
-            </div>
-          ))}
-        </div>
-      )}
-      {score && (
-        <div className="absolute z-10 top-4 left-4 ">
-          <SpanText
-            icon={<FaStar />}
-            size="xs"
-            text={`${score}`}
-            className="secondary pointer-events-none "
-          />
-        </div>
-      )}
-      {typeof likesCount === "number" && likesCount > 0 && (
-        <div className="absolute center space-x-2 top-4 right-4 ">
-          <SpanText
-            icon={<FaUsers />}
-            size="xs"
-            text={`${likesCount} ${artists.length > 0 ? "Interested" : "Followers"}`}
-            className="ml-2 secondary pointer-events-none"
-          />
-        </div>
-      )}
-    </Link>
-  </motion.div>
-);
+      </Link>
+    </motion.div>
+  );
+};
 
 export default ProductCard;

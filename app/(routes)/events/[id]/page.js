@@ -5,7 +5,7 @@ export const dynamic = "force-dynamic";
 export const metadata = {
   title: "Soundfolio | Event Profile",
   description: "Event profile page",
-}
+};
 
 const EventProfilePage = async ({ params }) => {
   const cookieStore = await cookies();
@@ -15,13 +15,16 @@ const EventProfilePage = async ({ params }) => {
     .join("; ");
 
   const { id } = await params;
-  const response = await fetch(`${process.env.PROJECT_URL}/api/events/single-event/${id}`, {
-    cache: "no-store",
-    headers: {
-      "Content-Type": "application/json",
-      Cookie: cookieHeader,
+  const response = await fetch(
+    `${process.env.PROJECT_URL}/api/events/single-event/${id}`,
+    {
+      next: { revalidate: 1200, tags: ["events", `event-${id}`] },
+      headers: {
+        "Content-Type": "application/json",
+        Cookie: cookieHeader,
+      },
     },
-  });
+  );
   const event = await response.json();
 
   if (!event) {
@@ -29,9 +32,7 @@ const EventProfilePage = async ({ params }) => {
       <div className="w-full flex justify-center items-center h-96">
         <div className="bg-stone-900 border border-red-400/30 rounded-lg p-8 text-center">
           <h2 className="text-red-400 text-2xl mb-2">Event Not Found</h2>
-          <p className="text-stone-300">
-            This event does not exist.
-          </p>
+          <p className="text-stone-300">This event does not exist.</p>
         </div>
       </div>
     );

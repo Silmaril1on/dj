@@ -1,12 +1,20 @@
 "use client";
+import { useEffect } from "react";
 import ModalActionButton from "./base/ModalActionButton";
 import { openReviewModal } from "@/app/features/reviewsSlice";
 
 const ReviewButton = ({ className, artist, desc, onReviewAdd }) => {
-  // Store callback globally if needed
-  if (onReviewAdd) {
-    window.addNewReview = onReviewAdd;
-  }
+  useEffect(() => {
+    if (onReviewAdd) {
+      window.addNewReview = onReviewAdd;
+    }
+
+    return () => {
+      if (window.addNewReview === onReviewAdd) {
+        delete window.addNewReview;
+      }
+    };
+  }, [onReviewAdd]);
 
   return (
     <ModalActionButton

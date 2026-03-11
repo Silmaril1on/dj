@@ -73,6 +73,7 @@ const FestivalLineupDisplay = ({ festivalId }) => {
   const layoutOptions = [
     { value: "all", label: "Lineup" },
     { value: "by-stage", label: "By Stage" },
+    { value: "by-day", label: "By Day" },
   ];
 
   const renderAllArtists = () => {
@@ -106,7 +107,7 @@ const FestivalLineupDisplay = ({ festivalId }) => {
                 ) : (
                   <Title
                     color="cream"
-                    className="uppercase leading-none brightness-80 cursor-default"
+                    className="uppercase leading-none brightness-70 cursor-default"
                     text={artistName}
                   />
                 )}
@@ -168,6 +169,83 @@ const FestivalLineupDisplay = ({ festivalId }) => {
     ));
   };
 
+  const renderByDay = () => {
+    // Get all artists from all stages with their day information
+    const allArtistsWithDay = lineup.flatMap((stage) =>
+      stage.artists.map((artist) => ({
+        name: artist.name || artist,
+        slug: artist.artist_slug,
+        day: artist.artist_day || artist.day,
+      })),
+    );
+
+    // Group artists by day
+    const artistsByDay = allArtistsWithDay.reduce((acc, artist) => {
+      const day = artist.day || "TBA";
+      if (!acc[day]) {
+        acc[day] = [];
+      }
+      acc[day].push(artist);
+      return acc;
+    }, {});
+
+    // Sort days (TBA last, otherwise chronologically)
+    const sortedDays = Object.keys(artistsByDay).sort((a, b) => {
+      if (a === "TBA") return 1;
+      if (b === "TBA") return -1;
+      return a.localeCompare(b);
+    });
+
+    return sortedDays.map((day, dayIndex) => {
+      // Sort artists within each day alphabetically
+      const sortedArtists = artistsByDay[day].sort((a, b) =>
+        a.name.localeCompare(b.name),
+      );
+
+      return (
+        <Motion
+          key={dayIndex}
+          animation="fade"
+          delay={dayIndex * 0.2}
+          className="center flex-col w-full lg:w-4xl"
+        >
+          <Title
+            text={day.toUpperCase()}
+            color="gold"
+            size="xl"
+            className="font-bold"
+          />
+          <div className="flex flex-wrap items-center gap-2 justify-center">
+            {sortedArtists.map((artist, artistIndex) => {
+              const hasSlug = artist.slug !== null && artist.slug !== undefined;
+
+              return (
+                <div key={artistIndex} className="flex items-center gap-2">
+                  {hasSlug ? (
+                    <Link href={`/artists/${artist.slug}`}>
+                      <Title
+                        color="cream"
+                        className="uppercase leading-none cursor-pointer hover:text-gold transition-colors"
+                        text={artist.name}
+                      />
+                    </Link>
+                  ) : (
+                    <Title
+                      color="cream"
+                      className="uppercase leading-none brightness-80 cursor-default"
+                      text={artist.name}
+                    />
+                  )}
+                  {artistIndex < sortedArtists.length - 1 && <Dot />}
+                </div>
+              );
+            })}
+          </div>
+        </Motion>
+      );
+    });
+  };
+
   return (
     <div className="center flex-col relative py-20">
       {/* Layout Toggle Buttons */}
@@ -183,7 +261,11 @@ const FestivalLineupDisplay = ({ festivalId }) => {
         </div>
         {/* Content Based on View Mode */}
         <div className="space-y-7 center flex-col ">
-          {viewMode === "all" ? renderAllArtists() : renderByStage()}
+          {viewMode === "all"
+            ? renderAllArtists()
+            : viewMode === "by-stage"
+              ? renderByStage()
+              : renderByDay()}
         </div>
       </div>
     </div>

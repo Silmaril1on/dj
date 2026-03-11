@@ -13,12 +13,6 @@ export const filterConfigs = {
       options: [],
     },
     {
-      name: "artist",
-      label: "Artist",
-      type: "text",
-      placeholder: "Search by artist name",
-    },
-    {
       name: "sort",
       label: "Sort By",
       type: "select",
@@ -41,12 +35,6 @@ export const filterConfigs = {
       label: "City",
       type: "select",
       options: [],
-    },
-    {
-      name: "name",
-      label: "Club Name",
-      type: "text",
-      placeholder: "Search by club name",
     },
     {
       name: "capacity",
@@ -87,12 +75,6 @@ export const filterConfigs = {
         { value: "female", label: "Female" },
       ],
     },
-        {
-      name: "name",
-      label: "Artist Name",
-      type: "text",
-      placeholder: "Search by artist name",
-    },
     {
       name: "genres",
       label: "Genre",
@@ -127,12 +109,6 @@ export const filterConfigs = {
       label: "Country",
       type: "select",
       options: [],
-    },
-    {
-      name: "name",
-      label: "Festival Name",
-      type: "text",
-      placeholder: "Search by festival name",
     },
     {
       name: "sort",

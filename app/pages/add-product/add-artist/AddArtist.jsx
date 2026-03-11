@@ -30,6 +30,7 @@ const AddArtist = () => {
             country: artistData.country || "",
             city: artistData.city || "",
             sex: artistData.sex || "",
+            is_band: artistData.is_band ? "true" : "false",
             birth: artistData.birth || "",
             desc: artistData.desc || artistData.description || "",
             bio: artistData.bio || "",
@@ -86,6 +87,13 @@ const AddArtist = () => {
       if (isEditMode && artistData) {
         formData.append("artistId", artistData.id);
       }
+
+      // If is_band is true, set birth to null
+      const isBand = formData.get("is_band");
+      if (isBand === "true") {
+        formData.set("birth", "");
+      }
+
       for (const [key, value] of formData.entries()) {
         console.log(`${key}:`, value, "Type:", typeof value);
       }

@@ -1,10 +1,12 @@
-import AllArtists from "@/app/pages/artist/artist-page/AllArtists";
 import React from "react";
+import AllDataPage from "@/app/pages/all-data-page/AllDataPage";
 
 export const metadata = {
   title: "Soundfolio | Artists",
   description: "Discover talented artists on Soundfolio.",
-}
+};
+
+export const revalidate = 1200;
 
 const ArtistsPage = async () => {
   let artists = [];
@@ -12,11 +14,13 @@ const ArtistsPage = async () => {
 
   try {
     const response = await fetch(
-      `${process.env.PROJECT_URL}/api/artists/all-artists?limit=20&offset=0`,
-      { cache: "no-store" }
+      `${process.env.PROJECT_URL}/api/artists/all-artists?limit=30&offset=0`,
+      {
+        next: { revalidate: 1200, tags: ["artists"] },
+      },
     );
     const data = await response.json();
-    
+
     if (data.error) {
       error = data.error;
     } else {
@@ -27,7 +31,15 @@ const ArtistsPage = async () => {
     console.error("Error fetching artists:", err);
   }
 
-  return <AllArtists initialArtists={artists} initialTotal={artists.length} error={error} />;
+  return (
+    <AllDataPage
+      type="artists"
+      initialData={artists}
+      error={error}
+      title="All Artists"
+      description="Discover talented artists from around the world."
+    />
+  );
 };
 
 export default ArtistsPage;

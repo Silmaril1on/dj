@@ -1,5 +1,8 @@
 import { NextResponse } from "next/server";
-import { createSupabaseServerClient, getServerUser } from "@/app/lib/config/supabaseServer";
+import {
+  createSupabaseServerClient,
+  getServerUser,
+} from "@/app/lib/config/supabaseServer";
 import { cookies } from "next/headers";
 
 export async function POST(request) {
@@ -8,7 +11,10 @@ export async function POST(request) {
     const { user, error: userError } = await getServerUser(cookieStore);
 
     if (userError || !user) {
-      return NextResponse.json({ error: "User not authenticated" }, { status: 401 });
+      return NextResponse.json(
+        { error: "User not authenticated" },
+        { status: 401 },
+      );
     }
 
     const supabase = await createSupabaseServerClient(cookieStore);
@@ -31,21 +37,26 @@ export async function POST(request) {
       "";
 
     // Insert password change record
-    await supabase.from("user_passwords").insert([{
-      user_id: user.id,
-      user_email: user.email,
-      changed_by: "self",
-      ip_address,
-    }]);
+    await supabase.from("user_passwords").insert([
+      {
+        user_id: user.id,
+        user_email: user.email,
+        changed_by: "self",
+        ip_address,
+      },
+    ]);
 
     // Send notification
-    await supabase.from("notifications").insert([{
-      user_id: user.id,
-      message: "Your password was changed. If this wasn't you, please contact support immediately.",
-      type: "security",
-      title: "Password Changed",
-      read: false,
-    }]);
+    await supabase.from("notifications").insert([
+      {
+        user_id: user.id,
+        message:
+          "Your password was changed. If this wasn't you, please contact support immediately.",
+        type: "security",
+        title: "Password Changed",
+        read: false,
+      },
+    ]);
 
     return NextResponse.json({ success: true });
   } catch (err) {

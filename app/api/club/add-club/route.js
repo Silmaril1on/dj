@@ -1,10 +1,41 @@
 import { NextResponse } from "next/server";
+import { revalidateTag } from "next/cache";
 import { cookies } from "next/headers";
 import {
   getServerUser,
   createSupabaseServerClient,
   supabaseAdmin,
 } from "@/app/lib/config/supabaseServer";
+
+const extractClubImagePath = (url) => {
+  if (!url) return null;
+  try {
+    const parsed = new URL(url);
+    const marker = "/storage/v1/object/public/club_images/";
+    const idx = parsed.pathname.indexOf(marker);
+    if (idx === -1) return null;
+    return parsed.pathname.slice(idx + marker.length);
+  } catch {
+    return null;
+  }
+};
+
+const sanitizeStorageBaseName = (value) => {
+  const normalized = (value || "club")
+    .normalize("NFKD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "_")
+    .replace(/^_+|_+$/g, "");
+
+  return normalized || "club";
+};
+
+const sanitizeFileExtension = (fileName) => {
+  const ext = (fileName || "").split(".").pop()?.toLowerCase() || "jpg";
+  const safeExt = ext.replace(/[^a-z0-9]/g, "");
+  return safeExt || "jpg";
+};
 
 export async function POST(request) {
   try {
@@ -13,7 +44,7 @@ export async function POST(request) {
     if (error || !user) {
       return NextResponse.json(
         { error: "Authentication required" },
-        { status: 401 }
+        { status: 401 },
       );
     }
 
@@ -30,7 +61,7 @@ export async function POST(request) {
     // Add the new fields
     const location_url = formData.get("location_url");
     const venue_email = formData.get("venue_email");
-    
+
     let residents = [];
     let social_links = [];
 
@@ -106,7 +137,7 @@ export async function POST(request) {
           error:
             "Missing required fields: name, country, city, capacity, description, club_image",
         },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -122,7 +153,7 @@ export async function POST(request) {
     if (!club_image.type.startsWith("image/")) {
       return NextResponse.json(
         { error: "Please upload a valid image file" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -130,7 +161,7 @@ export async function POST(request) {
     if (club_image.size > 1 * 1024 * 1024) {
       return NextResponse.json(
         { error: "Image size must be less than 1MB" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -140,7 +171,7 @@ export async function POST(request) {
       if (!emailRegex.test(venue_email)) {
         return NextResponse.json(
           { error: "Please provide a valid email address" },
-          { status: 400 }
+          { status: 400 },
         );
       }
     }
@@ -152,16 +183,14 @@ export async function POST(request) {
       } catch {
         return NextResponse.json(
           { error: "Please provide a valid location URL" },
-          { status: 400 }
+          { status: 400 },
         );
       }
     }
 
     // Generate unique filename
-    const fileExtension = club_image.name.split(".").pop();
-    const fileName = `${name
-      .toLowerCase()
-      .replace(/\s+/g, "")}_${Date.now()}.${fileExtension}`;
+    const fileExtension = sanitizeFileExtension(club_image.name);
+    const fileName = `${sanitizeStorageBaseName(name)}_${Date.now()}.${fileExtension}`;
 
     // Upload image to Supabase storage
     const { data: uploadData, error: uploadError } = await supabaseAdmin.storage
@@ -174,7 +203,7 @@ export async function POST(request) {
     if (uploadError) {
       return NextResponse.json(
         { error: "Failed to upload image" },
-        { status: 500 }
+        { status: 500 },
       );
     }
 
@@ -205,8 +234,10 @@ export async function POST(request) {
       status: "pending",
       club_image: publicUrl,
       address,
-      location_url: location_url && location_url.trim() !== "" ? location_url.trim() : null,
-      venue_email: venue_email && venue_email.trim() !== "" ? venue_email.trim() : null,
+      location_url:
+        location_url && location_url.trim() !== "" ? location_url.trim() : null,
+      venue_email:
+        venue_email && venue_email.trim() !== "" ? venue_email.trim() : null,
     };
 
     // Insert club into database
@@ -219,19 +250,21 @@ export async function POST(request) {
     if (insertError) {
       return NextResponse.json(
         { error: `Failed to create club: ${insertError.message}` },
-        { status: 500 }
+        { status: 500 },
       );
     }
 
-    // Update user's submitted_club_id
-    const { error: userUpdateError } = await supabase
-      .from("users")
-      .update({ submitted_club_id: newClub.id })
-      .eq("id", user.id);
+    // Update user's submitted_club_id for non-admins only
+    if (!user.is_admin) {
+      const { error: userUpdateError } = await supabase
+        .from("users")
+        .update({ submitted_club_id: newClub.id })
+        .eq("id", user.id);
 
-    if (userUpdateError) {
-      console.error("Error updating user:", userUpdateError);
-      // Don't fail the request if user update fails, just log it
+      if (userUpdateError) {
+        console.error("Error updating user:", userUpdateError);
+        // Don't fail the request if user update fails, just log it
+      }
     }
 
     // Create notification for the user
@@ -258,6 +291,8 @@ export async function POST(request) {
       // Continue with the response even if notification fails
     }
 
+    revalidateTag("clubs");
+
     return NextResponse.json({
       success: true,
       message: "Club submitted successfully and is pending approval",
@@ -267,7 +302,7 @@ export async function POST(request) {
     console.error("Server error:", error);
     return NextResponse.json(
       { error: "Internal server error" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
@@ -279,7 +314,7 @@ export async function PATCH(request) {
     if (error || !user) {
       return NextResponse.json(
         { error: "Authentication required" },
-        { status: 401 }
+        { status: 401 },
       );
     }
 
@@ -302,11 +337,11 @@ export async function PATCH(request) {
       return NextResponse.json({ error: "Club not found" }, { status: 404 });
     }
 
-    // Only allow the owner to edit
-    if (existingClub.user_id !== user.id) {
+    // Only allow the owner or an admin to edit
+    if (existingClub.user_id !== user.id && !user.is_admin) {
       return NextResponse.json(
         { error: "You are not allowed to edit this club" },
-        { status: 403 }
+        { status: 403 },
       );
     }
 
@@ -320,7 +355,7 @@ export async function PATCH(request) {
     // Add the new fields
     const location_url = formData.get("location_url");
     const venue_email = formData.get("venue_email");
-    
+
     let club_image = formData.get("club_image");
     let residents = [];
     let social_links = [];
@@ -331,7 +366,7 @@ export async function PATCH(request) {
       if (!emailRegex.test(venue_email)) {
         return NextResponse.json(
           { error: "Please provide a valid email address" },
-          { status: 400 }
+          { status: 400 },
         );
       }
     }
@@ -343,7 +378,7 @@ export async function PATCH(request) {
       } catch {
         return NextResponse.json(
           { error: "Please provide a valid location URL" },
-          { status: 400 }
+          { status: 400 },
         );
       }
     }
@@ -415,7 +450,7 @@ export async function PATCH(request) {
     const filteredSocialLinks = Array.isArray(social_links)
       ? social_links
           .filter(
-            (link) => link && typeof link === "string" && link.trim() !== ""
+            (link) => link && typeof link === "string" && link.trim() !== "",
           )
           .map((link) => link.trim())
       : [];
@@ -423,11 +458,23 @@ export async function PATCH(request) {
     // Handle club_image update (if a new file is uploaded)
     let publicUrl = existingClub.club_image;
     if (club_image && typeof club_image !== "string" && club_image.name) {
+      const safeName = name || existingClub.name || "club";
+      const oldImagePath = extractClubImagePath(existingClub.club_image);
+
+      if (oldImagePath) {
+        const { error: removeError } = await supabaseAdmin.storage
+          .from("club_images")
+          .remove([oldImagePath]);
+
+        if (removeError) {
+          console.error("Failed to remove old club image:", removeError);
+        }
+      }
       // Validate file type
       if (!club_image.type.startsWith("image/")) {
         return NextResponse.json(
           { error: "Please upload a valid image file" },
-          { status: 400 }
+          { status: 400 },
         );
       }
 
@@ -435,14 +482,12 @@ export async function PATCH(request) {
       if (club_image.size > 1 * 1024 * 1024) {
         return NextResponse.json(
           { error: "Image size must be less than 1MB" },
-          { status: 400 }
+          { status: 400 },
         );
       }
 
-      const fileExtension = club_image.name.split(".").pop();
-      const fileName = `${name
-        .toLowerCase()
-        .replace(/\s+/g, "")}_${Date.now()}.${fileExtension}`;
+      const fileExtension = sanitizeFileExtension(club_image.name);
+      const fileName = `${sanitizeStorageBaseName(safeName)}_${Date.now()}.${fileExtension}`;
 
       const { data: uploadData, error: uploadError } =
         await supabaseAdmin.storage
@@ -453,9 +498,17 @@ export async function PATCH(request) {
           });
 
       if (uploadError) {
+        console.error("Club image upload error:", {
+          message: uploadError.message,
+          statusCode: uploadError.statusCode,
+          name: uploadError.name,
+        });
         return NextResponse.json(
-          { error: "Failed to upload image" },
-          { status: 500 }
+          {
+            error: "Failed to upload image",
+            details: uploadError.message,
+          },
+          { status: 500 },
         );
       }
 
@@ -477,14 +530,16 @@ export async function PATCH(request) {
       residents: filteredResidents,
       social_links: filteredSocialLinks,
       club_image: publicUrl,
-      location_url: location_url && location_url.trim() !== "" ? location_url.trim() : null,
-      venue_email: venue_email && venue_email.trim() !== "" ? venue_email.trim() : null,
+      location_url:
+        location_url && location_url.trim() !== "" ? location_url.trim() : null,
+      venue_email:
+        venue_email && venue_email.trim() !== "" ? venue_email.trim() : null,
       updated_at: new Date().toISOString(),
     };
 
     // Remove undefined fields
     Object.keys(updateData).forEach(
-      (key) => updateData[key] === undefined && delete updateData[key]
+      (key) => updateData[key] === undefined && delete updateData[key],
     );
 
     // Update the club
@@ -498,9 +553,11 @@ export async function PATCH(request) {
     if (updateError) {
       return NextResponse.json(
         { error: `Failed to update club: ${updateError.message}` },
-        { status: 500 }
+        { status: 500 },
       );
     }
+
+    revalidateTag("clubs");
 
     return NextResponse.json({
       success: true,
@@ -511,7 +568,7 @@ export async function PATCH(request) {
     console.error("Server error:", error);
     return NextResponse.json(
       { error: "Internal server error" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

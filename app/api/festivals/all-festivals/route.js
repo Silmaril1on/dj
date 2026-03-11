@@ -23,7 +23,7 @@ export async function GET(request) {
       .from("festivals")
       .select(
         `id, name, poster, country, city, location, start_date, end_date, description, created_at`,
-        { count: "exact" }
+        { count: "exact" },
       )
       .eq("status", "approved");
 
@@ -61,7 +61,10 @@ export async function GET(request) {
 
     if (festivalsError) {
       console.error("Error fetching festivals (filtered):", festivalsError);
-      return NextResponse.json({ error: festivalsError.message }, { status: 500 });
+      return NextResponse.json(
+        { error: festivalsError.message },
+        { status: 500 },
+      );
     }
 
     const returned = festivalsPage || [];
@@ -71,7 +74,7 @@ export async function GET(request) {
     let likesCount = {};
     if (festivalIds.length > 0) {
       const { data: likesData, error: likesError } = await supabase
-        .from("festival_likes")
+        .from("festivals_likes")
         .select("festival_id")
         .in("festival_id", festivalIds);
 
@@ -92,7 +95,9 @@ export async function GET(request) {
     // If sorting by most_liked, apply client-side sort
     let finalList = festivalsWithLikes;
     if (sort === "most_liked") {
-      finalList = finalList.sort((a, b) => (b.likesCount || 0) - (a.likesCount || 0));
+      finalList = finalList.sort(
+        (a, b) => (b.likesCount || 0) - (a.likesCount || 0),
+      );
     }
 
     const total = typeof count === "number" ? count : null;
@@ -102,11 +107,17 @@ export async function GET(request) {
       total,
       limit,
       offset,
-      hasMore: total !== null ? offset + finalList.length < total : finalList.length === limit,
+      hasMore:
+        total !== null
+          ? offset + finalList.length < total
+          : finalList.length === limit,
     });
   } catch (error) {
     console.error("Error in GET all-festivals API:", error);
-    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
+    return NextResponse.json(
+      { error: "Internal server error" },
+      { status: 500 },
+    );
   }
 }
 

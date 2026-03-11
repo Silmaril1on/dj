@@ -43,7 +43,8 @@ export async function GET(request) {
           id,
           artist_name,
           artist_day,
-          artist_order
+          artist_order,
+          phase
         )
       `,
       )
@@ -84,16 +85,20 @@ export async function GET(request) {
           const normalizedSearchName = normalizeArtistName(artist.artist_name);
           const foundArtist = artistMap.get(normalizedSearchName);
 
+          const baseArtist = {
+            name: artist.artist_name,
+            day: artist.artist_day || "",
+            phase: artist.phase || null,
+          };
+
           return foundArtist
             ? {
-                name: artist.artist_name,
-                day: artist.artist_day || "",
+                ...baseArtist,
                 id: foundArtist.id,
                 artist_slug: foundArtist.artist_slug,
               }
             : {
-                name: artist.artist_name,
-                day: artist.artist_day || "",
+                ...baseArtist,
                 id: null,
                 artist_slug: null,
               };
@@ -129,6 +134,16 @@ export async function POST(request) {
     const supabase = await createSupabaseServerClient(cookieStore);
     const { festival_id, festival_name, stages, lineup_status } =
       await request.json();
+
+    // Debug logging
+    console.log("POST lineup - Received data:", {
+      festival_id,
+      lineup_status,
+      stage_count: stages?.length,
+      first_stage_sample: stages?.[0]?.artists
+        ?.slice(0, 2)
+        .map((a) => ({ name: a.name, phase: a.phase })),
+    });
 
     if (!festival_id || !stages || stages.length === 0) {
       return NextResponse.json(
@@ -174,13 +189,20 @@ export async function POST(request) {
         );
       }
 
-      // Insert artists for this stage
+      // Insert artists for this stage with phase
       const artistsToInsert = stage.artists.map((artist, artistIndex) => ({
         stage_id: insertedStage.id,
         artist_name: artist.name,
         artist_day: artist.day || null,
         artist_order: artistIndex,
+        phase: artist.phase || lineup_status || null,
       }));
+
+      // Debug: Log what we're inserting
+      console.log(
+        `Inserting ${artistsToInsert.length} artists with phases:`,
+        artistsToInsert.map((a) => ({ name: a.artist_name, phase: a.phase })),
+      );
 
       const { error: artistsError } = await supabase
         .from("festival_lineup")
@@ -195,21 +217,25 @@ export async function POST(request) {
       }
     }
 
-    // Update lineup_status in festivals table if provided
-    if (lineup_status !== undefined) {
-      const { error: updateStatusError } = await supabase
-        .from("festivals")
-        .update({ lineup_status })
-        .eq("id", festival_id);
+    // Always update lineup_status in festivals table (even if null)
+    console.log(
+      `POST - Updating festivals.lineup_status to: "${lineup_status || null}"`,
+    );
+    const { error: updateStatusError } = await supabase
+      .from("festivals")
+      .update({ lineup_status: lineup_status || null })
+      .eq("id", festival_id);
 
-      if (updateStatusError) {
-        console.error("Error updating lineup status:", updateStatusError);
-      }
+    if (updateStatusError) {
+      console.error("Error updating lineup status:", updateStatusError);
+    } else {
+      console.log("✓ festivals.lineup_status updated successfully");
     }
 
     return NextResponse.json({
       success: true,
       message: "Lineup created successfully",
+      phase_applied: lineup_status,
     });
   } catch (err) {
     console.error(
@@ -239,6 +265,16 @@ export async function PATCH(request) {
     const supabase = await createSupabaseServerClient(cookieStore);
     const { festival_id, festival_name, stages, lineup_status } =
       await request.json();
+
+    // Debug logging
+    console.log("PATCH lineup - Received data:", {
+      festival_id,
+      lineup_status,
+      stage_count: stages?.length,
+      first_stage_sample: stages?.[0]?.artists
+        ?.slice(0, 2)
+        .map((a) => ({ name: a.name, phase: a.phase })),
+    });
 
     if (!festival_id || !stages || stages.length === 0) {
       return NextResponse.json(
@@ -275,16 +311,19 @@ export async function PATCH(request) {
       );
     }
 
-    // Update lineup_status in festivals table if provided
-    if (lineup_status !== undefined) {
-      const { error: updateStatusError } = await supabase
-        .from("festivals")
-        .update({ lineup_status })
-        .eq("id", festival_id);
+    // Always update lineup_status in festivals table (even if null)
+    console.log(
+      `PATCH - Updating festivals.lineup_status to: "${lineup_status || null}"`,
+    );
+    const { error: updateStatusError } = await supabase
+      .from("festivals")
+      .update({ lineup_status: lineup_status || null })
+      .eq("id", festival_id);
 
-      if (updateStatusError) {
-        console.error("Error updating lineup status:", updateStatusError);
-      }
+    if (updateStatusError) {
+      console.error("Error updating lineup status:", updateStatusError);
+    } else {
+      console.log("✓ festivals.lineup_status updated successfully");
     }
 
     // Insert new stages and artists (same logic as POST)
@@ -314,7 +353,14 @@ export async function PATCH(request) {
         artist_name: artist.name,
         artist_day: artist.day || null,
         artist_order: artistIndex,
+        phase: artist.phase || lineup_status || null,
       }));
+
+      // Debug: Log what we're inserting in PATCH
+      console.log(
+        `PATCH - Inserting ${artistsToInsert.length} artists with phases:`,
+        artistsToInsert.map((a) => ({ name: a.artist_name, phase: a.phase })),
+      );
 
       const { error: artistsError } = await supabase
         .from("festival_lineup")
@@ -332,6 +378,7 @@ export async function PATCH(request) {
     return NextResponse.json({
       success: true,
       message: "Lineup updated successfully",
+      phase_applied: lineup_status,
     });
   } catch (err) {
     console.error(

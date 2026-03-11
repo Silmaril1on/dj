@@ -8,6 +8,7 @@ import {
   MdEvent,
   MdEventAvailable,
   MdFestival,
+  MdAssignment,
 } from "react-icons/md";
 import { FiActivity } from "react-icons/fi";
 

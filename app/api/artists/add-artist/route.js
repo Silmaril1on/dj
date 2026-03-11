@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { revalidateTag } from "next/cache";
 import { cookies } from "next/headers";
 import {
   getServerUser,
@@ -14,7 +15,7 @@ export async function POST(request) {
     if (error || !user) {
       return NextResponse.json(
         { error: "Authentication required" },
-        { status: 401 }
+        { status: 401 },
       );
     }
 
@@ -26,6 +27,7 @@ export async function POST(request) {
     const artist_image = formData.get("artist_image");
     const stage_name = formData.get("stage_name");
     const sex = formData.get("sex");
+    const is_band = formData.get("is_band");
     const desc = formData.get("desc");
     const country = formData.get("country");
     const city = formData.get("city");
@@ -127,7 +129,7 @@ export async function POST(request) {
     if (!name || !artist_image || !desc || !country) {
       return NextResponse.json(
         { error: "Missing required fields: name, artist_image, desc, country" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -146,7 +148,7 @@ export async function POST(request) {
     if (!artist_image.type.startsWith("image/")) {
       return NextResponse.json(
         { error: "Please upload a valid image file" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -154,7 +156,7 @@ export async function POST(request) {
     if (artist_image.size > 1 * 1024 * 1024) {
       return NextResponse.json(
         { error: "Image size must be less than 1MB" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -174,7 +176,7 @@ export async function POST(request) {
     if (uploadError) {
       return NextResponse.json(
         { error: "Failed to upload image" },
-        { status: 500 }
+        { status: 500 },
       );
     }
 
@@ -188,7 +190,7 @@ export async function POST(request) {
     // Filter out empty strings from arrays and trim whitespace
     const filteredGenres = genres
       .filter(
-        (genre) => genre && typeof genre === "string" && genre.trim() !== ""
+        (genre) => genre && typeof genre === "string" && genre.trim() !== "",
       )
       .map((genre) => genre.trim());
 
@@ -199,7 +201,7 @@ export async function POST(request) {
     const filteredLabels = label
       .filter(
         (labelItem) =>
-          labelItem && typeof labelItem === "string" && labelItem.trim() !== ""
+          labelItem && typeof labelItem === "string" && labelItem.trim() !== "",
       )
       .map((labelItem) => labelItem.trim());
 
@@ -209,16 +211,17 @@ export async function POST(request) {
       artist_image: publicUrl,
       stage_name: stage_name || null,
       sex: sex || null,
+      is_band: is_band === "true",
       desc,
       country,
       city: city || null,
       label: filteredLabels.length > 0 ? filteredLabels : [],
       bio: bio || null,
-      birth: birth || null,
+      birth: is_band === "true" ? null : birth || null,
       genres: filteredGenres.length > 0 ? filteredGenres : [],
       social_links: filteredSocialLinks.length > 0 ? filteredSocialLinks : [],
       status: "pending",
-      user_id: user.id, 
+      user_id: user.id,
     };
 
     // Insert artist into database
@@ -231,7 +234,7 @@ export async function POST(request) {
     if (insertError) {
       return NextResponse.json(
         { error: `Failed to create artist: ${insertError.message}` },
-        { status: 500 }
+        { status: 500 },
       );
     }
 
@@ -246,6 +249,8 @@ export async function POST(request) {
       // Don't fail the request if user update fails, just log it
     }
 
+    revalidateTag("artists");
+
     // Create notification for the user
     try {
       const notificationData = {
@@ -254,7 +259,7 @@ export async function POST(request) {
         message: `Thank you for submitting your DJ profile "${stage_name || name}". Our team will review your submission and notify you once it's approved. You can view and edit your submission in your profile dashboard.`,
         type: "submit",
         read: false,
-        created_at: new Date().toISOString()
+        created_at: new Date().toISOString(),
       };
 
       const { error: notificationError } = await supabaseAdmin
@@ -279,9 +284,7 @@ export async function POST(request) {
     console.error("Server error:", error);
     return NextResponse.json(
       { error: "Internal server error" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
-
-

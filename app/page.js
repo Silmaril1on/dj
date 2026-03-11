@@ -3,10 +3,11 @@ import { cookies } from "next/headers";
 
 export const dynamic = "force-dynamic";
 
-export const metadata = { 
-  title : "Soundfolio | Home",
-  description: "Discover and share events with Soundfolio's vibrant community. Explore upcoming events, connect with like-minded individuals, and stay updated on the latest happenings in your area.",
-}
+export const metadata = {
+  title: "Soundfolio | Home",
+  description:
+    "Discover and share events with Soundfolio's vibrant community. Explore upcoming events, connect with like-minded individuals, and stay updated on the latest happenings in your area.",
+};
 
 export default async function Home() {
   let events = [];
@@ -19,7 +20,7 @@ export default async function Home() {
 
     const eventsUrl = new URL(`${process.env.PROJECT_URL}/api/events`);
     const eventsResponse = await fetch(eventsUrl.toString(), {
-      cache: "no-store",
+      next: { revalidate: 1200, tags: ["events"] },
       headers: {
         Cookie: cookieHeader,
       },

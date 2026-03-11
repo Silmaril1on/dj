@@ -17,7 +17,7 @@ export async function GET() {
           error: "Authentication failed",
           details: userError.message,
         },
-        { status: 401 }
+        { status: 401 },
       );
     }
 
@@ -27,7 +27,7 @@ export async function GET() {
           success: false,
           error: "User not authenticated",
         },
-        { status: 401 }
+        { status: 401 },
       );
     }
 
@@ -46,13 +46,13 @@ export async function GET() {
 
     return NextResponse.json(
       { notifications: data, message: "Notifications fetched successfully" },
-      { status: 200 }
+      { status: 200 },
     );
   } catch (err) {
     console.error("❌ [NOTIFICATIONS] GET error:", err);
     return NextResponse.json(
       { error: "Internal server error" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
@@ -69,7 +69,7 @@ export async function POST(req) {
           error: "Authentication failed",
           details: userError.message,
         },
-        { status: 401 }
+        { status: 401 },
       );
     }
 
@@ -79,7 +79,7 @@ export async function POST(req) {
           success: false,
           error: "User not authenticated",
         },
-        { status: 401 }
+        { status: 401 },
       );
     }
 
@@ -89,7 +89,8 @@ export async function POST(req) {
 
     // Handle different POST actions
     if (action === "mark-all-read") {
-      const { data, error } = await supabase
+      const { supabaseAdmin } = await import("@/app/lib/config/supabaseServer");
+      const { data, error } = await supabaseAdmin
         .from("notifications")
         .update({ read: true })
         .eq("user_id", user.id)
@@ -105,7 +106,7 @@ export async function POST(req) {
           message: "All notifications marked as read successfully",
           updatedCount: data?.length || 0,
         },
-        { status: 200 }
+        { status: 200 },
       );
     }
 
@@ -113,7 +114,7 @@ export async function POST(req) {
     if (!message) {
       return NextResponse.json(
         { error: "message is required" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -128,7 +129,7 @@ export async function POST(req) {
         type,
         message,
         read: false,
-        created_at: new Date().toISOString()
+        created_at: new Date().toISOString(),
       })
       .select()
       .single();
@@ -139,12 +140,12 @@ export async function POST(req) {
 
     return NextResponse.json(
       { notification: data, message: "Notification created" },
-      { status: 201 }
+      { status: 201 },
     );
   } catch (err) {
     return NextResponse.json(
       { error: "Internal server error" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

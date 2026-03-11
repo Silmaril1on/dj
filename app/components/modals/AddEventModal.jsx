@@ -24,9 +24,9 @@ const AddEventModal = () => {
             city: eventData.city || "",
             club_name: eventData.club_name || "",
             event_link: eventData.event_link || "",
+            event_location: eventData.event_location || "",
             event_title: eventData.event_title || "",
             event_type: eventData.event_type || "",
-            event_image: eventData.event_image || "",
           }
         : {
             date: "",
@@ -35,9 +35,9 @@ const AddEventModal = () => {
             city: "",
             club_name: "",
             event_link: "",
+            event_location: "",
             event_title: "",
             event_type: "",
-            event_image: "",
           },
     fields: {
       date: {
@@ -92,10 +92,10 @@ const AddEventModal = () => {
         placeholder: "https://example.com/event",
         required: false,
       },
-      event_image: {
-        type: "url",
-        label: "Event Image URL",
-        placeholder: "https://example.com/image.jpg",
+      event_location: {
+        type: "text",
+        label: "Event Location",
+        placeholder: "https://www.google.com/maps?q=...",
         required: false,
       },
     },
@@ -113,7 +113,7 @@ const AddEventModal = () => {
         gridClass: "grid grid-cols-3 gap-4",
       },
       {
-        fields: ["event_link", "event_image"],
+        fields: ["event_link", "event_location"],
         gridClass: "grid grid-cols-1 gap-4",
       },
     ],
@@ -154,13 +154,13 @@ const AddEventModal = () => {
           if (formData.country) fd.append("country", formData.country);
           if (formData.city) fd.append("city", formData.city);
           if (formData.club_name) fd.append("venue_name", formData.club_name);
-          if (formData.event_link)
+          if (formData.event_location)
+            fd.append("location_url", formData.event_location);
+          else if (formData.event_link)
             fd.append("location_url", formData.event_link);
           if (formData.event_title)
             fd.append("event_name", formData.event_title);
           if (formData.event_type) fd.append("event_type", formData.event_type);
-          if (formData.event_image)
-            fd.append("event_image", formData.event_image);
 
           response = await fetch(`/api/events`, {
             method: "PATCH",

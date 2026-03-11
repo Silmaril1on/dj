@@ -242,7 +242,7 @@ export async function GET(request) {
                 id: item.id,
                 name: item.name,
                 image: item.club_image,
-                href: `/club/${item.id}`,
+                href: `/clubs/${item.id}`,
               });
             });
           }

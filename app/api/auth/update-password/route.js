@@ -10,7 +10,7 @@ export async function POST(request) {
     if (userError || !user) {
       return NextResponse.json(
         { error: "Authentication required" },
-        { status: 401 }
+        { status: 401 },
       );
     }
 
@@ -18,16 +18,14 @@ export async function POST(request) {
     if (!password || password.length < 8) {
       return NextResponse.json(
         { error: "Password must be at least 8 characters" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
-    const { error: updateError } = await supabaseAdmin.auth.admin.updateUserById(
-      user.id,
-      {
+    const { error: updateError } =
+      await supabaseAdmin.auth.admin.updateUserById(user.id, {
         password: password,
-      }
-    );
+      });
 
     if (updateError) {
       return NextResponse.json({ error: updateError.message }, { status: 500 });
@@ -77,6 +75,9 @@ export async function POST(request) {
     });
   } catch (err) {
     console.error("Password update error:", err);
-    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
+    return NextResponse.json(
+      { error: "Internal server error" },
+      { status: 500 },
+    );
   }
 }

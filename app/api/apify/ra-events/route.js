@@ -3,26 +3,25 @@ import { NextResponse } from "next/server";
 
 export async function POST(req) {
   try {
-    const { url, maxItems = 0 } = await req.json();
+    const { url, urls, maxItems = 0 } = await req.json();
 
-    if (!url) {
-      return NextResponse.json({ error: "URL is required" }, { status: 400 });
+    // Support both single URL and multiple URLs
+    const urlArray = urls || (url ? [url] : []);
+
+    if (!urlArray || urlArray.length === 0) {
+      return NextResponse.json({ error: "URL(s) required" }, { status: 400 });
     }
 
-    console.log("🚀 Starting RA Events scrape for URL:", url);
+    console.log("🚀 Starting RA Events scrape for URLs:", urlArray);
 
     // Initialize the ApifyClient with API token
     const client = new ApifyClient({
       token: process.env.APIFY_API_TOKEN,
     });
 
-    // Prepare Actor input for RA Events
+    // Prepare Actor input for RA Events with multiple URLs
     const input = {
-      startUrls: [
-        {
-          url: url,
-        },
-      ],
+      startUrls: urlArray.map((url) => ({ url })),
       proxyConfiguration: {
         useApifyProxy: false,
       },
@@ -56,7 +55,7 @@ export async function POST(req) {
     console.error("Apify RA Events error:", error);
     return NextResponse.json(
       { error: "Failed to scrape RA events data", details: error.message },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

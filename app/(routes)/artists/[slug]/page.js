@@ -1,23 +1,51 @@
 import { capitalizeTitle } from "@/app/helpers/utils";
-import ArtistProfile from "@/app/pages/artist/artist-profile/ArtistProfile";
 import { getServerUser } from "@/app/lib/config/supabaseServer";
 import { cookies } from "next/headers";
+import { cache } from "react";
+import ArtistProfile from "./ArtistProfile";
 
 export const dynamic = "force-dynamic";
+
+const getArtistProfile = cache(async ({ slug, cookieStore, userId }) => {
+  const url = new URL(`${process.env.PROJECT_URL}/api/artists/artist-profile`);
+  url.searchParams.set("slug", slug);
+  if (userId) {
+    url.searchParams.set("userId", userId);
+  }
+
+  const response = await fetch(url.toString(), {
+    next: {
+      revalidate: 1200,
+      tags: ["artists", "artist-likes", `artist-${slug}`],
+    },
+    headers: {
+      Cookie: cookieStore.toString(),
+    },
+  });
+
+  if (!response.ok) {
+    throw new Error(`Failed to fetch artist: ${response.status}`);
+  }
+
+  const { artist } = await response.json();
+
+  if (!artist) {
+    throw new Error("Artist not found");
+  }
+
+  return artist;
+});
 
 export const generateMetadata = async ({ params }) => {
   const { slug } = await params;
   try {
-    const response = await fetch(
-      `${process.env.PROJECT_URL}/api/artists/artist-profile?slug=${slug}`,
-      { next: { revalidate: 0 } },
-    );
-
-    if (!response.ok) {
-      throw new Error("Failed to fetch artist metadata");
-    }
-
-    const { artist } = await response.json();
+    const cookieStore = await cookies();
+    const { user } = await getServerUser(cookieStore);
+    const artist = await getArtistProfile({
+      slug,
+      cookieStore,
+      userId: user?.id,
+    });
     const artistName = capitalizeTitle(
       artist?.stage_name || artist?.name || "Artist",
     );
@@ -66,31 +94,11 @@ const ArtistProfilePage = async ({ params }) => {
     const cookieStore = await cookies();
     const { user } = await getServerUser(cookieStore);
 
-    // Fetch artist profile data
-    const url = new URL(
-      `${process.env.PROJECT_URL}/api/artists/artist-profile`,
-    );
-    url.searchParams.set("slug", slug);
-    if (user?.id) {
-      url.searchParams.set("userId", user.id);
-    }
-
-    const response = await fetch(url.toString(), {
-      next: { revalidate: 0 },
-      headers: {
-        Cookie: cookieStore.toString(),
-      },
+    const artist = await getArtistProfile({
+      slug,
+      cookieStore,
+      userId: user?.id,
     });
-
-    if (!response.ok) {
-      throw new Error(`Failed to fetch artist: ${response.status}`);
-    }
-
-    const { artist } = await response.json();
-
-    if (!artist) {
-      throw new Error("Artist not found");
-    }
 
     return <ArtistProfile data={artist} artistId={artist.id} />;
   } catch (error) {

@@ -23,6 +23,32 @@ export const validators = {
   required: (value) => {
     return value && value.trim() ? null : "This field is required";
   },
+  birthDate: (value) => {
+    if (!value || !value.trim()) return null; // Optional field
+
+    // Check if it's a year only (YYYY)
+    const yearOnlyRegex = /^\d{4}$/;
+    if (yearOnlyRegex.test(value)) {
+      const year = parseInt(value);
+      const currentYear = new Date().getFullYear();
+      if (year < 1900 || year > currentYear) {
+        return "Please enter a valid year between 1900 and current year";
+      }
+      return null;
+    }
+
+    // Check if it's a full date (YYYY-MM-DD)
+    const fullDateRegex = /^\d{4}-\d{2}-\d{2}$/;
+    if (fullDateRegex.test(value)) {
+      const date = new Date(value);
+      if (isNaN(date.getTime())) {
+        return "Please enter a valid date";
+      }
+      return null;
+    }
+
+    return "Please enter a year (e.g., 1990) or full date (YYYY-MM-DD)";
+  },
 };
 
 export const commonFields = {
@@ -129,8 +155,10 @@ export const artistFields = {
     placeholder: "Enter record label or management",
   },
   birth: {
-    type: "date",
+    type: "text",
     required: false,
+    placeholder: "e.g., 1990 or 1990-05-15",
+    validation: validators.birthDate,
   },
   genres: {
     type: "additional",

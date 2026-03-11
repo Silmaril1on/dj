@@ -111,12 +111,12 @@ export default function RaEvents() {
   // Event selection states
   const [selectedEvents, setSelectedEvents] = useState([]);
   const [insertingSchedule, setInsertingSchedule] = useState(false);
-  const [insertingEvents, setInsertingEvents] = useState(false);
+  const [insertingData, setInsertingData] = useState(false);
   const [insertSuccess, setInsertSuccess] = useState(null);
 
   const handleStart = async () => {
-    if (!url) {
-      setError("Please enter a URL");
+    if (!url.trim()) {
+      setError("Please enter at least one URL");
       return;
     }
 
@@ -126,13 +126,19 @@ export default function RaEvents() {
     setSelectedEvents([]);
 
     try {
+      // Split URLs by newline and clean them
+      const urls = url
+        .split(/\r?\n/)
+        .map((entry) => entry.trim())
+        .filter(Boolean);
+
       // Use RA events API endpoint
       const response = await fetch("/api/apify/ra-events", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ url }),
+        body: JSON.stringify({ urls }),
       });
 
       const data = await response.json();
@@ -152,33 +158,6 @@ export default function RaEvents() {
     }
   };
 
-  const handleArtistSearch = async () => {
-    if (!artistSearch.trim()) {
-      setArtistResults([]);
-      return;
-    }
-
-    setSearchingArtist(true);
-    try {
-      const response = await fetch(
-        `/api/artists/search?name=${encodeURIComponent(artistSearch)}`
-      );
-      const data = await response.json();
-
-      if (response.ok) {
-        setArtistResults(data.artists || []);
-      } else {
-        console.error("Artist search error:", data.error);
-        setArtistResults([]);
-      }
-    } catch (err) {
-      console.error("Artist search failed:", err);
-      setArtistResults([]);
-    } finally {
-      setSearchingArtist(false);
-    }
-  };
-
   const selectArtist = (artist) => {
     setSelectedArtist(artist);
     setArtistResults([]);
@@ -187,7 +166,7 @@ export default function RaEvents() {
 
   const toggleEventSelection = (index) => {
     setSelectedEvents((prev) =>
-      prev.includes(index) ? prev.filter((i) => i !== index) : [...prev, index]
+      prev.includes(index) ? prev.filter((i) => i !== index) : [...prev, index],
     );
   };
 
@@ -245,43 +224,79 @@ export default function RaEvents() {
     }
   };
 
-  const handleAddToEvents = async () => {
+  const handleInsertData = async () => {
     if (selectedEvents.length === 0) {
       setError("Please select at least one event");
       return;
     }
 
-    setInsertingEvents(true);
+    setInsertingData(true);
     setError(null);
     setInsertSuccess(null);
 
     try {
       const eventsToInsert = selectedEvents.map((index) => results[index]);
 
-      const response = await fetch("/api/events/insert", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          events: eventsToInsert,
+      const [eventsResponse, clubsResponse] = await Promise.all([
+        fetch("/api/events/insert", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            events: eventsToInsert,
+          }),
         }),
-      });
+        fetch("/api/club/insert-from-apify", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            events: eventsToInsert,
+          }),
+        }),
+      ]);
 
-      const data = await response.json();
+      const [eventsData, clubsData] = await Promise.all([
+        eventsResponse.json(),
+        clubsResponse.json(),
+      ]);
 
-      if (!response.ok) {
-        throw new Error(data.error || "Failed to insert events");
+      if (!eventsResponse.ok) {
+        throw new Error(eventsData.error || "Failed to insert events");
       }
 
-      console.log("✅ Events insert success:", data);
-      setInsertSuccess(data);
+      if (!clubsResponse.ok) {
+        throw new Error(clubsData.error || "Failed to insert clubs");
+      }
+
+      console.log("✅ Insert success (events):", eventsData);
+      console.log("✅ Insert success (clubs):", clubsData);
+
+      const combinedErrors = [
+        ...(eventsData.errors || []).map((err) => ({
+          ...err,
+          source: "events",
+        })),
+        ...(clubsData.errors || []).map((err) => ({
+          ...err,
+          source: "clubs",
+        })),
+      ];
+
+      setInsertSuccess({
+        target: "events+clubs",
+        events: eventsData,
+        clubs: clubsData,
+        errors: combinedErrors.length > 0 ? combinedErrors : undefined,
+      });
       setSelectedEvents([]);
     } catch (err) {
-      console.error("❌ Events insert error:", err);
+      console.error("❌ Insert error:", err);
       setError(err.message);
     } finally {
-      setInsertingEvents(false);
+      setInsertingData(false);
     }
   };
 
@@ -295,13 +310,15 @@ export default function RaEvents() {
       <div className="bg-neutral-900 border border-gold/30 p-6 mb-6">
         <div className="mb-6">
           <label className="block text-sm font-bold uppercase text-cream mb-2">
-            RA Events URL
+            RA Events URL(s)
           </label>
-          <input
-            type="text"
+          <textarea
             value={url}
             onChange={(e) => setUrl(e.target.value)}
-            placeholder="https://ra.co/events/cy/limassol"
+            placeholder={
+              "Paste one or multiple RA Events URLs (one per line)\nhttps://ra.co/events/cy/limassol\nhttps://ra.co/events/ch/basel"
+            }
+            rows={4}
           />
         </div>
 
@@ -324,15 +341,30 @@ export default function RaEvents() {
       {insertSuccess && (
         <div className="bg-green-900/20 border border-green-500/50 text-green-300 px-4 py-3 mb-6">
           <p className="font-semibold">✅ Success!</p>
-          <p>
-            Inserted {insertSuccess.inserted} of {insertSuccess.total} events
-          </p>
+          {insertSuccess.target === "events+clubs" ? (
+            <>
+              <p>
+                Events: Inserted {insertSuccess.events?.inserted || 0} of{" "}
+                {insertSuccess.events?.total || 0}
+              </p>
+              <p>
+                Clubs: Inserted {insertSuccess.clubs?.inserted || 0} of{" "}
+                {insertSuccess.clubs?.total || 0}
+              </p>
+            </>
+          ) : (
+            <p>
+              Inserted {insertSuccess.inserted} of {insertSuccess.total}{" "}
+              {insertSuccess.target || "events"}
+            </p>
+          )}
           {insertSuccess.errors && insertSuccess.errors.length > 0 && (
             <div className="mt-2">
-              <p className="text-sm text-red-300">Some events failed:</p>
+              <p className="text-sm text-red-300">Some items failed:</p>
               <ul className="text-xs mt-1">
                 {insertSuccess.errors.map((err, idx) => (
                   <li key={idx}>
+                    {err.source ? `[${err.source}] ` : ""}
                     {err.event}: {err.error}
                   </li>
                 ))}
@@ -502,13 +534,9 @@ export default function RaEvents() {
             {selectedEvents.length > 0 && (
               <div className="mt-6 flex justify-end gap-4">
                 <Button
-                  text={
-                    insertingEvents
-                      ? "⏳ Adding to Events..."
-                      : `📋 Add ${selectedEvents.length} to Events Table`
-                  }
-                  onClick={handleAddToEvents}
-                  disabled={insertingEvents}
+                  text={insertingData ? "⏳ Inserting..." : "Insert Data"}
+                  onClick={handleInsertData}
+                  disabled={insertingData}
                 />
                 <Button
                   text={

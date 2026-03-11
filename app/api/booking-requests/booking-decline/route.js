@@ -13,7 +13,7 @@ export async function POST(request) {
     if (userError || !user) {
       return NextResponse.json(
         { error: "User not authenticated" },
-        { status: 401 }
+        { status: 401 },
       );
     }
 
@@ -22,7 +22,7 @@ export async function POST(request) {
     if (!booking_id) {
       return NextResponse.json(
         { error: "booking_id is required" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -41,14 +41,17 @@ export async function POST(request) {
 
     // 2. Check if user is the receiver (DJ) who can decline
     if (user.id !== booking.receiver_id) {
-      return NextResponse.json({ error: "Only the receiver can decline bookings" }, { status: 403 });
+      return NextResponse.json(
+        { error: "Only the receiver can decline bookings" },
+        { status: 403 },
+      );
     }
 
     // 3. Check if booking is already responded to
     if (booking.response !== null) {
       return NextResponse.json(
         { error: `Booking has already been ${booking.response}` },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -57,21 +60,23 @@ export async function POST(request) {
       response: "declined",
       declined_at: new Date().toISOString(),
       decline_reason: reason || null,
-      updated_at: new Date().toISOString()
+      updated_at: new Date().toISOString(),
     };
 
     const { data: updatedBooking, error: updateError } = await supabase
       .from("booking_requests")
       .update(updateData)
       .eq("id", booking_id)
-      .select("id, requester_id, receiver_id, response, declined_at, event_name")
+      .select(
+        "id, requester_id, receiver_id, response, declined_at, event_name",
+      )
       .single();
 
     if (updateError) {
       console.error("Update error:", updateError);
       return NextResponse.json(
         { error: "Failed to decline booking" },
-        { status: 500 }
+        { status: 500 },
       );
     }
 
@@ -93,10 +98,10 @@ export async function POST(request) {
         booking_id: booking.id,
         declined_by: booking.receiver_id,
         event_name: booking.event_name,
-        reason: reason
+        reason: reason,
       },
       created_at: new Date().toISOString(),
-      read: false
+      read: false,
     };
 
     const { error: notificationError } = await supabase
@@ -111,14 +116,14 @@ export async function POST(request) {
     return NextResponse.json({
       success: true,
       data: updatedBooking,
-      message: "Booking declined successfully. The requester has been notified."
+      message:
+        "Booking declined successfully. The requester has been notified.",
     });
-
   } catch (error) {
     console.error("Booking decline error:", error);
     return NextResponse.json(
       { error: "Internal server error" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

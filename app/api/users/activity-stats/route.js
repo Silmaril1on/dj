@@ -10,22 +10,11 @@ export async function GET() {
     const cookieStore = await cookies();
     const { user, error: userError } = await getServerUser(cookieStore);
 
-    if (userError) {
+    if (userError || !user) {
       return NextResponse.json(
         {
           success: false,
-          error: "Authentication failed",
-          details: userError.message,
-        },
-        { status: 401 },
-      );
-    }
-
-    if (!user) {
-      return NextResponse.json(
-        {
-          success: false,
-          error: "User not authenticated",
+          error: userError?.message || "User not authenticated",
         },
         { status: 401 },
       );
@@ -33,7 +22,7 @@ export async function GET() {
 
     const supabase = await createSupabaseServerClient(cookieStore);
 
-    // ✅ OPTIMIZED: Fetch all counts in parallel including event likes
+    // Fetch counts in parallel
     const [
       reviewsResult,
       ratingsResult,
@@ -63,16 +52,23 @@ export async function GET() {
         .eq("user_id", user.id),
     ]);
 
-    return NextResponse.json({
-      success: true,
-      data: {
-        totalReviews: reviewsResult.count || 0,
-        totalRatings: ratingsResult.count || 0,
-        totalLikes:
-          (artistLikesResult.count || 0) + (eventLikesResult.count || 0),
-        totalEvents: eventsResult.count || 0,
+    // ✅ Add revalidation (10 minutes = 600 seconds)
+    return NextResponse.json(
+      {
+        success: true,
+        data: {
+          totalReviews: reviewsResult.count || 0,
+          totalRatings: ratingsResult.count || 0,
+          totalLikes:
+            (artistLikesResult.count || 0) + (eventLikesResult.count || 0),
+          totalEvents: eventsResult.count || 0,
+        },
       },
-    });
+      {
+        status: 200,
+        revalidate: 600,
+      },
+    );
   } catch (error) {
     return NextResponse.json(
       {

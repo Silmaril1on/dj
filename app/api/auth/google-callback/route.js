@@ -10,7 +10,7 @@ export async function POST(request) {
   try {
     const cookieStore = await cookies();
     const supabase = await createSupabaseServerClient(cookieStore);
-    
+
     // Get the current authenticated user
     const {
       data: { user },
@@ -20,7 +20,7 @@ export async function POST(request) {
     if (userError || !user) {
       return NextResponse.json(
         { error: "User not authenticated" },
-        { status: 401 }
+        { status: 401 },
       );
     }
 
@@ -34,7 +34,7 @@ export async function POST(request) {
     if (selectError) {
       return NextResponse.json(
         { error: "Failed to check user profile" },
-        { status: 500 }
+        { status: 500 },
       );
     }
 
@@ -47,7 +47,8 @@ export async function POST(request) {
       const profile = {
         id: user.id,
         email: email.toLowerCase().trim(),
-        userName: userName || display_name || full_name || name || email.split("@")[0],
+        userName:
+          userName || display_name || full_name || name || email.split("@")[0],
         user_avatar: avatar_url || picture || "",
       };
 
@@ -60,7 +61,7 @@ export async function POST(request) {
       if (insertError) {
         return NextResponse.json(
           { error: "Failed to create user profile" },
-          { status: 500 }
+          { status: 500 },
         );
       }
 
@@ -97,7 +98,7 @@ export async function POST(request) {
   } catch (error) {
     return NextResponse.json(
       { error: "Internal server error" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

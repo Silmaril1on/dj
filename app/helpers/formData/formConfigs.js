@@ -156,6 +156,7 @@ export const formConfigs = {
       name: "",
       stage_name: "",
       sex: "",
+      is_band: "false",
       desc: "",
       country: "",
       city: "",
@@ -185,9 +186,20 @@ export const formConfigs = {
         label: "Sex",
         options: sexOptions,
       },
+      is_band: {
+        type: "select",
+        required: false,
+        label: "Is Band/Group",
+        options: [
+          { value: "false", label: "No (Individual Artist)" },
+          { value: "true", label: "Yes (Band/Group)" },
+        ],
+      },
       birth: {
         ...artistFields.birth,
-        label: "Birth Date",
+        label: "Birth Date / Year",
+        required: false,
+        helpText: "Enter year only (e.g., 1990) or full date (YYYY-MM-DD)",
       },
 
       desc: {
@@ -234,8 +246,13 @@ export const formConfigs = {
       },
       {
         title: "Basic Information",
-        fields: ["name", "stage_name", "sex", "birth"],
+        fields: ["name", "stage_name"],
         gridClass: "grid grid-cols-1 md:grid-cols-2 gap-4",
+      },
+      {
+        title: "Artist Details",
+        fields: ["sex", "is_band", "birth"],
+        gridClass: "grid grid-cols-1 md:grid-cols-3 gap-4",
       },
       {
         title: "Location & Details",

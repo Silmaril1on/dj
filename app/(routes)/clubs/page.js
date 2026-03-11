@@ -1,30 +1,23 @@
 import AllDataPage from "@/app/pages/all-data-page/AllDataPage";
-import { cookies } from "next/headers";
 
-export const dynamic = "force-dynamic";
+export const revalidate = 1200;
 
-export const metadata = { 
-  title: "Soundfolio | Clubs", 
-  description: "Discover and explore various clubs on Soundfolio. Join communities that share your musical interests and connect with like-minded individuals." 
-}
+export const metadata = {
+  title: "Soundfolio | Clubs",
+  description:
+    "Discover and explore various clubs on Soundfolio. Join communities that share your musical interests and connect with like-minded individuals.",
+};
 
 const ClubsPage = async () => {
   try {
-    const cookieStore = await cookies();
-    const cookieHeader = cookieStore
-      .getAll()
-      .map(({ name, value }) => `${name}=${value}`)
-      .join("; ");
-
     const response = await fetch(
-      `${process.env.PROJECT_URL}/api/club?limit=15&offset=0`,
+      `${process.env.PROJECT_URL}/api/club?limit=30&offset=0`,
       {
-        cache: "no-store",
+        next: { revalidate: 1200, tags: ["clubs"] },
         headers: {
           "Content-Type": "application/json",
-          Cookie: cookieHeader,
         },
-      }
+      },
     );
 
     if (!response.ok) {
@@ -35,7 +28,7 @@ const ClubsPage = async () => {
     const result = await response.json();
     const clubs = result?.data || [];
     return (
-      <AllDataPage 
+      <AllDataPage
         type="clubs"
         initialData={clubs}
         title="All Clubs"
@@ -44,7 +37,7 @@ const ClubsPage = async () => {
     );
   } catch (error) {
     return (
-      <AllDataPage 
+      <AllDataPage
         type="clubs"
         initialData={[]}
         error={error.message}
