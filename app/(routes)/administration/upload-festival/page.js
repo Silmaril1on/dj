@@ -29,7 +29,7 @@ const UploadFestivalPage = () => {
         setError({
           message: "Festival uploaded successfully!",
           type: "success",
-        })
+        }),
       );
 
       setTimeout(() => {
@@ -45,7 +45,7 @@ const UploadFestivalPage = () => {
   return (
     <div className="min-h-screen">
       <FormContainer
-        maxWidth="w-full"
+        className="w-full"
         title="Upload Festival (Admin)"
         description="Upload a new festival directly to the platform. Festival will be automatically approved."
       >

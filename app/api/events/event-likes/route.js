@@ -133,12 +133,13 @@ export async function POST(request) {
         );
       }
     } else {
-      const { error: insertError } = await supabase
-        .from("event_likes")
-        .insert({ event_id: eventId, user_id: user.id });
+      const { error: insertError } = await supabase.from("event_likes").insert({
+        event_id: eventId,
+        user_id: user.id,
+      });
       if (insertError) {
         return NextResponse.json(
-          { error: "Failed to add like" },
+          { error: "Failed to add like", details: insertError.message },
           { status: 500 },
         );
       }

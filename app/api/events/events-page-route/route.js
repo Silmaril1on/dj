@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import { createSupabaseServerClient } from "@/app/lib/config/supabaseServer";
+import { getTodayDateOnlyString } from "@/app/helpers/utils";
 
 export async function GET(request) {
   try {
@@ -11,10 +12,8 @@ export async function GET(request) {
     const cookieStore = await cookies();
     const supabase = await createSupabaseServerClient(cookieStore);
 
-    // Start-of-day ISO date string for filtering upcoming events only
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    const todayStr = today.toISOString().split("T")[0];
+    // Use local date-only string to avoid UTC day-shift issues.
+    const todayStr = getTodayDateOnlyString();
 
     // ✅ OPTIMIZED: Fetch upcoming events and likes in parallel
     const [eventsResult, likesResult] = await Promise.all([

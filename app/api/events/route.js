@@ -5,6 +5,7 @@ import {
   createSupabaseServerClient,
   getServerUser,
 } from "@/app/lib/config/supabaseServer";
+import { getTodayDateOnlyString } from "@/app/helpers/utils";
 
 const extractEventImagePath = (url) => {
   if (!url) return null;
@@ -38,13 +39,11 @@ export async function GET(request) {
 
     const { user, error: userError } = await getServerUser(cookieStore);
 
-    // Start-of-day ISO date string for filtering upcoming events
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    const todayStr = today.toISOString().split("T")[0];
+    // Use local date-only string to avoid UTC day-shift issues.
+    const todayStr = getTodayDateOnlyString();
 
     // ✅ Fetch upcoming events and likes in parallel
-    const [eventsResult, likesResult] = await Promise.all([
+    const [eventsResult, likesResult, remindersResult] = await Promise.all([
       supabase
         .from("events")
         .select("*")
@@ -54,6 +53,13 @@ export async function GET(request) {
         .limit(fetchLimit),
 
       supabase.from("event_likes").select("event_id, user_id"),
+
+      user?.id
+        ? supabase
+            .from("event_reminders")
+            .select("event_id, reminder_offset_days")
+            .eq("user_id", user.id)
+        : Promise.resolve({ data: [], error: null }),
     ]);
 
     if (eventsResult.error) {
@@ -71,10 +77,17 @@ export async function GET(request) {
 
     const eventIds = events.map((e) => e.id);
     const likesData = likesResult.data || [];
+    const remindersData = remindersResult.data || [];
 
     // Build likes map for better performance
     const likesMap = {};
     const userLikesSet = new Set();
+    const userRemindersSet = new Set(
+      remindersData.map((item) => item.event_id),
+    );
+    const userReminderOffsetMap = new Map(
+      remindersData.map((item) => [item.event_id, item.reminder_offset_days]),
+    );
 
     likesData.forEach((like) => {
       if (eventIds.includes(like.event_id)) {
@@ -89,6 +102,8 @@ export async function GET(request) {
       ...event,
       likesCount: likesMap[event.id] || 0,
       isLiked: userLikesSet.has(event.id),
+      isReminderSet: userRemindersSet.has(event.id),
+      reminderOffsetDays: userReminderOffsetMap.get(event.id) || null,
     }));
 
     // Sort by closest date first, then by popularity (likesCount desc)

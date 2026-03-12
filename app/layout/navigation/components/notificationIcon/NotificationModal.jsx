@@ -28,6 +28,7 @@ const NotificationModal = ({
         loading={loading}
         error={error}
         notifications={notifications}
+        onClose={onClose}
       />
       {/* </div> */}
       <NtfFooter

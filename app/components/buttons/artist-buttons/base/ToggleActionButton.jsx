@@ -18,6 +18,7 @@ const ToggleActionButton = ({
   label,
   successMessage = { on: "Action completed", off: "Action undone" },
   errorMessage = "Action failed",
+  showSuccessToast = false,
   ...props
 }) => {
   const [isActive, setIsActive] = useState(initialState);
@@ -46,12 +47,14 @@ const ToggleActionButton = ({
         const data = await response.json();
         setIsActive(data.isLiked ?? data.isActive ?? newState);
         onSuccess?.(data);
-        dispatch(
-          setError({
-            message: newState ? successMessage.on : successMessage.off,
-            type: "success",
-          }),
-        );
+        if (showSuccessToast) {
+          dispatch(
+            setError({
+              message: newState ? successMessage.on : successMessage.off,
+              type: "success",
+            }),
+          );
+        }
       } else {
         // Revert on error
         setIsActive(!newState);

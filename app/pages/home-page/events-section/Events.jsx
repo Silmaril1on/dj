@@ -13,18 +13,32 @@ import SpanText from "@/app/components/ui/SpanText";
 import { FaArrowRight } from "react-icons/fa";
 import SectionContainer from "@/app/components/containers/SectionContainer";
 import LikeButton from "@/app/components/buttons/artist-buttons/LikeButton";
-import { formatBirthdate, truncateString } from "@/app/helpers/utils";
+import ReminderButton from "@/app/components/buttons/artist-buttons/ReminderButton";
+import {
+  formatBirthdate,
+  isOnOrAfterToday,
+  truncateString,
+} from "@/app/helpers/utils";
 
 const Events = ({ events = [] }) => {
   const [open, setOpen] = useState(null);
+  const upcomingEvents = events.filter((event) =>
+    isOnOrAfterToday(event?.date),
+  );
 
   useEffect(() => {
-    if (events.length > 0 && open === null) {
-      setOpen(events[0].id);
+    if (upcomingEvents.length > 0 && open === null) {
+      setOpen(upcomingEvents[0].id);
     }
-  }, [events, open]);
+  }, [upcomingEvents, open]);
 
-  if (events.length === 0) {
+  useEffect(() => {
+    if (open && !upcomingEvents.some((event) => event.id === open)) {
+      setOpen(upcomingEvents[0]?.id ?? null);
+    }
+  }, [open, upcomingEvents]);
+
+  if (upcomingEvents.length === 0) {
     return (
       <div className="w-full h-[450px] flex items-center justify-center bg-stone-900">
         <p className="text-chino text-xl">No events available</p>
@@ -39,7 +53,7 @@ const Events = ({ events = [] }) => {
         description="Stay tuned for the hottest upcoming events. Don't miss out!"
       >
         <div className="flex flex-col gap-2 lg:gap-0 lg:flex-row h-fit lg:h-[550px] w-full overflow-hidden">
-          {events.map((event) => {
+          {upcomingEvents.map((event) => {
             return (
               <Panel
                 key={event.id}
@@ -61,6 +75,12 @@ const Panel = ({ open, setOpen, event }) => {
 
   const [likesCount, setLikesCount] = useState(event.likesCount || 0);
   const [isLiked, setIsLiked] = useState(event.isLiked || false);
+  const [isReminderSet, setIsReminderSet] = useState(
+    event.isReminderSet || false,
+  );
+  const [reminderOffsetDays, setReminderOffsetDays] = useState(
+    event.reminderOffsetDays || 3,
+  );
 
   const handleLikeChange = (liked, newLikesCount) => {
     setIsLiked(liked);
@@ -143,12 +163,12 @@ const Panel = ({ open, setOpen, event }) => {
                 />
               </div>
               <div>
-                <div className="absolute px-3 py-1.5 bg-black/50 shadow-lg rounded-md backdrop-blur-lg center space-x-2 top-2 lg:top-4 right-2 lg:right-4">
+                <div className="absolute center gap-2  py-1.5 bg-black/50 shadow-lg rounded-md backdrop-blur-lg  top-2 lg:top-4 right-2 lg:right-4 w-32">
                   <SpanText
                     icon={<FaUsers />}
                     size="xs"
                     text={`${likesCount} Interested`}
-                    className="ml-2 secondary pointer-events-none"
+                    className="secondary pointer-events-none"
                   />
                   <LikeButton
                     type="event"
@@ -158,6 +178,24 @@ const Panel = ({ open, setOpen, event }) => {
                       likesCount: likesCount,
                     }}
                     onLikeChange={handleLikeChange}
+                  />
+                </div>
+                <div className="center gap-2  py-1.5 absolute top-2 lg:top-15 right-2 lg:right-4 bg-black/50 shadow-lg rounded-md backdrop-blur-lg w-32">
+                  <SpanText
+                    text="Set Reminder"
+                    size="xs"
+                    className="secondary pointer-events-none"
+                  />
+                  <ReminderButton
+                    event={{
+                      id: event.id,
+                      isReminderSet,
+                      reminderOffsetDays,
+                    }}
+                    onReminderChange={(nextState, nextOffset) => {
+                      setIsReminderSet(nextState);
+                      if (nextOffset) setReminderOffsetDays(nextOffset);
+                    }}
                   />
                 </div>
                 <Title

@@ -39,21 +39,23 @@ const ProductCard = ({
       className={`relative bordered bg-stone-900 p-1 group cursor-pointer ${className}`}
     >
       <Link href={href}>
-        <div className="h-44 lg:h-80 brightness">
+        <div className="relative h-44 lg:h-80 brightness overflow-hidden">
           {image ? (
             <Image
               src={image}
               alt={name}
-              className="w-full h-full object-cover"
-              width={300}
-              height={300}
+              fill
+              sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, (max-width: 1536px) 33vw, 400px"
+              quality={75}
+              className="object-cover"
             />
           ) : (
             <Image
               src="/assets/elivagar-logo.png"
               alt="soundfolio"
-              width={300}
-              height={300}
+              fill
+              sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, (max-width: 1536px) 33vw, 400px"
+              className="object-cover"
             />
           )}
         </div>
@@ -64,7 +66,7 @@ const ProductCard = ({
             text={truncateString(name, 50)}
           />
           {date && (
-            <p className="text-chino  uppercase text-[10px] lg:text-sm">
+            <p className="text-chino uppercase text-[10px] lg:text-sm">
               {date}
             </p>
           )}
@@ -81,7 +83,7 @@ const ProductCard = ({
         {artists.length > 0 && (
           <div className="flex flex-wrap">
             {artists.slice(0, 5).map((artist, idx) => (
-              <div className="flex mr-2 space-x-1  items-center" key={idx}>
+              <div className="flex mr-2 space-x-1 items-center" key={idx}>
                 <Title
                   color="chino"
                   className="uppercase text-[12px] lg:text-lg leading-none"

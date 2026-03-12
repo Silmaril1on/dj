@@ -9,6 +9,8 @@ const UserActivityCounts = ({ showStats = true, className = "" }) => {
   const [stats, setStats] = useState({
     totalReviews: 0,
     totalRatings: 0,
+    totalArtistLikes: 0,
+    totalTrackedEvents: 0,
     totalLikes: 0,
     totalEvents: 0,
   });
@@ -85,7 +87,7 @@ const UserActivityCounts = ({ showStats = true, className = "" }) => {
   }
 
   return (
-    <div className={`grid grid-cols-2 lg:grid-cols-4 gap-1 ${className}`}>
+    <div className={`grid grid-cols-2 lg:grid-cols-5 gap-1 ${className}`}>
       <div className="flex items-center gap-2 bg-stone-900/80 px-4 py-2 rounded-lg border border-gold/20">
         <FaComment className="text-gold" size={16} />
         <span className="text-gold font-bold">
@@ -105,9 +107,17 @@ const UserActivityCounts = ({ showStats = true, className = "" }) => {
       <div className="flex items-center gap-2 bg-stone-900/80 px-4 py-2 rounded-lg border border-gold/20">
         <FaHeart className="text-gold" size={16} />
         <span className="text-gold font-bold">
-          {loading && !hasCache ? "..." : stats.totalLikes}
+          {loading && !hasCache ? "..." : stats.totalArtistLikes || 0}
         </span>
-        <span className="text-stone-400 text-sm">Likes</span>
+        <span className="text-stone-400 text-sm">Artist Likes</span>
+      </div>
+
+      <div className="flex items-center gap-2 bg-stone-900/80 px-4 py-2 rounded-lg border border-gold/20">
+        <FaHeart className="text-gold" size={16} />
+        <span className="text-gold font-bold">
+          {loading && !hasCache ? "..." : stats.totalTrackedEvents || 0}
+        </span>
+        <span className="text-stone-400 text-sm">Events Tracked</span>
       </div>
 
       {stats.totalEvents > 0 && (

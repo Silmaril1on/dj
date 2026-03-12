@@ -3,10 +3,7 @@ import {
   MdSecurity,
   MdAnalytics,
   MdOutlineTrackChanges,
-  MdReviews,
-  MdStar,
   MdEvent,
-  MdEventAvailable,
   MdFestival,
   MdAssignment,
 } from "react-icons/md";
@@ -41,17 +38,18 @@ export const userProfileLinks = [
       {
         href: "/my-profile/activities/reviews",
         text: "Reviews",
-        icon: <MdReviews />,
       },
       {
         href: "/my-profile/activities/ratings",
         text: "Ratings",
-        icon: <MdStar />,
       },
       {
         href: "/my-profile/activities/my-events",
         text: "Events",
-        icon: <MdEventAvailable />,
+      },
+      {
+        href: "/my-profile/activities/reminders",
+        text: "Reminders",
       },
     ],
   },
@@ -128,5 +126,10 @@ export const administrationLinks = [
   {
     href: "/administration/reports",
     text: "Reports and Feedbacks",
+  },
+
+  {
+    href: "/administration/task-manager",
+    text: "Task Manager",
   },
 ];

@@ -21,10 +21,19 @@ export async function GET(request, { params }) {
     const { user } = await getServerUser(cookieStore);
     const supabase = await createSupabaseServerClient(cookieStore);
 
-    const [eventResult, likesResult] = await Promise.all([
+    const [eventResult, likesResult, reminderResult] = await Promise.all([
       supabase.from("events").select("*").eq("id", id).single(),
 
       supabase.from("event_likes").select("user_id").eq("event_id", id),
+
+      user
+        ? supabase
+            .from("event_reminders")
+            .select("id, reminder_offset_days")
+            .eq("event_id", id)
+            .eq("user_id", user.id)
+            .maybeSingle()
+        : Promise.resolve({ data: null, error: null }),
     ]);
 
     if (eventResult.error || !eventResult.data) {
@@ -44,6 +53,9 @@ export async function GET(request, { params }) {
     const userLiked = user
       ? likesData.some((like) => like.user_id === user.id)
       : false;
+    const userReminderSet = Boolean(reminderResult?.data);
+    const userReminderOffsetDays =
+      reminderResult?.data?.reminder_offset_days || null;
 
     // Fetch artist details if artists exist
     let artistsWithIds = [];
@@ -85,6 +97,8 @@ export async function GET(request, { params }) {
       artists: artistsWithIds.length > 0 ? artistsWithIds : event.artists,
       likesCount,
       userLiked,
+      userReminderSet,
+      userReminderOffsetDays,
       currentUserId: user?.id || null,
       success: true,
     });

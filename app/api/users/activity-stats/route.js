@@ -59,8 +59,10 @@ export async function GET() {
         data: {
           totalReviews: reviewsResult.count || 0,
           totalRatings: ratingsResult.count || 0,
+          totalArtistLikes: artistLikesResult.count || 0,
           totalLikes:
             (artistLikesResult.count || 0) + (eventLikesResult.count || 0),
+          totalTrackedEvents: eventLikesResult.count || 0,
           totalEvents: eventsResult.count || 0,
         },
       },
