@@ -1,15 +1,18 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useDispatch } from "react-redux";
+import { openReviewModal } from "@/app/features/reviewsSlice";
+
 import { FaArrowLeft } from "react-icons/fa";
 import Title from "@/app/components/ui/Title";
 import Paragraph from "@/app/components/ui/Paragraph";
 import Button from "@/app/components/buttons/Button";
+import ActionButton from "@/app/components/buttons/ActionButton";
 import ProfilePicture from "@/app/components/materials/ProfilePicture";
 import MyLink from "@/app/components/ui/MyLink";
 import ArtistName from "@/app/components/materials/ArtistName";
 import ArtistGenres from "@/app/components/materials/ArtistGenres";
 import FlexBox from "@/app/components/containers/FlexBox";
-import ReviewButton from "@/app/components/buttons/artist-buttons/ReviewButton";
 import ReviewList from "./ReviewList";
 
 const ArtistReviews = ({
@@ -112,14 +115,37 @@ const ReviewHeader = ({ artist, data }) => {
 };
 
 const ReviewFooter = ({ artist, onReviewAdd }) => {
+  const dispatch = useDispatch();
+
+  useEffect(() => {
+    if (onReviewAdd) {
+      window.addNewReview = onReviewAdd;
+    }
+    return () => {
+      if (window.addNewReview === onReviewAdd) {
+        delete window.addNewReview;
+      }
+    };
+  }, [onReviewAdd]);
+
+  const addReview = () => {
+    dispatch(
+      openReviewModal({
+        artistId: artist.id,
+        name: artist.name,
+        stage_name: artist.stage_name,
+      }),
+    );
+  };
+
   return (
     <FlexBox type="column-start" className="bg-gold/20 p-5 gap-2">
       <Title size="lg" text="Share Your Experience" />
       <Paragraph text="Have you seen this artist perform? Share your review and help others discover great music!" />
-      <ReviewButton
-        artist={artist}
-        desc="Write a Review"
-        onReviewAdd={onReviewAdd}
+      <ActionButton
+        text="Write a Review"
+        onClick={addReview}
+        authMessage="Please login to review this artist"
       />
     </FlexBox>
   );

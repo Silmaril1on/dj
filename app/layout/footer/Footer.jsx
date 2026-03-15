@@ -3,7 +3,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { openReportModal } from "@/app/features/reportsSlice";
 import { openPrivacyTermsModal } from "@/app/features/privacyTermsSlice";
 import { setError } from "@/app/features/modalSlice"; // ✅ import setError
-import { appSocialLinks } from "@/app/localDB/pageInfoData";
+import { appSocialLinks } from "@/app/lib/localDB/pageInfoData";
 import SocialLinks from "@/app/components/materials/SocialLinks";
 import Paragraph from "@/app/components/ui/Paragraph";
 import Logo from "@/app/components/ui/Logo";

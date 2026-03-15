@@ -8,10 +8,8 @@ import evaluationReducer from "@/app/features/evaluationSlice";
 import editProductReducer from "@/app/features/editProductSlice";
 import reportsReducer from "@/app/features/reportsSlice";
 import bookingReducer from "@/app/features/bookingSlice";
-import acceptBookingReducer from "@/app/features/bookingSlice";
 import welcomeReducer from "@/app/features/welcomeSlice";
 import { privacyTermsReducer } from "@/app/features/privacyTermsSlice";
-import eventRequestReducer from "@/app/features/eventRequestSlice";
 
 export const store = configureStore({
   reducer: {
@@ -24,9 +22,7 @@ export const store = configureStore({
     editProduct: editProductReducer,
     reports: reportsReducer,
     booking: bookingReducer,
-    acceptBooking: acceptBookingReducer,
     welcome: welcomeReducer,
     privacyTerms: privacyTermsReducer,
-    eventRequest: eventRequestReducer,
   },
 });

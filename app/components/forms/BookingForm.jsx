@@ -1,20 +1,23 @@
 "use client";
-import { useDispatch, useSelector } from 'react-redux';
-import { selectBookingModal, closeBookingModal, setBookingLoading } from '@/app/features/bookingSlice';
-import { setError } from '@/app/features/modalSlice';
-import SubmissionForm from './SubmissionForm';
-import { formConfigs } from '@/app/helpers/formData/formConfigs';
-import Close from '../buttons/Close';
-import Title from '../ui/Title';
-import Paragraph from '../ui/Paragraph';
+import { useDispatch, useSelector } from "react-redux";
+import {
+  selectBookingModal,
+  closeBookingModal,
+  setBookingLoading,
+} from "@/app/features/bookingSlice";
+import { setError } from "@/app/features/modalSlice";
+import SubmissionForm from "./SubmissionForm";
+import { formConfigs } from "@/app/helpers/formData/formConfigs";
+import Paragraph from "../ui/Paragraph";
+import GlobalModal from "../modals/GlobalModal";
 
 const BookingForm = () => {
   const dispatch = useDispatch();
-  const { artistData, loading } = useSelector(selectBookingModal);
+  const { isOpen, artistData, loading } = useSelector(selectBookingModal);
 
   const handleSubmit = async (formData) => {
     dispatch(setBookingLoading(true));
-    
+
     try {
       const bookingData = {
         event_name: formData.get("event_name"),
@@ -30,22 +33,25 @@ const BookingForm = () => {
         artist_id: artistData.id,
       };
 
-      const response = await fetch('/api/artists/book-dj', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+      const response = await fetch("/api/artists/book-dj", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify(bookingData),
       });
 
       const result = await response.json();
 
       if (!response.ok) {
-        throw new Error(result.error || 'Failed to send booking request');
+        throw new Error(result.error || "Failed to send booking request");
       }
 
-      dispatch(setError({
-        message: "Booking request sent successfully! The DJ will be notified.",
-        type: "success"
-      }));
+      dispatch(
+        setError({
+          message:
+            "Booking request sent successfully! The DJ will be notified.",
+          type: "success",
+        }),
+      );
       dispatch(closeBookingModal());
     } catch (error) {
       dispatch(setError(error.message));
@@ -53,26 +59,29 @@ const BookingForm = () => {
       dispatch(setBookingLoading(false));
     }
   };
- 
+
   const handleClose = () => {
     dispatch(closeBookingModal());
   };
 
   return (
-    <div>
-      <div className="flex flex-col">
-        <Title text="Book DJ" />
-        <Paragraph text={artistData?.name || 'this DJ'} />
-        <Close className="absolute top-3 right-3" onClick={handleClose} />
-      </div>
+    <GlobalModal
+      isOpen={isOpen}
+      onClose={handleClose}
+      title="Book DJ"
+      maxWidth="w-full lg:w-[60%]"
+    >
+      <Paragraph text={artistData?.name || "this DJ"} className="-mt-3 mb-2" />
       <SubmissionForm
         showGoogle={false}
         formConfig={formConfigs.bookDj}
         onSubmit={handleSubmit}
         isLoading={loading}
-        submitButtonText={loading ? "Sending Request..." : "Send Booking Request"}
+        submitButtonText={
+          loading ? "Sending Request..." : "Send Booking Request"
+        }
       />
-    </div>
+    </GlobalModal>
   );
 };
 

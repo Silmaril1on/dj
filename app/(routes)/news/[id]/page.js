@@ -1,4 +1,4 @@
-import SingleNews from "@/app/pages/news/single-news-page/SingleNews";
+import SingleNews from "@/app/(routes)/news/[id]/SingleNews";
 
 export const dynamic = "force-dynamic";
 
@@ -15,7 +15,7 @@ const SingleNewsPage = async (props) => {
   try {
     const res = await fetch(
       `${process.env.PROJECT_URL}/api/admin/news/single-news?id=${params.id}`,
-      { cache: "no-store" }
+      { cache: "no-store" },
     );
     if (!res.ok) throw new Error(`Failed to fetch news: ${res.status}`);
     const data = await res.json();

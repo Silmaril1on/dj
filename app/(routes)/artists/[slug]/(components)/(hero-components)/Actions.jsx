@@ -1,26 +1,43 @@
 "use client";
+import { useState, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { openBookingModal } from "@/app/features/bookingSlice";
+import {
+  openAddEventModal,
+  openAddAlbumModal,
+} from "@/app/features/modalSlice";
+import { openReviewModal } from "@/app/features/reviewsSlice";
 import { motion } from "framer-motion";
 import { FaHouse } from "react-icons/fa6";
 import { selectUser } from "@/app/features/userSlice";
-import AddArtistDates from "@/app/components/buttons/artist-buttons/AddArtistDates";
-import AddArtistAlbum from "@/app/components/buttons/artist-buttons/AddArtistAlbum";
+import ActionButton from "@/app/components/buttons/ActionButton";
 import RatingButton from "@/app/components/buttons/artist-buttons/RatingButton";
-import ReviewButton from "@/app/components/buttons/artist-buttons/ReviewButton";
 import LikeButton from "@/app/components/buttons/artist-buttons/LikeButton";
 
 const Actions = ({ data, userRating, onLikeChange }) => {
   const dispatch = useDispatch();
   const user = useSelector(selectUser);
-  const userSubmittedArtistId = data.userSubmittedArtistId;
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
-  const handleBookDj = () => {
-    dispatch(openBookingModal(data));
-  };
+  const userSubmittedArtistId = data.userSubmittedArtistId;
+  const canManage =
+    mounted && user && (user.is_admin || userSubmittedArtistId === data?.id);
 
   const shouldRenderBookButton =
     data?.user_id && user?.id && data.user_id !== user.id;
+
+  const addReview = () => {
+    dispatch(
+      openReviewModal({
+        artistId: data.id,
+        name: data.name,
+        stage_name: data.stage_name,
+      }),
+    );
+  };
 
   return (
     <motion.div
@@ -30,27 +47,37 @@ const Actions = ({ data, userRating, onLikeChange }) => {
       className="flex justify-end flex-wrap gap-2 xl:px-2"
     >
       {shouldRenderBookButton && (
-        <button
-          className="bg-gold/30 hover:bg-gold/40 gap-1 text-gold w-fit secondary center cursor-pointer duration-300 p-1 rounded-xs  text-sm font-bold"
-          onClick={handleBookDj}
-        >
-          <FaHouse size={18} />
-          <h1>Book</h1>
-        </button>
+        <ActionButton
+          icon={<FaHouse size={18} />}
+          text="Book"
+          onClick={() => dispatch(openBookingModal(data))}
+        />
       )}
-      <AddArtistDates
-        desc="Add Date"
-        artist={data}
-        userSubmittedArtistId={userSubmittedArtistId}
+      {canManage && (
+        <ActionButton
+          text="Add Date"
+          onClick={() => dispatch(openAddEventModal({ artist: data }))}
+          requirePermission={() => canManage}
+          permissionMessage="You can only add events for your own artist profile"
+          authMessage="Please login to add events"
+        />
+      )}
+      {canManage && (
+        <ActionButton
+          text="Add Album"
+          onClick={() => dispatch(openAddAlbumModal({ artist: data }))}
+          requirePermission={() => canManage}
+          permissionMessage="You can only add albums for your own artist profile"
+          authMessage="Please login to add albums"
+        />
+      )}
+      <RatingButton text="Rate" artist={data} userRating={userRating} />
+      <LikeButton text="Like" artist={data} onLikeChange={onLikeChange} />
+      <ActionButton
+        text="Review"
+        onClick={addReview}
+        authMessage="Please login to review this artist"
       />
-      <AddArtistAlbum
-        desc="Add Album"
-        artist={data}
-        userSubmittedArtistId={userSubmittedArtistId}
-      />
-      <RatingButton desc="Rate" artist={data} userRating={userRating} />
-      <LikeButton desc="Like" artist={data} onLikeChange={onLikeChange} />
-      <ReviewButton desc="Review" artist={data} />
     </motion.div>
   );
 };

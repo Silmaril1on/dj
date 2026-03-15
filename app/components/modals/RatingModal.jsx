@@ -10,16 +10,11 @@ import {
   updateUserRating,
   updateRatingStats,
 } from "@/app/features/ratingSlice";
-import {
-  closeGlobalModal,
-  setError,
-  openGlobalModal,
-} from "@/app/features/modalSlice";
+import { setError } from "@/app/features/modalSlice";
 import { openReviewModal } from "@/app/features/reviewsSlice";
-import Close from "@/app/components/buttons/Close";
 import ArtistName from "../materials/ArtistName";
-import Button from "../buttons/Button";
 import FlexBox from "../containers/FlexBox";
+import GlobalModal from "./GlobalModal";
 
 const RatingModal = () => {
   const user = useSelector(selectUser);
@@ -30,7 +25,6 @@ const RatingModal = () => {
 
   const handleClose = () => {
     dispatch(closeRatingModal());
-    dispatch(closeGlobalModal());
   };
 
   const handleStarClick = (rating) => {
@@ -58,7 +52,6 @@ const RatingModal = () => {
           rating: ratingModal.currentRating,
         }),
       );
-      dispatch(openGlobalModal("review"));
       return;
     }
 
@@ -115,12 +108,18 @@ const RatingModal = () => {
   };
 
   return (
-    <>
-      <Close className="absolute top-4 right-4" onClick={handleClose} />
+    <GlobalModal
+      isOpen={ratingModal.isOpen}
+      onClose={handleClose}
+      title="Rate"
+      maxWidth="w-lg"
+      onSubmit={handleSubmit}
+      submitText={isSubmitting ? "Submitting..." : "Submit Rating"}
+      loading={isSubmitting}
+      disabled={ratingModal.currentRating === 0}
+    >
       <div className="text-center mb-6">
-        <h2 className="text-gray">RATE</h2>
         <ArtistName size="xl" artistName={ratingModal} />
-
         {/* Rating Display */}
         <div className="flex items-center justify-center gap-1 my-5">
           <span className="text-gold text-5xl font-bold">
@@ -160,17 +159,7 @@ const RatingModal = () => {
           </button>
         ))}
       </div>
-
-      {/* Submit Button */}
-      <FlexBox>
-        <Button
-          onClick={handleSubmit}
-          loading={isSubmitting}
-          text={isSubmitting ? "Submitting..." : "Submit Rating"}
-          disabled={isSubmitting || ratingModal.currentRating === 0}
-        />
-      </FlexBox>
-    </>
+    </GlobalModal>
   );
 };
 

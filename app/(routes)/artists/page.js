@@ -1,5 +1,4 @@
-import React from "react";
-import AllDataPage from "@/app/pages/all-data-page/AllDataPage";
+import ProductsPage from "@/app/components/containers/ProductsPage";
 
 export const metadata = {
   title: "Soundfolio | Artists",
@@ -32,7 +31,7 @@ const ArtistsPage = async () => {
   }
 
   return (
-    <AllDataPage
+    <ProductsPage
       type="artists"
       initialData={artists}
       error={error}

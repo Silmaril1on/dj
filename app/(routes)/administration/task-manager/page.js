@@ -2,8 +2,13 @@
 import { useEffect, useMemo, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { FaCheck, FaEllipsisV, FaTrash } from "react-icons/fa";
-import { MdArrowRight, MdClose, MdDragIndicator, MdEdit } from "react-icons/md";
-import SubmissionForm from "@/app/components/forms/SubmissionForm";
+import {
+  MdAdd,
+  MdArrowRight,
+  MdClose,
+  MdDragIndicator,
+  MdEdit,
+} from "react-icons/md";
 
 const STATUS_COLUMNS = [
   { key: "tasks", label: "TASKS" },
@@ -12,6 +17,12 @@ const STATUS_COLUMNS = [
 ];
 
 const PRIORITY_OPTIONS = ["low", "medium", "priority"];
+
+const PRIORITY_RANK = {
+  low: 0,
+  medium: 1,
+  priority: 2,
+};
 
 const priorityClassMap = {
   low: "text-green-500 border-green-500/40 bg-green-500/10 bg-green-500/30",
@@ -55,6 +66,9 @@ const normalizeSubtasks = (value) => {
     .filter(Boolean);
 };
 
+const createSubtaskId = () =>
+  `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+
 const TaskManagerPage = () => {
   const [tasks, setTasks] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -64,13 +78,38 @@ const TaskManagerPage = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [editingTaskId, setEditingTaskId] = useState(null);
+  const [taskPriorityOrder, setTaskPriorityOrder] = useState(null);
 
   const groupedTasks = useMemo(() => {
     return STATUS_COLUMNS.reduce((acc, column) => {
-      acc[column.key] = tasks.filter((task) => task.status === column.key);
+      const columnTasks = tasks.filter((task) => task.status === column.key);
+
+      if (column.key === "tasks" && taskPriorityOrder) {
+        const prioritizedTasks = [...columnTasks].sort(
+          (leftTask, rightTask) => {
+            const leftMatches = leftTask.priority === taskPriorityOrder ? 1 : 0;
+            const rightMatches =
+              rightTask.priority === taskPriorityOrder ? 1 : 0;
+
+            if (leftMatches !== rightMatches) {
+              return rightMatches - leftMatches;
+            }
+
+            return (
+              (PRIORITY_RANK[rightTask.priority] ?? -1) -
+              (PRIORITY_RANK[leftTask.priority] ?? -1)
+            );
+          },
+        );
+
+        acc[column.key] = prioritizedTasks;
+        return acc;
+      }
+
+      acc[column.key] = columnTasks;
       return acc;
     }, {});
-  }, [tasks]);
+  }, [taskPriorityOrder, tasks]);
 
   const editingTask = useMemo(() => {
     if (!editingTaskId) return null;
@@ -267,13 +306,22 @@ const TaskManagerPage = () => {
         throw new Error(data.error || "Failed to update subtask");
       }
 
+      const updatedTask = {
+        ...data.task,
+        subtasks: normalizeSubtasks(data.task?.subtasks),
+      };
+
       setTasks((prev) =>
-        prev.map((task) =>
-          task.id === taskId
-            ? { ...data.task, subtasks: normalizeSubtasks(data.task?.subtasks) }
-            : task,
-        ),
+        prev.map((task) => (task.id === taskId ? updatedTask : task)),
       );
+
+      // Auto-complete: if all subtasks are done and task is in progress, move to completed
+      const allDone =
+        updatedTask.subtasks.length > 0 &&
+        updatedTask.subtasks.every((s) => s.done);
+      if (allDone && updatedTask.status === "progress") {
+        moveTask(taskId, "completed");
+      }
     } catch (err) {
       setError(err.message || "Failed to update subtask");
       setTasks((prev) =>
@@ -357,7 +405,9 @@ const TaskManagerPage = () => {
               columnKey={column.key}
               label={column.label}
               count={groupedTasks[column.key]?.length || 0}
+              activePriorityOrder={taskPriorityOrder}
               isMenuOpen={isMenuOpen}
+              onPriorityOrderChange={setTaskPriorityOrder}
               onToggleMenu={() => setIsMenuOpen((prev) => !prev)}
               onCreateClick={() => {
                 setIsMenuOpen(false);
@@ -377,6 +427,8 @@ const TaskManagerPage = () => {
                   key={task.id}
                   task={task}
                   onDragStart={() => setDraggedTaskId(task.id)}
+                  onStart={() => moveTask(task.id, "progress")}
+                  onComplete={() => moveTask(task.id, "completed")}
                   onEdit={() => openEditModal(task.id)}
                   onDelete={() => handleDeleteTask(task.id)}
                   onToggleSubtask={(subtaskId) =>
@@ -408,19 +460,47 @@ const ColumnHeader = ({
   columnKey,
   label,
   count,
+  activePriorityOrder,
   isMenuOpen,
+  onPriorityOrderChange,
   onToggleMenu,
   onCreateClick,
 }) => {
   return (
     <header className="border-b border-gold/30 px-3 py-2 flex items-start justify-between relative gap-2 ">
-      <div className="*:leading-none">
-        <h2 className="text-gold font-bold text-sm lg:text-base secondary">
-          {columnKey === "completed" ? "Completed" : label}
-        </h2>
-        <p className="text-chino text-xs secondary">
-          {getColumnCountText(columnKey, count)}
-        </p>
+      <div className="flex items-center space-x-5">
+        <div className="*:leading-none">
+          <h2 className="text-gold font-bold text-sm lg:text-base secondary">
+            {columnKey === "completed" ? "Completed" : label}
+          </h2>
+          <p className="text-chino text-xs secondary">
+            {getColumnCountText(columnKey, count)}
+          </p>
+        </div>
+        {columnKey === "tasks" && (
+          <div className="flex flex-wrap gap-1">
+            {PRIORITY_OPTIONS.map((option) => {
+              const isActive = activePriorityOrder === option;
+
+              return (
+                <button
+                  key={option}
+                  type="button"
+                  onClick={() =>
+                    onPriorityOrderChange(isActive ? null : option)
+                  }
+                  className={`border px-2 py-0.5 text-[10px] font-bold uppercase duration-200 cursor-pointer ${
+                    isActive
+                      ? "border-gold bg-gold/20 text-gold"
+                      : "border-gold/30 text-chino hover:border-gold/60 hover:text-gold"
+                  }`}
+                >
+                  {option}
+                </button>
+              );
+            })}
+          </div>
+        )}
       </div>
       {columnKey === "tasks" && (
         <>
@@ -432,7 +512,6 @@ const ColumnHeader = ({
           >
             <FaEllipsisV size={14} />
           </button>
-
           <AnimatePresence>
             {isMenuOpen && (
               <motion.div
@@ -461,6 +540,8 @@ const ColumnHeader = ({
 const TaskCard = ({
   task,
   onDragStart,
+  onStart,
+  onComplete,
   onEdit,
   onDelete,
   onToggleSubtask,
@@ -502,7 +583,7 @@ const TaskCard = ({
           </button>
         </div>
       </div>
-
+      {/* Card Body */}
       <div className="w-full">
         <div className="flex items-start justify-between gap-2 w-full">
           <h3 className="text-gold font-bold uppercase text-md leading-tight pl-2">
@@ -515,9 +596,9 @@ const TaskCard = ({
             {task.description}
           </p>
         )}
-
+        {/* Card SubTasks */}
         {totalSubtasks > 0 && (
-          <div className="mt-2  bg-stone-900/40 p-2 space-y-1">
+          <div className="mt-2  bg-stone-900/40 p-2 space-y-3">
             <ul>
               {subtasks.map((subtask) => {
                 const isDone = Boolean(subtask.done);
@@ -528,11 +609,13 @@ const TaskCard = ({
                       <button
                         type="button"
                         onClick={() => onToggleSubtask(subtask.id)}
-                        className="flex-1 *:capitalize flex items-center gap-2 text-xs text-chino cursor-pointer text-left"
+                        className="flex-1 *:capitalize flex items-center gap-2 text-xs secondary text-chino cursor-pointer text-left hover:pl-3 duration-300"
                       >
                         <span
                           aria-hidden="true"
-                          className={isDone ? "text-green-500" : "text-gold"}
+                          className={
+                            isDone ? "text-green-500 ml-0.5" : "text-gold"
+                          }
                         >
                           {isDone ? (
                             <FaCheck size={10} />
@@ -541,7 +624,9 @@ const TaskCard = ({
                           )}
                         </span>
                         <span
-                          className={isDone ? "text-green-500" : "text-chino"}
+                          className={
+                            isDone ? "text-green-500 font-bold" : "text-chino"
+                          }
                         >
                           {subtask.title}
                         </span>
@@ -561,27 +646,48 @@ const TaskCard = ({
               })}
             </ul>
 
-            <div className="pt-1">
-              <div className="flex items-center justify-between text-[10px] text-chino/80 mb-1 font-bold secondary">
-                <span>Task Progress</span>
-                <span>{subtaskProgress}%</span>
+            {task.status !== "tasks" && (
+              <div className="pt-1">
+                <div className="flex items-center justify-between text-[10px] text-chino/80 mb-1 font-bold secondary">
+                  <span>Task Progress</span>
+                  <span>{subtaskProgress}%</span>
+                </div>
+                <div className="w-full h-1.5 bg-green-500/30 overflow-hidden">
+                  <div
+                    className="h-full bg-green-500 duration-300 rounded-r-md"
+                    style={{ width: `${subtaskProgress}%` }}
+                  />
+                </div>
               </div>
-              <div className="w-full h-1.5 bg-green-500/30 overflow-hidden">
-                <div
-                  className="h-full bg-green-500 duration-300 rounded-r-md"
-                  style={{ width: `${subtaskProgress}%` }}
-                />
-              </div>
-            </div>
+            )}
           </div>
         )}
-
+        {/*  Prioority Badge */}
         <div className="flex items-center justify-between mt-2">
           <span
             className={`text-xs font-bold uppercase border px-1.5 py-0.5 ${priorityClassMap[task.priority] || priorityClassMap.medium}`}
           >
             {task.priority}
           </span>
+
+          {task.status === "tasks" && (
+            <button
+              type="button"
+              onClick={onStart}
+              className="border border-gold/40 bg-gold/10 px-2 py-1 text-[10px] font-bold uppercase text-gold hover:bg-gold/20 duration-200 cursor-pointer"
+            >
+              Start Task
+            </button>
+          )}
+          {task.status === "progress" && (
+            <button
+              type="button"
+              onClick={onComplete}
+              className="border border-green-500/40 bg-green-500/10 px-2 py-1 text-[10px] font-bold uppercase text-green-500 hover:bg-green-500/20 duration-200 cursor-pointer"
+            >
+              Complete Task
+            </button>
+          )}
         </div>
       </div>
     </article>
@@ -596,86 +702,66 @@ const CreateTaskModal = ({
   mode,
   task,
 }) => {
-  const formConfig = useMemo(() => {
-    const initialSubtaskTitles = normalizeSubtasks(task?.subtasks).map(
-      (subtask) => subtask.title,
+  const [title, setTitle] = useState("");
+  const [description, setDescription] = useState("");
+  const [priority, setPriority] = useState("medium");
+  const [subtasks, setSubtasks] = useState([]);
+
+  useEffect(() => {
+    if (!isOpen) return;
+
+    const normalized = normalizeSubtasks(task?.subtasks);
+    setTitle(task?.title || "");
+    setDescription(task?.description || "");
+    setPriority(task?.priority || "medium");
+    setSubtasks(
+      normalized.length > 0
+        ? normalized
+        : [{ id: createSubtaskId(), title: "", done: false }],
     );
+  }, [isOpen, task]);
 
-    return {
-      initialData: {
-        title: task?.title || "",
-        description: task?.description || "",
-        priority: task?.priority || "medium",
-        subtasks: initialSubtaskTitles.length > 0 ? initialSubtaskTitles : [""],
-      },
-      fields: {
-        title: {
-          type: "text",
-          required: true,
-          label: "Task title",
-          placeholder: "Task title",
-        },
-        description: {
-          type: "textarea",
-          required: false,
-          label: "Task description",
-          placeholder: "Task description",
-        },
-        subtasks: {
-          type: "additional",
-          required: false,
-          placeholder: "Add subtask (e.g. Armin van Buuren)",
-          minFields: 1,
-          maxFields: 100,
-        },
-        priority: {
-          type: "select",
-          required: true,
-          label: "Priority",
-          options: PRIORITY_OPTIONS.map((option) => ({
-            value: option,
-            label: option,
-          })),
-        },
-      },
-      arrayFields: ["subtasks"],
-      sections: [{ fields: ["title", "description", "subtasks", "priority"] }],
-    };
-  }, [task]);
-
-  const handleFormSubmit = async (formData) => {
-    const title = String(formData.get("title") || "").trim();
-    const description = String(formData.get("description") || "").trim();
-    const priority = String(formData.get("priority") || "medium");
-
-    let subtaskTitles = [];
-    try {
-      const rawSubtasks = JSON.parse(formData.get("subtasks") || "[]");
-      subtaskTitles = Array.isArray(rawSubtasks)
-        ? rawSubtasks
-            .map((item) => String(item || "").trim())
-            .filter((item) => item.length > 0)
-        : [];
-    } catch {
-      subtaskTitles = [];
-    }
-
-    const existingSubtasks = normalizeSubtasks(task?.subtasks);
-    const existingByTitle = new Map(
-      existingSubtasks.map((subtask) => [subtask.title.toLowerCase(), subtask]),
+  const handleSubtaskChange = (subtaskId, value) => {
+    setSubtasks((prev) =>
+      prev.map((subtask) =>
+        subtask.id === subtaskId ? { ...subtask, title: value } : subtask,
+      ),
     );
+  };
 
-    const subtasks = subtaskTitles.map((subtaskTitle, index) => {
-      const key = subtaskTitle.toLowerCase();
-      const existing = existingByTitle.get(key);
-      return {
-        id: existing?.id || `${Date.now()}-${index}-${key}`,
-        title: subtaskTitle,
-        done: Boolean(existing?.done),
-      };
+  const handleAddSubtaskField = () => {
+    setSubtasks((prev) => [
+      ...prev,
+      { id: createSubtaskId(), title: "", done: false },
+    ]);
+  };
+
+  const handleRemoveSubtaskField = (subtaskId) => {
+    setSubtasks((prev) => {
+      const next = prev.filter((subtask) => subtask.id !== subtaskId);
+      return next.length > 0
+        ? next
+        : [{ id: createSubtaskId(), title: "", done: false }];
     });
+  };
 
-    await onSubmit({ title, description, priority, subtasks });
+  const handleFormSubmit = async (event) => {
+    event.preventDefault();
+
+    const normalizedSubtasks = subtasks
+      .map((subtask) => ({
+        id: subtask.id || createSubtaskId(),
+        title: String(subtask.title || "").trim(),
+        done: Boolean(subtask.done),
+      }))
+      .filter((subtask) => subtask.title.length > 0);
+
+    await onSubmit({
+      title: String(title || "").trim(),
+      description: String(description || "").trim(),
+      priority,
+      subtasks: normalizedSubtasks,
+    });
   };
 
   return (
@@ -686,14 +772,12 @@ const CreateTaskModal = ({
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           className="fixed inset-0 z-50 bg-black/70 flex items-center justify-center p-3"
-          onClick={onClose}
         >
           <motion.div
             initial={{ opacity: 0, y: 16, scale: 0.98 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 16, scale: 0.98 }}
             transition={{ duration: 0.2 }}
-            onSubmit={onSubmit}
             onClick={(event) => event.stopPropagation()}
             className="w-full max-w-xl border border-gold/30 bg-stone-900 p-4 space-y-3"
           >
@@ -711,13 +795,129 @@ const CreateTaskModal = ({
               </button>
             </div>
             {/* modal inputs */}
-            <SubmissionForm
-              formConfig={formConfig}
-              onSubmit={handleFormSubmit}
-              isLoading={submitting}
-              submitButtonText={mode === "edit" ? "Update Task" : "Create Task"}
-              showGoogle={false}
-            />
+            <form onSubmit={handleFormSubmit} className="space-y-3">
+              <div className="space-y-1">
+                <label
+                  htmlFor="task-title"
+                  className="text-chino text-xs secondary"
+                >
+                  Task title
+                </label>
+                <input
+                  id="task-title"
+                  type="text"
+                  value={title}
+                  onChange={(event) => setTitle(event.target.value)}
+                  placeholder="Task title"
+                  required
+                  className="w-full border border-gold/30 bg-black/80 px-3 py-2 text-sm text-chino outline-none focus:border-gold"
+                />
+              </div>
+
+              <div className="space-y-1">
+                <label
+                  htmlFor="task-description"
+                  className="text-chino text-xs secondary"
+                >
+                  Task description
+                </label>
+                <textarea
+                  id="task-description"
+                  value={description}
+                  onChange={(event) => setDescription(event.target.value)}
+                  placeholder="Task description"
+                  rows={4}
+                  className="w-full border border-gold/30 bg-black/80 px-3 py-2 text-sm text-chino outline-none focus:border-gold resize-y"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <label className="text-chino text-xs secondary">
+                    Subtasks
+                  </label>
+                  <button
+                    type="button"
+                    onClick={handleAddSubtaskField}
+                    className="flex items-center gap-1 text-gold hover:text-chino duration-200 text-xs"
+                  >
+                    <MdAdd size={16} />
+                    Add subtask
+                  </button>
+                </div>
+
+                <div className="space-y-2 max-h-56 overflow-y-auto pr-1">
+                  {subtasks.map((subtask, index) => (
+                    <div
+                      key={subtask.id || `${index}-subtask`}
+                      className="flex items-center gap-2"
+                    >
+                      <input
+                        type="text"
+                        value={subtask.title}
+                        onChange={(event) =>
+                          handleSubtaskChange(subtask.id, event.target.value)
+                        }
+                        placeholder={`Subtask ${index + 1}`}
+                        className="flex-1 border border-gold/30 bg-black/80 px-3 py-2 text-sm text-chino outline-none focus:border-gold"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => handleRemoveSubtaskField(subtask.id)}
+                        className="text-red-500 hover:text-red-400 duration-200"
+                        aria-label={`Remove subtask ${index + 1}`}
+                      >
+                        <MdClose size={16} />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div className="space-y-1">
+                <label
+                  htmlFor="task-priority"
+                  className="text-chino text-xs secondary"
+                >
+                  Priority
+                </label>
+                <select
+                  id="task-priority"
+                  value={priority}
+                  onChange={(event) => setPriority(event.target.value)}
+                  className="w-full border border-gold/30 bg-black/80 px-3 py-2 text-sm text-chino outline-none focus:border-gold"
+                >
+                  {PRIORITY_OPTIONS.map((option) => (
+                    <option key={option} value={option}>
+                      {option}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="flex items-center justify-end gap-2 pt-1">
+                <button
+                  type="button"
+                  onClick={onClose}
+                  className="border border-gold/30 px-3 py-2 text-xs text-chino hover:text-gold duration-200"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={submitting}
+                  className="border border-gold bg-gold/20 px-3 py-2 text-xs text-gold hover:bg-gold/30 duration-200 disabled:opacity-60 disabled:cursor-not-allowed"
+                >
+                  {submitting
+                    ? mode === "edit"
+                      ? "Updating..."
+                      : "Creating..."
+                    : mode === "edit"
+                      ? "Update Task"
+                      : "Create Task"}
+                </button>
+              </div>
+            </form>
           </motion.div>
         </motion.div>
       )}

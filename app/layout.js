@@ -6,10 +6,8 @@ import ErrorMsg from "./components/ui/ErrorMsg";
 import NavigationWrapper from "./layout/navigation/NavigationWrapper";
 import Footer from "./layout/footer/Footer";
 import MobileNavBar from "./layout/navigation/MobileNavBar";
-import SmoothScroll from "./components/containers/SmoothScroll";
 import WelcomeUser from "./components/materials/WelcomeUser";
-import GlobalModal from "./components/modals/GlobalModal";
-import EventRequestModal from "./components/modals/EventRequestModal";
+import ModalRoot from "./components/modals/ModalRoot";
 
 const josh = Jost({
   variable: "--font-jost",
@@ -40,12 +38,10 @@ export default function RootLayout({ children }) {
             <NavigationWrapper />
             {children}
             <ErrorMsg />
-            <GlobalModal />
+            <ModalRoot />
             <MobileNavBar />
             <WelcomeUser />
-            <EventRequestModal />
             <Footer />
-            {/* </SmoothScroll> */}
           </AuthProvider>
         </StoreProvider>
       </body>

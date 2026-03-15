@@ -43,7 +43,7 @@ const SubmitSection = () => {
             }),
           );
         } else {
-          router.push("/add-product/add-artist");
+          router.push("/add-product/artist");
         }
         break;
 
@@ -56,12 +56,12 @@ const SubmitSection = () => {
             }),
           );
         } else {
-          router.push("/add-product/add-club");
+          router.push("/add-product/club");
         }
         break;
 
       case "event":
-        router.push("/add-product/add-event");
+        router.push("/add-product/event");
         break;
 
       case "festival":
@@ -73,7 +73,7 @@ const SubmitSection = () => {
             }),
           );
         } else {
-          router.push("/add-product/add-festival");
+          router.push("/add-product/festival");
         }
         break;
 

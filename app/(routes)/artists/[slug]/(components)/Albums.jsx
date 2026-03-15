@@ -131,6 +131,7 @@ const Albums = ({ artistId }) => {
                     src={album.album_image}
                     alt={album.name}
                     fill
+                    sizes="(max-width: 768px) 50vw, (max-width: 1024px) 33vw, 10vw"
                     className="object-cover"
                   />
                 </div>

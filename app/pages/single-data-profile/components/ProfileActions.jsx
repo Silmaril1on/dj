@@ -35,11 +35,8 @@ const ProfileActions = ({ data, type }) => {
   };
 
   return (
-    <Motion
-      animation="pop"
-      className={`pl-2 lg:px-4 ${type === "event" ? "space-y-2" : "center space-x-4"}`}
-    >
-      <div className="center space-x-4">
+    <Motion animation="pop" className="pl-2 lg:px-4 flex gap-4">
+      <div className="center space-x-2">
         <SpanText
           icon={<FaUsers size={15} />}
           size="xs"
@@ -58,7 +55,7 @@ const ProfileActions = ({ data, type }) => {
       </div>
 
       {type === "event" && (
-        <div className="flex justify-end space-x-4">
+        <div className="flex justify-end space-x-2">
           <SpanText
             text="Set reminder"
             size="xs"

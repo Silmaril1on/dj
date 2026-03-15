@@ -8,7 +8,7 @@ import Spinner from "@/app/components/ui/Spinner";
 import ArtistName from "@/app/components/materials/ArtistName";
 import SectionContainer from "@/app/components/containers/SectionContainer";
 import SliderContainer from "@/app/components/containers/SliderContainer";
-import { fakeBornData } from "@/app/localDB/fakeBornData";
+import { fakeBornData } from "@/app/lib/localDB/fakeBornData";
 
 const BornToday = () => {
   const [artists, setArtists] = useState([]);

@@ -1,9 +1,9 @@
-'use client'
+"use client";
 import { BsThreeDots } from "react-icons/bs";
 import { useState, useRef, useEffect } from "react";
 import { useDispatch } from "react-redux";
 import { openReviewModal } from "@/app/features/reviewsSlice";
-import { setError, openGlobalModal } from "@/app/features/modalSlice";
+import { setError } from "@/app/features/modalSlice";
 import { FaTrash, FaEdit } from "react-icons/fa";
 import Button from "@/app/components/buttons/Button";
 
@@ -20,28 +20,36 @@ const ReviewActions = ({ review, onDelete, onUpdate }) => {
         setShowPopup(false);
       }
     };
-    document.addEventListener('mousedown', handleClickOutside);
+    document.addEventListener("mousedown", handleClickOutside);
     return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener("mousedown", handleClickOutside);
     };
   }, []);
 
   const handleDelete = async () => {
     setIsDeleting(true);
     try {
-      const response = await fetch(`/api/users/user-reviews?reviewId=${review.id}`, {
-        method: 'DELETE',
-      });
+      const response = await fetch(
+        `/api/users/user-reviews?reviewId=${review.id}`,
+        {
+          method: "DELETE",
+        },
+      );
       if (response.ok) {
-        dispatch(setError({ message: 'Review deleted successfully!', type: 'success' }));
+        dispatch(
+          setError({
+            message: "Review deleted successfully!",
+            type: "success",
+          }),
+        );
         onDelete(review.id); // Remove from the list immediately
         setShowPopup(false);
       } else {
         const errorData = await response.json();
-        dispatch(setError(errorData.error || 'Failed to delete review'));
+        dispatch(setError(errorData.error || "Failed to delete review"));
       }
     } catch (error) {
-      dispatch(setError('Failed to delete review'));
+      dispatch(setError("Failed to delete review"));
     } finally {
       setIsDeleting(false);
     }
@@ -49,16 +57,17 @@ const ReviewActions = ({ review, onDelete, onUpdate }) => {
 
   const handleEdit = () => {
     window.updateReviewCallback = onUpdate;
-    dispatch(openReviewModal({
-      artistId: review.artist.id,
-      name: review.artist.name,
-      stage_name: review.artist.stage_name,
-      isEditMode: true,
-      editReviewId: review.id,
-      editReviewTitle: review.review_title,
-      editReviewText: review.review_text
-    }));
-    dispatch(openGlobalModal('review'));
+    dispatch(
+      openReviewModal({
+        artistId: review.artist.id,
+        name: review.artist.name,
+        stage_name: review.artist.stage_name,
+        isEditMode: true,
+        editReviewId: review.id,
+        editReviewTitle: review.review_title,
+        editReviewText: review.review_text,
+      }),
+    );
     setShowPopup(false);
   };
 
@@ -94,7 +103,7 @@ const ReviewActions = ({ review, onDelete, onUpdate }) => {
         </div>
       )}
     </div>
-  )
-}
+  );
+};
 
-export default ReviewActions
+export default ReviewActions;

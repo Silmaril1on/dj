@@ -27,7 +27,7 @@ const SingleDataProfile = ({ data, type = "events", currentUserId = null }) => {
     <div className="flex flex-col pb-5">
       {/* Header with Lineup and Actions/Controls */}
       <div className="flex flex-col lg:pl-2 lg:flex-row justify-between items-start lg:items-center gap-2 mb-3 lg:mb-0">
-        <div className="lg:w-6xl lg:py-3 ">
+        <div className="lg:w-6xl lg:py-3">
           {config.hasLineup && profileData.lineup && (
             <ProfileLineup
               title={config.lineupTitle}

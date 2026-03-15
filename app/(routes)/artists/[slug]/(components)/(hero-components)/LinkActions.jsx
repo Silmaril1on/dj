@@ -23,9 +23,9 @@ const Scores = ({ scores, likesCount, scheduleCount }) => {
   const scoreData = [
     {
       id: "listeners-score",
-      value: scores?.average_score,
+      value: scores?.average_score || 0,
       title: "Listeners score",
-      description: `${scores?.total_ratings} ${scores?.total_ratings === 1 ? "user" : "users"} has rates`,
+      description: `${scores?.total_ratings || 0} ${scores?.total_ratings === 1 ? "user" : "users"} rated`,
       delay: 0.2,
     },
     {

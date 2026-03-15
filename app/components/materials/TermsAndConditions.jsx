@@ -1,9 +1,13 @@
-import { termsAndConditionsData, artistTermsAndConditionsData, clubsTermsAndConditionsData } from '@/app/localDB/termsAndConditionsData'
-import Title from '../ui/Title'
-import Paragraph from '../ui/Paragraph'
+import {
+  termsAndConditionsData,
+  artistTermsAndConditionsData,
+  clubsTermsAndConditionsData,
+} from "@/app/lib/localDB/termsAndConditionsData";
+import Title from "../ui/Title";
+import Paragraph from "../ui/Paragraph";
 
-const TermsAndConditions = ({ type = 'artist', className = '' }) => {
-  const data = termsAndConditionsData[type] || termsAndConditionsData.artist
+const TermsAndConditions = ({ type = "artist", className = "" }) => {
+  const data = termsAndConditionsData[type] || termsAndConditionsData.artist;
 
   return (
     <div className={`bg-black  p-4 max-w-md h-fit sticky top-4 ${className}`}>
@@ -22,9 +26,14 @@ const TermsAndConditions = ({ type = 'artist', className = '' }) => {
             </h3>
             <ul className="space-y-2">
               {section.items.map((item, itemIndex) => (
-                <li key={itemIndex} className="flex items-start gap-2 text-sm text-cream">
+                <li
+                  key={itemIndex}
+                  className="flex items-start gap-2 text-sm text-cream"
+                >
                   <span className="text-gold font-bold mt-1">•</span>
-                  <span className="leading-relaxed secondary text-xs">{item}</span>
+                  <span className="leading-relaxed secondary text-xs">
+                    {item}
+                  </span>
                 </li>
               ))}
             </ul>
@@ -39,7 +48,7 @@ const TermsAndConditions = ({ type = 'artist', className = '' }) => {
         <Paragraph text={data.footer.version} />
       </div>
     </div>
-  )
-}
+  );
+};
 
-export default TermsAndConditions
+export default TermsAndConditions;

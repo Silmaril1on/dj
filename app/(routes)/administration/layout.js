@@ -1,5 +1,5 @@
 import PageNavigation from "@/app/components/buttons/PageNavigation";
-import { administrationLinks } from "@/app/localDB/LinksData";
+import { administrationLinks } from "@/app/lib/localDB/LinksData";
 
 export const metadata = {
   title: "Admin Panel",

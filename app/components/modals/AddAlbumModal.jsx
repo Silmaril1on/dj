@@ -8,9 +8,8 @@ import {
 import { showSuccess } from "@/app/features/successSlice";
 import { setError } from "@/app/features/modalSlice";
 import SubmissionForm from "@/app/components/forms/SubmissionForm";
-import Close from "@/app/components/buttons/Close";
-import Title from "@/app/components/ui/Title";
 import { formConfigs } from "@/app/helpers/formData/formConfigs";
+import GlobalModal from "./GlobalModal";
 
 const AddAlbumModal = () => {
   const dispatch = useDispatch();
@@ -90,27 +89,20 @@ const AddAlbumModal = () => {
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-      <div className="bg-black border border-gold/30 max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-        <div className="p-6">
-          <div className="flex items-center justify-between mb-6">
-            <Title
-              text={isEditMode ? "Edit Album" : "Add Album"}
-              size="lg"
-              color="gold"
-            />
-            <Close onClick={handleClose} />
-          </div>
-          <SubmissionForm
-            formConfig={albumFormConfig}
-            onSubmit={handleSubmit}
-            isLoading={isSubmitting}
-            submitButtonText={isEditMode ? "Update Album" : "Add Album"}
-            showGoogle={false}
-          />
-        </div>
-      </div>
-    </div>
+    <GlobalModal
+      isOpen={isOpen}
+      onClose={handleClose}
+      title={isEditMode ? "Edit Album" : "Add Album"}
+      maxWidth="max-w-2xl"
+    >
+      <SubmissionForm
+        formConfig={albumFormConfig}
+        onSubmit={handleSubmit}
+        isLoading={isSubmitting}
+        submitButtonText={isEditMode ? "Update Album" : "Add Album"}
+        showGoogle={false}
+      />
+    </GlobalModal>
   );
 };
 

@@ -5,7 +5,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { IoAlarmOutline, IoAlarm } from "react-icons/io5";
 import { selectUser } from "@/app/features/userSlice";
 import { setError } from "@/app/features/modalSlice";
-import ActionButtonBase from "./base/ActionButtonBase";
+import ActionButton from "@/app/components/buttons/ActionButton";
 
 const REMINDER_OPTIONS = [
   { value: 3, label: "3 days earlier" },
@@ -108,15 +108,17 @@ const ReminderButton = ({ className, event, onReminderChange, desc }) => {
 
   return (
     <div ref={wrapperRef} className="relative">
-      <ActionButtonBase
+      <ActionButton
         onClick={handleToggleMenu}
-        className={className}
+        icon={
+          isReminderSet ? <IoAlarm size={18} /> : <IoAlarmOutline size={18} />
+        }
+        text={desc}
         loading={loading}
+        active={isReminderSet}
         authMessage="Please login to set reminder"
-      >
-        {isReminderSet ? <IoAlarm size={18} /> : <IoAlarmOutline size={18} />}
-        {desc && <h1 className="pl-1">{desc}</h1>}
-      </ActionButtonBase>
+        className={className}
+      />
 
       <AnimatePresence>
         {isOpen && (

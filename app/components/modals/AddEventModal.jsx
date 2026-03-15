@@ -1,12 +1,10 @@
 "use client";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { AnimatePresence, motion } from "framer-motion";
 import { closeAddEventModal } from "@/app/features/modalSlice";
 import { showSuccess } from "@/app/features/successSlice";
-import Close from "@/app/components/buttons/Close";
-import Title from "@/app/components/ui/Title";
 import SubmissionForm from "@/app/components/forms/SubmissionForm";
+import GlobalModal from "./GlobalModal";
 
 const AddEventModal = () => {
   const dispatch = useDispatch();
@@ -230,43 +228,20 @@ const AddEventModal = () => {
   };
 
   return (
-    <AnimatePresence>
-      {isOpen && (
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          transition={{ duration: 0.2, ease: "easeInOut" }}
-          className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4"
-        >
-          <motion.div
-            initial={{ opacity: 0, y: 24, scale: 0.96 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: 16, scale: 0.97 }}
-            transition={{ duration: 0.25, ease: "easeOut" }}
-            className="bg-black border border-gold/30 max-w-2xl w-full max-h-[90vh] overflow-y-auto"
-          >
-            <div className="p-6">
-              <div className="flex items-center justify-between mb-6">
-                <Title
-                  text={isEditMode ? "Edit Event" : "Add Event"}
-                  size="lg"
-                />
-                <Close onClick={handleClose} />
-              </div>
-
-              <SubmissionForm
-                formConfig={formConfig}
-                onSubmit={handleSubmit}
-                isLoading={isSubmitting}
-                submitButtonText={isEditMode ? "Update Event" : "Add Event"}
-                showGoogle={false}
-              />
-            </div>
-          </motion.div>
-        </motion.div>
-      )}
-    </AnimatePresence>
+    <GlobalModal
+      isOpen={isOpen}
+      onClose={handleClose}
+      title={isEditMode ? "Edit Event" : "Add Event"}
+      maxWidth="max-w-2xl"
+    >
+      <SubmissionForm
+        formConfig={formConfig}
+        onSubmit={handleSubmit}
+        isLoading={isSubmitting}
+        submitButtonText={isEditMode ? "Update Event" : "Add Event"}
+        showGoogle={false}
+      />
+    </GlobalModal>
   );
 };
 

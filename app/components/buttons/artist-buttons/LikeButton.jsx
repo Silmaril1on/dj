@@ -1,40 +1,67 @@
 "use client";
-import { useSelector } from "react-redux";
+import { useState, useEffect } from "react";
+import { useSelector, useDispatch } from "react-redux";
 import { selectUser } from "@/app/features/userSlice";
-import ToggleActionButton from "./base/ToggleActionButton";
+import { setError } from "@/app/features/modalSlice";
 import { FaHeart, FaRegHeart } from "react-icons/fa";
+import ActionButton from "@/app/components/buttons/ActionButton";
 
 const LikeButton = ({
   className,
   artist,
   onLikeChange,
-  desc,
+  text,
   type = "artist",
 }) => {
   const user = useSelector(selectUser);
+  const dispatch = useDispatch();
+  const [isLiked, setIsLiked] = useState(artist?.isLiked || false);
+  const [isLoading, setIsLoading] = useState(false);
+
+  useEffect(() => {
+    setIsLiked(artist?.isLiked || false);
+  }, [artist?.isLiked]);
 
   const endpoint =
     type === "event" ? "/api/events/event-likes" : "/api/artists/like";
   const idKey = type === "event" ? "eventId" : "artistId";
 
-  return (
-    <ToggleActionButton
-      initialState={artist?.isLiked || false}
-      endpoint={endpoint}
-      payload={{ [idKey]: artist.id, userId: user?.id }}
-      icons={{
-        active: <FaHeart size={17} />,
-        inactive: <FaRegHeart size={17} />,
-      }}
-      label={desc}
-      successMessage={{
-        on: `${type === "event" ? "Event" : "Artist"} liked`,
-        off: `${type === "event" ? "Event" : "Artist"} unliked`,
-      }}
-      errorMessage={`Failed to like ${type === "event" ? "event" : "artist"}`}
-      onSuccess={(data) => {
+  const handleToggle = async () => {
+    if (isLoading) return;
+    const prev = isLiked;
+    setIsLiked(!prev);
+    setIsLoading(true);
+    try {
+      const res = await fetch(endpoint, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ [idKey]: artist.id, userId: user?.id }),
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setIsLiked(data.isLiked ?? !prev);
         onLikeChange?.(data.isLiked, data.likesCount);
-      }}
+      } else {
+        setIsLiked(prev);
+        dispatch(
+          setError({ message: `Failed to like ${type}`, type: "error" }),
+        );
+      }
+    } catch {
+      setIsLiked(prev);
+      dispatch(setError({ message: `Failed to like ${type}`, type: "error" }));
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  return (
+    <ActionButton
+      icon={isLiked ? <FaHeart size={17} /> : <FaRegHeart size={17} />}
+      text={text}
+      onClick={handleToggle}
+      loading={isLoading}
+      active={isLiked}
       authMessage={`Please login to like this ${type}`}
       className={className}
     />

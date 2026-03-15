@@ -4,10 +4,6 @@ const initialState = {
   isDarkMode: true,
   error: "",
   errorType: "error",
-  globalModal: {
-    isOpen: false,
-    content: null,
-  },
   addEventModal: {
     isOpen: false,
     artist: null,
@@ -47,18 +43,6 @@ const modalSlice = createSlice({
           : action.payload;
       state.error = message;
       state.errorType = type || "error";
-    },
-    openGlobalModal: (state, action) => {
-      state.globalModal = {
-        isOpen: true,
-        content: action.payload,
-      };
-    },
-    closeGlobalModal: (state) => {
-      state.globalModal = {
-        isOpen: false,
-        content: null,
-      };
     },
     openAddEventModal: (state, action) => {
       state.addEventModal = {
@@ -115,8 +99,6 @@ export const {
   toggleTheme,
   setTheme,
   setError,
-  openGlobalModal,
-  closeGlobalModal,
   openAddEventModal,
   closeAddEventModal,
   openAddAlbumModal,
@@ -131,7 +113,6 @@ export const modalReducer = modalSlice.reducer;
 export const selectIsDarkMode = (state) => state.modal.isDarkMode;
 export const selectError = (state) => state.modal.error;
 export const selectErrorType = (state) => state.modal.errorType;
-export const selectGlobalModal = (state) => state.modal.globalModal;
 export const selectAddEventModal = (state) => state.modal.addEventModal;
 export const selectAddAlbumModal = (state) => state.modal.addAlbumModal;
 export const selectAddClubDateModal = (state) => state.modal.addClubDateModal;

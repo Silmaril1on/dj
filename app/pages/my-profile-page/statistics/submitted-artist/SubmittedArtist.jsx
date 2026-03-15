@@ -40,7 +40,7 @@ const SubmittedArtist = ({ data, error }) => {
           action={
             <Link
               className=" text-blue hover:text-blue-600 transition-colors duration-200"
-              href="/add-product/add-artist"
+              href="/add-product/artist"
             >
               Submit Artist Profile
             </Link>

@@ -5,7 +5,6 @@ import {
   selectReviewModal,
   closeReviewModal,
 } from "@/app/features/reviewsSlice";
-import { closeGlobalModal } from "@/app/features/modalSlice";
 import { setError } from "@/app/features/modalSlice";
 import { selectUser } from "@/app/features/userSlice";
 import {
@@ -14,10 +13,9 @@ import {
   updateRatingStats,
 } from "@/app/features/ratingSlice";
 import Button from "../buttons/Button";
-import Close from "../buttons/Close";
-import Title from "../ui/Title";
 import Paragraph from "../ui/Paragraph";
 import FlexBox from "../containers/FlexBox";
+import GlobalModal from "./GlobalModal";
 
 const ReviewModal = () => {
   const reviewModal = useSelector(selectReviewModal);
@@ -27,7 +25,6 @@ const ReviewModal = () => {
   const [reviewText, setReviewText] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // Initialize form with existing data if in edit mode
   useEffect(() => {
     if (reviewModal.isEditMode) {
       setReviewTitle(reviewModal.editReviewTitle || "");
@@ -44,13 +41,11 @@ const ReviewModal = () => {
 
   const handleClose = () => {
     dispatch(closeReviewModal());
-    dispatch(closeGlobalModal());
     if (reviewModal.isLowRating) {
       dispatch(closeRatingModal());
     }
     setReviewTitle("");
     setReviewText("");
-    // Clean up window callbacks
     if (reviewModal.isEditMode) {
       window.updateReviewCallback = null;
     } else {
@@ -62,9 +57,7 @@ const ReviewModal = () => {
     try {
       const response = await fetch("/api/artists/rating", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           artistId: reviewModal.artistId,
           rating: reviewModal.rating,
@@ -108,9 +101,7 @@ const ReviewModal = () => {
       if (reviewModal.isEditMode) {
         response = await fetch("/api/users/user-reviews", {
           method: "PUT",
-          headers: {
-            "Content-Type": "application/json",
-          },
+          headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             reviewId: reviewModal.editReviewId,
             reviewTitle: reviewTitle.trim(),
@@ -118,12 +109,9 @@ const ReviewModal = () => {
           }),
         });
       } else {
-        // Create new review
         response = await fetch("/api/artists/review", {
           method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
+          headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             artistId: reviewModal.artistId,
             userId: user.id,
@@ -137,7 +125,6 @@ const ReviewModal = () => {
         const responseData = await response.json();
 
         if (reviewModal.isEditMode) {
-          // Call the callback for updated review if it exists
           if (window.updateReviewCallback && responseData.review) {
             window.updateReviewCallback(responseData.review);
           }
@@ -148,11 +135,9 @@ const ReviewModal = () => {
             }),
           );
         } else {
-          // Call the global callback if it exists
           if (window.addNewReview && responseData.review) {
             window.addNewReview(responseData.review);
           }
-          // If this was a low rating scenario, also submit the rating
           if (reviewModal.isLowRating && reviewModal.rating) {
             await submitRatingForLowRating();
           }
@@ -183,80 +168,76 @@ const ReviewModal = () => {
       setIsSubmitting(false);
     }
   };
+
   const artistName = reviewModal.stage_name || reviewModal.name;
+  const submitLabel = reviewModal.isEditMode
+    ? "Update Review"
+    : "Submit Review";
 
   return (
-    <>
-      <Close className="absolute top-4 right-4" onClick={handleClose} />
-      <div>
-        {reviewModal.isLowRating && (
-          <div className="bg-red-900/30 border border-red-700 p-4 mt-5">
-            <h1 className=" text-crimson font-bold text-lg">
-              Please Explain Your Low Rating
-            </h1>
-            <p className="text-red-300 text-xs secondary break-words">
-              You rated this artist {reviewModal.rating}/10. To avoid spams,
-              please provide constructive feedback explaining why you gave this
-              low rating.
-            </p>
-          </div>
-        )}
-        <FlexBox type="column-center" className="items-center my-5">
-          <Title size="md" text={artistName} />
-          <Paragraph
-            text={`Share your thoughts about ${artistName}`}
-            className="text-center break-words"
+    <GlobalModal
+      isOpen={reviewModal.isOpen}
+      onClose={handleClose}
+      title={artistName}
+      maxWidth="w-xl"
+      onSubmit={handleSubmit}
+      submitText={
+        isSubmitting
+          ? reviewModal.isEditMode
+            ? "Updating..."
+            : "Submitting..."
+          : submitLabel
+      }
+      loading={isSubmitting}
+    >
+      {reviewModal.isLowRating && (
+        <div className="bg-red-900/30 border border-red-700 p-4">
+          <h1 className="text-crimson font-bold text-lg">
+            Please Explain Your Low Rating
+          </h1>
+          <p className="text-red-300 text-xs secondary break-words">
+            You rated this artist {reviewModal.rating}/10. To avoid spams,
+            please provide constructive feedback explaining why you gave this
+            low rating.
+          </p>
+        </div>
+      )}
+      <FlexBox type="column-center" className="items-center my-5">
+        <Paragraph
+          text={`Share your thoughts about ${artistName}`}
+          className="text-center break-words"
+        />
+      </FlexBox>
+      <div className="space-y-4">
+        <div>
+          <label htmlFor="reviewTitle">Review Title</label>
+          <input
+            type="text"
+            id="reviewTitle"
+            value={reviewTitle}
+            onChange={(e) => setReviewTitle(e.target.value)}
+            placeholder="Enter a title for your review"
+            maxLength={100}
+            required
           />
-        </FlexBox>
-        {/* Review Form */}
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <label htmlFor="reviewTitle"> Review Title</label>
-            <input
-              type="text"
-              id="reviewTitle"
-              value={reviewTitle}
-              onChange={(e) => setReviewTitle(e.target.value)}
-              placeholder="Enter a title for your review"
-              maxLength={100}
-              required
-            />
+        </div>
+        <div>
+          <label htmlFor="reviewText">Review Text</label>
+          <textarea
+            id="reviewText"
+            value={reviewText}
+            onChange={(e) => setReviewText(e.target.value)}
+            rows={6}
+            placeholder="Write your detailed review here..."
+            maxLength={1000}
+            required
+          />
+          <div className="text-right text-xs text-gray-500 mt-1">
+            {reviewText.length}/1000
           </div>
-          <div>
-            <label htmlFor="reviewText">Review Text</label>
-            <textarea
-              id="reviewText"
-              value={reviewText}
-              onChange={(e) => setReviewText(e.target.value)}
-              rows={6}
-              placeholder="Write your detailed review here..."
-              maxLength={1000}
-              required
-            />
-            <div className="text-right text-xs text-gray-500 mt-1">
-              {reviewText.length}/1000
-            </div>
-          </div>
-
-          <div className="gap-3 center">
-            <Button
-              type="submit"
-              text={
-                isSubmitting
-                  ? reviewModal.isEditMode
-                    ? "Updating..."
-                    : "Submitting..."
-                  : reviewModal.isEditMode
-                    ? "Update Review"
-                    : "Submit Review"
-              }
-              loading={isSubmitting}
-              disabled={isSubmitting}
-            />
-          </div>
-        </form>
+        </div>
       </div>
-    </>
+    </GlobalModal>
   );
 };
 

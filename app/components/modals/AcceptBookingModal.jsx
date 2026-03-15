@@ -1,98 +1,107 @@
-"use client"
-import { useState } from 'react'
-import { useDispatch, useSelector } from 'react-redux'
-import { 
-  selectAcceptBookingModal, 
-  closeAcceptBookingModal, 
+"use client";
+import { useState } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import {
+  selectAcceptBookingModal,
+  closeAcceptBookingModal,
   setAcceptBookingLoading,
-  setAcceptBookingError 
-} from '@/app/features/bookingSlice'
-import { setError } from '@/app/features/modalSlice'
-import Title from '@/app/components/ui/Title'
-import Paragraph from '@/app/components/ui/Paragraph'
-import Close from '@/app/components/buttons/Close'
-import Button from '@/app/components/buttons/Button'
-import { useRouter } from 'next/navigation'
+  setAcceptBookingError,
+} from "@/app/features/bookingSlice";
+import { setError } from "@/app/features/modalSlice";
+import Paragraph from "@/app/components/ui/Paragraph";
+import GlobalModal from "./GlobalModal";
+import { useRouter } from "next/navigation";
 
 const AcceptBookingModal = () => {
-  const dispatch = useDispatch()
-  const router = useRouter()
-  const { bookingData, loading } = useSelector(selectAcceptBookingModal)
+  const dispatch = useDispatch();
+  const router = useRouter();
+  const { isOpen, bookingData, loading } = useSelector(
+    selectAcceptBookingModal,
+  );
   const [formData, setFormData] = useState({
-    content: ''
-  })
+    content: "",
+  });
 
   const handleInputChange = (e) => {
-    const { name, value } = e.target
-    setFormData(prev => ({
+    const { name, value } = e.target;
+    setFormData((prev) => ({
       ...prev,
-      [name]: value
-    }))
-  }
+      [name]: value,
+    }));
+  };
 
   const handleSubmit = async (e) => {
-    e.preventDefault()
+    e.preventDefault();
     if (!formData.content.trim()) {
-      dispatch(setAcceptBookingError('Message is required'))
-      return
+      dispatch(setAcceptBookingError("Message is required"));
+      return;
     }
     if (!bookingData) {
-      dispatch(setAcceptBookingError('No booking data available'))
-      return
+      dispatch(setAcceptBookingError("No booking data available"));
+      return;
     }
 
-    dispatch(setAcceptBookingLoading(true))
+    dispatch(setAcceptBookingLoading(true));
     try {
       const responseData = {
-        message: formData.content.trim(), 
-        booking_id: bookingData.id 
-      }
-      const response = await fetch('/api/booking-requests/chat', { 
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        message: formData.content.trim(),
+        booking_id: bookingData.id,
+      };
+      const response = await fetch("/api/booking-requests/chat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify(responseData),
-      })
-      const result = await response.json()
-      
+      });
+      const result = await response.json();
+
       if (!response.ok) {
-        throw new Error(result.error || 'Failed to send booking response')
+        throw new Error(result.error || "Failed to send booking response");
       }
-      dispatch(setError({
-        message: "Booking response sent successfully! The requester will be notified.",
-        type: "success"
-      }))
-      dispatch(closeAcceptBookingModal())
-      setFormData({ content: '' })
-      router.push('/')
+      dispatch(
+        setError({
+          message:
+            "Booking response sent successfully! The requester will be notified.",
+          type: "success",
+        }),
+      );
+      dispatch(closeAcceptBookingModal());
+      setFormData({ content: "" });
+      router.push("/");
     } catch (error) {
-      dispatch(setAcceptBookingError(error.message))
+      dispatch(setAcceptBookingError(error.message));
     } finally {
-      dispatch(setAcceptBookingLoading(false))
+      dispatch(setAcceptBookingLoading(false));
     }
-  }
+  };
 
   const handleClose = () => {
-    dispatch(closeAcceptBookingModal())
-    setFormData({ content: '' })
-  }
+    dispatch(closeAcceptBookingModal());
+    setFormData({ content: "" });
+  };
 
-  if (!bookingData) return null
+  if (!bookingData) return null;
 
   return (
-    <div className="relative space-y-4">
-      <Close className="absolute top-2 right-2" onClick={handleClose} />
-      <div>
-        <Title text="Start Booking Discussion" size="lg"/>
-        <Paragraph 
-          text={`Send your first message about: ${bookingData.event_name}`}
-          className="text-stone-400"
-        />
-      </div>
+    <GlobalModal
+      isOpen={isOpen}
+      onClose={handleClose}
+      title="Start Booking Discussion"
+      maxWidth="w-2xl"
+      onSubmit={handleSubmit}
+      submitText={loading ? "Starting Discussion..." : "Start Discussion"}
+      loading={loading}
+      disabled={!formData.content.trim()}
+    >
+      <Paragraph
+        text={`Send your first message about: ${bookingData.event_name}`}
+        className="text-stone-400 -mt-3 mb-4"
+      />
 
-      <form onSubmit={handleSubmit} className="space-y-6">
-        {/* Content Input */}
+      <div className="space-y-4">
         <div>
-          <label className="block text-cream text-sm font-medium mb-2">Message</label>
+          <label className="block text-cream text-sm font-medium mb-2">
+            Message
+          </label>
           <textarea
             name="content"
             value={formData.content}
@@ -108,21 +117,23 @@ const AcceptBookingModal = () => {
           <div className="text-sm text-cream space-y-1">
             <div>Event: {bookingData.event_name}</div>
             <div>Venue: {bookingData.venue_name}</div>
-            <div>Date: {new Date(bookingData.event_date).toLocaleDateString()}</div>
-            <div>Requester: {bookingData.requester?.full_name || bookingData.requester?.userName || 'Unknown'}</div>
-            <div className="text-xs text-stone-400 mt-2">Booking ID: {bookingData.id}</div>
+            <div>
+              Date: {new Date(bookingData.event_date).toLocaleDateString()}
+            </div>
+            <div>
+              Requester:{" "}
+              {bookingData.requester?.full_name ||
+                bookingData.requester?.userName ||
+                "Unknown"}
+            </div>
+            <div className="text-xs text-stone-400 mt-2">
+              Booking ID: {bookingData.id}
+            </div>
           </div>
         </div>
+      </div>
+    </GlobalModal>
+  );
+};
 
-        <Button
-          type="submit"
-          loading={loading}
-          text={loading ? "Starting Discussion..." : "Start Discussion"}
-          disabled={loading || !formData.content.trim()}
-        />
-      </form>
-    </div>
-  )
-}
-
-export default AcceptBookingModal
+export default AcceptBookingModal;

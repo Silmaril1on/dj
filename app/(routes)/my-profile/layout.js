@@ -1,5 +1,5 @@
 import PageNavigation from "@/app/components/buttons/PageNavigation";
-import { userProfileLinks } from "@/app/localDB/LinksData";
+import { userProfileLinks } from "@/app/lib/localDB/LinksData";
 
 const UserProfileLayout = ({ children }) => {
   return (

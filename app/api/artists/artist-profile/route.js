@@ -77,9 +77,7 @@ export async function GET(request) {
         .from("artist_schedule")
         .select("*", { count: "exact", head: true })
         .eq("artist_id", resolvedArtistId)
-        .or(
-          "event_status.eq.upcoming,event_status.is.null,event_type.eq.upcoming,event_type.is.null",
-        );
+        .gte("date", new Date().toISOString().split("T")[0]);
 
     if (scheduleCountError) {
       console.error("Error fetching schedule count:", scheduleCountError);

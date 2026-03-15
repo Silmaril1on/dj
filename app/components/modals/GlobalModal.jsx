@@ -1,99 +1,66 @@
 "use client";
-import {
-  selectAddEventModal,
-  selectAddClubDateModal,
-  selectAddAlbumModal,
-  selectGlobalModal,
-} from "@/app/features/modalSlice";
-import { selectSuccess } from "@/app/features/successSlice";
-import { selectEvaluationModal } from "@/app/features/evaluationSlice";
-import { selectReportsModal } from "@/app/features/reportsSlice";
-import {
-  selectBookingModal,
-  selectAcceptBookingModal,
-} from "@/app/features/bookingSlice";
-import { selectPrivacyTermsModal } from "@/app/features/privacyTermsSlice";
-import { useSelector } from "react-redux";
 import { AnimatePresence, motion } from "framer-motion";
-import SuccessOnSubmit from "@/app/components/materials/SuccessOnSubmit";
-import ViewSubmittedInfo from "@/app/components/materials/ViewSubmittedInfo";
-import AddEventModal from "../modals/AddEventModal";
-import AddClubDateModal from "../modals/AddClubDateModal";
-import AddAlbumModal from "../modals/AddAlbumModal";
-import ReportForm from "../forms/ReportForm";
-import BookingForm from "../forms/BookingForm";
-import AcceptBookingModal from "../modals/AcceptBookingModal";
-import PrivacyAndTermsModal from "../modals/PrivacyAndTermsModal";
-import ReviewModal from "../modals/ReviewModal";
-import RatingModal from "../modals/RatingModal";
+import { IoMdClose } from "react-icons/io";
+import Button from "@/app/components/buttons/Button";
+import Title from "@/app/components/ui/Title";
 
-const GlobalModal = ({ children }) => {
-  const globalModal = useSelector(selectGlobalModal);
-  const successModal = useSelector(selectSuccess);
-  const evaluationModal = useSelector(selectEvaluationModal);
-  const addEventModal = useSelector(selectAddEventModal);
-  const addClubDateModal = useSelector(selectAddClubDateModal);
-  const addAlbumModal = useSelector(selectAddAlbumModal);
-  const reportsModal = useSelector(selectReportsModal);
-  const bookingModal = useSelector(selectBookingModal);
-  const acceptBookingModal = useSelector(selectAcceptBookingModal);
-  const privacyTermsModal = useSelector(selectPrivacyTermsModal);
-
-  const getModalWidth = () => {
-    if (acceptBookingModal?.isOpen) return "w-2xl";
-    if (bookingModal?.isOpen) return "w-full lg:w-[60%]";
-    if (addEventModal?.isOpen) return "max-w-3xl";
-    if (addClubDateModal?.isOpen) return "max-w-3xl";
-    if (addAlbumModal?.isOpen) return "max-w-2xl";
-    if (globalModal.content === "rating") return "w-lg";
-    if (globalModal.content === "review") return "w-xl";
-    if (reportsModal?.isOpen) return "w-xl";
-    if (privacyTermsModal?.isOpen) return "max-w-4xl";
-    if (successModal?.isOpen) return "w-full lg:max-w-4xl";
-    return "max-w-2xl";
-  };
-
+const GlobalModal = ({
+  isOpen,
+  onClose,
+  title,
+  maxWidth = "max-w-2xl",
+  onSubmit,
+  submitText,
+  loading = false,
+  disabled = false,
+  children,
+}) => {
   return (
-    <>
-      <AnimatePresence mode="wait">
-        {(globalModal.isOpen ||
-          successModal.isOpen ||
-          evaluationModal ||
-          reportsModal?.isOpen ||
-          bookingModal?.isOpen ||
-          acceptBookingModal?.isOpen ||
-          privacyTermsModal?.isOpen) && (
+    <AnimatePresence>
+      {isOpen && (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: 0.2, ease: "easeInOut" }}
+          className="fixed inset-0 bg-black/50 backdrop-blur-sm px-3 z-50 flex items-center justify-center"
+        >
           <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.2, ease: "easeInOut" }}
-            className={`fixed inset-0 bg-black/50 backdrop-blur-sm px-3 z-50 flex items-center justify-center `}
+            initial={{ opacity: 0, y: 24, scale: 0.96 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: 16, scale: 0.97 }}
+            transition={{ duration: 0.25, ease: "easeOut" }}
+            className={`bg-black border border-gold/50 p-5 w-full relative max-h-[90vh] overflow-y-auto ${maxWidth}`}
           >
-            <div
-              className={`bg-black border border-gold/50 p-5 relative ${getModalWidth()}`}
-            >
-              {globalModal.isOpen && globalModal.content === "rating" && (
-                <RatingModal />
-              )}
-              {globalModal.isOpen && globalModal.content === "review" && (
-                <ReviewModal />
-              )}
-              {successModal.isOpen && <SuccessOnSubmit />}
-              {evaluationModal && <ViewSubmittedInfo />}
-              {reportsModal?.isOpen && <ReportForm type={reportsModal.type} />}
-              {bookingModal?.isOpen && <BookingForm />}
-              {acceptBookingModal?.isOpen && <AcceptBookingModal />}
-              {privacyTermsModal?.isOpen && <PrivacyAndTermsModal />}
+            {/* Header */}
+            <div className="flex items-center justify-between mb-4">
+              {title && <Title text={title} size="lg" />}
+              <div
+                onClick={onClose}
+                className="cursor-pointer text-gold hover:rotate-90 duration-300 text-xl ml-auto"
+              >
+                <IoMdClose />
+              </div>
             </div>
+
+            {/* Content */}
             {children}
+
+            {/* Footer / Primary Action */}
+            {onSubmit && submitText && (
+              <div className="center mt-5">
+                <Button
+                  onClick={onSubmit}
+                  text={submitText}
+                  loading={loading}
+                  disabled={disabled || loading}
+                />
+              </div>
+            )}
           </motion.div>
-        )}
-      </AnimatePresence>
-      <AddEventModal />
-      <AddClubDateModal />
-      <AddAlbumModal />
-    </>
+        </motion.div>
+      )}
+    </AnimatePresence>
   );
 };
 
