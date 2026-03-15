@@ -1,4 +1,4 @@
-import SubmittedArtist from "@/app/pages/my-profile-page/statistics/submitted-artist/SubmittedArtist";
+import SubmittedArtist from "@/app/(routes)/my-profile/statistics/@submittedArtistSlot/SubmittedArtist";
 import { cookies } from "next/headers";
 
 export const dynamic = "force-dynamic";
@@ -21,7 +21,7 @@ const SubmittedArtistsSlot = async () => {
           Cookie: cookieHeader,
           "Content-Type": "application/json",
         },
-      }
+      },
     );
 
     if (!response.ok) {

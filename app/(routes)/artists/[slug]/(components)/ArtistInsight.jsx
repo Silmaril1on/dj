@@ -1,6 +1,6 @@
 "use client";
 import { useState, useEffect } from "react";
-import RatingsStats from "@/app/pages/my-profile-page/statistics/ratings/RatingsStats";
+import RatingsStats from "@/app/(routes)/my-profile/statistics/@ratingsSlot/RatingsStats";
 import ArtistReviews from "./ArtistReviews";
 
 const ArtistInsight = ({ artistId, slug }) => {

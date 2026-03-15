@@ -1,4 +1,4 @@
-import SubmittedEvents from "@/app/pages/my-profile-page/statistics/submitted-events/SubmittedEvents";
+import SubmittedEvents from "@/app/(routes)/my-profile/statistics/@submittedEventsSlot/SubmittedEvents";
 import { cookies } from "next/headers";
 
 export const dynamic = "force-dynamic";
@@ -20,15 +20,13 @@ const SubmittedEventsSlot = async () => {
           Cookie: cookieHeader,
           "Content-Type": "application/json",
         },
-      }
+      },
     );
 
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}));
       console.error("Statistics API Error:", response.status, errorData);
-      throw new Error(
-        errorData.error || "Failed to fetch statistics"
-      );
+      throw new Error(errorData.error || "Failed to fetch statistics");
     }
 
     const result = await response.json();

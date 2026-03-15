@@ -1,4 +1,4 @@
-import ReviewsStats from "@/app/pages/my-profile-page/statistics/reviews/ReviewsStats";
+import ReviewsStats from "@/app/(routes)/my-profile/statistics/@reviewsSlot/ReviewsStats";
 import { cookies } from "next/headers";
 
 export const dynamic = "force-dynamic";
@@ -21,7 +21,7 @@ const ReviewsStatsSlot = async () => {
           Cookie: cookieHeader,
           "Content-Type": "application/json",
         },
-      }
+      },
     );
 
     if (!response.ok) {

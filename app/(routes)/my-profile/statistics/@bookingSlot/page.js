@@ -1,4 +1,4 @@
-import Mybookings from '@/app/pages/my-profile-page/statistics/bookings/Mybookings'
+import Mybookings from "@/app/(routes)/my-profile/statistics/@bookingSlot/Mybookings";
 import { cookies } from "next/headers";
 
 export const dynamic = "force-dynamic";
@@ -21,7 +21,7 @@ const BookingSlot = async () => {
           Cookie: cookieHeader,
           "Content-Type": "application/json",
         },
-      }
+      },
     );
 
     if (!response.ok) {
@@ -42,6 +42,6 @@ const BookingSlot = async () => {
     console.error("Error fetching booking statistics:", error);
     return <Mybookings data={null} error={error.message} />;
   }
-}
+};
 
-export default BookingSlot
+export default BookingSlot;

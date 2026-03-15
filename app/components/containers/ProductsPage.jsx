@@ -209,7 +209,12 @@ const ProductsPage = ({
   if (initialError) {
     return (
       <div className="space-y-3 px-3 lg:px-4 pb-5">
-        <PageHeadline title={title} description={description} />
+        <div className="lg:px-4 py-2 lg:py-10 bg-stone-950">
+          <h1 className="text-2xl lg:text-5xl font-bold">{title}</h1>
+          <p className="secondary text-[10px] md:text-sm text-cream ">
+            {description}
+          </p>
+        </div>
         <ErrorCode title={`Error loading ${type}`} description={initialError} />
       </div>
     );
@@ -218,7 +223,12 @@ const ProductsPage = ({
   if (!data || data.length === 0) {
     return (
       <div className="space-y-3 px-3 lg:px-4 pb-5">
-        <PageHeadline title={title} description={description} />
+        <div className="lg:px-4 py-2 lg:py-10 bg-stone-950">
+          <h1 className="text-2xl lg:text-5xl font-bold">{title}</h1>
+          <p className="secondary text-[10px] md:text-sm text-cream ">
+            {description}
+          </p>
+        </div>
         <ErrorCode
           title={`No ${type} available`}
           description={`Check back later for new ${type}.`}

@@ -1,4 +1,4 @@
-import RatingsStats from "@/app/pages/my-profile-page/statistics/ratings/RatingsStats";
+import RatingsStats from "@/app/(routes)/my-profile/statistics/@ratingsSlot/RatingsStats";
 import { headers, cookies } from "next/headers";
 
 export const dynamic = "force-dynamic";
@@ -21,7 +21,7 @@ const RatingsStatsSlot = async () => {
           Cookie: cookieHeader,
           "Content-Type": "application/json",
         },
-      }
+      },
     );
 
     if (!response.ok) {

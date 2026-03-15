@@ -1,4 +1,4 @@
-import LikesStats from "@/app/pages/my-profile-page/statistics/likes/LikesStats";
+import LikesStats from "@/app/(routes)/my-profile/statistics/@likesSlot/LikesStats";
 import { cookies } from "next/headers";
 
 export const dynamic = "force-dynamic";
@@ -21,7 +21,7 @@ const LikesStatsSlot = async () => {
           Cookie: cookieHeader,
           "Content-Type": "application/json",
         },
-      }
+      },
     );
 
     if (!response.ok) {

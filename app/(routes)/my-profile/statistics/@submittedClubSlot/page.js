@@ -1,4 +1,4 @@
-import SubmittedClub from "@/app/pages/my-profile-page/statistics/submitted-club/SubmitttedClub";
+import SubmittedClub from "@/app/(routes)/my-profile/statistics/@submittedClubSlot/SubmitttedClub";
 import { cookies } from "next/headers";
 
 export const dynamic = "force-dynamic";
@@ -21,7 +21,7 @@ const SubmittedClubsSlot = async () => {
           Cookie: cookieHeader,
           "Content-Type": "application/json",
         },
-      }
+      },
     );
 
     if (!response.ok) {
