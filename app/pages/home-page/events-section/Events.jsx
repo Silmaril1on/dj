@@ -163,7 +163,7 @@ const Panel = ({ open, setOpen, event }) => {
                 />
               </div>
               <div>
-                <div className="absolute flex justify-center gap-2 py-1.5 bg-black/50 shadow-lg rounded-md backdrop-blur-lg  top-2 lg:top-4 right-2 lg:right-4 w-fit px-2">
+                <div className="absolute flex justify-end gap-2 py-1.5 bg-black/50 shadow-lg rounded-md backdrop-blur-lg  top-2 lg:top-4 right-2 lg:right-4 w-32 px-2">
                   <SpanText
                     icon={<FaUsers />}
                     size="xs"
@@ -180,7 +180,7 @@ const Panel = ({ open, setOpen, event }) => {
                     onLikeChange={handleLikeChange}
                   />
                 </div>
-                <div className="flex justify-center gap-2 py-1.5 absolute top-2 lg:top-15 right-2 lg:right-4 bg-black/50 shadow-lg rounded-md backdrop-blur-lg w-fit px-2">
+                <div className="flex justify-end gap-2 py-1.5 absolute top-2 lg:top-17 right-2 lg:right-4 bg-black/50 shadow-lg rounded-md backdrop-blur-lg w-32 px-2">
                   <SpanText
                     text="Set Reminder"
                     size="xs"
