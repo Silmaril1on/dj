@@ -1,47 +1,12 @@
 import Mybookings from "@/app/(routes)/my-profile/statistics/@bookingSlot/Mybookings";
-import { cookies } from "next/headers";
+import { getUserBookingsStats } from "@/app/lib/services/user/statistics/getUserBookingsStats";
 
-export const dynamic = "force-dynamic";
-
-const BookingSlot = async () => {
+export default async function BookingSlot() {
   try {
-    const cookieStore = await cookies();
-
-    // Get all cookies and format them properly
-    const cookieHeader = cookieStore
-      .getAll()
-      .map((cookie) => `${cookie.name}=${cookie.value}`)
-      .join("; ");
-
-    const response = await fetch(
-      `${process.env.PROJECT_URL}/api/users/statistics`,
-      {
-        cache: "no-store",
-        headers: {
-          Cookie: cookieHeader,
-          "Content-Type": "application/json",
-        },
-      },
-    );
-
-    if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}));
-      console.error("Statistics API Error:", response.status, errorData);
-      throw new Error(errorData.error || "Failed to fetch statistics");
-    }
-
-    const result = await response.json();
-
-    if (!result.success) {
-      throw new Error(result.error || "Failed to fetch statistics");
-    }
-
-    // Extract only bookings data for this slot
-    return <Mybookings data={result.data.bookings} />;
+    const bookings = await getUserBookingsStats();
+    return <Mybookings data={bookings} />;
   } catch (error) {
     console.error("Error fetching booking statistics:", error);
     return <Mybookings data={null} error={error.message} />;
   }
-};
-
-export default BookingSlot;
+}

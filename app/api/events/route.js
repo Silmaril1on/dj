@@ -345,6 +345,9 @@ export async function POST(request) {
     }
 
     revalidateTag("events");
+    revalidateTag(`user-statistics-${user.id}`);
+    revalidateTag(`user-statistics-submitted-events-${user.id}`);
+    revalidateTag("user-statistics-submitted-events");
 
     return NextResponse.json({
       success: true,
@@ -529,6 +532,9 @@ export async function PATCH(request) {
     console.log("✅ Event updated successfully:", updated.id);
 
     revalidateTag("events");
+    revalidateTag(`user-statistics-${user.id}`);
+    revalidateTag(`user-statistics-submitted-events-${user.id}`);
+    revalidateTag("user-statistics-submitted-events");
 
     return NextResponse.json({
       success: true,

@@ -1,4 +1,4 @@
-import Security from "@/app/pages/my-profile-page/security/Security";
+import Security from "@/app/(routes)/my-profile/security/Security";
 import React from "react";
 
 export const metadata = {
@@ -9,7 +9,7 @@ export const metadata = {
 const SecurityPage = () => {
   return (
     <div className="text-center py-4">
-     <Security />
+      <Security />
     </div>
   );
 };

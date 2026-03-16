@@ -1,5 +1,5 @@
-import { getServerUser } from "@/app/lib/config/supabaseServer";
-import { cookies } from "next/headers";
+import { redirect } from "next/navigation";
+import { getProfile } from "@/app/lib/services/user/profile/getProfile";
 import MyProfile from "@/app/pages/my-profile-page/user-profile/MyProfile";
 
 export const dynamic = "force-dynamic";
@@ -10,14 +10,13 @@ export const metadata = {
 };
 
 const ProfilePageSlot = async () => {
-  const cookieStore = await cookies();
-  const { user, error } = await getServerUser(cookieStore);
+  const { user, error } = await getProfile();
 
   if (!user || error) {
     redirect("/auth/login");
   }
 
-  return <MyProfile profile={user} error={null} />;
+  return <MyProfile initialProfile={user} />;
 };
 
 export default ProfilePageSlot;

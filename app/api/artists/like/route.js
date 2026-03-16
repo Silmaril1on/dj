@@ -185,6 +185,9 @@ export async function POST(request) {
     revalidateTag("artists");
     revalidateTag("artist-likes");
     revalidateTag(`artist-${artistId}`);
+    revalidateTag(`user-statistics-${user.id}`);
+    revalidateTag(`user-statistics-likes-${user.id}`);
+    revalidateTag("user-statistics-likes");
 
     return NextResponse.json({
       success: true,

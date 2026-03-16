@@ -292,6 +292,9 @@ export async function POST(request) {
     }
 
     revalidateTag("clubs");
+    revalidateTag(`user-statistics-${user.id}`);
+    revalidateTag(`user-statistics-submitted-club-${user.id}`);
+    revalidateTag("user-statistics-submitted-club");
 
     return NextResponse.json({
       success: true,
@@ -558,6 +561,9 @@ export async function PATCH(request) {
     }
 
     revalidateTag("clubs");
+    revalidateTag(`user-statistics-${user.id}`);
+    revalidateTag(`user-statistics-submitted-club-${user.id}`);
+    revalidateTag("user-statistics-submitted-club");
 
     return NextResponse.json({
       success: true,

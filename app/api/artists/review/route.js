@@ -5,6 +5,7 @@ import {
   getServerUser,
 } from "@/app/lib/config/supabaseServer";
 import { cookies } from "next/headers";
+import { revalidateTag } from "next/cache";
 
 export async function GET(request) {
   try {
@@ -278,6 +279,12 @@ export async function POST(request) {
         { status: 500 },
       );
     }
+
+    revalidateTag("artists");
+    revalidateTag(`artist-${artistId}`);
+    revalidateTag(`user-statistics-${userId}`);
+    revalidateTag(`user-statistics-reviews-${userId}`);
+    revalidateTag("user-statistics-reviews");
 
     return NextResponse.json({
       success: true,

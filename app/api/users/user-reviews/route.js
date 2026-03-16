@@ -4,6 +4,7 @@ import {
   createSupabaseServerClient,
   getServerUser,
 } from "@/app/lib/config/supabaseServer";
+import { revalidateTag } from "next/cache";
 
 export async function GET(request) {
   try {
@@ -17,7 +18,7 @@ export async function GET(request) {
           error: "Authentication failed",
           details: userError.message,
         },
-        { status: 401 }
+        { status: 401 },
       );
     }
 
@@ -27,7 +28,7 @@ export async function GET(request) {
           success: false,
           error: "User not authenticated",
         },
-        { status: 401 }
+        { status: 401 },
       );
     }
 
@@ -54,7 +55,7 @@ export async function GET(request) {
           stage_name,
           artist_image
         )
-      `
+      `,
       )
       .eq("user_id", user.id)
       .order("created_at", { ascending: false })
@@ -68,7 +69,7 @@ export async function GET(request) {
           error: "Failed to fetch user reviews",
           details: reviewsError.message,
         },
-        { status: 500 }
+        { status: 500 },
       );
     }
 
@@ -86,7 +87,7 @@ export async function GET(request) {
           error: "Failed to fetch reviews count",
           details: countError.message,
         },
-        { status: 500 }
+        { status: 500 },
       );
     }
 
@@ -128,7 +129,7 @@ export async function GET(request) {
         error: "Internal server error",
         details: error.message,
       },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
@@ -145,7 +146,7 @@ export async function PUT(request) {
           error: "Authentication failed",
           details: userError.message,
         },
-        { status: 401 }
+        { status: 401 },
       );
     }
 
@@ -155,7 +156,7 @@ export async function PUT(request) {
           success: false,
           error: "User not authenticated",
         },
-        { status: 401 }
+        { status: 401 },
       );
     }
 
@@ -164,7 +165,7 @@ export async function PUT(request) {
     if (!reviewId || !reviewTitle || !reviewText) {
       return NextResponse.json(
         { error: "Review ID, title, and text are required" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -173,7 +174,7 @@ export async function PUT(request) {
     // First, verify that the review belongs to the user
     const { data: existingReview, error: checkError } = await supabase
       .from("artist_reviews")
-      .select("id, user_id")
+      .select("id, user_id, artist_id")
       .eq("id", reviewId)
       .eq("user_id", user.id)
       .single();
@@ -181,7 +182,7 @@ export async function PUT(request) {
     if (checkError || !existingReview) {
       return NextResponse.json(
         { error: "Review not found or you don't have permission to edit it" },
-        { status: 404 }
+        { status: 404 },
       );
     }
 
@@ -208,7 +209,7 @@ export async function PUT(request) {
           stage_name,
           artist_image
         )
-      `
+      `,
       )
       .single();
 
@@ -216,7 +217,7 @@ export async function PUT(request) {
       console.error("Error updating review:", updateError);
       return NextResponse.json(
         { error: "Failed to update review" },
-        { status: 500 }
+        { status: 500 },
       );
     }
 
@@ -244,7 +245,7 @@ export async function PUT(request) {
     console.error("Error in update-review API:", error);
     return NextResponse.json(
       { error: "Internal server error" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
@@ -261,7 +262,7 @@ export async function DELETE(request) {
           error: "Authentication failed",
           details: userError.message,
         },
-        { status: 401 }
+        { status: 401 },
       );
     }
 
@@ -271,7 +272,7 @@ export async function DELETE(request) {
           success: false,
           error: "User not authenticated",
         },
-        { status: 401 }
+        { status: 401 },
       );
     }
 
@@ -281,7 +282,7 @@ export async function DELETE(request) {
     if (!reviewId) {
       return NextResponse.json(
         { error: "Review ID is required" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -290,7 +291,7 @@ export async function DELETE(request) {
     // First, verify that the review belongs to the user
     const { data: existingReview, error: checkError } = await supabase
       .from("artist_reviews")
-      .select("id, user_id")
+      .select("id, user_id, artist_id")
       .eq("id", reviewId)
       .eq("user_id", user.id)
       .single();
@@ -298,7 +299,7 @@ export async function DELETE(request) {
     if (checkError || !existingReview) {
       return NextResponse.json(
         { error: "Review not found or you don't have permission to delete it" },
-        { status: 404 }
+        { status: 404 },
       );
     }
 
@@ -313,9 +314,15 @@ export async function DELETE(request) {
       console.error("Error deleting review:", deleteError);
       return NextResponse.json(
         { error: "Failed to delete review" },
-        { status: 500 }
+        { status: 500 },
       );
     }
+
+    revalidateTag("artists");
+    revalidateTag(`artist-${existingReview.artist_id}`);
+    revalidateTag(`user-statistics-${user.id}`);
+    revalidateTag(`user-statistics-reviews-${user.id}`);
+    revalidateTag("user-statistics-reviews");
 
     return NextResponse.json({
       success: true,
@@ -325,7 +332,7 @@ export async function DELETE(request) {
     console.error("Error in delete-review API:", error);
     return NextResponse.json(
       { error: "Internal server error" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

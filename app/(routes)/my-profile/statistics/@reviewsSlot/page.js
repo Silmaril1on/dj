@@ -1,47 +1,34 @@
-import ReviewsStats from "@/app/(routes)/my-profile/statistics/@reviewsSlot/ReviewsStats";
-import { cookies } from "next/headers";
+import ActivityStatsCard from "@/app/(routes)/my-profile/statistics/(components)/ActivityStatsCard";
+import { getUserReviewsCount } from "@/app/lib/services/user/statistics/getUserReviewsCount";
 
-export const dynamic = "force-dynamic";
-
-const ReviewsStatsSlot = async () => {
+export default async function ReviewsStatsSlot() {
   try {
-    const cookieStore = await cookies();
-
-    // Get all cookies and format them properly
-    const cookieHeader = cookieStore
-      .getAll()
-      .map((cookie) => `${cookie.name}=${cookie.value}`)
-      .join("; ");
-
-    const response = await fetch(
-      `${process.env.PROJECT_URL}/api/users/statistics`,
-      {
-        cache: "no-store",
-        headers: {
-          Cookie: cookieHeader,
-          "Content-Type": "application/json",
-        },
-      },
+    const reviews = await getUserReviewsCount();
+    return (
+      <ActivityStatsCard
+        data={reviews}
+        title="Reviews"
+        description="My Review Statistics"
+        totalKey="totalReviews"
+        totalLabel="Total Reviews"
+        itemsKey="recentArtists"
+        paragraphText="See how many reviews you've dropped and revisit your most recent ones."
+        getHref={(a) => `/artists/${a.artist_slug}`}
+        imageField="artist_image"
+        primaryNameField="stage_name"
+        secondaryNameField="name"
+        dateField="reviewed_at"
+        getImageAlt={(a) => a.stage_name || a.name}
+      />
     );
-
-    if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}));
-      console.error("Statistics API Error:", response.status, errorData);
-      throw new Error(errorData.error || "Failed to fetch statistics");
-    }
-
-    const result = await response.json();
-
-    if (!result.success) {
-      throw new Error(result.error || "Failed to fetch statistics");
-    }
-
-    // Extract only reviews data for this slot
-    return <ReviewsStats data={result.data.reviews} />;
   } catch (error) {
     console.error("Error fetching reviews statistics:", error);
-    return <ReviewsStats data={null} error={error.message} />;
+    return (
+      <ActivityStatsCard
+        error={error.message}
+        title="Reviews"
+        description="My Review Statistics"
+      />
+    );
   }
-};
-
-export default ReviewsStatsSlot;
+}

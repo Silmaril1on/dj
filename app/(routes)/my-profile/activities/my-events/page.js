@@ -1,12 +1,12 @@
-import MyEvents from '@/app/pages/my-profile-page/activities/events/MyEvents'
+import MyEvents from "@/app/(routes)/my-profile/activities/my-events/MyEvents";
 import { cookies } from "next/headers";
 
 export const dynamic = "force-dynamic";
 
 export const metadata = {
   title: "My Profile | Events",
-  description: "my events"
-}
+  description: "my events",
+};
 
 const MyEventsPage = async () => {
   let allEvents = [];
@@ -17,12 +17,15 @@ const MyEventsPage = async () => {
       .map(({ name, value }) => `${name}=${value}`)
       .join("; ");
 
-    const res = await fetch(`${process.env.PROJECT_URL}/api/users/my-submitted-events`, {
-      headers: {
-        Cookie: cookieHeader,
+    const res = await fetch(
+      `${process.env.PROJECT_URL}/api/users/my-submitted-events`,
+      {
+        headers: {
+          Cookie: cookieHeader,
+        },
+        cache: "no-store",
       },
-      cache: "no-store",
-    });
+    );
     const data = await res.json();
     if (data.success) {
       allEvents = data.data.allEvents;
@@ -31,9 +34,7 @@ const MyEventsPage = async () => {
     // handle error or leave allEvents as []
   }
 
-  return (
-    <MyEvents events={allEvents} />
-  );
-}
+  return <MyEvents events={allEvents} />;
+};
 
-export default MyEventsPage
+export default MyEventsPage;

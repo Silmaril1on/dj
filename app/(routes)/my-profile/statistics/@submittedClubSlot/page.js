@@ -1,47 +1,38 @@
-import SubmittedClub from "@/app/(routes)/my-profile/statistics/@submittedClubSlot/SubmitttedClub";
-import { cookies } from "next/headers";
+import SubmittedProfileCard from "@/app/(routes)/my-profile/statistics/(components)/SubmittedProfileCard";
+import { getUserSubmittedClubStats } from "@/app/lib/services/user/statistics/getUserSubmittedClubStats";
 
-export const dynamic = "force-dynamic";
-
-const SubmittedClubsSlot = async () => {
+export default async function SubmittedClubsSlot() {
   try {
-    const cookieStore = await cookies();
-
-    // Get all cookies and format them properly
-    const cookieHeader = cookieStore
-      .getAll()
-      .map((cookie) => `${cookie.name}=${cookie.value}`)
-      .join("; ");
-
-    const response = await fetch(
-      `${process.env.PROJECT_URL}/api/users/statistics`,
-      {
-        cache: "no-store",
-        headers: {
-          Cookie: cookieHeader,
-          "Content-Type": "application/json",
-        },
-      },
+    const submittedClub = await getUserSubmittedClubStats();
+    return (
+      <SubmittedProfileCard
+        data={submittedClub}
+        title="My Club Profile"
+        description="Your club profile"
+        imageField="club_image"
+        getDisplayName={(item) => item.name}
+        getHref={(item) => `/clubs/${item.id}`}
+        submitHref="/add-product/club"
+        submitLabel="Submit Club Profile"
+        emptyTitle="Your club profile is not yet submitted"
+        emptyDescription="Do you have a club profile? Please submit it to see your profile here."
+        renderExtra={(item) =>
+          item.capacity && (
+            <span className="text-gold/80 text-sm font-medium mt-1">
+              Capacity: <span className="text-cream">{item.capacity}</span>
+            </span>
+          )
+        }
+      />
     );
-
-    if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}));
-      console.error("Statistics API Error:", response.status, errorData);
-      throw new Error(errorData.error || "Failed to fetch statistics");
-    }
-
-    const result = await response.json();
-
-    if (!result.success) {
-      throw new Error(result.error || "Failed to fetch statistics");
-    }
-
-    // Extract only submitted club data for this slot
-    return <SubmittedClub data={result.data.submittedClub} />;
   } catch (error) {
     console.error("Error fetching submitted clubs:", error);
-    return <SubmittedClub data={null} error={error.message} />;
+    return (
+      <SubmittedProfileCard
+        error={error.message}
+        title="My Club Profile"
+        description="Your club profile"
+      />
+    );
   }
-};
-
-export default SubmittedClubsSlot;
+}

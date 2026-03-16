@@ -1,10 +1,12 @@
 "use client";
 import { useState, useEffect } from "react";
 import { useSelector, useDispatch } from "react-redux";
+import { useRouter } from "next/navigation";
 import { selectUser } from "@/app/features/userSlice";
 import { setError } from "@/app/features/modalSlice";
 import { FaHeart, FaRegHeart } from "react-icons/fa";
 import ActionButton from "@/app/components/buttons/ActionButton";
+import { revalidateUserStatistics } from "@/app/lib/hooks/useUserStatistics";
 
 const LikeButton = ({
   className,
@@ -15,6 +17,7 @@ const LikeButton = ({
 }) => {
   const user = useSelector(selectUser);
   const dispatch = useDispatch();
+  const router = useRouter();
   const [isLiked, setIsLiked] = useState(artist?.isLiked || false);
   const [isLoading, setIsLoading] = useState(false);
 
@@ -41,6 +44,10 @@ const LikeButton = ({
         const data = await res.json();
         setIsLiked(data.isLiked ?? !prev);
         onLikeChange?.(data.isLiked, data.likesCount);
+        if (type === "artist") {
+          await revalidateUserStatistics();
+          router.refresh();
+        }
       } else {
         setIsLiked(prev);
         dispatch(

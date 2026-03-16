@@ -1,12 +1,12 @@
 "use client";
 import useRecentlyViewed from "@/app/lib/hooks/useRecentlViewed";
 import ArtistSchedule from "@/app/(routes)/artists/[slug]/(components)/ArtistSchedule";
-import ProfileLineup from "./components/ProfileLineup";
-import ProfileActions from "./components/ProfileActions";
-import ProfileBasicInfo from "./components/ProfileBasicInfo";
-import ProfilePoster from "./components/ProfilePoster";
-import ProfileOwnerControls from "./components/ProfileOwnerControls";
-import FestivalLineupDisplay from "./components/FestivalLineupDisplay";
+import ProfileLineup from "./(components)/ProfileLineup";
+import ProfileActions from "./(components)/ProfileActions";
+import ProfileBasicInfo from "./(components)/ProfileBasicInfo";
+import ProfilePoster from "./(components)/ProfilePoster";
+import ProfileOwnerControls from "./(components)/ProfileOwnerControls";
+import FestivalLineupDisplay from "./(components)/FestivalLineupDisplay";
 import { PROFILE_TYPE_CONFIG, extractProfileData } from "./profileConfigs";
 
 const SingleDataProfile = ({ data, type = "events", currentUserId = null }) => {

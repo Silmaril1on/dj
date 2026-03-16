@@ -1,47 +1,12 @@
 import RatingsStats from "@/app/(routes)/my-profile/statistics/@ratingsSlot/RatingsStats";
-import { headers, cookies } from "next/headers";
+import { getUserRatesCount } from "@/app/lib/services/user/statistics/getUserRatesCount";
 
-export const dynamic = "force-dynamic";
-
-const RatingsStatsSlot = async () => {
+export default async function RatingsStatsSlot() {
   try {
-    const cookieStore = await cookies();
-
-    // Get all cookies and format them properly
-    const cookieHeader = cookieStore
-      .getAll()
-      .map((cookie) => `${cookie.name}=${cookie.value}`)
-      .join("; ");
-
-    const response = await fetch(
-      `${process.env.PROJECT_URL}/api/users/statistics`,
-      {
-        cache: "no-store",
-        headers: {
-          Cookie: cookieHeader,
-          "Content-Type": "application/json",
-        },
-      },
-    );
-
-    if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}));
-      console.error("Statistics API Error:", response.status, errorData);
-      throw new Error(errorData.error || "Failed to fetch statistics");
-    }
-
-    const result = await response.json();
-
-    if (!result.success) {
-      throw new Error(result.error || "Failed to fetch statistics");
-    }
-
-    // Extract only ratings data for this slot
-    return <RatingsStats data={result.data.ratings} />;
+    const ratings = await getUserRatesCount();
+    return <RatingsStats data={ratings} />;
   } catch (error) {
     console.error("Error fetching rating statistics:", error);
     return <RatingsStats data={null} error={error.message} />;
   }
-};
-
-export default RatingsStatsSlot;
+}

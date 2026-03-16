@@ -1,6 +1,7 @@
 "use client";
 import { useSelector, useDispatch } from "react-redux";
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { FaStar } from "react-icons/fa6";
 import { selectUser } from "@/app/features/userSlice";
 import {
@@ -15,11 +16,13 @@ import { openReviewModal } from "@/app/features/reviewsSlice";
 import ArtistName from "../materials/ArtistName";
 import FlexBox from "../containers/FlexBox";
 import GlobalModal from "./GlobalModal";
+import { revalidateUserStatistics } from "@/app/lib/hooks/useUserStatistics";
 
 const RatingModal = () => {
   const user = useSelector(selectUser);
   const ratingModal = useSelector(selectRatingModal);
   const dispatch = useDispatch();
+  const router = useRouter();
   const [hoveredRating, setHoveredRating] = useState(0);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -93,6 +96,8 @@ const RatingModal = () => {
           }),
         );
       }
+      await revalidateUserStatistics();
+      router.refresh();
       handleClose();
       dispatch(
         setError({

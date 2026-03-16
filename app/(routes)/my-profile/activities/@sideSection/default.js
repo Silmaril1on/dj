@@ -1,4 +1,4 @@
-import SideContent from "@/app/pages/my-profile-page/activities/side-content/SideContent";
+import SideContent from "@/app/(routes)/my-profile/activities/SideContent";
 import React from "react";
 
 export const dynamic = "force-dynamic";
@@ -8,7 +8,7 @@ export default async function DefaultSideSection() {
     `${process.env.PROJECT_URL}/api/users/side-top-stats`,
     {
       cache: "no-store",
-    }
+    },
   );
 
   if (!res.ok) {
@@ -18,6 +18,6 @@ export default async function DefaultSideSection() {
   const { data } = await res.json();
 
   return (
-      <SideContent thisWeek={data.thisWeek} previousWeek={data.previousWeek} />
+    <SideContent thisWeek={data.thisWeek} previousWeek={data.previousWeek} />
   );
 }

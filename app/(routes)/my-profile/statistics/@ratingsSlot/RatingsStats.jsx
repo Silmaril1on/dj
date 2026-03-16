@@ -41,8 +41,6 @@ const RatingsStats = ({
     return null;
   }
 
-  console.log(data, "from insight");
-
   return (
     <SectionContainer
       size="sm"

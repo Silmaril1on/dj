@@ -1,4 +1,4 @@
-import SideContent from "@/app/pages/my-profile-page/activities/side-content/SideContent";
+import SideContent from "@/app/(routes)/my-profile/activities/SideContent";
 import React from "react";
 
 const ArtistReviewsLayout = async ({ children }) => {

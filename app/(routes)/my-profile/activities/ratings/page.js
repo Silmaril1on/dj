@@ -1,4 +1,4 @@
-import UserRatingsPage from "@/app/pages/my-profile-page/activities/ratings/UserRatingsPage";
+import UserRatingsPage from "@/app/(routes)/my-profile/activities/ratings/UserRatingsPage";
 import { cookies } from "next/headers";
 
 export const dynamic = "force-dynamic";

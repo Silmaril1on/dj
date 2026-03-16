@@ -250,6 +250,9 @@ export async function POST(request) {
     }
 
     revalidateTag("artists");
+    revalidateTag(`user-statistics-${user.id}`);
+    revalidateTag(`user-statistics-submitted-artist-${user.id}`);
+    revalidateTag("user-statistics-submitted-artist");
 
     // Create notification for the user
     try {

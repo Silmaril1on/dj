@@ -5,6 +5,7 @@ import {
   supabaseAdmin,
 } from "@/app/lib/config/supabaseServer";
 import { cookies } from "next/headers";
+import { revalidateTag } from "next/cache";
 
 export async function POST(request) {
   try {
@@ -18,7 +19,7 @@ export async function POST(request) {
           error: "Authentication failed",
           details: userError.message,
         },
-        { status: 401 }
+        { status: 401 },
       );
     }
 
@@ -28,7 +29,7 @@ export async function POST(request) {
           success: false,
           error: "User not authenticated",
         },
-        { status: 401 }
+        { status: 401 },
       );
     }
 
@@ -37,7 +38,7 @@ export async function POST(request) {
     if (!artistId || !rating) {
       return NextResponse.json(
         { error: "Artist ID and rating are required" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -54,7 +55,7 @@ export async function POST(request) {
     if (checkError && checkError.code !== "PGRST116") {
       return NextResponse.json(
         { error: "Failed to check existing rating" },
-        { status: 500 }
+        { status: 500 },
       );
     }
 
@@ -85,7 +86,7 @@ export async function POST(request) {
     if (ratingError) {
       return NextResponse.json(
         { error: "Failed to save rating" },
-        { status: 500 }
+        { status: 500 },
       );
     }
 
@@ -98,7 +99,7 @@ export async function POST(request) {
     if (ratingsError) {
       return NextResponse.json(
         { error: "Failed to fetch ratings" },
-        { status: 500 }
+        { status: 500 },
       );
     }
 
@@ -125,7 +126,7 @@ export async function POST(request) {
     if (updateError) {
       return NextResponse.json(
         { error: "Failed to update artist rating stats" },
-        { status: 500 }
+        { status: 500 },
       );
     }
     // Verify the update by fetching the artist again
@@ -140,9 +141,15 @@ export async function POST(request) {
     } else {
       console.log(
         `Verification - Artist ${artistId} now has rating_stats:`,
-        updatedArtist.rating_stats
+        updatedArtist.rating_stats,
       );
     }
+
+    revalidateTag("artists");
+    revalidateTag(`artist-${artistId}`);
+    revalidateTag(`user-statistics-${user.id}`);
+    revalidateTag(`user-statistics-ratings-${user.id}`);
+    revalidateTag("user-statistics-ratings");
 
     return NextResponse.json({
       success: true,
@@ -156,7 +163,7 @@ export async function POST(request) {
     console.error("Error in rating API:", error);
     return NextResponse.json(
       { error: "Internal server error" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

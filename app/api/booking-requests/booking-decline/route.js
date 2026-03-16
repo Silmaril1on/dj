@@ -4,6 +4,7 @@ import {
   getServerUser,
 } from "@/app/lib/config/supabaseServer";
 import { cookies } from "next/headers";
+import { revalidateTag } from "next/cache";
 
 export async function POST(request) {
   try {
@@ -112,6 +113,10 @@ export async function POST(request) {
       console.error("Notification error:", notificationError);
       // Don't fail the request if notification fails
     }
+
+    revalidateTag(`user-statistics-${booking.receiver_id}`);
+    revalidateTag(`user-statistics-bookings-${booking.receiver_id}`);
+    revalidateTag("user-statistics-bookings");
 
     return NextResponse.json({
       success: true,

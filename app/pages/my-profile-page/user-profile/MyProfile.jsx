@@ -1,38 +1,19 @@
-"use client"
-import { useEffect, useState } from 'react'
-import { motion, AnimatePresence } from 'framer-motion'
-import UserProfileForm from './profile-form/UserProfileForm'
-import UserProfile from './profile/UserProfile'
-import { useSelector } from 'react-redux'
-import { selectUser } from '@/app/features/userSlice'
+"use client";
+import { useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import UserProfileForm from "./profile-form/UserProfileForm";
+import UserProfile from "./profile/UserProfile";
+import { useUserProfile } from "@/app/lib/hooks/useUserProfile";
 
-const MyProfile = ({ profile }) => {
-  const [showEditForm, setShowEditForm] = useState(false)
-  const [currentProfile, setCurrentProfile] = useState(profile)
-  const reduxProfile = useSelector(selectUser)
-
-  useEffect(() => {
-    if (reduxProfile) {
-      setCurrentProfile(reduxProfile)
-    }
-  }, [reduxProfile])
-
-  useEffect(() => {
-    const handleProfileUpdate = (event) => {
-      setCurrentProfile(event.detail.profile)
-    }
-    window.addEventListener('profile-updated', handleProfileUpdate)
-    return () => window.removeEventListener('profile-updated', handleProfileUpdate)
-  }, [])
-  const toggleEditForm = () => {
-    setShowEditForm(!showEditForm)
-  }
+const MyProfile = ({ initialProfile }) => {
+  const [showEditForm, setShowEditForm] = useState(false);
+  const { profile } = useUserProfile(initialProfile);
 
   return (
     <div className="space-y-8">
       <UserProfile
-        profile={currentProfile}
-        onUpdateClick={toggleEditForm}
+        profile={profile}
+        onUpdateClick={() => setShowEditForm((v) => !v)}
         isEditing={showEditForm}
       />
       <AnimatePresence>
@@ -51,7 +32,7 @@ const MyProfile = ({ profile }) => {
         )}
       </AnimatePresence>
     </div>
-  )
-}
+  );
+};
 
-export default MyProfile
+export default MyProfile;

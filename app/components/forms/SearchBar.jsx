@@ -44,8 +44,6 @@ const SearchBar = () => {
     if (item.type === "event") router.push(`/events/${item.id}`);
   };
 
-  console.log(results, "res");
-
   return (
     <motion.div
       initial={{ y: "-100px" }}

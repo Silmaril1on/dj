@@ -1,6 +1,7 @@
 "use client";
 import { useState, useEffect } from "react";
 import { useSelector, useDispatch } from "react-redux";
+import { useRouter } from "next/navigation";
 import {
   selectReviewModal,
   closeReviewModal,
@@ -16,10 +17,12 @@ import Button from "../buttons/Button";
 import Paragraph from "../ui/Paragraph";
 import FlexBox from "../containers/FlexBox";
 import GlobalModal from "./GlobalModal";
+import { revalidateUserStatistics } from "@/app/lib/hooks/useUserStatistics";
 
 const ReviewModal = () => {
   const reviewModal = useSelector(selectReviewModal);
   const dispatch = useDispatch();
+  const router = useRouter();
   const user = useSelector(selectUser);
   const [reviewTitle, setReviewTitle] = useState("");
   const [reviewText, setReviewText] = useState("");
@@ -82,6 +85,8 @@ const ReviewModal = () => {
             }),
           );
         }
+        await revalidateUserStatistics();
+        router.refresh();
       }
     } catch (error) {
       console.error("Error submitting rating for low rating:", error);
@@ -140,6 +145,9 @@ const ReviewModal = () => {
           }
           if (reviewModal.isLowRating && reviewModal.rating) {
             await submitRatingForLowRating();
+          } else {
+            await revalidateUserStatistics();
+            router.refresh();
           }
           dispatch(
             setError({

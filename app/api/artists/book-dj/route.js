@@ -4,6 +4,7 @@ import {
   getServerUser,
   createSupabaseServerClient,
 } from "@/app/lib/config/supabaseServer";
+import { revalidateTag } from "next/cache";
 
 export async function POST(request) {
   try {
@@ -102,6 +103,10 @@ export async function POST(request) {
     }
 
     // here we should send an email to dj profile owner
+
+    revalidateTag(`user-statistics-${receiver_id}`);
+    revalidateTag(`user-statistics-bookings-${receiver_id}`);
+    revalidateTag("user-statistics-bookings");
 
     return NextResponse.json({
       success: true,

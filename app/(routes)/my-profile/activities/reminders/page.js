@@ -1,4 +1,4 @@
-import Reminders from "@/app/pages/my-profile-page/activities/reminders/Reminders";
+import Reminders from "@/app/(routes)/my-profile/activities/reminders/Reminders";
 import { cookies } from "next/headers";
 
 export const dynamic = "force-dynamic";

@@ -1,4 +1,4 @@
-import UsersReviewPage from "@/app/pages/my-profile-page/activities/reviews/UsersReviewPage";
+import UsersReviewPage from "@/app/(routes)/my-profile/activities/reviews/UsersReviewPage";
 import { cookies } from "next/headers";
 
 export const dynamic = "force-dynamic";

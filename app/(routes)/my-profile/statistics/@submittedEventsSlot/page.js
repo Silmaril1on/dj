@@ -1,46 +1,36 @@
-import SubmittedEvents from "@/app/(routes)/my-profile/statistics/@submittedEventsSlot/SubmittedEvents";
-import { cookies } from "next/headers";
+import ActivityStatsCard from "@/app/(routes)/my-profile/statistics/(components)/ActivityStatsCard";
+import { getUserSubmittedEventsStats } from "@/app/lib/services/user/statistics/getUserSubmittedEventsStats";
 
-export const dynamic = "force-dynamic";
-
-const SubmittedEventsSlot = async () => {
+export default async function SubmittedEventsSlot() {
   try {
-    const cookieStore = await cookies();
-
-    const cookieHeader = cookieStore
-      .getAll()
-      .map((cookie) => `${cookie.name}=${cookie.value}`)
-      .join("; ");
-
-    const response = await fetch(
-      `${process.env.PROJECT_URL}/api/users/statistics`,
-      {
-        cache: "no-store",
-        headers: {
-          Cookie: cookieHeader,
-          "Content-Type": "application/json",
-        },
-      },
+    const submittedEvents = await getUserSubmittedEventsStats();
+    return (
+      <ActivityStatsCard
+        data={submittedEvents}
+        title="Submitted Events"
+        description="My Submitted Events Statistics"
+        totalKey="totalSubmittedEvents"
+        totalLabel="Total Submitted Events"
+        itemsKey="recentEvents"
+        paragraphText="Your total submitted events and the latest ones you added."
+        emptyTitle="No submitted events yet"
+        emptyDescription="Submit events to see your statistics!"
+        getHref={(e) => `/events/${e.id}`}
+        imageField="event_image"
+        primaryNameField="event_name"
+        secondaryNameField="promoter"
+        dateField="created_at"
+        getImageAlt={(e) => e.event_name}
+      />
     );
-
-    if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}));
-      console.error("Statistics API Error:", response.status, errorData);
-      throw new Error(errorData.error || "Failed to fetch statistics");
-    }
-
-    const result = await response.json();
-
-    if (!result.success) {
-      throw new Error(result.error || "Failed to fetch statistics");
-    }
-
-    // Extract only submitted events data for this slot
-    return <SubmittedEvents data={result.data.submittedEvents} />;
   } catch (error) {
     console.error("Error fetching submitted events stats:", error);
-    return <SubmittedEvents data={null} error={error.message} />;
+    return (
+      <ActivityStatsCard
+        error={error.message}
+        title="Submitted Events"
+        description="My Submitted Events Statistics"
+      />
+    );
   }
-};
-
-export default SubmittedEventsSlot;
+}

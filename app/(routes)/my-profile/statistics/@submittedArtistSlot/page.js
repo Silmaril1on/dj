@@ -1,47 +1,31 @@
-import SubmittedArtist from "@/app/(routes)/my-profile/statistics/@submittedArtistSlot/SubmittedArtist";
-import { cookies } from "next/headers";
+import SubmittedProfileCard from "@/app/(routes)/my-profile/statistics/(components)/SubmittedProfileCard";
+import { getUserSubmittedArtistStats } from "@/app/lib/services/user/statistics/getUserSubmittedArtistStats";
 
-export const dynamic = "force-dynamic";
-
-const SubmittedArtistsSlot = async () => {
+export default async function SubmittedArtistsSlot() {
   try {
-    const cookieStore = await cookies();
-
-    // Get all cookies and format them properly
-    const cookieHeader = cookieStore
-      .getAll()
-      .map((cookie) => `${cookie.name}=${cookie.value}`)
-      .join("; ");
-
-    const response = await fetch(
-      `${process.env.PROJECT_URL}/api/users/statistics`,
-      {
-        cache: "no-store",
-        headers: {
-          Cookie: cookieHeader,
-          "Content-Type": "application/json",
-        },
-      },
+    const submittedArtist = await getUserSubmittedArtistStats();
+    return (
+      <SubmittedProfileCard
+        data={submittedArtist}
+        title="My Artist Profile"
+        description="Your artist profile"
+        imageField="artist_image"
+        getDisplayName={(item) => item.stage_name || item.name}
+        getHref={(item) => `/artists/${item.artist_slug}`}
+        submitHref="/add-product/artist"
+        submitLabel="Submit Artist Profile"
+        emptyTitle="Your artist profile is not yet submitted"
+        emptyDescription="Do you have artist profile? Please submit it to see your profile here."
+      />
     );
-
-    if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}));
-      console.error("Statistics API Error:", response.status, errorData);
-      throw new Error(errorData.error || "Failed to fetch statistics");
-    }
-
-    const result = await response.json();
-
-    if (!result.success) {
-      throw new Error(result.error || "Failed to fetch statistics");
-    }
-
-    // Extract only submitted artist data for this slot
-    return <SubmittedArtist data={result.data.submittedArtist} />;
   } catch (error) {
     console.error("Error fetching submitted artists:", error);
-    return <SubmittedArtist data={null} error={error.message} />;
+    return (
+      <SubmittedProfileCard
+        error={error.message}
+        title="My Artist Profile"
+        description="Your artist profile"
+      />
+    );
   }
-};
-
-export default SubmittedArtistsSlot;
+}
