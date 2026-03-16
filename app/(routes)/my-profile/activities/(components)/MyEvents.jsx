@@ -64,14 +64,14 @@ const MyEvents = ({ events: initialEvents = [] }) => {
   };
 
   return (
-    <div className="grid grid-cols-1 gap-3">
+    <div className="grid grid-cols-1">
       {events.map((event) => (
         <Motion
           animation="fade"
           key={event.id}
           className="bg-stone-900 bordered flex p-3 gap-3 relative"
         >
-          <div className="w-64 h-44">
+          <div className="w-64 h-44 ">
             <img
               src={event.event_image}
               alt={event.event_name}

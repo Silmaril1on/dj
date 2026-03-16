@@ -1,4 +1,4 @@
-import ActivityHeader from "@/app/(routes)/my-profile/activities/ActivityHeader";
+import ActivityHeader from "@/app/(routes)/my-profile/activities/(components)/ActivityHeader";
 
 const ActivitiesLayout = ({ children, sideSection }) => {
   return (

@@ -5,11 +5,7 @@ export const metadata = {
 };
 
 const AddProductLayout = ({ children }) => {
-  return (
-    <div>
-      <div>{children}</div>
-    </div>
-  );
+  return <div>{children}</div>;
 };
 
 export default AddProductLayout;
