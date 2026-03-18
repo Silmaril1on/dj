@@ -1,5 +1,7 @@
 import HomePage from "./pages/home-page/HomePage";
 import { cookies } from "next/headers";
+import { getServerUser } from "@/app/lib/config/supabaseServer";
+import { getUpcomingEvents } from "@/app/lib/services/events/event";
 
 export const dynamic = "force-dynamic";
 
@@ -13,23 +15,11 @@ export default async function Home() {
   let events = [];
   try {
     const cookieStore = await cookies();
-    const cookieHeader = cookieStore
-      .getAll()
-      .map(({ name, value }) => `${name}=${value}`)
-      .join("; ");
-
-    const eventsUrl = new URL(`${process.env.PROJECT_URL}/api/events`);
-    const eventsResponse = await fetch(eventsUrl.toString(), {
-      next: { revalidate: 1200, tags: ["events"] },
-      headers: {
-        Cookie: cookieHeader,
-      },
+    const { user } = await getServerUser(cookieStore);
+    events = await getUpcomingEvents(cookieStore, {
+      limit: 7,
+      userId: user?.id ?? null,
     });
-    const eventsData = await eventsResponse.json();
-
-    if (eventsData.success) {
-      events = eventsData.data || [];
-    }
   } catch (error) {
     console.error("Error fetching events:", error);
   }

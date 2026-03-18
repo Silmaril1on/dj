@@ -71,7 +71,7 @@ const MyRecentlyViews = () => {
       className="bg-stone-950"
     >
       {/* Desktop Grid */}
-      <div className="hidden lg:grid lg:grid-cols-6 gap-4">
+      <div className="hidden lg:grid lg:grid-cols-6 gap-4 w-full">
         {recentItems.map((item, index) => (
           <ProductCard
             key={item.id}

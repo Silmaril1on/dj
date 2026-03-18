@@ -47,8 +47,10 @@ const MyEvents = ({ events: initialEvents = [] }) => {
     if (!confirm("Are you sure you want to delete this event?")) return;
 
     try {
-      const response = await fetch(`/api/events/${eventId}`, {
+      const response = await fetch(`/api/events`, {
         method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ eventId }),
       });
       const result = await response.json();
 

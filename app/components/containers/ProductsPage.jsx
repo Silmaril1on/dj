@@ -43,7 +43,7 @@ const DATA_TYPE_CONFIG = {
   },
   events: {
     apiEndpoint: "/api/events/get-all-events",
-    limit: 30,
+    limit: 20,
     gridCols: "grid-cols-2 lg:grid-cols-4 xl:grid-cols-5",
     filterFn: filterEvents,
     sortFn: sortEvents,

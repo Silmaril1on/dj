@@ -38,7 +38,7 @@ export const CATEGORY_CONFIGS = {
   events: {
     listing: {
       apiEndpoint: (baseUrl) =>
-        `${baseUrl}/api/events/events-page-route?limit=30&offset=0`,
+        `${baseUrl}/api/events/get-all-events?limit=20&offset=0`,
       fetchOptions: {
         next: { revalidate: 1200, tags: ["events"] },
         headers: { "Content-Type": "application/json" },
@@ -48,12 +48,15 @@ export const CATEGORY_CONFIGS = {
       description: "Find the latest events happening near you.",
     },
     profile: {
-      apiEndpoint: (baseUrl, id) => `${baseUrl}/api/events/single-event/${id}`,
+      apiEndpoint: (baseUrl, id) => `${baseUrl}/api/events/single-event?id=${id}`,
       fetchOptions: (id) => ({
         next: { revalidate: 1200, tags: ["events", `event-${id}`] },
         headers: { "Content-Type": "application/json" },
       }),
-      extractData: (json) => ({ data: json, currentUserId: null }),
+      extractData: (json) => {
+        if (!json || !json.success) return { data: null, currentUserId: null };
+        return { data: json, currentUserId: json.currentUserId ?? null };
+      },
       type: "events",
     },
     metadata: {
