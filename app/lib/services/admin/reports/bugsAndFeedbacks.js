@@ -1,10 +1,5 @@
 "use server";
-import { cookies } from "next/headers";
-import {
-  supabaseAdmin,
-  getServerUser,
-  createSupabaseServerClient,
-} from "@/app/lib/config/supabaseServer";
+import { supabaseAdmin } from "@/app/lib/config/supabaseServer";
 import {
   ServiceError,
   getAuthenticatedContext,
