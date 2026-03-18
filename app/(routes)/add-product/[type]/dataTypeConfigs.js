@@ -15,12 +15,11 @@ export const DATA_TYPE_CONFIGS = {
     },
     submitText: { add: "Submit Artist", edit: "Update Artist" },
     api: {
-      fetch: (id) => `/api/submit-data-types/artist?id=${id}`,
-      submit: "/api/submit-data-types/artist",
-      update: "/api/submit-data-types/artist",
+      fetch: (id) => `/api/artists/artist-profile?id=${id}`,
+      submit: "/api/artists/artist-profile",
+      update: "/api/artists/artist-profile",
     },
     idParam: "artistId",
-    extractData: (json) => json,
     submissionGuard: {
       field: "submitted_artist_id",
       title: "You have already submitted an artist",
@@ -31,6 +30,7 @@ export const DATA_TYPE_CONFIGS = {
       ...defaults,
       name: data.name || "",
       stage_name: data.stage_name || "",
+      artist_slug: data.artist_slug || "",
       country: data.country || "",
       city: data.city || "",
       sex: data.sex || "",
@@ -43,6 +43,7 @@ export const DATA_TYPE_CONFIGS = {
       label: data.label || [""],
       artist_image: data.artist_image || "",
     }),
+    extractData: (json) => json.artist,
     mapSuccessPayload: (result) => ({
       type: "artist",
       image: result.data?.artist_image || "",
@@ -54,6 +55,11 @@ export const DATA_TYPE_CONFIGS = {
     beforeSubmit: (formData) => {
       const isBand = formData.get("is_band");
       if (isBand === "true") formData.set("birth", "");
+
+      const rawSlug = formData.get("artist_slug");
+      if (typeof rawSlug === "string") {
+        formData.set("artist_slug", rawSlug.trim().toLowerCase());
+      }
     },
   },
 

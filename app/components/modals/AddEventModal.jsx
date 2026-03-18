@@ -170,7 +170,7 @@ const AddEventModal = () => {
             body: fd,
           });
         } else {
-          response = await fetch(`/api/artists/schedule/${eventData.id}`, {
+          response = await fetch(`/api/artists/schedule?id=${eventData.id}`, {
             method: "PUT",
             headers: {
               "Content-Type": "application/json",
@@ -180,23 +180,27 @@ const AddEventModal = () => {
         }
       } else {
         // Create new event
-        response = await fetch(`/api/artists/${artist.id}`, {
-          method: "PUT",
+        response = await fetch(`/api/artists/schedule`, {
+          method: "POST",
           headers: {
             "Content-Type": "application/json",
           },
           body: JSON.stringify({
-            ...formData,
-            type: "artist_date",
+            artistId: artist.id,
+            events: [formData],
           }),
         });
       }
 
       if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(
-          errorData.error || `Failed to ${isEditMode ? "update" : "add"} event`,
-        );
+        let errorMessage = `Failed to ${isEditMode ? "update" : "add"} event`;
+        try {
+          const errorData = await response.json();
+          errorMessage = errorData.error || errorMessage;
+        } catch {
+          // keep fallback message when response is not JSON
+        }
+        throw new Error(errorMessage);
       }
 
       const result = await response.json();

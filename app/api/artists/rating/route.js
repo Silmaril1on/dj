@@ -129,10 +129,10 @@ export async function POST(request) {
         { status: 500 },
       );
     }
-    // Verify the update by fetching the artist again
+    // Verify the update and get slug for cache invalidation
     const { data: updatedArtist, error: verifyError } = await supabase
       .from("artists")
-      .select("rating_stats")
+      .select("rating_stats, artist_slug")
       .eq("id", artistId)
       .single();
 
@@ -146,7 +146,9 @@ export async function POST(request) {
     }
 
     revalidateTag("artists");
-    revalidateTag(`artist-${artistId}`);
+    if (updatedArtist?.artist_slug) {
+      revalidateTag(`artist-profile-${updatedArtist.artist_slug}`);
+    }
     revalidateTag(`user-statistics-${user.id}`);
     revalidateTag(`user-statistics-ratings-${user.id}`);
     revalidateTag("user-statistics-ratings");

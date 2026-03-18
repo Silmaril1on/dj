@@ -12,9 +12,8 @@ import { FaHouse } from "react-icons/fa6";
 import { selectUser } from "@/app/features/userSlice";
 import ActionButton from "@/app/components/buttons/ActionButton";
 import RatingButton from "@/app/components/buttons/artist-buttons/RatingButton";
-import LikeButton from "@/app/components/buttons/artist-buttons/LikeButton";
 
-const Actions = ({ data, userRating, onLikeChange }) => {
+const Actions = ({ data, userRating }) => {
   const dispatch = useDispatch();
   const user = useSelector(selectUser);
   const [mounted, setMounted] = useState(false);
@@ -72,7 +71,6 @@ const Actions = ({ data, userRating, onLikeChange }) => {
         />
       )}
       <RatingButton text="Rate" artist={data} userRating={userRating} />
-      <LikeButton text="Like" artist={data} onLikeChange={onLikeChange} />
       <ActionButton
         text="Review"
         onClick={addReview}

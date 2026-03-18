@@ -155,6 +155,7 @@ export const formConfigs = {
     initialData: {
       name: "",
       stage_name: "",
+      artist_slug: "",
       sex: "",
       is_band: "false",
       desc: "",
@@ -179,6 +180,10 @@ export const formConfigs = {
       stage_name: {
         ...artistFields.stageName,
         label: "Stage Name",
+      },
+      artist_slug: {
+        ...artistFields.artistSlug,
+        label: "Artist Slug",
       },
       sex: {
         type: "select",
@@ -251,8 +256,8 @@ export const formConfigs = {
       },
       {
         title: "Artist Details",
-        fields: ["sex", "is_band", "birth"],
-        gridClass: "grid grid-cols-1 md:grid-cols-3 gap-4",
+        fields: ["sex", "is_band", "birth", "artist_slug"],
+        gridClass: "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4",
       },
       {
         title: "Location & Details",

@@ -34,7 +34,7 @@ const DATA_TYPE_CONFIG = {
     hasCityFilter: true,
   },
   artists: {
-    apiEndpoint: "/api/artists/all-artists",
+    apiEndpoint: "/api/artists/get-all-artists",
     limit: 30,
     gridCols: "grid-cols-2 lg:grid-cols-5",
     filterFn: filterArtists,
@@ -42,7 +42,7 @@ const DATA_TYPE_CONFIG = {
     hasCityFilter: false,
   },
   events: {
-    apiEndpoint: "/api/events/events-page-route",
+    apiEndpoint: "/api/events/get-all-events",
     limit: 30,
     gridCols: "grid-cols-2 lg:grid-cols-4 xl:grid-cols-5",
     filterFn: filterEvents,

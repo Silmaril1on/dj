@@ -138,6 +138,11 @@ export const artistFields = {
     required: false,
     placeholder: "Enter stage name (if has one)",
   },
+  artistSlug: {
+    type: "text",
+    required: true,
+    placeholder: "Enter artist slug (e.g. john-doe)",
+  },
 
   desc: {
     type: "textarea",

@@ -35,15 +35,17 @@ const AddAlbumModal = () => {
   const handleSubmit = async (formData) => {
     setIsSubmitting(true);
     try {
-      formData.append("type", "artist_album");
+      formData.append("artistId", artist.id);
+
+      const method = isEditMode ? "PUT" : "POST";
 
       // If editing, include the album ID
       if (isEditMode && albumData?.id) {
-        formData.append("album_id", albumData.id);
+        formData.append("albumId", albumData.id);
       }
 
-      const response = await fetch(`/api/artists/${artist.id}`, {
-        method: "PUT",
+      const response = await fetch(`/api/artists/albums`, {
+        method,
         body: formData,
       });
 

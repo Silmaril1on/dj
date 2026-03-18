@@ -71,14 +71,17 @@ const ArtistCard = ({
             />
             <ArtistCountry artistCountry={artist} />
             <MetaScore scoreData={artist?.rating_stats} artistId={artist.id} />
-            <div className="absolute top-[1px] left-[1px] space-y-1 p-1">
-              <RatingButton
-                artist={artist}
-                ratingStats={artist.rating_stats}
-                userRating={userRating}
-              />
-              <LikeButton artist={artist} onLikeChange={handleLikeChange} />
-            </div>
+            <RatingButton
+              className="absolute top-1 left-1.5"
+              artist={artist}
+              ratingStats={artist.rating_stats}
+              userRating={userRating}
+            />
+            <LikeButton
+              className="absolute top-11 left-1.5"
+              artist={artist}
+              onLikeChange={handleLikeChange}
+            />
           </article>
         </Link>
       </div>

@@ -1,10 +1,10 @@
-// app/api/artists/review/likes/route.js
 import { NextResponse } from "next/server";
 import {
   createSupabaseServerClient,
   getServerUser,
 } from "@/app/lib/config/supabaseServer";
 import { cookies } from "next/headers";
+import { toggleReviewLike } from "@/app/lib/services/artists/artistReviews";
 
 export async function POST(request) {
   try {
@@ -18,17 +18,14 @@ export async function POST(request) {
           error: "Authentication failed",
           details: userError.message,
         },
-        { status: 401 }
+        { status: 401 },
       );
     }
 
     if (!user) {
       return NextResponse.json(
-        {
-          success: false,
-          error: "User not authenticated",
-        },
-        { status: 401 }
+        { success: false, error: "User not authenticated" },
+        { status: 401 },
       );
     }
 
@@ -37,124 +34,44 @@ export async function POST(request) {
     if (!reviewId || !action) {
       return NextResponse.json(
         { error: "Review ID and action are required" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
     if (!["like", "dislike"].includes(action)) {
       return NextResponse.json(
         { error: "Action must be 'like' or 'dislike'" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
     const supabase = await createSupabaseServerClient(cookieStore);
 
-    // First, get the basic review data without joins to avoid RLS issues
-    const { data: review, error: fetchError } = await supabase
-      .from("artist_reviews")
-      .select("*")
-      .eq("id", reviewId)
-      .single();
+    const result = await toggleReviewLike(supabase, reviewId, user.id, action);
 
-    if (fetchError) {
-      console.error("Error fetching review:", fetchError);
-      return NextResponse.json({ error: "Review not found" }, { status: 404 });
-    }
-
-    // Initialize arrays if they don't exist
-    const currentLikes = review.likes || [];
-    const currentDislikes = review.dislikes || [];
-
-    let newLikes = [...currentLikes];
-    let newDislikes = [...currentDislikes];
-
-    if (action === "like") {
-      // Remove from dislikes if user was there
-      newDislikes = newDislikes.filter((id) => id !== user.id);
-
-      // Add to likes if not already there, remove if already there (toggle)
-      if (newLikes.includes(user.id)) {
-        newLikes = newLikes.filter((id) => id !== user.id);
-      } else {
-        newLikes.push(user.id);
-      }
-    } else if (action === "dislike") {
-      // Remove from likes if user was there
-      newLikes = newLikes.filter((id) => id !== user.id);
-
-      // Add to dislikes if not already there, remove if already there (toggle)
-      if (newDislikes.includes(user.id)) {
-        newDislikes = newDislikes.filter((id) => id !== user.id);
-      } else {
-        newDislikes.push(user.id);
-      }
-    }
-
-    // Update the review
-    const { error: updateError } = await supabase
-      .from("artist_reviews")
-      .update({
-        likes: newLikes,
-        dislikes: newDislikes,
-        updated_at: new Date().toISOString(),
-      })
-      .eq("id", reviewId);
-
-    if (updateError) {
-      console.error("Error updating review:", updateError);
+    if (result.error) {
+      console.error("Error updating review:", result.error);
+      const isNotFound = result.error.code === "PGRST116";
       return NextResponse.json(
-        { error: "Failed to update review" },
-        { status: 500 }
+        { error: isNotFound ? "Review not found" : "Failed to update review" },
+        { status: isNotFound ? 404 : 500 },
       );
     }
-
-    // Now get the complete review with joined data for the response
-    const { data: completeReview, error: completeError } = await supabase
-      .from("artist_reviews")
-      .select(
-        `
-        *,
-        users(
-          id,
-          userName,
-          user_avatar
-        ),
-        artists(
-          name,
-          stage_name,
-          artist_image,
-          genres
-        )
-      `
-      )
-      .eq("id", reviewId)
-      .single();
-
-    // If the joined query fails, return the basic review data
-    const finalReview = completeError
-      ? {
-          ...review,
-          likes: newLikes,
-          dislikes: newDislikes,
-          updated_at: new Date().toISOString(),
-        }
-      : completeReview;
 
     return NextResponse.json({
       success: true,
       message: `Review ${action} updated successfully`,
-      review: finalReview,
-      likesCount: newLikes.length,
-      dislikesCount: newDislikes.length,
-      userLiked: newLikes.includes(user.id),
-      userDisliked: newDislikes.includes(user.id),
+      review: result.review,
+      likesCount: result.newLikes.length,
+      dislikesCount: result.newDislikes.length,
+      userLiked: result.newLikes.includes(user.id),
+      userDisliked: result.newDislikes.includes(user.id),
     });
   } catch (error) {
     console.error("Error in likes API:", error);
     return NextResponse.json(
       { error: "Internal server error" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

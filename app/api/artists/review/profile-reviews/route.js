@@ -1,10 +1,12 @@
 import { NextResponse } from "next/server";
 import { createSupabaseServerClient } from "@/app/lib/config/supabaseServer";
 import { cookies } from "next/headers";
+import { getLimitedReviews } from "@/app/lib/services/artists/artistReviews";
 
-export async function GET(request, { params }) {
+export async function GET(request) {
   try {
-    const { id: artistId } = await params;
+    const { searchParams } = new URL(request.url);
+    const artistId = searchParams.get("artistId");
 
     if (!artistId) {
       return NextResponse.json(
@@ -16,27 +18,22 @@ export async function GET(request, { params }) {
     const cookieStore = await cookies();
     const supabase = await createSupabaseServerClient(cookieStore);
 
-    // Get artist schedule
-    const { data: scheduleData, error: scheduleError } = await supabase
-      .from("artist_schedule")
-      .select("*")
-      .eq("artist_id", artistId)
-      .order("date", { ascending: true });
+    const result = await getLimitedReviews(supabase, artistId);
 
-    if (scheduleError) {
-      console.error("Error fetching artist schedule:", scheduleError);
+    if (result.error) {
+      console.error("Error fetching reviews:", result.error);
       return NextResponse.json(
-        { error: "Failed to fetch schedule" },
+        { error: "Failed to fetch reviews" },
         { status: 500 },
       );
     }
 
     return NextResponse.json({
       success: true,
-      data: scheduleData || [],
+      data: result.reviews,
     });
   } catch (error) {
-    console.error("Schedule API error:", error);
+    console.error("Artist reviews API error:", error);
     return NextResponse.json(
       { error: "Internal server error" },
       { status: 500 },

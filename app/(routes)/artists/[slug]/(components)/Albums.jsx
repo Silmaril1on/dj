@@ -5,7 +5,7 @@ import { motion } from "framer-motion";
 import Image from "next/image";
 import { selectUser } from "@/app/features/userSlice";
 import { openAddAlbumModal } from "@/app/features/modalSlice";
-import { FaEdit } from "react-icons/fa";
+import { FaEdit, FaTrash } from "react-icons/fa";
 import SectionContainer from "@/app/components/containers/SectionContainer";
 import Title from "@/app/components/ui/Title";
 import Paragraph from "@/app/components/ui/Paragraph";
@@ -29,7 +29,7 @@ const Albums = ({ artistId }) => {
 
         // Fetch albums
         const albumsResponse = await fetch(
-          `/api/artists/${artistId}/albums?limit=15`,
+          `/api/artists/albums?artistId=${artistId}&limit=15`,
         );
         const albumsResult = await albumsResponse.json();
 
@@ -44,12 +44,14 @@ const Albums = ({ artistId }) => {
         }
 
         // Fetch artist data for permission checking
-        const artistResponse = await fetch(`/api/artists/${artistId}`);
+        const artistResponse = await fetch(
+          `/api/artists/artist-profile?id=${artistId}`,
+        );
         const artistResult = await artistResponse.json();
         if (!artistResponse.ok) {
           console.error("Failed to fetch artist data");
         } else {
-          setArtistData(artistResult);
+          setArtistData(artistResult.artist);
         }
       } catch (err) {
         console.error("Error fetching data:", err);
@@ -98,6 +100,50 @@ const Albums = ({ artistId }) => {
     );
   };
 
+  const handleDeleteAlbum = async (album, e) => {
+    e.stopPropagation();
+
+    if (!confirm(`Delete album \"${album.name}\"?`)) {
+      return;
+    }
+
+    try {
+      const response = await fetch(`/api/artists/albums`, {
+        method: "DELETE",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          artistId,
+          albumId: album.id,
+        }),
+      });
+
+      const result = await response.json();
+
+      if (!response.ok || !result.success) {
+        throw new Error(result.error || "Failed to delete album");
+      }
+
+      setData((prevData) => {
+        const nextData = prevData.filter((item) => item.id !== album.id);
+
+        setSelectedAlbum((currentSelected) => {
+          if (currentSelected?.id !== album.id) {
+            return currentSelected;
+          }
+
+          return nextData[0] || null;
+        });
+
+        return nextData;
+      });
+    } catch (err) {
+      console.error("Error deleting album:", err);
+      alert(err.message || "Failed to delete album");
+    }
+  };
+
   return (
     <SectionContainer
       title="Albums & Releases"
@@ -136,13 +182,22 @@ const Albums = ({ artistId }) => {
                   />
                 </div>
                 {canEditAlbums && (
-                  <button
-                    onClick={(e) => handleEditAlbum(album, e)}
-                    className="absolute top-1 right-1 z-10 bg-gold/90 hover:bg-gold text-black p-1.5 rounded opacity-0 group-hover:opacity-100 transition-opacity duration-200"
-                    title="Edit album"
-                  >
-                    <FaEdit size={12} />
-                  </button>
+                  <div className="absolute top-1 right-1 z-10 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                    <button
+                      onClick={(e) => handleEditAlbum(album, e)}
+                      className="bg-gold/90 hover:bg-gold text-black p-1.5 rounded"
+                      title="Edit album"
+                    >
+                      <FaEdit size={12} />
+                    </button>
+                    <button
+                      onClick={(e) => handleDeleteAlbum(album, e)}
+                      className="bg-red-600/90 hover:bg-red-600 text-white p-1.5 rounded"
+                      title="Delete album"
+                    >
+                      <FaTrash size={12} />
+                    </button>
+                  </div>
                 )}
               </motion.div>
             ))}

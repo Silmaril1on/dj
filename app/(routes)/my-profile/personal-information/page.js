@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
 import { getProfile } from "@/app/lib/services/user/profile/getProfile";
-import MyProfile from "@/app/pages/my-profile-page/user-profile/MyProfile";
+import MyProfile from "./(components/MyProfile";
 
 export const dynamic = "force-dynamic";
 

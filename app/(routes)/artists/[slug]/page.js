@@ -1,51 +1,19 @@
+import ArtistProfile from "./ArtistProfile";
 import { capitalizeTitle } from "@/app/helpers/utils";
 import { getServerUser } from "@/app/lib/config/supabaseServer";
 import { cookies } from "next/headers";
 import { cache } from "react";
-import ArtistProfile from "./ArtistProfile";
+import { getArtistProfile } from "@/app/lib/services/artists/artistProfile";
+import { getArtistLikesCount } from "@/app/lib/services/artists/artistLikes";
+import { getArtistScheduleCount } from "@/app/lib/services/artists/artistSchedule";
+import { getArtistUserData } from "@/app/lib/services/artists/getArtistUserData";
 
-export const dynamic = "force-dynamic";
-
-const getArtistProfile = cache(async ({ slug, cookieStore, userId }) => {
-  const url = new URL(`${process.env.PROJECT_URL}/api/artists/artist-profile`);
-  url.searchParams.set("slug", slug);
-  if (userId) {
-    url.searchParams.set("userId", userId);
-  }
-
-  const response = await fetch(url.toString(), {
-    next: {
-      revalidate: 1200,
-      tags: ["artists", "artist-likes", `artist-${slug}`],
-    },
-    headers: {
-      Cookie: cookieStore.toString(),
-    },
-  });
-
-  if (!response.ok) {
-    throw new Error(`Failed to fetch artist: ${response.status}`);
-  }
-
-  const { artist } = await response.json();
-
-  if (!artist) {
-    throw new Error("Artist not found");
-  }
-
-  return artist;
-});
+const getProfile = cache(getArtistProfile);
 
 export const generateMetadata = async ({ params }) => {
   const { slug } = await params;
   try {
-    const cookieStore = await cookies();
-    const { user } = await getServerUser(cookieStore);
-    const artist = await getArtistProfile({
-      slug,
-      cookieStore,
-      userId: user?.id,
-    });
+    const artist = await getProfile(slug);
     const artistName = capitalizeTitle(
       artist?.stage_name || artist?.name || "Artist",
     );
@@ -53,7 +21,8 @@ export const generateMetadata = async ({ params }) => {
       artist?.bio?.substring(0, 160) ||
       `Check out ${artistName} on Soundfolio - DJ profile, music, events, and more.`;
     const artistImage =
-      artist?.image || `${process.env.PROJECT_URL}/assets/default-artist.jpg`;
+      artist?.artist_image ||
+      `${process.env.PROJECT_URL}/assets/default-artist.jpg`;
 
     return {
       title: `Soundfolio | ${artistName}`,
@@ -64,12 +33,7 @@ export const generateMetadata = async ({ params }) => {
         type: "profile",
         url: `${process.env.PROJECT_URL}/artists/${slug}`,
         images: [
-          {
-            url: artistImage,
-            width: 1200,
-            height: 630,
-            alt: artistName,
-          },
+          { url: artistImage, width: 1200, height: 630, alt: artistName },
         ],
         siteName: "Soundfolio",
       },
@@ -82,9 +46,7 @@ export const generateMetadata = async ({ params }) => {
     };
   } catch (error) {
     console.error("Metadata generation error:", error);
-    return {
-      title: "Soundfolio - Artist",
-    };
+    return { title: "Soundfolio - Artist" };
   }
 };
 
@@ -93,14 +55,24 @@ const ArtistProfilePage = async ({ params }) => {
     const { slug } = await params;
     const cookieStore = await cookies();
     const { user } = await getServerUser(cookieStore);
+    const artist = await getProfile(slug);
 
-    const artist = await getArtistProfile({
-      slug,
-      cookieStore,
-      userId: user?.id,
-    });
+    const [likesCount, scheduleCount, userSpecificData] = await Promise.all([
+      getArtistLikesCount(artist.id),
+      getArtistScheduleCount(artist.id),
+      user ? getArtistUserData(artist.id, user.id) : Promise.resolve(null),
+    ]);
 
-    return <ArtistProfile data={artist} artistId={artist.id} />;
+    const enrichedArtist = {
+      ...artist,
+      likesCount,
+      scheduleCount,
+      isLiked: userSpecificData?.isLiked ?? false,
+      userRating: userSpecificData?.userRating ?? null,
+      userSubmittedArtistId: user?.submitted_artist_id ?? null,
+    };
+
+    return <ArtistProfile data={enrichedArtist} artistId={artist.id} />;
   } catch (error) {
     console.error("Artist page error:", error);
     return (

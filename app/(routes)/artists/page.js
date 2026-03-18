@@ -1,4 +1,5 @@
 import ProductsPage from "@/app/components/containers/ProductsPage";
+import { getAllArtists } from "@/app/lib/services/artists/getAllArtists";
 
 export const metadata = {
   title: "Soundfolio | Artists",
@@ -12,19 +13,8 @@ const ArtistsPage = async () => {
   let error = null;
 
   try {
-    const response = await fetch(
-      `${process.env.PROJECT_URL}/api/artists/all-artists?limit=30&offset=0`,
-      {
-        next: { revalidate: 1200, tags: ["artists"] },
-      },
-    );
-    const data = await response.json();
-
-    if (data.error) {
-      error = data.error;
-    } else {
-      artists = data.data || [];
-    }
+    const result = await getAllArtists({ limit: 30, offset: 0 });
+    artists = result.data || [];
   } catch (err) {
     error = "Failed to load artists";
     console.error("Error fetching artists:", err);

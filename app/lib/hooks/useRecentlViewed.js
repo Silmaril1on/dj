@@ -3,7 +3,6 @@ import { useEffect } from "react";
 import { useSelector } from "react-redux";
 import { selectUser } from "@/app/features/userSlice";
 
-
 const useRecentlyViewed = (type, itemId) => {
   const user = useSelector(selectUser);
 
@@ -18,7 +17,6 @@ const useRecentlyViewed = (type, itemId) => {
             "Content-Type": "application/json",
           },
           body: JSON.stringify({
-            user_id: user.id,
             type: type,
             item_id: itemId,
           }),
@@ -27,7 +25,10 @@ const useRecentlyViewed = (type, itemId) => {
         const result = await response.json();
 
         if (!response.ok) {
-          console.error("Failed to track view:", result.error || "Unknown error");
+          console.error(
+            "Failed to track view:",
+            result.error || "Unknown error",
+          );
         }
       } catch (error) {
         console.error("Error tracking recently viewed:", error.message);

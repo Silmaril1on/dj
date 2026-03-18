@@ -6,11 +6,12 @@ import { selectUser } from "@/app/features/userSlice";
 import { MdEdit } from "react-icons/md";
 import ShareButton from "@/app/components/buttons/ShareButton";
 import ActionButton from "@/app/components/buttons/ActionButton";
+import LikeButton from "@/app/components/buttons/artist-buttons/LikeButton";
 import Motion from "@/app/components/containers/Motion";
 import { motion } from "framer-motion";
 import Image from "next/image";
 
-const Avatar = ({ data }) => {
+const Avatar = ({ data, onLikeChange }) => {
   const user = useSelector(selectUser);
   const router = useRouter();
   const [mounted, setMounted] = useState(false);
@@ -50,6 +51,13 @@ const Avatar = ({ data }) => {
             <ActionButton icon={<MdEdit size={20} />} onClick={handleEdit} />
           </Motion>
         )}
+        <Motion
+          className="absolute top-29 left-5 text-2xl z-10"
+          animation="fade"
+          delay={1.9}
+        >
+          <LikeButton artist={data} onLikeChange={onLikeChange} />
+        </Motion>
         <motion.div
           className="relative w-full h-[450px] lg:h-[700px] "
           whileHover={{ scale: 1.02 }}

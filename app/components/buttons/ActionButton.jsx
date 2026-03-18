@@ -44,17 +44,16 @@ const ActionButton = ({
 
   const baseStyles =
     "cursor-pointer duration-300 text-sm font-bold text-gold secondary center gap-1";
-  const labeledStyles = "bg-gold/30 hover:bg-gold/40 p-1 px-2 rounded-xs";
-  const iconOnlyStyles = "bg-gold/20 hover:bg-gold/30 rounded-full p-2";
+  const labeledStyles = "bg-gold/20 hover:bg-gold/40 p-1 px-2 rounded-xs";
+  const iconOnlyStyles = "bg-gold/20 hover:bg-gold/40 rounded-full p-2";
   const disabledStyles = isDisabled ? "opacity-50 cursor-not-allowed" : "";
-  const activeStyles = active ? "bg-gold/40" : "";
 
   const variantStyles = isIconOnly ? iconOnlyStyles : labeledStyles;
 
   return (
     <div
       onClick={isDisabled ? undefined : handleClick}
-      className={`${baseStyles} ${variantStyles} ${activeStyles} ${disabledStyles} ${className}`}
+      className={`${baseStyles} ${variantStyles} ${disabledStyles} ${className}`}
       role="button"
       tabIndex={isDisabled ? -1 : 0}
       {...props}

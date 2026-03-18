@@ -7,7 +7,7 @@ import { formatTime, truncateString } from "@/app/helpers/utils";
 import Link from "next/link";
 
 const ArtistReviews = ({ data, slug }) => {
-  if (data.length === 0 || !data) {
+  if (!data || data.length === 0) {
     return null;
   }
 

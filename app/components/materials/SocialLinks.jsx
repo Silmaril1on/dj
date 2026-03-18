@@ -13,19 +13,7 @@ import { SiApplemusic, SiBeatport } from "react-icons/si";
 import { motion } from "framer-motion";
 import Icon from "@/app/components/ui/Icon";
 
-const SocialLinks = ({
-  social_links,
-  className = "",
-  iconSize = "w-5 h-5",
-  showTitle = false,
-  title = "Social Links",
-  animation = true,
-  animationDelay = 0,
-}) => {
-  if (!social_links || social_links.length === 0) {
-    return null;
-  }
-
+const SocialLink = ({ link, index, animation, animationDelay, iconSize }) => {
   const getSocialIcon = (url) => {
     if (url.includes("facebook")) return <FaFacebook className={iconSize} />;
     if (url.includes("instagram")) return <FaInstagram className={iconSize} />;
@@ -42,33 +30,39 @@ const SocialLinks = ({
     return <FaGlobe className={iconSize} />;
   };
 
-  const SocialLink = ({ link, index }) => {
-    const linkElement = (
-      <a
-        href={link}
-        target="_blank"
-        rel="noopener noreferrer"
-        className="group"
+  const linkElement = (
+    <a href={link} target="_blank" rel="noopener noreferrer" className="group">
+      <Icon icon={getSocialIcon(link)} />
+    </a>
+  );
+
+  if (animation) {
+    return (
+      <motion.div
+        initial={{ opacity: 0, scale: 0.8 }}
+        animate={{ opacity: 1, scale: 1 }}
+        transition={{ duration: 0.4, delay: animationDelay + index * 0.1 }}
       >
-        <Icon icon={getSocialIcon(link)} />
-      </a>
+        {linkElement}
+      </motion.div>
     );
+  }
 
-    if (animation) {
-      return (
-        <motion.div
-          key={index}
-          initial={{ opacity: 0, scale: 0.8 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ duration: 0.4, delay: animationDelay + index * 0.1 }}
-        >
-          {linkElement}
-        </motion.div>
-      );
-    }
+  return linkElement;
+};
 
-    return linkElement;
-  };
+const SocialLinks = ({
+  social_links,
+  className = "",
+  iconSize = "w-5 h-5",
+  showTitle = false,
+  title = "Social Links",
+  animation = true,
+  animationDelay = 0,
+}) => {
+  if (!social_links || social_links.length === 0) {
+    return null;
+  }
 
   return (
     <div className={className}>
@@ -77,7 +71,14 @@ const SocialLinks = ({
       )}
       <div className="flex flex-wrap gap-2">
         {social_links.map((link, index) => (
-          <SocialLink key={index} link={link} index={index} />
+          <SocialLink
+            key={index}
+            link={link}
+            index={index}
+            animation={animation}
+            animationDelay={animationDelay}
+            iconSize={iconSize}
+          />
         ))}
       </div>
     </div>

@@ -1,9 +1,9 @@
 "use client";
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import UserProfileForm from "./profile-form/UserProfileForm";
-import UserProfile from "./profile/UserProfile";
 import { useUserProfile } from "@/app/lib/hooks/useUserProfile";
+import UserProfileForm from "./UserProfileForm";
+import UserProfile from "./UserProfile";
 
 const MyProfile = ({ initialProfile }) => {
   const [showEditForm, setShowEditForm] = useState(false);

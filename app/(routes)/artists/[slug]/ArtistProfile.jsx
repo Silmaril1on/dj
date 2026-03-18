@@ -1,4 +1,5 @@
 "use client";
+import { useState } from "react";
 import useRecentlyViewed from "@/app/lib/hooks/useRecentlViewed";
 import Albums from "@/app/(routes)/artists/[slug]/(components)/Albums";
 import ArtistInsight from "@/app/(routes)/artists/[slug]/(components)/ArtistInsight";
@@ -9,8 +10,17 @@ import ArtistSchedule from "@/app/(routes)/artists/[slug]/(components)/ArtistSch
 
 const ArtistProfile = ({ data, artistId }) => {
   const id = artistId || data?.id;
+  const [likesCount, setLikesCount] = useState(data.likesCount || 0);
+  const [isLiked, setIsLiked] = useState(data.isLiked || false);
 
   useRecentlyViewed("artist", id);
+
+  const handleLikeChange = (updatedIsLiked, updatedLikesCount) => {
+    setIsLiked(updatedIsLiked);
+    setLikesCount(updatedLikesCount);
+  };
+
+  const updatedData = { ...data, likesCount, isLiked };
 
   console.log(data, "ARTIST DATA from ARTISTPROFILE.jsx");
 
@@ -18,8 +28,8 @@ const ArtistProfile = ({ data, artistId }) => {
     <div className="min-h-screen">
       <div className="grid lg:grid-cols-2 gap-2 lg:gap-5 items-center min-h-[80vh] p-3 lg:p-5 relative">
         <div className="absolute -z-[1] inset-0 bg-[radial-gradient(circle_at_center,rgb(255_215_0_/_0.2)_2%,rgb(255_215_0_/_0.04)_20%)]" />
-        <Avatar data={data} />
-        <BasicInfo data={data} />
+        <Avatar data={updatedData} onLikeChange={handleLikeChange} />
+        <BasicInfo data={updatedData} />
       </div>
       <Bio data={data} />
       <ArtistSchedule artistId={id} artistData={data} />

@@ -55,7 +55,7 @@ const ArtistSchedule = ({
         let response;
         // Determine which API endpoint to use
         if (artistId) {
-          response = await fetch(`/api/artists/${artistId}/schedule`);
+          response = await fetch(`/api/artists/schedule?artistId=${artistId}`);
         } else if (clubId) {
           response = await fetch(
             `/api/club/${clubId}/club-dates?limit=${pageLimit}&offset=0`,
@@ -152,7 +152,7 @@ const ArtistSchedule = ({
     }
 
     try {
-      const response = await fetch(`/api/artists/schedule/${scheduleId}`, {
+      const response = await fetch(`/api/artists/schedule?id=${scheduleId}`, {
         method: "DELETE",
       });
 

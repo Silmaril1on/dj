@@ -1,5 +1,4 @@
 "use client";
-import { useState } from "react";
 import { motion } from "framer-motion";
 import ArtistCountry from "@/app/components/materials/ArtistCountry";
 import Actions from "./Actions";
@@ -8,30 +7,13 @@ import ArtistGenres from "@/app/components/materials/ArtistGenres";
 import SocialLinks from "@/app/components/materials/SocialLinks";
 
 const BasicInfo = ({ data }) => {
-  const [likesCount, setLikesCount] = useState(data.likesCount || 0);
-  const [isLiked, setIsLiked] = useState(data.isLiked || false);
   const { name, stage_name, desc, label, country, city, social_links, genres } =
     data;
   const userRating = data.userRating || null;
 
-  const handleLikeChange = (updatedIsLiked, updatedLikesCount) => {
-    setIsLiked(updatedIsLiked);
-    setLikesCount(updatedLikesCount);
-  };
-
-  const updatedData = {
-    ...data,
-    likesCount: likesCount,
-    isLiked: isLiked,
-  };
-
   return (
     <div className="py-10 h-full overflow-hidden space-y-5 flex flex-col">
-      <Actions
-        data={updatedData}
-        userRating={userRating}
-        onLikeChange={handleLikeChange}
-      />
+      <Actions data={data} userRating={userRating} />
       <div className="*:leading-none">
         <Title name={name} stage_name={stage_name} />
         <Genres genres={genres} />
@@ -45,7 +27,7 @@ const BasicInfo = ({ data }) => {
         animation={true}
         animationDelay={1.2}
       />
-      <LinkActions data={updatedData} />
+      <LinkActions data={data} />
     </div>
   );
 };

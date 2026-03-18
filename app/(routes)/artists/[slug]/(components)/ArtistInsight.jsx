@@ -3,9 +3,25 @@ import { useState, useEffect } from "react";
 import RatingsStats from "@/app/(routes)/my-profile/statistics/@ratingsSlot/RatingsStats";
 import ArtistReviews from "./ArtistReviews";
 
+async function parseJsonResponse(response, fallbackMessage) {
+  const contentType = response.headers.get("content-type") || "";
+
+  if (!contentType.includes("application/json")) {
+    throw new Error(fallbackMessage);
+  }
+
+  const payload = await response.json();
+
+  if (!response.ok) {
+    throw new Error(payload.error || fallbackMessage);
+  }
+
+  return payload;
+}
+
 const ArtistInsight = ({ artistId, slug }) => {
   const [ratingInsights, setRatingInsights] = useState(null);
-  const [reviewsData, setReviewsData] = useState(null);
+  const [reviewsData, setReviewsData] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
@@ -13,15 +29,21 @@ const ArtistInsight = ({ artistId, slug }) => {
     const fetchInsightsAndReviews = async () => {
       try {
         setLoading(true);
+        setError(null);
 
         // Fetch both insights and reviews in parallel
         const [insightsResponse, reviewsResponse] = await Promise.all([
-          fetch(`/api/artists/${artistId}/insights`),
-          fetch(`/api/artists/${artistId}/reviews`),
+          fetch(`/api/artists/artist-rating-insights?artistId=${artistId}`),
+          fetch(`/api/artists/review/profile-reviews?artistId=${artistId}`),
         ]);
 
-        const insightsResult = await insightsResponse.json();
-        const reviewsResult = await reviewsResponse.json();
+        const [insightsResult, reviewsResult] = await Promise.all([
+          parseJsonResponse(
+            insightsResponse,
+            "Failed to load artist rating insights",
+          ),
+          parseJsonResponse(reviewsResponse, "Failed to load artist reviews"),
+        ]);
 
         // Insights API returns data directly (not wrapped)
         if (insightsResult.error) {
@@ -33,10 +55,13 @@ const ArtistInsight = ({ artistId, slug }) => {
         // Reviews API returns { success, data }
         if (reviewsResult.success) {
           setReviewsData(reviewsResult.data);
+        } else {
+          setReviewsData([]);
         }
       } catch (err) {
         console.error("Error fetching insights and reviews:", err);
         setError("Failed to load data");
+        setReviewsData([]);
       } finally {
         setLoading(false);
       }
