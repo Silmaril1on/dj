@@ -1,5 +1,7 @@
 import React from "react";
 
+export const dynamic = "force-dynamic";
+
 export const metadata = {
   title: "My Profile | Statistics",
   description: "Statistics",
@@ -12,7 +14,7 @@ const StatisticsLayout = ({
   submittedArtistSlot,
   submittedClubSlot,
   submittedEventsSlot,
-  bookingSlot
+  bookingSlot,
 }) => {
   return (
     <div className="grid gap-4 p-3 lg:p-4">

@@ -1,15 +1,18 @@
 import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import {
-  getArtistProfileById,
-  createArtistProfile,
-  updateArtistProfile,
+  getArtistById as getArtistProfileById,
+  createArtist as createArtistProfile,
+  updateArtist as updateArtistProfile,
 } from "@/app/lib/services/artists/artistProfile";
 import { ServiceError } from "@/app/lib/services/submit-data-types/shared";
 
 const handleError = (error) => {
   if (error instanceof ServiceError) {
-    return NextResponse.json({ error: error.message }, { status: error.status });
+    return NextResponse.json(
+      { error: error.message },
+      { status: error.status },
+    );
   }
   return NextResponse.json({ error: "Internal server error" }, { status: 500 });
 };

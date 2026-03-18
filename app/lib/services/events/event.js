@@ -1,7 +1,7 @@
 "use server";
 import { revalidateTag } from "next/cache";
 import { getTodayDateOnlyString } from "@/app/helpers/utils";
-import { getServerUser } from "@/app/lib/config/supabaseServer";
+import { getServerUser, supabaseAdmin } from "@/app/lib/config/supabaseServer";
 import {
   ServiceError,
   validateImageFile,
@@ -22,15 +22,11 @@ const normalizeArtistName = (name) =>
 const EVENT_SELECT_LIMITED =
   "id, event_image, event_name, date, country, city, artists, event_type";
 
-export async function getLimitedEvents(
-  cookieStore,
-  { limit = 15, offset = 0 } = {},
-) {
-  const supabase = await getSupabaseServerClient(cookieStore);
+export async function getLimitedEvents({ limit = 15, offset = 0 } = {}) {
   const todayStr = getTodayDateOnlyString();
 
   const [eventsResult, likesResult] = await Promise.all([
-    supabase
+    supabaseAdmin
       .from("events")
       .select(EVENT_SELECT_LIMITED)
       .eq("event_status", "upcoming")
@@ -39,7 +35,7 @@ export async function getLimitedEvents(
       .order("id", { ascending: true })
       .range(offset, offset + limit - 1),
 
-    supabase.from("event_likes").select("event_id"),
+    supabaseAdmin.from("event_likes").select("event_id"),
   ]);
 
   if (eventsResult.error)
