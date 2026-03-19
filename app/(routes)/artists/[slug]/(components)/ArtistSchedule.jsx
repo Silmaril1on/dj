@@ -58,7 +58,7 @@ const ArtistSchedule = ({
           response = await fetch(`/api/artists/schedule?artistId=${artistId}`);
         } else if (clubId) {
           response = await fetch(
-            `/api/club/${clubId}/club-dates?limit=${pageLimit}&offset=0`,
+            `/api/club/club-dates?clubId=${clubId}&limit=${pageLimit}&offset=0`,
           );
         } else {
           setError("No ID provided");
@@ -94,7 +94,7 @@ const ArtistSchedule = ({
     try {
       setLoadingMore(true);
       const response = await fetch(
-        `/api/club/${clubId}/club-dates?limit=${pageLimit}&offset=${nextOffset}`,
+        `/api/club/club-dates?clubId=${clubId}&limit=${pageLimit}&offset=${nextOffset}`,
       );
       const result = await response.json();
       if (result.success) {
@@ -142,6 +142,7 @@ const ArtistSchedule = ({
       openAddEventModal({
         artist: artistData || { id: artistId },
         eventData: schedule,
+        clubId: clubId || null,
       }),
     );
   };
@@ -152,7 +153,11 @@ const ArtistSchedule = ({
     }
 
     try {
-      const response = await fetch(`/api/artists/schedule?id=${scheduleId}`, {
+      const endpoint = clubId
+        ? `/api/club/club-dates?id=${scheduleId}`
+        : `/api/artists/schedule?id=${scheduleId}`;
+
+      const response = await fetch(endpoint, {
         method: "DELETE",
       });
 

@@ -13,11 +13,11 @@ export const CATEGORY_CONFIGS = {
     },
     // Single profile page
     profile: {
-      apiEndpoint: (baseUrl, id) => `${baseUrl}/api/club/${id}`,
+      apiEndpoint: (baseUrl, id) => `${baseUrl}/api/club/single-club?id=${id}`,
       fetchOptions: { cache: "no-store" },
       extractData: (json) => ({
         data: json.club,
-        currentUserId: json.currentUserId,
+        currentUserId: json.currentUserId ?? null,
       }),
       type: "clubs",
     },
@@ -48,7 +48,8 @@ export const CATEGORY_CONFIGS = {
       description: "Find the latest events happening near you.",
     },
     profile: {
-      apiEndpoint: (baseUrl, id) => `${baseUrl}/api/events/single-event?id=${id}`,
+      apiEndpoint: (baseUrl, id) =>
+        `${baseUrl}/api/events/single-event?id=${id}`,
       fetchOptions: (id) => ({
         next: { revalidate: 1200, tags: ["events", `event-${id}`] },
         headers: { "Content-Type": "application/json" },

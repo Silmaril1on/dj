@@ -8,7 +8,7 @@ import GlobalModal from "./GlobalModal";
 
 const AddEventModal = () => {
   const dispatch = useDispatch();
-  const { isOpen, artist, eventData, isEditMode } = useSelector(
+  const { isOpen, artist, eventData, isEditMode, clubId } = useSelector(
     (state) => state.modal.addEventModal || {},
   );
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -23,9 +23,11 @@ const AddEventModal = () => {
         ? {
             date: eventData.date || "",
             time: eventData.time || "",
-            country: eventData.country || "",
-            city: eventData.city || "",
-            club_name: eventData.club_name || "",
+            ...(!clubId && {
+              country: eventData.country || "",
+              city: eventData.city || "",
+              club_name: eventData.club_name || "",
+            }),
             event_link: eventData.event_link || "",
             event_location: eventData.event_location || "",
             event_title: eventData.event_title || "",
@@ -34,9 +36,7 @@ const AddEventModal = () => {
         : {
             date: "",
             time: "",
-            country: "",
-            city: "",
-            club_name: "",
+            ...(!clubId && { country: "", city: "", club_name: "" }),
             event_link: "",
             event_location: "",
             event_title: "",
@@ -53,24 +53,26 @@ const AddEventModal = () => {
         label: "Time",
         required: true,
       },
-      country: {
-        type: "text",
-        label: "Country",
-        placeholder: "Enter country",
-        required: true,
-      },
-      city: {
-        type: "text",
-        label: "City",
-        placeholder: "Enter city",
-        required: true,
-      },
-      club_name: {
-        type: "text",
-        label: "Club / Venue Name",
-        placeholder: "Enter club name",
-        required: true,
-      },
+      ...(!clubId && {
+        country: {
+          type: "text",
+          label: "Country",
+          placeholder: "Enter country",
+          required: true,
+        },
+        city: {
+          type: "text",
+          label: "City",
+          placeholder: "Enter city",
+          required: true,
+        },
+        club_name: {
+          type: "text",
+          label: "Club / Venue Name",
+          placeholder: "Enter club name",
+          required: true,
+        },
+      }),
       event_title: {
         type: "text",
         label: "Event Title",
@@ -107,14 +109,23 @@ const AddEventModal = () => {
         fields: ["date", "time"],
         gridClass: "grid grid-cols-2 gap-4",
       },
-      {
-        fields: ["country", "city"],
-        gridClass: "grid grid-cols-2 gap-4",
-      },
-      {
-        fields: ["club_name", "event_title", "event_type"],
-        gridClass: "grid grid-cols-3 gap-4",
-      },
+      ...(!clubId
+        ? [
+            {
+              fields: ["country", "city"],
+              gridClass: "grid grid-cols-2 gap-4",
+            },
+            {
+              fields: ["club_name", "event_title", "event_type"],
+              gridClass: "grid grid-cols-3 gap-4",
+            },
+          ]
+        : [
+            {
+              fields: ["event_title", "event_type"],
+              gridClass: "grid grid-cols-2 gap-4",
+            },
+          ]),
       {
         fields: ["event_link", "event_location"],
         gridClass: "grid grid-cols-1 gap-4",
@@ -135,10 +146,14 @@ const AddEventModal = () => {
 
       if (isEditMode && eventData) {
         // Update existing event
-        // If the event is a transformed event from the `events` table
-        // we created an id like `evt-<eventId>` in the schedule API. Handle
-        // that by sending a PATCH to /api/events with a FormData payload.
-        if (
+        // Club context — use the club-dates API
+        if (clubId) {
+          response = await fetch(`/api/club/club-dates?id=${eventData.id}`, {
+            method: "PUT",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(formData),
+          });
+        } else if (
           typeof eventData.id === "string" &&
           eventData.id.startsWith("evt-")
         ) {

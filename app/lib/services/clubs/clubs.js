@@ -9,15 +9,10 @@ import {
   getAuthenticatedContext,
   getSupabaseServerClient,
   getSupabaseAdminClient,
-} from "./shared";
+} from "../submit-data-types/shared";
 
-export async function getClubById(id, cookieStore) {
-  if (!id) throw new ServiceError("Club ID is required", 400);
-  const supabase = await getSupabaseServerClient(cookieStore);
-  const { data, error } = await supabase.from("clubs").select("*").eq("id", id).single();
-  if (error || !data) throw new ServiceError("Club not found", 404);
-  return { club: data };
-}
+const CLUB_SELECT_LIMITED =
+  "id, name, country, city, club_image, capacity, address";
 
 const validateClubContactFields = ({ location_url, venue_email }) => {
   if (venue_email && String(venue_email).trim() !== "") {
@@ -35,6 +30,30 @@ const validateClubContactFields = ({ location_url, venue_email }) => {
     }
   }
 };
+
+export async function getAllClubs({ limit = 20, offset = 0 } = {}) {
+  const admin = getSupabaseAdminClient();
+  const { data, error } = await admin
+    .from("clubs")
+    .select(CLUB_SELECT_LIMITED)
+    .eq("status", "approved")
+    .order("name", { ascending: true })
+    .range(offset, offset + limit - 1);
+  if (error) throw new ServiceError(error.message, 500);
+  return { clubs: data || [], limit, offset };
+}
+
+export async function getClubById(id, cookieStore) {
+  if (!id) throw new ServiceError("Club ID is required", 400);
+  const supabase = await getSupabaseServerClient(cookieStore);
+  const { data, error } = await supabase
+    .from("clubs")
+    .select("*")
+    .eq("id", id)
+    .single();
+  if (error || !data) throw new ServiceError("Club not found", 404);
+  return { club: data };
+}
 
 export async function createClub(formData, cookieStore) {
   const { user, supabase } = await getAuthenticatedContext(cookieStore);
@@ -58,7 +77,11 @@ export async function createClub(formData, cookieStore) {
   }
 
   validateClubContactFields({ location_url, venue_email });
-  validateImageFile({ file: clubImage, maxSize: 1 * 1024 * 1024, requiredMessage: "Club image is required" });
+  validateImageFile({
+    file: clubImage,
+    maxSize: 1 * 1024 * 1024,
+    requiredMessage: "Club image is required",
+  });
 
   const fileExtension = sanitizeFileExtension(clubImage.name);
   const fileName = `${sanitizeStorageBaseName(name, "club")}_${Date.now()}.${fileExtension}`;
@@ -87,8 +110,14 @@ export async function createClub(formData, cookieStore) {
     status: "pending",
     club_image: publicUrl,
     address: address || null,
-    location_url: location_url && String(location_url).trim() !== "" ? String(location_url).trim() : null,
-    venue_email: venue_email && String(venue_email).trim() !== "" ? String(venue_email).trim() : null,
+    location_url:
+      location_url && String(location_url).trim() !== ""
+        ? String(location_url).trim()
+        : null,
+    venue_email:
+      venue_email && String(venue_email).trim() !== ""
+        ? String(venue_email).trim()
+        : null,
   };
 
   const { data: newClub, error: insertError } = await admin
@@ -96,10 +125,17 @@ export async function createClub(formData, cookieStore) {
     .insert([clubData])
     .select()
     .single();
-  if (insertError) throw new ServiceError(`Failed to create club: ${insertError.message}`, 500);
+  if (insertError)
+    throw new ServiceError(
+      `Failed to create club: ${insertError.message}`,
+      500,
+    );
 
   if (!user.is_admin) {
-    await supabase.from("users").update({ submitted_club_id: newClub.id }).eq("id", user.id);
+    await supabase
+      .from("users")
+      .update({ submitted_club_id: newClub.id })
+      .eq("id", user.id);
   }
 
   try {
@@ -139,7 +175,8 @@ export async function updateClub(formData, cookieStore) {
     .select("*")
     .eq("id", clubId)
     .single();
-  if (fetchError || !existingClub) throw new ServiceError("Club not found", 404);
+  if (fetchError || !existingClub)
+    throw new ServiceError("Club not found", 404);
 
   if (existingClub.user_id !== user.id && !user.is_admin) {
     throw new ServiceError("You are not allowed to edit this club", 403);
@@ -153,8 +190,15 @@ export async function updateClub(formData, cookieStore) {
   let clubImageUrl = existingClub.club_image;
   const clubImage = formData.get("club_image");
   if (clubImage instanceof File && clubImage.size > 0) {
-    validateImageFile({ file: clubImage, required: false, maxSize: 1 * 1024 * 1024 });
-    const oldImagePath = extractPublicObjectPath(existingClub.club_image, "club_images");
+    validateImageFile({
+      file: clubImage,
+      required: false,
+      maxSize: 1 * 1024 * 1024,
+    });
+    const oldImagePath = extractPublicObjectPath(
+      existingClub.club_image,
+      "club_images",
+    );
     if (oldImagePath) {
       await admin.storage.from("club_images").remove([oldImagePath]);
     }
@@ -184,15 +228,29 @@ export async function updateClub(formData, cookieStore) {
     residents: parseArrayField(formData, "residents"),
     social_links: parseArrayField(formData, "social_links"),
     club_image: clubImageUrl,
-    location_url: location_url && String(location_url).trim() !== "" ? String(location_url).trim() : null,
-    venue_email: venue_email && String(venue_email).trim() !== "" ? String(venue_email).trim() : null,
+    location_url:
+      location_url && String(location_url).trim() !== ""
+        ? String(location_url).trim()
+        : null,
+    venue_email:
+      venue_email && String(venue_email).trim() !== ""
+        ? String(venue_email).trim()
+        : null,
     updated_at: new Date().toISOString(),
   };
 
-  Object.keys(updateData).forEach((key) => updateData[key] === undefined && delete updateData[key]);
+  Object.keys(updateData).forEach(
+    (key) => updateData[key] === undefined && delete updateData[key],
+  );
 
-  const { data, error } = await admin.from("clubs").update(updateData).eq("id", clubId).select().single();
-  if (error) throw new ServiceError(`Failed to update club: ${error.message}`, 500);
+  const { data, error } = await admin
+    .from("clubs")
+    .update(updateData)
+    .eq("id", clubId)
+    .select()
+    .single();
+  if (error)
+    throw new ServiceError(`Failed to update club: ${error.message}`, 500);
 
   revalidateTag("clubs");
   revalidateTag(`user-statistics-${user.id}`);
@@ -200,4 +258,42 @@ export async function updateClub(formData, cookieStore) {
   revalidateTag("user-statistics-submitted-club");
 
   return { success: true, message: "Club updated successfully", data };
+}
+
+export async function deleteClub(clubId, cookieStore) {
+  if (!clubId) throw new ServiceError("Missing clubId", 400);
+  const { user } = await getAuthenticatedContext(cookieStore);
+  const admin = getSupabaseAdminClient();
+
+  const { data: existingClub, error: fetchError } = await admin
+    .from("clubs")
+    .select("*")
+    .eq("id", clubId)
+    .single();
+  if (fetchError || !existingClub) throw new ServiceError("Club not found", 404);
+
+  if (existingClub.user_id !== user.id && !user.is_admin) {
+    throw new ServiceError("You are not allowed to delete this club", 403);
+  }
+
+  if (existingClub.club_image) {
+    const oldImagePath = extractPublicObjectPath(
+      existingClub.club_image,
+      "club_images",
+    );
+    if (oldImagePath) {
+      await admin.storage.from("club_images").remove([oldImagePath]);
+    }
+  }
+
+  const { error } = await admin.from("clubs").delete().eq("id", clubId);
+  if (error)
+    throw new ServiceError(`Failed to delete club: ${error.message}`, 500);
+
+  revalidateTag("clubs");
+  revalidateTag(`user-statistics-${user.id}`);
+  revalidateTag(`user-statistics-submitted-club-${user.id}`);
+  revalidateTag("user-statistics-submitted-club");
+
+  return { success: true, message: "Club deleted successfully" };
 }

@@ -171,6 +171,7 @@ const Panel = ({ open, setOpen, event }) => {
                     className="secondary pointer-events-none"
                   />
                   <LikeButton
+                    size={14}
                     type="event"
                     artist={{
                       id: event.id,
@@ -187,6 +188,7 @@ const Panel = ({ open, setOpen, event }) => {
                     className="secondary pointer-events-none"
                   />
                   <ReminderButton
+                    size={16}
                     event={{
                       id: event.id,
                       isReminderSet,

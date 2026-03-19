@@ -6,7 +6,15 @@ import { openRatingModal, selectUserRating } from "@/app/features/ratingSlice";
 import { FaRegStar, FaStar } from "react-icons/fa6";
 import ActionButton from "@/app/components/buttons/ActionButton";
 
-const RatingButton = ({ artist, ratingStats, userRating, text, className }) => {
+const RatingButton = ({
+  artist,
+  ratingStats,
+  userRating,
+  text,
+  className,
+  size = 18,
+  showValue = true,
+}) => {
   const dispatch = useDispatch();
   const user = useSelector(selectUser);
   const reduxRating = useSelector(selectUserRating(artist.id));
@@ -35,14 +43,16 @@ const RatingButton = ({ artist, ratingStats, userRating, text, className }) => {
 
   return (
     <ActionButton
-      icon={hasUserRating ? <FaStar size={18} /> : <FaRegStar size={18} />}
+      icon={hasUserRating ? <FaStar size={size} /> : <FaRegStar size={size} />}
       text={text}
       onClick={handleClick}
       active={hasUserRating}
       authMessage="Please login to rate this artist"
       className={className}
     >
-      {hasUserRating && <span suppressHydrationWarning>{currentRating}</span>}
+      {showValue && hasUserRating && (
+        <span suppressHydrationWarning>{currentRating}</span>
+      )}
     </ActionButton>
   );
 };

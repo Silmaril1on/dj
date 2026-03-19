@@ -14,7 +14,7 @@ const REMINDER_OPTIONS = [
   { value: 30, label: "1 month earlier" },
 ];
 
-const ReminderButton = ({ className, event, onReminderChange, desc }) => {
+const ReminderButton = ({ className, event, onReminderChange, desc, size }) => {
   const user = useSelector(selectUser);
   const dispatch = useDispatch();
   const [isOpen, setIsOpen] = useState(false);
@@ -111,7 +111,11 @@ const ReminderButton = ({ className, event, onReminderChange, desc }) => {
       <ActionButton
         onClick={handleToggleMenu}
         icon={
-          isReminderSet ? <IoAlarm size={18} /> : <IoAlarmOutline size={18} />
+          isReminderSet ? (
+            <IoAlarm size={size} />
+          ) : (
+            <IoAlarmOutline size={size} />
+          )
         }
         text={desc}
         loading={loading}

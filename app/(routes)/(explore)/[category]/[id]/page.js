@@ -1,7 +1,7 @@
 import { notFound } from "next/navigation";
 import { cookies } from "next/headers";
-import SingleDataProfile from "@/app/(routes)/(explore)/[category]/[id]/SingleDataProfile";
 import { CATEGORY_CONFIGS, VALID_CATEGORIES } from "../../categoryConfigs";
+import SingleDataProfile from "@/app/(routes)/(explore)/[category]/[id]/SingleDataProfile";
 
 export const dynamic = "force-dynamic";
 

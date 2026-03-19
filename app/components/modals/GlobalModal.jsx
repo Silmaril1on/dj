@@ -30,7 +30,7 @@ const GlobalModal = ({
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 16, scale: 0.97 }}
             transition={{ duration: 0.25, ease: "easeOut" }}
-            className={`bg-black border border-gold/50 p-5 w-full relative max-h-[90vh] overflow-hidden ${maxWidth}`}
+            className={`bg-black border border-gold/50 p-5 w-full relative max-h-[90vh] overflow-y-auto overflow-x-hidden ${maxWidth}`}
           >
             {/* Header */}
             <div className="flex items-center justify-between mb-4">

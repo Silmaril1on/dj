@@ -12,6 +12,7 @@ const LikeButton = ({
   artist,
   onLikeChange,
   text,
+  size = 20,
   type = "artist",
 }) => {
   const user = useSelector(selectUser);
@@ -61,7 +62,7 @@ const LikeButton = ({
 
   return (
     <ActionButton
-      icon={isLiked ? <FaHeart size={17} /> : <FaRegHeart size={17} />}
+      icon={isLiked ? <FaHeart size={size} /> : <FaRegHeart size={size} />}
       text={text}
       onClick={handleToggle}
       loading={isLoading}

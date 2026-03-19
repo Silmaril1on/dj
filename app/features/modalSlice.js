@@ -50,6 +50,7 @@ const modalSlice = createSlice({
         artist: action.payload.artist,
         eventData: action.payload.eventData || null,
         isEditMode: !!action.payload.eventData,
+        clubId: action.payload.clubId || null,
       };
     },
     closeAddEventModal: (state) => {
@@ -58,6 +59,7 @@ const modalSlice = createSlice({
         artist: null,
         eventData: null,
         isEditMode: false,
+        clubId: null,
       };
     },
     openAddAlbumModal: (state, action) => {

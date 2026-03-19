@@ -87,7 +87,7 @@ const AddClubDateModal = () => {
     dispatch(setError(""));
 
     try {
-      const response = await fetch(`/api/club/${club.id}/club-dates`, {
+      const response = await fetch(`/api/club/club-dates?clubId=${club.id}`, {
         method: "POST",
         body: formData,
       });
