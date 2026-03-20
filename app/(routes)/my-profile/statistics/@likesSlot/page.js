@@ -1,9 +1,9 @@
 import ActivityStatsCard from "@/app/(routes)/my-profile/statistics/(components)/ActivityStatsCard";
-import { getUserStatsCount } from "@/app/lib/services/user/statistics/getUserLikesCount";
+import { getUserLikesCount } from "@/app/lib/services/user/statistics/getUserLikesCount";
 
 export default async function LikesStatsSlot() {
   try {
-    const likes = await getUserStatsCount();
+    const likes = await getUserLikesCount();
     return (
       <ActivityStatsCard
         data={likes}
