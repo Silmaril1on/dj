@@ -21,7 +21,7 @@ const AddLineupPage = async ({ params }) => {
   try {
     // Fetch festival data to verify ownership
     const response = await fetch(
-      `${process.env.PROJECT_URL}/api/festivals/${id}`,
+      `${process.env.PROJECT_URL}/api/festivals/single-festival?id=${id}`,
       {
         cache: "no-store",
         headers: {
@@ -41,7 +41,7 @@ const AddLineupPage = async ({ params }) => {
     let existingLineup = null;
     try {
       const lineupResponse = await fetch(
-        `${process.env.PROJECT_URL}/api/festivals/add-festival-lineup?festival_id=${id}`,
+        `${process.env.PROJECT_URL}/api/festivals/lineup?festival_id=${id}`,
         {
           cache: "no-store",
           headers: {

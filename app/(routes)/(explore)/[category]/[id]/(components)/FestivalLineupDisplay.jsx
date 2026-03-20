@@ -20,7 +20,7 @@ const FestivalLineupDisplay = ({ festivalId }) => {
     const fetchLineup = async () => {
       try {
         const response = await fetch(
-          `/api/festivals/add-festival-lineup?festival_id=${festivalId}`,
+          `/api/festivals/lineup?festival_id=${festivalId}`,
         );
         if (response.ok) {
           const data = await response.json();

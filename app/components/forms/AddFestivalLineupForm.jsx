@@ -145,7 +145,7 @@ const AddFestivalLineupForm = ({
     });
 
     try {
-      const response = await fetch("/api/festivals/add-festival-lineup", {
+      const response = await fetch("/api/festivals/lineup", {
         method: existingLineup ? "PATCH" : "POST",
         headers: {
           "Content-Type": "application/json",

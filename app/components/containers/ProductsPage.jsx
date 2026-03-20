@@ -50,7 +50,7 @@ const DATA_TYPE_CONFIG = {
     hasCityFilter: true,
   },
   festivals: {
-    apiEndpoint: "/api/festivals/all-festivals",
+    apiEndpoint: "/api/festivals",
     limit: 20,
     gridCols: "grid-cols-2 lg:grid-cols-5",
     filterFn: filterFestivals,
