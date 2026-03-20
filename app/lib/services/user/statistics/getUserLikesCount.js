@@ -54,7 +54,7 @@ const getCachedLikesStats = unstable_cache(
   },
 );
 
-export async function getUserStatsCount() {
+export async function getUserLikesCount() {
   const user = await requireAuth();
   return getCachedLikesStats(user.id);
 }
