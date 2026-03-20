@@ -14,9 +14,9 @@ const News = () => {
 
   useEffect(() => {
     const fetchNews = async () => {
-      const res = await fetch("/api/admin/news");
+      const res = await fetch("/api/news?limit=15&offset=0");
       const data = await res.json();
-      setNewsData(data.news || []);
+      setNewsData(data.data || []);
     };
     fetchNews();
   }, []);
@@ -25,7 +25,7 @@ const News = () => {
     if (newsData.length === 0) return;
     const interval = setInterval(() => {
       setCurrentIndex((prevIndex) =>
-        prevIndex === newsData.length - 1 ? 0 : prevIndex + 1
+        prevIndex === newsData.length - 1 ? 0 : prevIndex + 1,
       );
     }, 7000);
     return () => clearInterval(interval);
@@ -40,7 +40,10 @@ const News = () => {
   if (newsData?.length === 0) {
     return (
       <div className="w-full flex flex-col items-center">
-       <ErrorCode title="No News Available" description="There are currently no news items to display. Please check back later." />
+        <ErrorCode
+          title="No News Available"
+          description="There are currently no news items to display. Please check back later."
+        />
       </div>
     );
   }

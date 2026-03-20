@@ -8,7 +8,7 @@ import {
   getAuthenticatedContext,
   getSupabaseServerClient,
   getSupabaseAdminClient,
-} from "../submit-data-types/shared";
+} from "../shared";
 import { getServerUser } from "@/app/lib/config/supabaseServer";
 
 function escapeLike(input) {

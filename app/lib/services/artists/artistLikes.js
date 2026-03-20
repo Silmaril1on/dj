@@ -4,7 +4,7 @@ import { supabaseAdmin } from "@/app/lib/config/supabaseServer";
 import {
   getAuthenticatedContext,
   getSupabaseServerClient,
-} from "@/app/lib/services/submit-data-types/shared";
+} from "@/app/lib/services/shared";
 
 // Cache tag: `artist-likes-${artistId}` — revalidate from like/route.js on toggle.
 export async function getArtistLikesCount(artistId) {

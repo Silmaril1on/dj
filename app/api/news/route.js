@@ -1,11 +1,11 @@
 import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import {
-  getClubDates,
-  createClubDate,
-  deleteClubDate,
-  updateClubDate,
-} from "@/app/lib/services/clubs/clubDates";
+  getLimitedNews,
+  createNews,
+  updateNews,
+  deleteNews,
+} from "@/app/lib/services/news/news";
 import { ServiceError } from "@/app/lib/services/shared";
 
 const handleError = (error) => {
@@ -15,6 +15,7 @@ const handleError = (error) => {
       { status: error.status },
     );
   }
+
   return NextResponse.json(
     { success: false, error: "Internal server error" },
     { status: 500 },
@@ -24,12 +25,10 @@ const handleError = (error) => {
 export async function GET(request) {
   try {
     const { searchParams } = new URL(request.url);
-    const clubId = searchParams.get("clubId");
     const limit = parseInt(searchParams.get("limit") || "20", 10);
     const offset = parseInt(searchParams.get("offset") || "0", 10);
-    const cookieStore = await cookies();
-    const result = await getClubDates(clubId, { limit, offset }, cookieStore);
-    return NextResponse.json(result);
+    const result = await getLimitedNews({ limit, offset });
+    return NextResponse.json({ success: true, ...result });
   } catch (error) {
     return handleError(error);
   }
@@ -37,11 +36,10 @@ export async function GET(request) {
 
 export async function POST(request) {
   try {
-    const clubId = new URL(request.url).searchParams.get("clubId");
     const cookieStore = await cookies();
     const formData = await request.formData();
-    const result = await createClubDate(clubId, formData, cookieStore);
-    return NextResponse.json(result);
+    const result = await createNews(formData, cookieStore);
+    return NextResponse.json(result, { status: 201 });
   } catch (error) {
     return handleError(error);
   }
@@ -49,33 +47,24 @@ export async function POST(request) {
 
 export async function PUT(request) {
   try {
-    const dateId = new URL(request.url).searchParams.get("id");
-    if (!dateId) {
-      return NextResponse.json(
-        { success: false, error: "Date ID is required" },
-        { status: 400 },
-      );
-    }
     const cookieStore = await cookies();
-    const data = await request.json();
-    const result = await updateClubDate(dateId, data, cookieStore);
+    const formData = await request.formData();
+    const result = await updateNews(formData, cookieStore);
     return NextResponse.json(result);
   } catch (error) {
     return handleError(error);
   }
 }
 
+export async function PATCH(request) {
+  return PUT(request);
+}
+
 export async function DELETE(request) {
   try {
-    const dateId = new URL(request.url).searchParams.get("id");
-    if (!dateId) {
-      return NextResponse.json(
-        { success: false, error: "Date ID is required" },
-        { status: 400 },
-      );
-    }
     const cookieStore = await cookies();
-    const result = await deleteClubDate(dateId, cookieStore);
+    const { newsId } = await request.json();
+    const result = await deleteNews(newsId, cookieStore);
     return NextResponse.json(result);
   } catch (error) {
     return handleError(error);

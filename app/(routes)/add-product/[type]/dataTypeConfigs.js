@@ -212,11 +212,20 @@ export const DATA_TYPE_CONFIGS = {
     },
     submitText: { add: "Submit News", edit: "Update News" },
     api: {
-      submit: "/api/admin/news",
-      update: "/api/admin/news",
+      fetch: (id) => `/api/news/single-news?id=${id}`,
+      submit: "/api/news",
+      update: "/api/news",
     },
     idParam: "newsId",
-    extractData: (json) => json,
+    extractData: (json) => json.news,
+    mapInitialData: (data, defaults) => ({
+      ...defaults,
+      title: data.title || "",
+      content: data.content || "",
+      description: data.description || "",
+      news_image: data.news_image || "",
+      link: data.link || "",
+    }),
     mapSuccessPayload: (result) => ({
       type: "news",
       image: result.data?.news_image || "",

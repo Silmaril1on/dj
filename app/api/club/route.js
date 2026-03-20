@@ -6,7 +6,7 @@ import {
   updateClub,
   deleteClub,
 } from "@/app/lib/services/clubs/clubs";
-import { ServiceError } from "@/app/lib/services/submit-data-types/shared";
+import { ServiceError } from "@/app/lib/services/shared";
 
 const handleError = (error) => {
   if (error instanceof ServiceError) {

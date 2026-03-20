@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import { getFestivalById } from "@/app/lib/services/festivals/festival";
-import { ServiceError } from "@/app/lib/services/submit-data-types/shared";
+import { ServiceError } from "@/app/lib/services/shared";
 import { getServerUser } from "@/app/lib/config/supabaseServer";
 
 const handleError = (error) => {

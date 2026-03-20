@@ -3,7 +3,7 @@ import {
   getAuthenticatedContext,
   getSupabaseServerClient,
   getSupabaseAdminClient,
-} from "../submit-data-types/shared";
+} from "../shared";
 
 const CLUB_DATE_SELECT =
   "id, club_id, date, time, event_link, event_title, minimum_age, event_status, lineup, created_at";

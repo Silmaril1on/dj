@@ -1,5 +1,5 @@
 "use server";
-import { getAuthenticatedContext } from "@/app/lib/services/submit-data-types/shared";
+import { getAuthenticatedContext } from "@/app/lib/services/shared";
 
 const VALID_TYPES = ["artist", "club", "event", "festival"];
 const MAX_ITEMS = 6;

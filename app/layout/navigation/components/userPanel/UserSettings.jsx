@@ -1,4 +1,11 @@
-import { MdPerson, MdSecurity, MdEventAvailable } from "react-icons/md";
+"use client";
+import { useState } from "react";
+import {
+  MdPerson,
+  MdSecurity,
+  MdEventAvailable,
+  MdVerifiedUser,
+} from "react-icons/md";
 import { IoMusicalNotes } from "react-icons/io5";
 import PopUpBox from "@/app/components/containers/PopUpBox";
 import Button from "@/app/components/buttons/Button";
@@ -7,6 +14,7 @@ import FlexBox from "@/app/components/containers/FlexBox";
 import MyLink from "@/app/components/ui/MyLink";
 import ProfilePicture from "@/app/components/materials/ProfilePicture";
 import { FaHouse } from "react-icons/fa6";
+import UserVerificationModal from "@/app/components/modals/UserVerificationModal";
 
 const UserSettings = ({
   onLogout,
@@ -15,17 +23,30 @@ const UserSettings = ({
   avatar_url,
   user,
 }) => {
+  const [verifyModalOpen, setVerifyModalOpen] = useState(false);
+
   return (
-    <PopUpBox
-      isOpen={isOpen}
-      className="absolute bottom-full mb-2 lg:bottom-auto lg:top-full right-0 lg:mt-2 w-64 bg-stone-800 shadow-xl border border-gold/30 z-50 *:p-3"
-    >
-      <SettingsHeader avatar_url={avatar_url} />
-      <SettingsOption toggleSettings={toggleSettings} user={user} />
-      <div className="border-t border-gold/30">
-        <Button size="small" text="Logout" onClick={onLogout} />
-      </div>
-    </PopUpBox>
+    <>
+      <PopUpBox
+        isOpen={isOpen}
+        className="absolute bottom-full mb-2 lg:bottom-auto lg:top-full right-0 lg:mt-2 w-64 bg-stone-800 shadow-xl border border-gold/30 z-50 *:p-3"
+      >
+        <SettingsHeader avatar_url={avatar_url} />
+        <SettingsOption
+          toggleSettings={toggleSettings}
+          user={user}
+          onVerifyClick={() => setVerifyModalOpen(true)}
+        />
+        <div className="border-t border-gold/30">
+          <Button size="small" text="Logout" onClick={onLogout} />
+        </div>
+      </PopUpBox>
+
+      <UserVerificationModal
+        isOpen={verifyModalOpen}
+        onClose={() => setVerifyModalOpen(false)}
+      />
+    </>
   );
 };
 
@@ -49,9 +70,9 @@ const SettingsHeader = ({ avatar_url }) => {
   );
 };
 
-const SettingsOption = ({ toggleSettings, user }) => {
+const SettingsOption = ({ toggleSettings, user, onVerifyClick }) => {
   return (
-    <div className="space-y-1">
+    <div>
       <MyLink
         href="/my-profile/personal-information"
         text="My Profile"
@@ -88,6 +109,14 @@ const SettingsOption = ({ toggleSettings, user }) => {
         icon={<MdSecurity />}
         onClick={toggleSettings}
       />
+      {!(user.profile_verified && user.email_verified) && (
+        <MyLink
+          href="#"
+          text="Verify Account"
+          icon={<MdVerifiedUser />}
+          onClick={onVerifyClick}
+        />
+      )}
     </div>
   );
 };

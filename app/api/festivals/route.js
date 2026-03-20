@@ -2,10 +2,12 @@ import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import {
   getAllFestivals,
+  getFestivalById,
   createFestival,
   updateFestival,
 } from "@/app/lib/services/festivals/festival";
-import { ServiceError } from "@/app/lib/services/submit-data-types/shared";
+import { ServiceError } from "@/app/lib/services/shared";
+import { getServerUser } from "@/app/lib/config/supabaseServer";
 
 const handleError = (error) => {
   if (error instanceof ServiceError) {
@@ -20,6 +22,22 @@ const handleError = (error) => {
 export async function GET(request) {
   try {
     const { searchParams } = new URL(request.url);
+
+    const id = searchParams.get("id");
+    if (id) {
+      const cookieStore = await cookies();
+      const [result, { user }] = await Promise.all([
+        getFestivalById(id, cookieStore),
+        getServerUser(cookieStore),
+      ]);
+
+      return NextResponse.json({
+        success: true,
+        ...result,
+        currentUserId: user?.id ?? null,
+      });
+    }
+
     const result = await getAllFestivals({
       limit: parseInt(searchParams.get("limit") || "20", 10),
       offset: parseInt(searchParams.get("offset") || "0", 10),

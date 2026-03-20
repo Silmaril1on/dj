@@ -9,7 +9,7 @@ import {
   getAuthenticatedContext,
   getSupabaseServerClient,
   getSupabaseAdminClient,
-} from "../submit-data-types/shared";
+} from "../shared";
 
 const CLUB_SELECT_LIMITED =
   "id, name, country, city, club_image, capacity, address";
@@ -270,7 +270,8 @@ export async function deleteClub(clubId, cookieStore) {
     .select("*")
     .eq("id", clubId)
     .single();
-  if (fetchError || !existingClub) throw new ServiceError("Club not found", 404);
+  if (fetchError || !existingClub)
+    throw new ServiceError("Club not found", 404);
 
   if (existingClub.user_id !== user.id && !user.is_admin) {
     throw new ServiceError("You are not allowed to delete this club", 403);

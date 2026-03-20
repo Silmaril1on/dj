@@ -4,7 +4,7 @@ import {
   ServiceError,
   getAuthenticatedContext,
   getSupabaseServerClient,
-} from "@/app/lib/services/submit-data-types/shared";
+} from "@/app/lib/services/shared";
 
 export async function getEventLikes(cookieStore, eventId) {
   if (!eventId) throw new ServiceError("Event ID is required", 400);

@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useDispatch, useSelector } from "react-redux";
 import { SiYoutubemusic, SiNeteasecloudmusic } from "react-icons/si";
 import { MdEvent, MdFestival } from "react-icons/md";
+import { FaNewspaper } from "react-icons/fa";
 import Motion from "@/app/components/containers/Motion";
 import Title from "@/app/components/ui/Title";
 import Paragraph from "@/app/components/ui/Paragraph";
@@ -24,11 +25,12 @@ const SubmitSection = () => {
       return;
     }
     // Check if email is verified
-    if (!user.email_verified) {
+    if (!user.email_verified || !user.profile_verified) {
       dispatch(
         setError({
-          message: "Please verify your email before submitting content",
-          type: "error",
+          message:
+            "Your account must be fully verified to submit content. Please complete your profile and verify your email address to access this feature.",
+          type: "basic",
         }),
       );
       return;
@@ -77,6 +79,10 @@ const SubmitSection = () => {
         }
         break;
 
+      case "news":
+        router.push("/add-product/news");
+        break;
+
       default:
         break;
     }
@@ -111,6 +117,13 @@ const SubmitSection = () => {
         "Submit a music festival to our platform. Showcase multi-day events and reach a wider audience.",
       icon: <MdFestival />,
     },
+    {
+      type: "news",
+      title: "Publish News",
+      description:
+        "Publish a news update to keep the community informed with announcements, stories, and highlights.",
+      icon: <FaNewspaper />,
+    },
   ];
 
   return (
@@ -135,7 +148,7 @@ const SubmitSection = () => {
           text="Contribute to our community by adding new artists, clubs, or events. Your submissions help keep our platform vibrant and up-to-date."
         />
       </div>
-      <div className="w-full grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 px-[10%] overflow-hidden">
+      <div className="w-full grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6 px-[10%] overflow-hidden">
         {cards.map(({ type, title, description, icon: Icon }, index) => (
           <Motion
             animation="fade"
@@ -151,7 +164,7 @@ const SubmitSection = () => {
               <h3 className="text-xl font-bold text-gold group-hover:text-gold/90 transition-colors duration-300">
                 {title}
               </h3>
-              <p className="text-sm text-chino/80 secondary  leading-relaxed">
+              <p className="text-[10px] text-chino/80 secondary leading-relaxed">
                 {description}
               </p>
             </div>

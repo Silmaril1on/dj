@@ -59,7 +59,7 @@ const ActionButton = ({
       {...props}
     >
       {loading ? (
-        <Spinner />
+        <Spinner size="sm" />
       ) : (
         <>
           {icon}

@@ -29,6 +29,7 @@ export async function updateProfile(userId, formData) {
       "city",
       "state",
       "zip_code",
+      "profession",
     ];
 
     const updateData = {};

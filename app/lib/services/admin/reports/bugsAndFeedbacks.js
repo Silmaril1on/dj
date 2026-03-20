@@ -4,7 +4,7 @@ import {
   ServiceError,
   getAuthenticatedContext,
   getSupabaseServerClient,
-} from "@/app/lib/services/submit-data-types/shared";
+} from "@/app/lib/services/shared";
 
 // ─── Bug Reports ──────────────────────────────────────────────────────────────
 

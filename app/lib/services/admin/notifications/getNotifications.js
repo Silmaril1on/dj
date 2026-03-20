@@ -2,7 +2,7 @@ import {
   ServiceError,
   getAuthenticatedContext,
   getSupabaseAdminClient,
-} from "@/app/lib/services/submit-data-types/shared";
+} from "@/app/lib/services/shared";
 
 export async function fetchNotifications(cookieStore) {
   const { user, supabase } = await getAuthenticatedContext(cookieStore);

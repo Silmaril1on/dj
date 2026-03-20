@@ -21,7 +21,7 @@ const AddLineupPage = async ({ params }) => {
   try {
     // Fetch festival data to verify ownership
     const response = await fetch(
-      `${process.env.PROJECT_URL}/api/festivals/single-festival?id=${id}`,
+      `${process.env.PROJECT_URL}/api/festivals?id=${id}`,
       {
         cache: "no-store",
         headers: {

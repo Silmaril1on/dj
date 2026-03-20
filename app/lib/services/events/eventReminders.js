@@ -3,7 +3,7 @@ import { revalidateTag } from "next/cache";
 import {
   ServiceError,
   getAuthenticatedContext,
-} from "@/app/lib/services/submit-data-types/shared";
+} from "@/app/lib/services/shared";
 
 const ALLOWED_OFFSETS = [3, 7, 14, 30];
 
@@ -69,17 +69,15 @@ export async function setEventReminder(
     );
   }
 
-  const { error } = await supabase
-    .from("event_reminders")
-    .upsert(
-      {
-        event_id: eventId,
-        user_id: user.id,
-        reminder_sent: false,
-        reminder_offset_days: normalizedOffset,
-      },
-      { onConflict: "event_id,user_id" },
-    );
+  const { error } = await supabase.from("event_reminders").upsert(
+    {
+      event_id: eventId,
+      user_id: user.id,
+      reminder_sent: false,
+      reminder_offset_days: normalizedOffset,
+    },
+    { onConflict: "event_id,user_id" },
+  );
   if (error) throw new ServiceError("Failed to set reminder", 500);
 
   revalidateTag("events");

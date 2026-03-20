@@ -1,4 +1,5 @@
 import AllNews from "@/app/(routes)/news/AllNews";
+import { getLimitedNews } from "@/app/lib/services/news/news";
 
 export const dynamic = "force-dynamic";
 
@@ -11,14 +12,8 @@ export const metadata = {
 const AllNewsPage = async () => {
   let news = [];
   try {
-    const res = await fetch(
-      `${process.env.PROJECT_URL}/api/admin/news?limit=15`,
-      {
-        cache: "no-store",
-      },
-    );
-    const data = await res.json();
-    news = data.news || [];
+    const result = await getLimitedNews({ limit: 20, offset: 0 });
+    news = result.data || [];
   } catch (error) {
     console.error("Failed to fetch news:", error);
   }

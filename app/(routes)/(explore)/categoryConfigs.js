@@ -38,7 +38,7 @@ export const CATEGORY_CONFIGS = {
   events: {
     listing: {
       apiEndpoint: (baseUrl) =>
-        `${baseUrl}/api/events/get-all-events?limit=20&offset=0`,
+        `${baseUrl}/api/events/get-upcoming-events?limit=20&offset=0`,
       fetchOptions: {
         next: { revalidate: 1200, tags: ["events"] },
         headers: { "Content-Type": "application/json" },
@@ -74,8 +74,7 @@ export const CATEGORY_CONFIGS = {
 
   festivals: {
     listing: {
-      apiEndpoint: (baseUrl) =>
-        `${baseUrl}/api/festivals?limit=20&offset=0`,
+      apiEndpoint: (baseUrl) => `${baseUrl}/api/festivals?limit=20&offset=0`,
       fetchOptions: { cache: "no-store" },
       extractData: (json) => {
         if (json.error) throw new Error(json.error);
@@ -85,7 +84,7 @@ export const CATEGORY_CONFIGS = {
       description: "Discover music festivals from around the world.",
     },
     profile: {
-      apiEndpoint: (baseUrl, id) => `${baseUrl}/api/festivals/single-festival?id=${id}`,
+      apiEndpoint: (baseUrl, id) => `${baseUrl}/api/festivals?id=${id}`,
       fetchOptions: {
         cache: "no-store",
         headers: { "Content-Type": "application/json" },

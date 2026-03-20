@@ -2,7 +2,7 @@ import {
   ServiceError,
   getAuthenticatedContext,
   getSupabaseServerClient,
-} from "../submit-data-types/shared";
+} from "../shared";
 
 const normalizeArtistName = (name) => {
   if (!name) return "";

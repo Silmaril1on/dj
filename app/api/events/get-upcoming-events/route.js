@@ -7,9 +7,12 @@ export async function GET(request) {
     const limit = parseInt(searchParams.get("limit") || "15", 10);
     const offset = parseInt(searchParams.get("offset") || "0", 10);
     const data = await getLimitedEvents({ limit, offset });
-    return NextResponse.json({ data });
+    return NextResponse.json({ success: true, data });
   } catch (err) {
     const status = err.status || 500;
-    return NextResponse.json({ error: err.message }, { status });
+    return NextResponse.json(
+      { success: false, error: err.message },
+      { status },
+    );
   }
 }

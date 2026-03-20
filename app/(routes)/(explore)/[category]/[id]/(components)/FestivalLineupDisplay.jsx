@@ -13,21 +13,23 @@ const FestivalLineupDisplay = ({ festivalId }) => {
   const [loading, setLoading] = useState(true);
   const [viewMode, setViewMode] = useState("all");
 
-  console.log(festivalId, "id");
-  console.log(lineup, "lineup");
-
   useEffect(() => {
     const fetchLineup = async () => {
       try {
         const response = await fetch(
           `/api/festivals/lineup?festival_id=${festivalId}`,
         );
-        if (response.ok) {
-          const data = await response.json();
-          setLineup(data.lineup);
+        if (!response.ok) {
+          console.error("Failed to fetch lineup", response.status);
+          setLineup([]);
+          return;
         }
+
+        const data = await response.json();
+        setLineup(Array.isArray(data?.lineup) ? data.lineup : []);
       } catch (error) {
         console.error("Error fetching lineup:", error);
+        setLineup([]);
       } finally {
         setLoading(false);
       }

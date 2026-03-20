@@ -5,7 +5,7 @@ import {
   markAllNotificationsRead,
   createNotification,
 } from "@/app/lib/services/admin/notifications/getNotifications";
-import { ServiceError } from "@/app/lib/services/submit-data-types/shared";
+import { ServiceError } from "@/app/lib/services/shared";
 
 const handleError = (error) => {
   if (error instanceof ServiceError) {

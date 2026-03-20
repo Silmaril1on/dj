@@ -13,7 +13,7 @@ import {
   getAuthenticatedContext,
   getSupabaseServerClient,
   getSupabaseAdminClient,
-} from "@/app/lib/services/submit-data-types/shared";
+} from "@/app/lib/services/shared";
 
 export async function getArtistProfile(slug) {
   return unstable_cache(
