@@ -2,26 +2,39 @@ import Image from "next/image";
 import Icon from "../ui/Icon";
 import { MdPerson2 } from "react-icons/md";
 
-const ProfilePicture = ({ avatar_url, type = "icon" }) => {
-    const typeClasses = {
-        icon: "w-8 h-8 rounded-sm",
-        avatar: "w-33 h-33 rounded-full border-5 border-gold/80",
-        mobile: "rounded-full w-9 h-9"
-    };
+const ProfilePicture = ({ avatar_url, type = "icon", isVerified = false }) => {
+  const typeClasses = {
+    icon: "w-8 h-8 rounded-sm",
+    avatar: "w-33 h-33 rounded-full border-5 border-gold/80",
+    mobile: "rounded-full w-9 h-9",
+  };
 
+  const inner = (
+    <div className={`${typeClasses[type]} overflow-hidden center`}>
+      {avatar_url ? (
+        <Image
+          className="w-full h-full object-cover brightness-80 hover:brightness-100 duration-300"
+          src={avatar_url}
+          alt="Profile Picture"
+          width={100}
+          height={100}
+        />
+      ) : (
+        <Icon icon={<MdPerson2 />} color="gold" size="xs" />
+      )}
+    </div>
+  );
+
+  if (type === "icon" && isVerified) {
     return (
-        <div
-            className={`${typeClasses[type]} overflow-hidden center`}
-        >
-            {avatar_url ? <Image
-                className="w-full h-full object-cover brightness-80 hover:brightness-100 duration-300"
-                src={avatar_url}
-                alt="Profile Picture"
-                width={100}
-                height={100}
-            /> : <Icon icon={<MdPerson2 />} color="gold" size="xs" />}
-        </div>
+      <div className="relative inline-flex items-center justify-center">
+        <div className="verified-glow-ring" />
+        {inner}
+      </div>
     );
+  }
+
+  return inner;
 };
 
 export default ProfilePicture;

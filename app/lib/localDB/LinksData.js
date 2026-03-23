@@ -12,11 +12,6 @@ export const userProfileLinks = [
     text: "Security",
     icon: <MdSecurity />,
   },
-  // {
-  //   href: "/my-profile/billing",
-  //   text: "Billing & Payment",
-  //   icon: <MdPayment />,
-  // },
   {
     href: "/my-profile/statistics",
     text: "Statistics",
@@ -49,46 +44,25 @@ export const userProfileLinks = [
 
 export const administrationLinks = [
   {
-    href: "/administration/upload-artist",
-    text: "Upload Artist",
-  },
-  {
-    href: "/administration/upload-festival",
-    text: "Upload Festival",
+    href: "/administration/task-manager",
+    text: "Task Manager",
   },
   {
     href: "/administration/apify",
-    text: "APIFY",
+    text: "Apify",
   },
   {
     text: "Submitted Items",
     hasDropdown: true,
     dropdownItems: [
-      {
-        href: "/administration/submitted-artists",
-        text: "Artists",
-      },
-      {
-        href: "/administration/submitted-clubs",
-        text: "Clubs",
-      },
-      {
-        href: "/administration/submitted-events",
-        text: "Events",
-      },
-      {
-        href: "/administration/submitted-festival",
-        text: "Festivals",
-      },
+      { href: "/administration/submitted/artist", text: "Artists" },
+      { href: "/administration/submitted/club", text: "Clubs" },
+      { href: "/administration/submitted/event", text: "Events" },
+      { href: "/administration/submitted/festival", text: "Festivals" },
     ],
   },
   {
     href: "/administration/reports",
     text: "Reports and Feedbacks",
-  },
-
-  {
-    href: "/administration/task-manager",
-    text: "Task Manager",
   },
 ];

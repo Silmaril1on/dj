@@ -17,6 +17,7 @@ const DisplayName = ({ user, type }) => {
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const settingsRef = useRef(null);
   const router = useRouter();
+  const isVerified = user?.email_verified && user?.profile_verified;
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -64,6 +65,7 @@ const DisplayName = ({ user, type }) => {
             avatar_url={user?.user_avatar}
             size="sm"
             type={type}
+            isVerified={isVerified}
           />
           <FaChevronDown
             className={`text-xs transition-transform duration-300 ${
@@ -73,6 +75,7 @@ const DisplayName = ({ user, type }) => {
         </button>
       </div>
       <UserSettings
+        isVerified={isVerified}
         user={user}
         avatar_url={user?.user_avatar}
         isOpen={isSettingsOpen}

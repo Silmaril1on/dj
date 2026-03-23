@@ -14,26 +14,10 @@ const ActionButtons = ({
   type = "artist",
 }) => {
   const dispatch = useDispatch();
-  const isClub = type === "club";
-  const isEvent = type === "event";
-  const isFestival = type === "festival";
-  const entityType = isClub
-    ? "club"
-    : isEvent
-      ? "event"
-      : isFestival
-        ? "festival"
-        : "artist";
-  const apiEndpoint = isClub
-    ? "/api/admin/submitted-clubs"
-    : isEvent
-      ? "/api/admin/submitted-events"
-      : isFestival
-        ? "/api/admin/submitted-festival"
-        : "/api/admin/submitted-artists";
+  const apiEndpoint = `/api/admin/submitted-data/${type}`;
 
   const handleView = (submission) => {
-    dispatch(openEvaluationModal({ ...submission, __type: entityType }));
+    dispatch(openEvaluationModal({ ...submission, __type: type }));
   };
 
   const handleAction = async (entityId, action) => {
@@ -42,34 +26,21 @@ const ActionButtons = ({
     try {
       const response = await fetch(apiEndpoint, {
         method: "PATCH",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          [isClub
-            ? "clubId"
-            : isEvent
-              ? "eventId"
-              : isFestival
-                ? "festivalId"
-                : "artistId"]: entityId,
-          action,
-        }),
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id: entityId, action }),
       });
       if (response.ok) {
-        if (action === "approve" || action === "decline") {
-          const submission = submissionsList.find((s) => s.id === entityId);
-          if (submission?.submitter) {
-            await sendNotification(submission.submitter, action);
-            await sendEmailNotification(submission.submitter, action);
-          }
+        const submission = submissionsList.find((s) => s.id === entityId);
+        if (submission?.submitter) {
+          await sendNotification(submission.submitter, action);
+          await sendEmailNotification(submission.submitter, action);
         }
         setSubmissionsList((prev) =>
           prev.filter((submission) => submission.id !== entityId),
         );
         dispatch(
           setError({
-            message: `${entityType.charAt(0).toUpperCase() + entityType.slice(1)} ${action}d successfully`,
+            message: `${type.charAt(0).toUpperCase() + type.slice(1)} ${action}d successfully`,
             type: "success",
           }),
         );
@@ -87,13 +58,11 @@ const ActionButtons = ({
     try {
       const message =
         action === "approve"
-          ? `Dear ${submitter.userName}, congratulations! Your submitted ${entityType} has been reviewed and approved. Your ${entityType} is now live on our platform.`
-          : `Dear ${submitter.userName}, we have reviewed your submitted ${entityType}. Unfortunately, it doesn't meet our current requirements. Please feel free to submit again with proper details.`;
+          ? `Dear ${submitter.userName}, congratulations! Your submitted ${type} has been reviewed and approved. Your ${type} is now live on our platform.`
+          : `Dear ${submitter.userName}, we have reviewed your submitted ${type}. Unfortunately, it doesn't meet our current requirements. Please feel free to submit again with proper details.`;
       await fetch("/api/notifications", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           user_id: submitter.id,
           type: "submission approve",
@@ -112,21 +81,17 @@ const ActionButtons = ({
       const status = action === "approve" ? "approved" : "declined";
       const response = await fetch("/api/resend/send-submission-notification", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           email: submitter.email,
           userName: submitter.userName,
-          submissionType: entityType,
+          submissionType: type,
           status: status,
         }),
       });
       if (!response.ok) {
         const errorData = await response.json();
         console.error("Failed to send email:", errorData);
-      } else {
-        console.log("Email sent successfully to:", submitter.email);
       }
     } catch (error) {
       console.error("Error sending email notification:", error);

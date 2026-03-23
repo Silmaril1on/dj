@@ -91,6 +91,7 @@ export const DATA_TYPE_CONFIGS = {
       return {
         ...defaults,
         name: data.name || "",
+        club_slug: data.club_slug || "",
         country: data.country || "",
         city: data.city || "",
         address: data.address || "",
@@ -112,6 +113,12 @@ export const DATA_TYPE_CONFIGS = {
       address: result.data?.address || "",
       description: result.data?.description || "",
     }),
+    beforeSubmit: (formData) => {
+      const rawSlug = formData.get("club_slug");
+      if (typeof rawSlug === "string") {
+        formData.set("club_slug", rawSlug.trim().toLowerCase());
+      }
+    },
   },
 
   event: {
@@ -163,9 +170,9 @@ export const DATA_TYPE_CONFIGS = {
     },
     submitText: { add: "Submit Festival", edit: "Update Festival" },
     api: {
-      fetch: (id) => `/api/submit-data-types/festival?id=${id}`,
-      submit: "/api/submit-data-types/festival",
-      update: "/api/submit-data-types/festival",
+      fetch: (id) => `/api/festivals?id=${id}`,
+      submit: "/api/festivals",
+      update: "/api/festivals",
     },
     idParam: "festivalId",
     extractData: (json) => json.festival,
@@ -178,6 +185,7 @@ export const DATA_TYPE_CONFIGS = {
     mapInitialData: (data, defaults) => ({
       ...defaults,
       name: data.name || "",
+      festival_slug: data.festival_slug || "",
       description: data.description || "",
       bio: data.bio || "",
       poster: data.poster || "",
@@ -200,6 +208,12 @@ export const DATA_TYPE_CONFIGS = {
       location: result.data?.location || "",
       description: result.data?.description || "",
     }),
+    beforeSubmit: (formData) => {
+      const rawSlug = formData.get("festival_slug");
+      if (typeof rawSlug === "string") {
+        formData.set("festival_slug", rawSlug.trim().toLowerCase());
+      }
+    },
   },
 
   news: {

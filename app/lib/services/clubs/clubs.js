@@ -12,7 +12,7 @@ import {
 } from "../shared";
 
 const CLUB_SELECT_LIMITED =
-  "id, name, country, city, club_image, capacity, address";
+  "id, name, club_slug, country, city, club_image, capacity, address";
 
 const validateClubContactFields = ({ location_url, venue_email }) => {
   if (venue_email && String(venue_email).trim() !== "") {
@@ -43,13 +43,13 @@ export async function getAllClubs({ limit = 20, offset = 0 } = {}) {
   return { clubs: data || [], limit, offset };
 }
 
-export async function getClubById(id, cookieStore) {
-  if (!id) throw new ServiceError("Club ID is required", 400);
+export async function getClubById(slug, cookieStore) {
+  if (!slug) throw new ServiceError("Club slug is required", 400);
   const supabase = await getSupabaseServerClient(cookieStore);
   const { data, error } = await supabase
     .from("clubs")
     .select("*")
-    .eq("id", id)
+    .eq("club_slug", slug)
     .single();
   if (error || !data) throw new ServiceError("Club not found", 404);
   return { club: data };
@@ -98,9 +98,12 @@ export async function createClub(formData, cookieStore) {
   const social_links = parseArrayField(formData, "social_links");
   const residents = parseArrayField(formData, "residents");
 
+  const club_slug = formData.get("club_slug");
+
   const clubData = {
     user_id: user.id,
     name,
+    club_slug: club_slug ? String(club_slug).trim().toLowerCase() : null,
     country,
     city,
     capacity,
@@ -218,8 +221,10 @@ export async function updateClub(formData, cookieStore) {
     clubImageUrl = publicUrl;
   }
 
+  const rawSlug = formData.get("club_slug");
   const updateData = {
     name: formData.get("name"),
+    club_slug: rawSlug ? String(rawSlug).trim().toLowerCase() : null,
     country: formData.get("country"),
     city: formData.get("city"),
     capacity: formData.get("capacity"),

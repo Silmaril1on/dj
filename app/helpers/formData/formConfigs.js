@@ -348,6 +348,7 @@ export const formConfigs = {
   addClub: {
     initialData: {
       name: "",
+      club_slug: "",
       country: "",
       city: "",
       capacity: "",
@@ -372,6 +373,12 @@ export const formConfigs = {
         required: true,
         label: "Club Name",
         placeholder: "Enter club name",
+      },
+      club_slug: {
+        type: "text",
+        required: true,
+        label: "Club Slug",
+        placeholder: "e.g. fabric-london",
       },
       address: {
         type: "text",
@@ -440,12 +447,17 @@ export const formConfigs = {
       },
       {
         title: "Basic Information",
-        fields: ["name", "country", "city"],
+        fields: ["name", "club_slug"],
+        gridClass: "grid grid-cols-1 md:grid-cols-2 gap-4",
+      },
+      {
+        title: "Location",
+        fields: ["country", "city", "address"],
         gridClass: "grid grid-cols-1 md:grid-cols-3 gap-4",
       },
       {
         title: "Capacity & Description",
-        fields: ["capacity", "address", "description"],
+        fields: ["capacity", "description"],
         gridClass: "grid grid-cols-1 md:grid-cols-2 gap-4",
       },
       {
@@ -788,6 +800,7 @@ export const formConfigs = {
   addFestival: {
     initialData: {
       name: "",
+      festival_slug: "",
       description: "",
       bio: "",
       start_date: "",
@@ -814,6 +827,12 @@ export const formConfigs = {
         required: true,
         label: "Festival Name",
         placeholder: "Enter festival name",
+      },
+      festival_slug: {
+        type: "text",
+        required: true,
+        label: "Festival Slug",
+        placeholder: "e.g. tomorrowland-2026",
       },
       description: {
         type: "textarea",
@@ -893,7 +912,12 @@ export const formConfigs = {
       },
       {
         title: "Basic Information",
-        fields: ["name", "description"],
+        fields: ["name", "festival_slug"],
+        gridClass: "grid grid-cols-1 md:grid-cols-2 gap-4",
+      },
+      {
+        title: "Description",
+        fields: ["description"],
         gridClass: "space-y-4",
       },
       {

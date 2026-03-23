@@ -11,7 +11,7 @@ export default async function SubmittedClubsSlot() {
         description="Your club profile"
         imageField="club_image"
         getDisplayName={(item) => item.name}
-        getHref={(item) => `/clubs/${item.id}`}
+        getHref={(item) => `/clubs/${item.club_slug || item.id}`}
         submitHref="/add-product/club"
         submitLabel="Submit Club Profile"
         emptyTitle="Your club profile is not yet submitted"

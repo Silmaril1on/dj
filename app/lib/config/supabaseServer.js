@@ -84,6 +84,19 @@ export const getServerUser = async (cookieStore) => {
       }
     }
 
+    // If user has submitted_festival_id, fetch the festival_slug
+    if (userData?.submitted_festival_id) {
+      const { data: festivalData } = await supabase
+        .from("festivals")
+        .select("festival_slug")
+        .eq("id", userData.submitted_festival_id)
+        .single();
+
+      if (festivalData?.festival_slug) {
+        userData.submitted_festival_slug = festivalData.festival_slug;
+      }
+    }
+
     return { user: userData, error: null };
   } catch (error) {
     return { user: null, error };

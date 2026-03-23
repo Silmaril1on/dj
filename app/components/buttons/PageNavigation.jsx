@@ -1,10 +1,13 @@
 "use client";
 import { useState } from "react";
+import { usePathname } from "next/navigation";
 import { AnimatePresence, motion } from "framer-motion";
 import MyLink from "@/app/components/ui/MyLink";
+import Link from "next/link";
 
 const PageNavigation = ({ linksData, className = " " }) => {
   const [activeDropdown, setActiveDropdown] = useState(null);
+  const pathname = usePathname();
 
   const handleMouseEnter = (index) => {
     if (linksData[index].hasDropdown) {
@@ -15,6 +18,10 @@ const PageNavigation = ({ linksData, className = " " }) => {
   const handleMouseLeave = () => {
     setActiveDropdown(null);
   };
+
+  const isActive = (href) => pathname === href;
+  const isDropdownActive = (items) =>
+    items.some((item) => pathname === item.href);
 
   return (
     <div className={`bg-stone-900 ${className}`}>
@@ -28,7 +35,13 @@ const PageNavigation = ({ linksData, className = " " }) => {
               onMouseLeave={handleMouseLeave}
             >
               {item.hasDropdown ? (
-                <div className="py-2 px-3 h-full font-bold cursor-pointer flex items-center gap-1">
+                <div
+                  className={`py-2 px-3 h-full font-bold cursor-pointer flex items-center gap-1 ${
+                    isDropdownActive(item.dropdownItems)
+                      ? "bg-gold text-neutral-800"
+                      : ""
+                  }`}
+                >
                   {item.icon}
                   <span className="text-xs lg:text-sm">{item.text}</span>
                   <span className="text-xs">▼</span>
@@ -38,7 +51,9 @@ const PageNavigation = ({ linksData, className = " " }) => {
                   href={item.href}
                   text={item.text}
                   icon={item.icon}
-                  className="py-2 px-4 center font-bold hover:bg-gold hover:text-neutral-800"
+                  className={`py-2 px-4 center font-bold hover:bg-gold hover:text-neutral-800 ${
+                    isActive(item.href) ? "bg-gold text-neutral-800" : ""
+                  }`}
                 />
               )}
 
@@ -60,13 +75,17 @@ const PageNavigation = ({ linksData, className = " " }) => {
                   >
                     {item.dropdownItems.map((dropdownItem) => (
                       <div key={dropdownItem.href}>
-                        <MyLink
+                        <Link
                           href={dropdownItem.href}
-                          text={dropdownItem.text}
-                          icon={dropdownItem.icon}
                           onClick={() => setActiveDropdown(null)}
-                          className="py-2 px-4 font-bold  text-sm text-gold gap-2 hover:bg-gold hover:text-neutral-800 duration-300 w-full flex items-center "
-                        />
+                          className={`py-2 px-4 font-bold text-sm gap-2 hover:bg-gold hover:text-neutral-800 duration-300 w-full flex text-start ${
+                            isActive(dropdownItem.href)
+                              ? "bg-gold text-neutral-800"
+                              : "text-gold"
+                          }`}
+                        >
+                          {dropdownItem.text}
+                        </Link>
                       </div>
                     ))}
                   </motion.div>

@@ -83,3 +83,28 @@ html {
 .left-clip {
   clip-path: polygon(30% 0, 100% 0, 100% 100%, 0% 100%);
 }
+
+.verified-glow-ring {
+  position: absolute;
+  inset: 0;
+  /* border-radius: 97%; */
+  transform: scale(1.1);
+  z-index: -1;
+  background: linear-gradient(270deg, #42db05, #025006, #42db05);
+  background-size: 400% 400%;
+  animation: verified-glow 6s ease infinite;
+  opacity: 0.9;
+  filter: blur(2px);
+}
+
+@keyframes verified-glow {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}

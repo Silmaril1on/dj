@@ -9,7 +9,7 @@ const NavLinks = ({ type, onClose }) => {
 
   const links = [
     ...(user?.is_admin
-      ? [{ href: "/administration/submitted-artists", label: "Admin" }]
+      ? [{ href: "/administration/task-manager", label: "Admin" }]
       : []),
     { href: "/artists", label: "Artists" },
     { href: "/events", label: "Events" },

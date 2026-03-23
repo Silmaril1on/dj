@@ -41,7 +41,7 @@ export async function getAllFestivals({
   let query = admin
     .from("festivals")
     .select(
-      "id, name, poster, country, city, location, start_date, end_date, description, created_at",
+      "id, name, festival_slug, poster, country, city, location, start_date, end_date, description, created_at",
       { count: "exact" },
     )
     .eq("status", "approved");
@@ -106,14 +106,14 @@ export async function getAllFestivals({
   };
 }
 
-export async function getFestivalById(id, cookieStore) {
-  if (!id) throw new ServiceError("Festival ID is required", 400);
+export async function getFestivalById(slug, cookieStore) {
+  if (!slug) throw new ServiceError("Festival slug is required", 400);
   const supabase = await getSupabaseServerClient(cookieStore);
 
   const { data: festival, error } = await supabase
     .from("festivals")
     .select("*")
-    .eq("id", id)
+    .eq("festival_slug", slug)
     .single();
 
   if (error || !festival) throw new ServiceError("Festival not found", 404);
@@ -192,10 +192,15 @@ export async function createFestival(formData, cookieStore) {
     .from("festival_images")
     .getPublicUrl(posterPath);
 
+  const festival_slug = formData.get("festival_slug");
+
   const { data, error } = await supabase
     .from("festivals")
     .insert({
       name: String(name).trim(),
+      festival_slug: festival_slug
+        ? String(festival_slug).trim().toLowerCase()
+        : null,
       description: formData.get("description")?.trim() || null,
       bio: formData.get("bio")?.trim() || null,
       poster: posterUrlData.publicUrl,
@@ -222,6 +227,19 @@ export async function createFestival(formData, cookieStore) {
     .from("users")
     .update({ submitted_festival_id: data.id })
     .eq("id", user.id);
+
+  try {
+    await admin.from("notifications").insert({
+      user_id: user.id,
+      title: "Your Festival Has Been Submitted",
+      message: `Thank you for submitting "${String(name).trim()}" festival. Our team will review your submission and notify you once it's approved. You can view and edit your submission in your profile dashboard.`,
+      type: "submit",
+      read: false,
+      created_at: new Date().toISOString(),
+    });
+  } catch {
+    // Do not fail submission if notification insert fails.
+  }
 
   revalidateTag("festivals");
   revalidateTag(`user-statistics-${user.id}`);
@@ -265,8 +283,12 @@ export async function updateFestival(formData, cookieStore) {
   validateFestivalDates(start_date, end_date);
 
   const social_links = parseArrayField(formData, "social_links");
+  const rawFestivalSlug = formData.get("festival_slug");
   const updateData = {
     name: String(name).trim(),
+    festival_slug: rawFestivalSlug
+      ? String(rawFestivalSlug).trim().toLowerCase()
+      : null,
     description: formData.get("description")?.trim() || null,
     bio: formData.get("bio")?.trim() || null,
     start_date,

@@ -215,7 +215,7 @@ export const mapCardProps = (item, type, idx) => {
         image: item.club_image,
         city: item.city,
         capacity: item.capacity,
-        href: `/clubs/${item.id}`,
+        href: `/clubs/${item.club_slug || item.id}`,
       };
     case "artists":
       return {
@@ -238,7 +238,7 @@ export const mapCardProps = (item, type, idx) => {
       return {
         ...baseProps,
         image: item.poster,
-        href: `/festivals/${item.id}`,
+        href: `/festivals/${item.festival_slug || item.id}`,
       };
     default:
       return baseProps;

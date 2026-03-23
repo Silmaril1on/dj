@@ -6,350 +6,184 @@ import {
   setArtistData,
   setLoading,
   setError,
-} from "@/app/features/evaluationSlice";
-import {
   selectEvaluationModal,
   selectSelectedArtist,
   selectArtistData,
   selectEvaluationLoading,
   selectEvaluationError,
 } from "@/app/features/evaluationSlice";
-import { truncateBio } from "@/app/helpers/utils";
-import {
-  MdPerson,
-  MdLocationOn,
-  MdCalendarToday,
-  MdMusicNote,
-  MdTransgender,
-  MdBusiness,
-} from "react-icons/md";
+import { MdPerson, MdCalendarToday, MdTransgender } from "react-icons/md";
+import Location from "@/app/components/materials/Location";
 import Button from "@/app/components/buttons/Button";
 import Spinner from "../ui/Spinner";
 import SocialLinks from "./SocialLinks";
-import Image from "next/image";
 import ArtistGenres from "./ArtistGenres";
-import Paragraph from "../ui/Paragraph";
 import ArtistCountry from "./ArtistCountry";
 import GlobalModal from "../modals/GlobalModal";
+import Image from "next/image";
+
+// ─── Sub-components ───────────────────────────────────────────────────────────
+
+const AvatarSide = ({ src, alt }) => (
+  <div className="relative w-full aspect-square max-h-72 overflow-hidden rounded-lg border border-gold/20">
+    <Image src={src} alt={alt || "submission"} fill className="object-cover" />
+  </div>
+);
+
+const InfoRow = ({ icon: Icon, label, value }) => {
+  if (!value) return null;
+  return (
+    <div className="flex items-center gap-2 text-sm">
+      {Icon && <Icon className="text-gold/70 shrink-0" size={15} />}
+      <span className="text-chino/70 ">{label}:</span>
+      <span className="text-chino font-medium capitalize">{value}</span>
+    </div>
+  );
+};
+
+const InformationSide = ({ data, type }) => {
+  const isArtist = type === "artist";
+  const isClub = type === "club";
+  const isEvent = type === "event";
+  const isFestival = type === "festival";
+
+  return (
+    <div className="flex flex-col gap-1 justify-start">
+      {/* Name */}
+      <div>
+        <h3 className="text-xl font-bold text-gold uppercase leading-none">
+          {data.name}
+        </h3>
+        {isArtist && data.stage_name && (
+          <p className="text-chino/60 text-sm mt-0.5">
+            aka <span className="text-chino italic">{data.stage_name}</span>
+          </p>
+        )}
+      </div>
+      <ArtistCountry
+        artistCountry={{ country: data.country, city: data.city }}
+      />
+      {/* Type-specific fields */}
+      <div className="my-2">
+        {isArtist && (
+          <>
+            <InfoRow label="Gender" value={data.sex} />
+            <InfoRow label="Born" value={data.birth} />
+          </>
+        )}
+
+        {isClub && (
+          <>
+            <Location address={data.address} location_url={data.location_url} />
+            <InfoRow icon={MdPerson} label="Capacity" value={data.capacity} />
+          </>
+        )}
+
+        {isEvent && (
+          <InfoRow icon={MdPerson} label="Promoter" value={data.stage_name} />
+        )}
+
+        {isFestival && (
+          <>
+            <Location address={data.address} location_url={data.location_url} />
+            <InfoRow label="Start" value={data.start_date} />
+            <InfoRow label="End" value={data.end_date} />
+            <InfoRow
+              icon={MdPerson}
+              label="Capacity"
+              value={data.capacity_total}
+            />
+          </>
+        )}
+      </div>
+
+      {/* Genres (artist only) */}
+      {isArtist && data.genres?.length > 0 && (
+        <ArtistGenres
+          className="text-[10px] flex flex-wrap mb-3"
+          genres={data.genres}
+        />
+      )}
+      {/* Social links */}
+      {data.social_links?.length > 0 && (
+        <SocialLinks social_links={data.social_links} animation={false} />
+      )}
+    </div>
+  );
+};
 
 const ViewSubmittedInfo = () => {
   const dispatch = useDispatch();
   const isOpen = useSelector(selectEvaluationModal);
-  const selectedArtist = useSelector(selectSelectedArtist);
-  const artistData = useSelector(selectArtistData);
+  const selected = useSelector(selectSelectedArtist);
+  const data = useSelector(selectArtistData);
   const loading = useSelector(selectEvaluationLoading);
   const error = useSelector(selectEvaluationError);
 
-  // Determine entity type; fall back to heuristics for backward compatibility
-  const entityType =
-    selectedArtist?.__type ||
-    (selectedArtist?.capacity !== undefined
-      ? "club"
-      : selectedArtist?.tracklist !== undefined
-        ? "album"
-        : "artist");
-  const isClub = entityType === "club";
-  const isEvent = entityType === "event";
-  const isAlbum = entityType === "album";
+  const type =
+    selected?.__type || (selected?.capacity !== undefined ? "club" : "artist");
+
+  const isArtist = type === "artist";
 
   useEffect(() => {
-    if (selectedArtist?.id && !artistData) {
-      if (isClub || isEvent || isAlbum) {
-        dispatch(setArtistData(selectedArtist));
-      } else {
-        fetchArtistData();
-      }
+    if (!selected?.id || data) return;
+
+    if (isArtist) {
+      // Artists need a full profile fetch (genres, bio, social_links, etc.)
+      dispatch(setLoading(true));
+      fetch(`/api/artists/artist-profile?id=${selected.id}`)
+        .then((r) => r.json())
+        .then((json) => {
+          if (json.artist) dispatch(setArtistData(json.artist));
+          else dispatch(setError(json.error || "Failed to fetch artist data"));
+        })
+        .catch(() => dispatch(setError("Network error")));
+    } else {
+      // All other types already carry all the data we need
+      dispatch(setArtistData(selected));
     }
-  }, [selectedArtist]);
+  }, [selected]);
 
-  const fetchArtistData = async () => {
-    dispatch(setLoading(true));
-    try {
-      const response = await fetch(
-        `/api/artists/artist-profile?id=${selectedArtist.id}`,
-      );
-      const data = await response.json();
+  const imageField =
+    type === "club"
+      ? "artist_image" // already mapped to club_image in service
+      : type === "festival"
+        ? "artist_image" // already mapped to poster in service
+        : type === "event"
+          ? "artist_image"
+          : "artist_image";
 
-      if (response.ok) {
-        dispatch(setArtistData(data.artist));
-      } else {
-        dispatch(setError(data.error || "Failed to fetch artist data"));
-      }
-    } catch (err) {
-      dispatch(setError("Network error while fetching artist data"));
-    }
+  const titleMap = {
+    artist: "Artist Details",
+    club: "Club Details",
+    event: "Event Details",
+    festival: "Festival Details",
   };
-
-  const handleClose = () => {
-    dispatch(closeEvaluationModal());
-  };
-
-  if (!isOpen) return null;
-
-  const entityTitle = isClub
-    ? "Club Details"
-    : isEvent
-      ? "Event Details"
-      : isAlbum
-        ? "Album Details"
-        : "Artist Details";
 
   return (
     <GlobalModal
       isOpen={isOpen}
-      onClose={handleClose}
-      title={entityTitle}
-      maxWidth="max-w-3xl"
+      onClose={() => dispatch(closeEvaluationModal())}
+      title={titleMap[type] ?? "Details"}
+      maxWidth="max-w-2xl"
     >
       {loading && (
-        <div className="flex justify-center py-8">
+        <div className="flex justify-center py-12">
           <Spinner />
         </div>
       )}
 
       {error && (
-        <div className="text-center py-8">
-          <p className="text-red-500 mb-4">{error}</p>
-          <Button text="Retry" onClick={fetchArtistData} />
+        <div className="flex flex-col items-center gap-4 py-12">
+          <p className="text-red-400">{error}</p>
+          <Button text="Retry" onClick={() => dispatch(setArtistData(null))} />
         </div>
       )}
 
-      {artistData && (
-        <div className="space-y-2 center flex-col">
-          <div className="flex gap-5 items-center justify-center w-full *:w-full">
-            <div className="relative w-64 h-64 overflow-hidden">
-              <Image
-                src={isAlbum ? artistData.album_image : artistData.artist_image}
-                alt={artistData.name}
-                fill
-                className="object-cover"
-              />
-            </div>
-            <div className="space-y-4">
-              <div>
-                <h3 className="text-lg font-semibold text-gold mb-2">
-                  {isClub
-                    ? "Club Information"
-                    : isEvent
-                      ? "Event Information"
-                      : isAlbum
-                        ? "Album Information"
-                        : "Basic Information"}
-                </h3>
-                <div className="space-y-2">
-                  {isAlbum ? (
-                    // Album-specific fields
-                    <>
-                      <div className="flex items-center gap-2">
-                        <MdMusicNote className="text-gold/70" />
-                        <span className="text-sm text-chino/80">
-                          Album Name:
-                        </span>
-                        <span className="text-chino font-medium uppercase">
-                          {artistData.name}
-                        </span>
-                      </div>
-                      {artistData.release_date && (
-                        <div className="flex items-center gap-2">
-                          <MdCalendarToday className="text-gold/70" />
-                          <span className="text-sm text-chino/80">
-                            Release Date:
-                          </span>
-                          <span className="text-chino font-medium">
-                            {new Date(
-                              artistData.release_date,
-                            ).toLocaleDateString()}
-                          </span>
-                        </div>
-                      )}
-                      {artistData.tracklist &&
-                        artistData.tracklist.length > 0 && (
-                          <div className="space-y-1">
-                            <div className="flex items-center gap-2">
-                              <MdMusicNote className="text-gold/70" />
-                              <span className="text-sm text-chino/80">
-                                Tracks:
-                              </span>
-                              <span className="text-chino font-medium">
-                                {artistData.tracklist.length}
-                              </span>
-                            </div>
-                          </div>
-                        )}
-                    </>
-                  ) : isClub ? (
-                    // Club-specific fields
-                    <>
-                      <div className="flex items-center gap-2">
-                        <MdBusiness className="text-gold/70" />
-                        <span className="text-sm text-chino/80">
-                          Club Name:
-                        </span>
-                        <span className="text-chino font-medium uppercase">
-                          {artistData.name}
-                        </span>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <ArtistCountry
-                          artistCountry={{
-                            country: artistData.country,
-                            city: artistData.city,
-                          }}
-                        />
-                      </div>
-                      {artistData.capacity && (
-                        <div className="flex items-center gap-2">
-                          <MdPerson className="text-gold/70" />
-                          <span className="text-sm text-chino/80">
-                            Capacity:
-                          </span>
-                          <span className="text-chino font-medium">
-                            {artistData.capacity}
-                          </span>
-                        </div>
-                      )}
-                    </>
-                  ) : isEvent ? (
-                    // Event-specific fields
-                    <>
-                      <div className="flex items-center gap-2">
-                        <span className="text-sm text-chino/80">
-                          Event Name:
-                        </span>
-                        <span className="text-chino font-medium uppercase">
-                          {artistData.name}
-                        </span>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <span className="text-sm text-chino/80">Promoter:</span>
-                        <span className="text-chino font-medium">
-                          {artistData.stage_name}
-                        </span>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <ArtistCountry
-                          artistCountry={{
-                            country: artistData.country,
-                            city: artistData.city,
-                          }}
-                        />
-                      </div>
-                    </>
-                  ) : (
-                    // Artist-specific fields
-                    <>
-                      <div className="flex items-center gap-2">
-                        <MdPerson className="text-gold/70" />
-                        <span className="text-sm text-chino/80">Name:</span>
-                        <span className="text-chino font-medium uppercase">
-                          {artistData.name}
-                        </span>
-                      </div>
-                      {artistData.stage_name && (
-                        <div className="flex items-center gap-2">
-                          <MdMusicNote className="text-gold/70" />
-                          <span className="text-sm text-chino/80">
-                            Stage Name:
-                          </span>
-                          <span className="text-chino font-medium">
-                            {artistData.stage_name}
-                          </span>
-                        </div>
-                      )}
-                      <div className="flex items-center gap-2">
-                        <ArtistCountry
-                          artistCountry={{
-                            country: artistData.country,
-                            city: artistData.city,
-                          }}
-                        />
-                      </div>
-                      {artistData.sex && (
-                        <div className="flex items-center gap-2">
-                          <MdTransgender className="text-gold/70" />
-                          <span className="text-sm text-chino/80">Gender:</span>
-                          <span className="text-chino font-medium capitalize">
-                            {artistData.sex}
-                          </span>
-                        </div>
-                      )}
-                      {artistData.birth && (
-                        <div className="flex items-center gap-2">
-                          <MdCalendarToday className="text-gold/70" />
-                          <span className="text-sm text-chino/80">
-                            Birth Date:
-                          </span>
-                          <span className="text-chino font-medium">
-                            {artistData.birth}
-                          </span>
-                        </div>
-                      )}
-                    </>
-                  )}
-                </div>
-              </div>
-              {!isClub &&
-                !isAlbum &&
-                artistData.genres &&
-                artistData.genres.length > 0 && (
-                  <ArtistGenres
-                    className="text-[10px]"
-                    genres={artistData.genres}
-                  />
-                )}
-              {!isAlbum && (
-                <SocialLinks
-                  social_links={artistData.social_links}
-                  showTitle={true}
-                  animation={false}
-                />
-              )}
-            </div>
-          </div>
-          <div className=" w-[600px]">
-            {artistData.description && (
-              <div>
-                <h4 className="text-md font-semibold text-gold mb-2">
-                  Description
-                </h4>
-                <Paragraph text={artistData.description} />
-              </div>
-            )}
-            {artistData.desc && (
-              <div>
-                <h4 className="text-md font-semibold text-gold mb-2">
-                  Description
-                </h4>
-                <Paragraph text={artistData.desc} />
-              </div>
-            )}
-            {!isClub && !isAlbum && artistData.bio && (
-              <div>
-                <h4 className="text-md font-semibold text-gold mb-2">Bio</h4>
-                <Paragraph text={truncateBio(artistData.bio, 500)} />
-              </div>
-            )}
-            {isAlbum &&
-              artistData.tracklist &&
-              artistData.tracklist.length > 0 && (
-                <div>
-                  <h4 className="text-md font-semibold text-gold mb-2">
-                    Tracklist
-                  </h4>
-                  <ul className="space-y-1">
-                    {artistData.tracklist.map((track, idx) => (
-                      <li
-                        key={idx}
-                        className="text-chino text-sm flex items-center gap-2"
-                      >
-                        <span className="text-gold/50">{idx + 1}.</span>
-                        <span>{track}</span>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              )}
-          </div>
+      {data && !loading && (
+        <div className="grid grid-cols-2 gap-6 items-start">
+          <AvatarSide src={data[imageField]} alt={data.name} />
+          <InformationSide data={data} type={type} />
         </div>
       )}
     </GlobalModal>
