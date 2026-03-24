@@ -166,7 +166,11 @@ const ProfileBasicInfo = ({ data, type }) => {
     festivals: renderFestivalInfo,
   };
 
-  return contentMap[type] ? contentMap[type]() : null;
+  return (
+    <div className="flex flex-1 relative justify-between items-start flex-col bg-stone-900 p-4">
+      {contentMap[type] ? contentMap[type]() : null}
+    </div>
+  );
 };
 
 export default ProfileBasicInfo;

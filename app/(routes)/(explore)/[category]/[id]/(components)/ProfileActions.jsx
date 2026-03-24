@@ -6,7 +6,9 @@ import { FaUsers } from "react-icons/fa";
 import LikeButton from "@/app/components/buttons/artist-buttons/LikeButton";
 import ReminderButton from "@/app/components/buttons/artist-buttons/ReminderButton";
 
-const ProfileActions = ({ data, type }) => {
+const ProfileActions = ({ data, type, config }) => {
+  if (!config?.hasActions) return null;
+
   const [likesCount, setLikesCount] = useState(data.likesCount || 0);
   const [isLiked, setIsLiked] = useState(data.userLiked || false);
   const [isReminderSet, setIsReminderSet] = useState(
@@ -22,16 +24,8 @@ const ProfileActions = ({ data, type }) => {
   };
 
   const getInterestLabel = () => {
-    switch (type) {
-      case "event":
-        return "Interested";
-      case "clubs":
-        return "Likes";
-      case "festivals":
-        return "Going";
-      default:
-        return "Likes";
-    }
+    if (type === "event") return "Interested";
+    return "Followers";
   };
 
   return (
@@ -45,6 +39,7 @@ const ProfileActions = ({ data, type }) => {
         />
         <LikeButton
           type={type}
+          size={16}
           artist={{
             id: data.id,
             isLiked: isLiked,
@@ -62,6 +57,7 @@ const ProfileActions = ({ data, type }) => {
             className="secondary pointer-events-none"
           />
           <ReminderButton
+            size={16}
             event={{
               id: data.id,
               isReminderSet,

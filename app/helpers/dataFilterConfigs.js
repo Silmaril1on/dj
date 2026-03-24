@@ -212,9 +212,11 @@ export const mapCardProps = (item, type, idx) => {
     case "clubs":
       return {
         ...baseProps,
+        type: "club",
         image: item.club_image,
         city: item.city,
         capacity: item.capacity,
+        isLiked: item.userLiked || false,
         href: `/clubs/${item.club_slug || item.id}`,
       };
     case "artists":
@@ -237,7 +239,9 @@ export const mapCardProps = (item, type, idx) => {
     case "festivals":
       return {
         ...baseProps,
+        type: "festival",
         image: item.poster,
+        isLiked: item.userLiked || false,
         href: `/festivals/${item.festival_slug || item.id}`,
       };
     default:

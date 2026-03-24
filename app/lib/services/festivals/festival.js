@@ -35,6 +35,7 @@ export async function getAllFestivals({
   country = null,
   name = null,
   sort = null,
+  userId = null,
 } = {}) {
   const admin = getSupabaseAdminClient();
 
@@ -72,19 +73,23 @@ export async function getAllFestivals({
   const festivalIds = festivals.map((f) => f.id);
 
   let likesCount = {};
+  let userLikedSet = new Set();
+
   if (festivalIds.length > 0) {
     const { data: likesData } = await admin
-      .from("festivals_likes")
-      .select("festival_id")
+      .from("festival_likes")
+      .select("festival_id, user_id")
       .in("festival_id", festivalIds);
     (likesData || []).forEach((l) => {
       likesCount[l.festival_id] = (likesCount[l.festival_id] || 0) + 1;
+      if (userId && l.user_id === userId) userLikedSet.add(l.festival_id);
     });
   }
 
   let festivalsWithLikes = festivals.map((festival) => ({
     ...festival,
     likesCount: likesCount[festival.id] || 0,
+    userLiked: userLikedSet.has(festival.id),
   }));
 
   if (sort === "most_liked") {
@@ -142,10 +147,33 @@ export async function getFestivalById(slug, cookieStore) {
     }
   }
 
+  const admin = getSupabaseAdminClient();
+
+  const { count: likesCount } = await admin
+    .from("festival_likes")
+    .select("*", { count: "exact", head: true })
+    .eq("festival_id", festival.id);
+
+  let userLiked = false;
+  try {
+    const { user: authUser } = await getAuthenticatedContext(cookieStore);
+    const { data: userLike } = await admin
+      .from("festival_likes")
+      .select("id")
+      .eq("festival_id", festival.id)
+      .eq("user_id", authUser.id)
+      .single();
+    userLiked = !!userLike;
+  } catch {
+    // unauthenticated — userLiked stays false
+  }
+
   return {
     festival: {
       ...festival,
       lineup: lineupWithIds.length > 0 ? lineupWithIds : festival.lineup,
+      likesCount: likesCount || 0,
+      userLiked,
     },
   };
 }

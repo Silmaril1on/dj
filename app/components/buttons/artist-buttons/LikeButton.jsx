@@ -25,8 +25,21 @@ const LikeButton = ({
   }, [artist?.isLiked]);
 
   const endpoint =
-    type === "event" ? "/api/events/event-likes" : "/api/artists/like";
-  const idKey = type === "event" ? "eventId" : "artistId";
+    type === "event"
+      ? "/api/events/event-likes"
+      : type === "club"
+        ? "/api/club/club-likes"
+        : type === "festival"
+          ? "/api/festivals/festival-likes"
+          : "/api/artists/like";
+  const idKey =
+    type === "event"
+      ? "eventId"
+      : type === "club"
+        ? "clubId"
+        : type === "festival"
+          ? "festivalId"
+          : "artistId";
 
   const handleToggle = async () => {
     if (isLoading) return;

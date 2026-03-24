@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { selectUser } from "@/app/features/userSlice";
 import { setError } from "@/app/features/modalSlice";
 import { MdEdit, MdDelete } from "react-icons/md";
+import Link from "next/link";
 import ActionButton from "@/app/components/buttons/ActionButton";
 import FlexBox from "@/app/components/containers/FlexBox";
 import Motion from "@/app/components/containers/Motion";
@@ -39,11 +40,15 @@ const MyEvents = ({ events: initialEvents = [] }) => {
     );
   }
 
-  const handleEdit = (eventId) => {
+  const handleEdit = (e, eventId) => {
+    e.preventDefault();
+    e.stopPropagation();
     router.push(`/add-product/event?edit=true&eventId=${eventId}`);
   };
 
-  const handleDelete = async (eventId) => {
+  const handleDelete = async (e, eventId) => {
+    e.preventDefault();
+    e.stopPropagation();
     if (!confirm("Are you sure you want to delete this event?")) return;
 
     try {
@@ -68,53 +73,60 @@ const MyEvents = ({ events: initialEvents = [] }) => {
   return (
     <div className="grid grid-cols-1">
       {events.map((event) => (
-        <Motion
-          animation="fade"
-          key={event.id}
-          className="bg-stone-900 bordered flex p-3 gap-3 relative"
-        >
-          <div className="w-64 h-44 ">
-            <img
-              src={event.event_image}
-              alt={event.event_name}
-              className="w-full h-full object-cover"
-            />
-          </div>
-          <article className=" w-full items-start flex flex-col">
-            <div className="flex justify-between w-full">
-              <Title text={event.event_name} />
+        <Link key={event.id} href={`/events/${event.id}`} className="block">
+          <Motion
+            animation="fade"
+            className="bg-stone-900 bordered flex p-3 gap-3 relative hover:bg-stone-800 transition-colors"
+          >
+            <div className="w-64 h-44 ">
+              <img
+                src={event.event_image}
+                alt={event.event_name}
+                className="w-full h-full object-cover"
+              />
             </div>
-            {canEditEvent(event) && (
-              <div className="absolute top-3 right-3 flex gap-2">
-                <ActionButton
-                  icon={<MdEdit size={20} />}
-                  onClick={() => handleEdit(event.id)}
-                />
-                <ActionButton
-                  icon={<MdDelete size={20} />}
-                  onClick={() => handleDelete(event.id)}
-                  className="!text-red-500 !bg-red-500/20 hover:!bg-red-500/30"
-                />
+            <article className=" w-full items-start flex flex-col">
+              <div className="flex justify-between w-full">
+                <Title text={event.event_name} />
               </div>
-            )}
-            <ArtistCountry artistCountry={event} />
-            <SpanText text={formatBirthdate(event.date)} />
-            <Paragraph text={truncateString(event.description, 400)} />
-            <FlexBox type="row-start" className="flex-wrap gap-2 items-center">
-              {event.artists.map((artist, index) => (
-                <div key={index} className="flex items-center space-x-2">
-                  <Title
-                    size="xs"
-                    color="cream"
-                    className="uppercase"
-                    text={artist}
+              {canEditEvent(event) && (
+                <div className="absolute top-3 right-3 flex gap-2">
+                  <ActionButton
+                    icon={<MdEdit size={20} />}
+                    onClick={(e) => handleEdit(e, event.id)}
                   />
-                  {index < event.artists.length - 1 && <Dot />}
+                  <ActionButton
+                    icon={<MdDelete size={20} />}
+                    onClick={(e) => handleDelete(e, event.id)}
+                    className="!text-red-500 !bg-red-500/20 hover:!bg-red-500/30"
+                  />
                 </div>
-              ))}
-            </FlexBox>
-          </article>
-        </Motion>
+              )}
+              <ArtistCountry artistCountry={event} />
+              <SpanText text={formatBirthdate(event.date)} />
+              <Paragraph text={truncateString(event.description || "", 400)} />
+              <FlexBox
+                type="row-start"
+                className="flex-wrap gap-1 items-center"
+              >
+                {(event.artists || []).map((artist, index) => (
+                  <div
+                    key={index}
+                    className="flex items-center leading-none space-x-1"
+                  >
+                    <Title
+                      size="xs"
+                      color="cream"
+                      className="uppercase leading-none"
+                      text={artist}
+                    />
+                    {index < event.artists.length - 1 && <Dot />}
+                  </div>
+                ))}
+              </FlexBox>
+            </article>
+          </Motion>
+        </Link>
       ))}
     </div>
   );

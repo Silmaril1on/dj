@@ -9,23 +9,6 @@ import Link from "next/link";
 import { formatTime } from "@/app/helpers/utils";
 import { MdVisibility } from "react-icons/md";
 
-/**
- * Generic profile submission card.
- * Used by: Submitted Artist, Submitted Club slots.
- *
- * @param {Array}    data             - API data array; uses data[0]
- * @param {string}   error            - Error message, if any
- * @param {string}   title            - Section title (e.g. "My Artist Profile")
- * @param {string}   description      - Section description
- * @param {string}   imageField       - Item key for the avatar image URL
- * @param {function} getDisplayName   - (item) => display name string
- * @param {function} getHref          - (item) => profile href string
- * @param {string}   submitHref       - Where to redirect to create the profile
- * @param {string}   submitLabel      - CTA link text
- * @param {string}   emptyTitle       - Empty-state heading
- * @param {string}   emptyDescription - Empty-state body text
- * @param {function} [renderExtra]    - Optional: (item) => JSX for extra info (e.g. capacity)
- */
 const SubmittedProfileCard = ({
   data,
   error,
@@ -89,7 +72,7 @@ const SubmittedProfileCard = ({
           <ProfilePicture type="avatar" avatar_url={item[imageField]} />
           <div className="flex items-start justify-center flex-col">
             <Title
-              size="xl"
+              size="lg"
               className="uppercase"
               text={getDisplayName(item)}
             />

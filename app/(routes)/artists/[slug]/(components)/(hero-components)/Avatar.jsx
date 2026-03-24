@@ -42,22 +42,22 @@ const Avatar = ({ data, onLikeChange }) => {
         >
           <ShareButton artistName={data.name} />
         </Motion>
+        <Motion
+          className="absolute top-17 left-5 text-2xl z-10"
+          animation="fade"
+          delay={1.9}
+        >
+          <LikeButton artist={data} onLikeChange={onLikeChange} />
+        </Motion>
         {canEdit && (
           <Motion
-            className="absolute top-17 left-5 text-2xl z-10"
+            className="absolute top-29 left-5 text-2xl z-10"
             animation="fade"
             delay={1.7}
           >
             <ActionButton icon={<MdEdit size={20} />} onClick={handleEdit} />
           </Motion>
         )}
-        <Motion
-          className="absolute top-29 left-5 text-2xl z-10"
-          animation="fade"
-          delay={1.9}
-        >
-          <LikeButton artist={data} onLikeChange={onLikeChange} />
-        </Motion>
         <motion.div
           className="relative w-full h-[450px] lg:h-[700px] "
           whileHover={{ scale: 1.02 }}

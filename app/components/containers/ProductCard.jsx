@@ -1,4 +1,5 @@
 "use client";
+import { useState } from "react";
 import { motion } from "framer-motion";
 import Image from "next/image";
 import Link from "next/link";
@@ -8,6 +9,7 @@ import ArtistCountry from "@/app/components/materials/ArtistCountry";
 import Dot from "@/app/components/ui/Dot";
 import { FaStar, FaUsers } from "react-icons/fa";
 import { truncateString } from "@/app/helpers/utils";
+import LikeButton from "@/app/components/buttons/artist-buttons/LikeButton";
 
 const ProductCard = ({
   id,
@@ -23,12 +25,18 @@ const ProductCard = ({
   delay = 0,
   className = "",
   score,
+  type,
+  isLiked: initialIsLiked = false,
 }) => {
   const parsedScore = Number(score);
   const hasScore = Number.isFinite(parsedScore) && parsedScore > 0;
-  const parsedLikesCount = Number(likesCount);
-  const hasLikesCount =
-    Number.isFinite(parsedLikesCount) && parsedLikesCount > 0;
+  const [localLikesCount, setLocalLikesCount] = useState(
+    Number(likesCount) || 0,
+  );
+  const [localIsLiked, setLocalIsLiked] = useState(initialIsLiked);
+  const parsedLikesCount = localLikesCount;
+  const hasLikesCount = parsedLikesCount > 0;
+  const isLikeable = type === "club" || type === "festival";
 
   return (
     <motion.div
@@ -95,7 +103,7 @@ const ProductCard = ({
           </div>
         )}
         {hasScore && (
-          <div className="absolute z-10 top-4 left-4 ">
+          <div className="absolute z-10 top-4 left-4">
             <SpanText
               icon={<FaStar />}
               size="xs"
@@ -104,15 +112,43 @@ const ProductCard = ({
             />
           </div>
         )}
-        {hasLikesCount && (
-          <div className="absolute center space-x-2 top-4 right-4 ">
-            <SpanText
-              icon={<FaUsers />}
-              size="xs"
-              text={`${parsedLikesCount} ${artists.length > 0 ? "Interested" : "Followers"}`}
-              className="ml-2 secondary pointer-events-none"
+        {isLikeable ? (
+          <div className="absolute z-10 top-2 pl-1 pr-4 flex items-center justify-between w-full">
+            <LikeButton
+              type={type}
+              size={13}
+              artist={{
+                id,
+                isLiked: localIsLiked,
+                likesCount: parsedLikesCount,
+              }}
+              onLikeChange={(liked, count) => {
+                setLocalIsLiked(liked);
+                setLocalLikesCount(count);
+              }}
             />
+            {hasLikesCount && (
+              <SpanText
+                icon={<FaUsers />}
+                size="xs"
+                text={`${parsedLikesCount} Followers`}
+                className="secondary pointer-events-none"
+              />
+            )}
           </div>
+        ) : (
+          hasLikesCount && (
+            <div className="absolute center space-x-2 top-4 right-4">
+              <SpanText
+                icon={<FaUsers />}
+                size="xs"
+                text={`${parsedLikesCount} ${
+                  artists.length > 0 ? "Interested" : "Followers"
+                }`}
+                className="ml-2 secondary pointer-events-none"
+              />
+            </div>
+          )
         )}
       </Link>
     </motion.div>

@@ -1,18 +1,17 @@
 import Paragraph from "@/app/components/ui/Paragraph";
 import Title from "@/app/components/ui/Title";
 import { getActivityStatCounts } from "@/app/lib/services/user/activities/getActivityStatCounts";
-import { FaHeart, FaStar, FaComment, FaCalendarAlt } from "react-icons/fa";
+import { FaStar, FaComment, FaCalendarAlt } from "react-icons/fa";
 
 const STAT_ITEMS = [
   { key: "totalReviews", label: "Reviews", Icon: FaComment },
   { key: "totalRatings", label: "Ratings", Icon: FaStar },
-  { key: "totalArtistLikes", label: "Artist Likes", Icon: FaHeart },
-  { key: "totalTrackedEvents", label: "Events Tracked", Icon: FaCalendarAlt },
   {
     key: "totalSubmittedEvents",
     label: "Submitted Events",
     Icon: FaCalendarAlt,
   },
+  { key: "totalTrackedEvents", label: "Events Tracked", Icon: FaCalendarAlt },
 ];
 
 const ActivityHeader = async ({
@@ -41,10 +40,9 @@ const ActivityHeader = async ({
         </div>
 
         {counts && (
-          <div className="grid grid-cols-2 lg:grid-cols-5 gap-1">
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-1">
             {STAT_ITEMS.map(({ key, label, Icon }) => {
               const value = counts[key] ?? 0;
-              if (key === "totalSubmittedEvents" && value === 0) return null;
               return (
                 <div
                   key={key}

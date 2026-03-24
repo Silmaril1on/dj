@@ -22,14 +22,12 @@ const handleError = (error) => {
 export async function GET(request) {
   try {
     const { searchParams } = new URL(request.url);
+    const cookieStore = await cookies();
+    const { user } = await getServerUser(cookieStore);
 
     const id = searchParams.get("id");
     if (id) {
-      const cookieStore = await cookies();
-      const [result, { user }] = await Promise.all([
-        getFestivalById(id, cookieStore),
-        getServerUser(cookieStore),
-      ]);
+      const [result] = await Promise.all([getFestivalById(id, cookieStore)]);
 
       return NextResponse.json({
         success: true,
@@ -44,6 +42,7 @@ export async function GET(request) {
       country: searchParams.get("country") || null,
       name: searchParams.get("name") || null,
       sort: searchParams.get("sort") || null,
+      userId: user?.id ?? null,
     });
     return NextResponse.json(result);
   } catch (error) {

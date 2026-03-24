@@ -7,6 +7,7 @@ import {
   deleteClub,
 } from "@/app/lib/services/clubs/clubs";
 import { ServiceError } from "@/app/lib/services/shared";
+import { getServerUser } from "@/app/lib/config/supabaseServer";
 
 const handleError = (error) => {
   if (error instanceof ServiceError) {
@@ -23,7 +24,13 @@ export async function GET(request) {
     const { searchParams } = new URL(request.url);
     const limit = parseInt(searchParams.get("limit") || "20", 10);
     const offset = parseInt(searchParams.get("offset") || "0", 10);
-    const result = await getAllClubs({ limit, offset });
+    const cookieStore = await cookies();
+    const { user } = await getServerUser(cookieStore);
+    const result = await getAllClubs({
+      limit,
+      offset,
+      userId: user?.id ?? null,
+    });
     return NextResponse.json({ data: result.clubs || [] });
   } catch (error) {
     return handleError(error);

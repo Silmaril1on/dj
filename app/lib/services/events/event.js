@@ -174,10 +174,46 @@ export async function getEventById(cookieStore, id) {
       });
 
       artistsWithIds = event.artists.map((artistName) => {
-        const found = artistMap.get(normalizeArtistName(artistName));
-        return found
-          ? { name: artistName, id: found.id, artist_slug: found.artist_slug }
-          : { name: artistName, id: null, artist_slug: null };
+        // 1. Try exact match
+        let found = artistMap.get(normalizeArtistName(artistName));
+        if (found) {
+          return {
+            name: artistName,
+            id: found.id,
+            artist_slug: found.artist_slug,
+          };
+        }
+
+        // 2. Strip trailing " LIVE" and try again
+        const nameWithoutLive = artistName.replace(/\s+live$/i, "").trim();
+        if (nameWithoutLive !== artistName) {
+          found = artistMap.get(normalizeArtistName(nameWithoutLive));
+          if (found) {
+            return {
+              name: artistName,
+              id: found.id,
+              artist_slug: found.artist_slug,
+            };
+          }
+        }
+
+        // 3. Handle B2B — resolve each part individually
+        if (/\s+b2b\s+/i.test(artistName)) {
+          const parts = artistName.split(/\s+b2b\s+/i);
+          const b2bParts = parts.map((part) => {
+            const partFound = artistMap.get(normalizeArtistName(part.trim()));
+            return partFound
+              ? {
+                  name: part.trim(),
+                  id: partFound.id,
+                  artist_slug: partFound.artist_slug,
+                }
+              : { name: part.trim(), id: null, artist_slug: null };
+          });
+          return { name: artistName, b2bParts };
+        }
+
+        return { name: artistName, id: null, artist_slug: null };
       });
     }
   }

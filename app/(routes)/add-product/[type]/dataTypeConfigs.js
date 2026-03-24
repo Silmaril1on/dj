@@ -138,15 +138,23 @@ export const DATA_TYPE_CONFIGS = {
     idParam: "eventId",
     extractData: (json) => json,
     prefillParams: ["venue_name", "address", "location_url", "country", "city"],
-    mapInitialData: (data, defaults) =>
-      Object.fromEntries(
+    mapInitialData: (data, defaults) => {
+      const mapped = Object.fromEntries(
         Object.entries(defaults).map(([key, defaultValue]) => [
           key,
           data[key] !== undefined && data[key] !== null
             ? data[key]
             : defaultValue,
         ]),
-      ),
+      );
+      // artists come back as objects {name, id, artist_slug} from the API — flatten to strings
+      if (Array.isArray(mapped.artists) && mapped.artists.length > 0) {
+        mapped.artists = mapped.artists.map((a) =>
+          typeof a === "object" && a !== null ? a.name || "" : a,
+        );
+      }
+      return mapped;
+    },
     mapSuccessPayload: (result) => ({
       type: "event",
       image: result.data?.event_image || "",

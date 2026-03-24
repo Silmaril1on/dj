@@ -31,7 +31,11 @@ const validateClubContactFields = ({ location_url, venue_email }) => {
   }
 };
 
-export async function getAllClubs({ limit = 20, offset = 0 } = {}) {
+export async function getAllClubs({
+  limit = 20,
+  offset = 0,
+  userId = null,
+} = {}) {
   const admin = getSupabaseAdminClient();
   const { data, error } = await admin
     .from("clubs")
@@ -40,11 +44,39 @@ export async function getAllClubs({ limit = 20, offset = 0 } = {}) {
     .order("name", { ascending: true })
     .range(offset, offset + limit - 1);
   if (error) throw new ServiceError(error.message, 500);
-  return { clubs: data || [], limit, offset };
+
+  const clubs = data || [];
+  const clubIds = clubs.map((c) => c.id);
+
+  let likesMap = {};
+  let userLikedSet = new Set();
+
+  if (clubIds.length > 0) {
+    const likesQuery = admin
+      .from("club_likes")
+      .select("club_id, user_id")
+      .in("club_id", clubIds);
+    const { data: likesData } = await likesQuery;
+    (likesData || []).forEach((l) => {
+      likesMap[l.club_id] = (likesMap[l.club_id] || 0) + 1;
+      if (userId && l.user_id === userId) userLikedSet.add(l.club_id);
+    });
+  }
+
+  return {
+    clubs: clubs.map((c) => ({
+      ...c,
+      likesCount: likesMap[c.id] || 0,
+      userLiked: userLikedSet.has(c.id),
+    })),
+    limit,
+    offset,
+  };
 }
 
 export async function getClubById(slug, cookieStore) {
   if (!slug) throw new ServiceError("Club slug is required", 400);
+  const admin = getSupabaseAdminClient();
   const supabase = await getSupabaseServerClient(cookieStore);
   const { data, error } = await supabase
     .from("clubs")
@@ -52,7 +84,27 @@ export async function getClubById(slug, cookieStore) {
     .eq("club_slug", slug)
     .single();
   if (error || !data) throw new ServiceError("Club not found", 404);
-  return { club: data };
+
+  const { count: likesCount } = await admin
+    .from("club_likes")
+    .select("*", { count: "exact", head: true })
+    .eq("club_id", data.id);
+
+  let userLiked = false;
+  try {
+    const { user: authUser } = await getAuthenticatedContext(cookieStore);
+    const { data: userLike } = await admin
+      .from("club_likes")
+      .select("id")
+      .eq("club_id", data.id)
+      .eq("user_id", authUser.id)
+      .single();
+    userLiked = !!userLike;
+  } catch {
+    // unauthenticated — userLiked stays false
+  }
+
+  return { club: { ...data, likesCount: likesCount || 0, userLiked } };
 }
 
 export async function createClub(formData, cookieStore) {

@@ -92,8 +92,9 @@ const SettingsOption = ({ toggleSettings, user, onVerifyClick }) => {
         <MyLink
           href={`/clubs/${user.submitted_club_slug}`}
           text="My Club Profile"
-          icon={<FaHouse />}
+          icon={<FaHouse size={15} />}
           onClick={toggleSettings}
+          className="pl-[1px]"
         />
       )}
       {user.submitted_festival_slug && (

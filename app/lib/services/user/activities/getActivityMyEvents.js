@@ -22,7 +22,7 @@ const getCachedMyEvents = unstable_cache(
   },
   ["user-activity-my-events"],
   {
-    revalidate: 5 * 60,
+    revalidate: 60,
     tags: ["user-activity-my-events"],
   },
 );

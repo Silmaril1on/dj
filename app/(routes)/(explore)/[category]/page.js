@@ -1,8 +1,9 @@
 import { notFound } from "next/navigation";
+import { cookies } from "next/headers";
 import ProductsPage from "@/app/components/containers/ProductsPage";
 import { CATEGORY_CONFIGS, VALID_CATEGORIES } from "../categoryConfigs";
 
-export const revalidate = 1200;
+export const dynamic = "force-dynamic";
 
 export function generateStaticParams() {
   return VALID_CATEGORIES.map((category) => ({ category }));
@@ -21,12 +22,18 @@ const CategoryListingPage = async ({ params }) => {
   }
 
   const config = CATEGORY_CONFIGS[category].listing;
+  const cookieStore = await cookies();
+  const cookieHeader = cookieStore.toString();
 
   try {
-    const response = await fetch(
-      config.apiEndpoint(process.env.PROJECT_URL),
-      config.fetchOptions,
-    );
+    const response = await fetch(config.apiEndpoint(process.env.PROJECT_URL), {
+      ...config.fetchOptions,
+      cache: "no-store",
+      headers: {
+        ...config.fetchOptions?.headers,
+        Cookie: cookieHeader,
+      },
+    });
 
     if (!response.ok) {
       const err = await response.json().catch(() => ({}));

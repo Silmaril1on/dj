@@ -26,7 +26,7 @@ export const PROFILE_TYPE_CONFIG = {
     hasEmail: false,
     hasActions: true,
     actionType: "event",
-    hasOwnerControls: false,
+    hasOwnerControls: true,
     hasSchedule: false,
     hasEventDetails: true,
   },
@@ -52,6 +52,12 @@ export const extractProfileData = (data, type) => {
 
   return {
     id: data.id,
+    slug:
+      type === "clubs"
+        ? data.club_slug
+        : type === "festivals"
+          ? data.festival_slug
+          : null,
     name: data[config.nameKey],
     image: data[config.imageKey],
     description: data.description,

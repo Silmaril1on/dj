@@ -76,9 +76,9 @@ const UserRatingsPage = ({ ratingsData, error, currentPage = 1 }) => {
             <Link href={`/artists/${rating.artist.artist_slug}`}>
               <div
                 key={rating.id}
-                className="bg-stone-900 group flex-col flex p-1 bordered"
+                className="bg-stone-900 group flex-col flex p-1 bordered "
               >
-                <div className="h-34 w-full">
+                <div className="h-34 w-full relative">
                   <Image
                     src={rating.artist.artist_image}
                     alt={rating.artist.stage_name || rating.artist.name}
@@ -86,15 +86,16 @@ const UserRatingsPage = ({ ratingsData, error, currentPage = 1 }) => {
                     height={100}
                     className="object-cover w-full h-full brightness-80 group-hover:brightness-100 duration-300"
                   />
+                  <RatingButton
+                    size={12}
+                    artist={rating.artist}
+                    userRating={rating.score}
+                    className="text-xs absolute top-1 left-1"
+                  />
                 </div>
                 <ArtistName artistName={rating.artist} size="xs" />
-                <RatingButton
-                  artist={rating.artist}
-                  userRating={rating.score}
-                  className="text-sm"
-                />
                 <SpanText
-                  className="w-fit mt-1"
+                  className="w-fit leading-none"
                   color="chino"
                   size="xs"
                   text={formatTime(rating.created_at)}

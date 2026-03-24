@@ -7,6 +7,7 @@ import SpanText from "@/app/components/ui/SpanText";
 import Button from "@/app/components/buttons/Button";
 
 const UserProfile = ({ profile, onUpdateClick, isEditing }) => {
+  const verified = profile?.email_verified && profile?.profile_verified;
   return (
     <div className="bg-stone-900 shadow-gold/15 border border-gold/30 overflow-hidden">
       {/* profile header */}
@@ -20,7 +21,7 @@ const UserProfile = ({ profile, onUpdateClick, isEditing }) => {
             )}
           </div>
           <div className="flex-1 text-center md:text-left">
-            <div className="space-y-2 flex items-center lg:items-start flex-col *:font-bold">
+            <div className="space-y-2 flex items-center lg:items-start flex-col *:font-bold *:leading-none">
               <SpanText
                 color="gold"
                 icon={<MdPerson />}
@@ -32,6 +33,11 @@ const UserProfile = ({ profile, onUpdateClick, isEditing }) => {
                 text={`Member since ${formatTime(profile.created_at)}`}
                 color="gold"
               />
+              {verified && (
+                <h1 className="text-green-500 font-normal text-xs">
+                  Verified User
+                </h1>
+              )}
             </div>
             <div className="mt-4 flex justify-center lg:justify-start">
               <Button
