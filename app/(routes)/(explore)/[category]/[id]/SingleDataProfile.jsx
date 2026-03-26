@@ -6,80 +6,7 @@ import ProfileActions from "./(components)/ProfileActions";
 import ProfileBasicInfo from "./(components)/ProfileBasicInfo";
 import ProfilePoster from "./(components)/ProfilePoster";
 import FestivalLineupDisplay from "./(components)/FestivalLineupDisplay";
-import ActionButton from "@/app/components/buttons/ActionButton";
 import { PROFILE_TYPE_CONFIG, extractProfileData } from "./profileConfigs";
-import { useDispatch, useSelector } from "react-redux";
-import { selectUser } from "@/app/features/userSlice";
-import { useRouter } from "next/navigation";
-import { openAddClubDateModal } from "@/app/features/modalSlice";
-
-const OWNER_BUTTONS = {
-  events: [
-    {
-      title: "Edit Event",
-      action: (data, router) =>
-        router.push(`/add-product/event?edit=true&eventId=${data.id}`),
-    },
-  ],
-  clubs: [
-    {
-      title: "Edit Info",
-      action: (data, router) =>
-        router.push(`/add-product/club?edit=true&clubId=${data.slug}`),
-    },
-    {
-      title: "Add Event",
-      action: (data, _router, dispatch) =>
-        dispatch(openAddClubDateModal({ club: data })),
-    },
-  ],
-  festivals: [
-    {
-      title: "Edit Info",
-      action: (data, router) =>
-        router.push(`/add-product/festival?edit=true&festivalId=${data.slug}`),
-    },
-    {
-      title: "Add Lineup",
-      action: (data, router) =>
-        router.push(`/festivals/${data.slug}/add-lineup`),
-    },
-  ],
-};
-
-const ProfileOwnerControls = ({ data, type, currentUserId, config }) => {
-  const router = useRouter();
-  const dispatch = useDispatch();
-  const user = useSelector(selectUser);
-
-  if (!config?.hasOwnerControls) return null;
-
-  const isEventOwner =
-    type === "events" &&
-    Array.isArray(user?.submitted_event_id) &&
-    user.submitted_event_id.includes(data.id);
-
-  const canManage =
-    isEventOwner ||
-    (currentUserId && data.user_id === currentUserId) ||
-    user?.is_admin;
-  const buttons = OWNER_BUTTONS[type];
-
-  if (!canManage || !buttons) return null;
-
-  return (
-    <div className="flex justify-between items-center gap-2 ">
-      {buttons.map(({ icon, title, action }) => (
-        <ActionButton
-          key={title}
-          icon={icon}
-          text={title}
-          onClick={() => action(data, router, dispatch)}
-        />
-      ))}
-    </div>
-  );
-};
 
 const SingleDataProfile = ({ data, type = "events", currentUserId = null }) => {
   if (!data) return null;
@@ -100,19 +27,12 @@ const SingleDataProfile = ({ data, type = "events", currentUserId = null }) => {
       {/* Header with Lineup and Actions/Controls */}
       <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-2 p-2 lg:p-4">
         <ProfileLineup title={config.lineupTitle} data={profileData.lineup} />
-        <div className="flex">
-          <ProfileOwnerControls
-            data={profileData}
-            type={type}
-            currentUserId={currentUserId}
-            config={config}
-          />
-          <ProfileActions
-            data={profileData}
-            type={config.actionType}
-            config={config}
-          />
-        </div>
+        <ProfileActions
+          data={profileData}
+          type={config.actionType}
+          config={config}
+          currentUserId={currentUserId}
+        />
       </div>
 
       {/* Main Content: Info + Poster */}

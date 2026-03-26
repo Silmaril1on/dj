@@ -93,7 +93,7 @@ const AuthProvider = ({ children }) => {
     });
 
     return () => subscription.unsubscribe();
-  }, [dispatch, supabase.auth, user]);
+  }, [dispatch, isDev, supabase.auth, user]);
 
   // Listen for profile updates
   useEffect(() => {
