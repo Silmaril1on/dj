@@ -9,8 +9,10 @@ import SpanText from "@/app/components/ui/SpanText";
 import ActionButton from "@/app/components/buttons/ActionButton";
 import { FaUsers } from "react-icons/fa";
 import { MdEdit, MdAdd, MdPlaylistAdd } from "react-icons/md";
+import { MdConfirmationNumber } from "react-icons/md";
 import LikeButton from "@/app/components/buttons/artist-buttons/LikeButton";
 import ReminderButton from "@/app/components/buttons/artist-buttons/ReminderButton";
+import FestivalTicketsModal from "./FestivalTicketsModal";
 
 const OWNER_BUTTONS = {
   events: [
@@ -64,6 +66,7 @@ const ProfileActions = ({ data, type, config, currentUserId = null }) => {
   const [reminderOffsetDays, setReminderOffsetDays] = useState(
     data.userReminderOffsetDays || 3,
   );
+  const [isTicketsModalOpen, setIsTicketsModalOpen] = useState(false);
 
   if (!config?.hasActions) return null;
 
@@ -115,6 +118,20 @@ const ProfileActions = ({ data, type, config, currentUserId = null }) => {
         </div>
       ))}
 
+      {canManage && entityType === "festivals" && (
+        <div className="center space-x-2">
+          <SpanText
+            text="Ticket info"
+            size="xs"
+            className="secondary pointer-events-none"
+          />
+          <ActionButton
+            icon={<MdConfirmationNumber size={16} />}
+            onClick={() => setIsTicketsModalOpen(true)}
+          />
+        </div>
+      )}
+
       {/* Like / Followers */}
       <div className="center space-x-2">
         <SpanText
@@ -148,6 +165,15 @@ const ProfileActions = ({ data, type, config, currentUserId = null }) => {
             }}
           />
         </div>
+      )}
+
+      {entityType === "festivals" && (
+        <FestivalTicketsModal
+          isOpen={isTicketsModalOpen}
+          onClose={() => setIsTicketsModalOpen(false)}
+          festivalId={data.id}
+          onSaved={() => window.location.reload()}
+        />
       )}
     </Motion>
   );

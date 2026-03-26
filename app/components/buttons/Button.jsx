@@ -11,6 +11,8 @@ const Button = ({
   loading,
   onClick,
   href,
+  target,
+  rel,
   size,
   type = "button",
   className = "",
@@ -75,9 +77,13 @@ const Button = ({
   );
 
   if (href) {
+    const safeRel = target === "_blank" ? rel || "noopener noreferrer" : rel;
+
     return (
       <Link
         href={href}
+        target={target}
+        rel={safeRel}
         className={baseClasses}
         onMouseEnter={!loading ? onMouseEnter : undefined}
         onMouseLeave={!loading ? onMouseLeave : undefined}

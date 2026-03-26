@@ -9,6 +9,7 @@ import {
   MdLock,
   MdVisibility,
   MdVisibilityOff,
+  MdCheck,
 } from "react-icons/md";
 import Button from "@/app/components/buttons/Button";
 import Title from "@/app/components/ui/Title";
@@ -25,6 +26,7 @@ const SubmissionForm = ({
   showGoogle = true,
   formConfig,
   onSubmit,
+  onDataChange = null,
   isLoading = false,
   success = false,
   onSuccessAction = null,
@@ -32,6 +34,9 @@ const SubmissionForm = ({
   submitButtonText = "Submit",
   className = "",
   showPasswordStrength = false,
+  hideActions = false,
+  renderAs = "form",
+  idPrefix = "",
 }) => {
   const dispatch = useDispatch();
   const [formData, setFormData] = useState(formConfig.initialData || {});
@@ -67,10 +72,19 @@ const SubmissionForm = ({
   }, [initialDataKey, formConfig.imageField]);
 
   const handleInputChange = (field, value) => {
+    const nextData = {
+      ...formData,
+      [field]: value,
+    };
+
     setFormData((prev) => ({
       ...prev,
       [field]: value,
     }));
+
+    if (onDataChange) {
+      onDataChange(nextData);
+    }
 
     // Clear field error when user starts typing
     if (fieldErrors[field]) {
@@ -248,9 +262,11 @@ const SubmissionForm = ({
       onChange,
       helpText,
       label,
+      hideLabel: _hideLabel,
       ...otherProps
     } = fieldConfig;
     const fieldValue = formData[fieldName] || "";
+    const inputId = idPrefix ? `${idPrefix}-${fieldName}` : fieldName;
 
     // Get icon component
     const getIcon = () => {
@@ -297,7 +313,7 @@ const SubmissionForm = ({
       case "select":
         return (
           <SelectInput
-            id={fieldName}
+            id={inputId}
             name={fieldName}
             value={fieldValue}
             onChange={(value) => handleInputChange(fieldName, value)}
@@ -374,7 +390,7 @@ const SubmissionForm = ({
       case "textarea":
         return (
           <textarea
-            id={fieldName}
+            id={inputId}
             name={fieldName}
             required={required}
             value={fieldValue}
@@ -388,7 +404,7 @@ const SubmissionForm = ({
       case "additional":
         return (
           <AdditionalInput
-            id={fieldName}
+            id={inputId}
             name={fieldName}
             fields={getAdditionalFieldValues(formData[fieldName])}
             onChange={(index, value) =>
@@ -402,10 +418,51 @@ const SubmissionForm = ({
           />
         );
 
+      case "checkbox":
+        const isChecked = Boolean(formData[fieldName]);
+        return (
+          <div className="pt-2">
+            <input
+              id={inputId}
+              name={fieldName}
+              type="checkbox"
+              checked={isChecked}
+              onChange={(e) => handleInputChange(fieldName, e.target.checked)}
+              className="sr-only"
+              {...otherProps}
+            />
+            <label
+              htmlFor={inputId}
+              className="inline-flex items-center gap-2 cursor-pointer select-none"
+            >
+              <span
+                className={`relative flex h-5 w-5 items-center justify-center border transition-colors ${
+                  isChecked
+                    ? "border-gold bg-gold/25"
+                    : "border-cream/45 bg-black/40"
+                }`}
+              >
+                <MdCheck
+                  className={`h-4 w-4 text-gold transition-opacity ${
+                    isChecked ? "opacity-100" : "opacity-0"
+                  }`}
+                />
+              </span>
+              <span className="text-xs text-cream/90">
+                {label || "Sold out"}
+              </span>
+            </label>
+          </div>
+        );
+
       default:
+        const hideNumberArrows =
+          type === "number"
+            ? "[appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+            : "";
         const inputElement = (
           <input
-            id={fieldName}
+            id={inputId}
             name={fieldName}
             type={
               type === "password"
@@ -418,7 +475,7 @@ const SubmissionForm = ({
             value={fieldValue}
             onChange={(e) => handleInputChange(fieldName, e.target.value)}
             placeholder={placeholder}
-            className={`${icon ? "pl-10 " : ""}`}
+            className={`${icon ? "pl-10 " : ""}${hideNumberArrows}`}
             autoComplete={fieldConfig.autoComplete || "off"}
             {...otherProps}
           />
@@ -439,12 +496,18 @@ const SubmissionForm = ({
     );
   }
 
+  const isDivWrapper = renderAs === "div";
+  const WrapperTag = isDivWrapper ? "div" : "form";
+  const wrapperProps = isDivWrapper
+    ? { className: `space-y-2 w-full ${className}` }
+    : {
+        onSubmit: handleSubmit,
+        noValidate: true,
+        className: `space-y-2 w-full ${className}`,
+      };
+
   return (
-    <form
-      onSubmit={handleSubmit}
-      noValidate
-      className={`space-y-2 w-full ${className}`}
-    >
+    <WrapperTag {...wrapperProps}>
       {formConfig.sections?.map((section, sectionIndex) => (
         <div key={sectionIndex}>
           {section.title && (
@@ -463,8 +526,14 @@ const SubmissionForm = ({
                 <div key={fieldName}>
                   {/* Render label for all types except image and additional */}
                   {fieldConfig.type !== "image" &&
-                    fieldConfig.type !== "additional" && (
-                      <label htmlFor={fieldName}>
+                    fieldConfig.type !== "additional" &&
+                    fieldConfig.type !== "checkbox" &&
+                    !fieldConfig.hideLabel && (
+                      <label
+                        htmlFor={
+                          idPrefix ? `${idPrefix}-${fieldName}` : fieldName
+                        }
+                      >
                         {fieldConfig.label ||
                           fieldName
                             .replace(/_/g, " ")
@@ -532,16 +601,18 @@ const SubmissionForm = ({
           className="hidden"
         />
       )}
-      <FlexBox type="row-between" className="mt-4">
-        <Button
-          type="submit"
-          text={isLoading ? "Submitting..." : submitButtonText}
-          loading={isLoading}
-          disabled={isLoading}
-        />
-        {showGoogle && <GoogleAuth />}
-      </FlexBox>
-    </form>
+      {!hideActions && !isDivWrapper && (
+        <FlexBox type="row-between" className="mt-4">
+          <Button
+            type="submit"
+            text={isLoading ? "Submitting..." : submitButtonText}
+            loading={isLoading}
+            disabled={isLoading}
+          />
+          {showGoogle && <GoogleAuth />}
+        </FlexBox>
+      )}
+    </WrapperTag>
   );
 };
 
