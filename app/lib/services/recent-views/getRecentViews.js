@@ -23,14 +23,14 @@ const TYPE_QUERIES = {
   club: (supabase, ids) =>
     supabase
       .from("clubs")
-      .select("id, name, club_image")
+      .select("id, name, club_slug, club_image")
       .in("id", ids)
       .then(({ data }) =>
         (data || []).map((item) => ({
           id: item.id,
           name: item.name,
           image: item.club_image,
-          href: `/clubs/${item.id}`,
+          href: `/clubs/${item.club_slug || item.id}`,
           type: "club",
         })),
       ),
@@ -53,14 +53,14 @@ const TYPE_QUERIES = {
   festival: (supabase, ids) =>
     supabase
       .from("festivals")
-      .select("id, name, poster")
+      .select("id, name, festival_slug, poster")
       .in("id", ids)
       .then(({ data }) =>
         (data || []).map((item) => ({
           id: item.id,
           name: item.name,
           image: item.poster,
-          href: `/festivals/${item.id}`,
+          href: `/festivals/${item.festival_slug || item.id}`,
           type: "festival",
         })),
       ),

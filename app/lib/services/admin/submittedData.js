@@ -121,6 +121,19 @@ const TYPE_CONFIGS = {
 
 export const VALID_SUBMISSION_TYPES = Object.keys(TYPE_CONFIGS);
 
+const ACTION_STATUS_MAP = {
+  approve: "approved",
+  decline: "declined",
+};
+
+const getStatusFromAction = (action) => {
+  const status = ACTION_STATUS_MAP[action];
+  if (!status) {
+    throw new Error("Action must be 'approve' or 'decline'");
+  }
+  return status;
+};
+
 export async function getSubmissions(type) {
   const config = TYPE_CONFIGS[type];
   if (!config) throw new Error(`Unknown submission type: ${type}`);
@@ -139,10 +152,7 @@ export async function getSubmissions(type) {
 export async function updateSubmission(type, id, action) {
   const config = TYPE_CONFIGS[type];
   if (!config) throw new Error(`Unknown submission type: ${type}`);
-  if (!["approve", "decline"].includes(action))
-    throw new Error("Action must be 'approve' or 'decline'");
-
-  const newStatus = action === "approve" ? "approved" : "declined";
+  const newStatus = getStatusFromAction(action);
   const { error } = await supabaseAdmin
     .from(config.table)
     .update({ status: newStatus })
@@ -151,4 +161,25 @@ export async function updateSubmission(type, id, action) {
   if (error) throw new Error(error.message);
 
   return { success: true, message: `${type} ${action}d successfully` };
+}
+
+export async function updateAllSubmissions(type, action = "approve") {
+  const config = TYPE_CONFIGS[type];
+  if (!config) throw new Error(`Unknown submission type: ${type}`);
+
+  const newStatus = getStatusFromAction(action);
+  const { data, error } = await supabaseAdmin
+    .from(config.table)
+    .update({ status: newStatus })
+    .eq("status", "pending")
+    .select("id");
+
+  if (error) throw new Error(error.message);
+
+  const updatedCount = data?.length || 0;
+  return {
+    success: true,
+    updatedCount,
+    message: `${updatedCount} ${type} submission${updatedCount !== 1 ? "s" : ""} ${action}d successfully`,
+  };
 }

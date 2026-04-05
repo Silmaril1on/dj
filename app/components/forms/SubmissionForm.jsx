@@ -122,28 +122,59 @@ const SubmissionForm = ({
   };
 
   const handleArrayFieldChange = (field, index, value) => {
-    setFormData((prev) => ({
-      ...prev,
-      [field]: Array.isArray(prev[field])
-        ? prev[field].map((item, i) => (i === index ? value : item))
-        : prev[field],
-    }));
+    setFormData((prev) => {
+      const currentValues = getAdditionalFieldValues(prev[field]);
+      const nextValues = currentValues.map((item, i) =>
+        i === index ? value : item,
+      );
+      const nextData = {
+        ...prev,
+        [field]: nextValues,
+      };
+
+      if (onDataChange) {
+        onDataChange(nextData);
+      }
+
+      return nextData;
+    });
   };
 
   const addArrayField = (field) => {
-    setFormData((prev) => ({
-      ...prev,
-      [field]: Array.isArray(prev[field]) ? [...prev[field], ""] : [""],
-    }));
+    setFormData((prev) => {
+      const currentValues = getAdditionalFieldValues(prev[field]);
+      const nextData = {
+        ...prev,
+        [field]: [...currentValues, ""],
+      };
+
+      if (onDataChange) {
+        onDataChange(nextData);
+      }
+
+      return nextData;
+    });
   };
 
   const removeArrayField = (field, index) => {
-    if (Array.isArray(formData[field]) && formData[field].length > 1) {
-      setFormData((prev) => ({
+    setFormData((prev) => {
+      const currentValues = getAdditionalFieldValues(prev[field]);
+
+      if (currentValues.length <= 1) {
+        return prev;
+      }
+
+      const nextData = {
         ...prev,
-        [field]: prev[field].filter((_, i) => i !== index),
-      }));
-    }
+        [field]: currentValues.filter((_, i) => i !== index),
+      };
+
+      if (onDataChange) {
+        onDataChange(nextData);
+      }
+
+      return nextData;
+    });
   };
 
   const handleImageChange = (e) => {

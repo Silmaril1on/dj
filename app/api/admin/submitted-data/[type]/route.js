@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import {
   getSubmissions,
   updateSubmission,
+  updateAllSubmissions,
   VALID_SUBMISSION_TYPES,
 } from "@/app/lib/services/admin/submittedData";
 
@@ -41,12 +42,25 @@ export async function PATCH(request, { params }) {
 
   try {
     const { id, action } = await request.json();
-    if (!id || !action) {
+    if (!action) {
       return NextResponse.json(
-        { error: "id and action are required" },
+        { error: "action is required" },
         { status: 400 },
       );
     }
+
+    if (action === "approve_all") {
+      const result = await updateAllSubmissions(type, "approve");
+      return NextResponse.json(result);
+    }
+
+    if (!id) {
+      return NextResponse.json(
+        { error: "id is required for single submission update" },
+        { status: 400 },
+      );
+    }
+
     const result = await updateSubmission(type, id, action);
     return NextResponse.json(result);
   } catch (error) {

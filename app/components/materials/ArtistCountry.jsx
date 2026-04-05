@@ -73,6 +73,7 @@ const ArtistCountry = ({ artistCountry, className, size }) => {
         HK: "Hong Kong",
         TW: "Taiwan",
         IL: "Israel",
+        PS: "Palestine",
         AE: "UAE",
         SA: "Saudi Arabia",
         QA: "Qatar",

@@ -64,6 +64,8 @@ export const getCountryCode = (countryName) => {
     "hong kong": "HK",
     taiwan: "TW",
     israel: "IL",
+    palestine: "PS",
+    "state of palestine": "PS",
     uae: "AE",
     "saudi arabia": "SA",
     qatar: "QA",
@@ -145,6 +147,9 @@ export const getCountryCode = (countryName) => {
     antarctica: "AQ",
     russia: "RU",
     georgia: "GE",
+    geo: "GE",
+    scotland: "GB-SCT",
+    wales: "GB-WLS",
   };
 
   return countryMap[countryName.toLowerCase()] || "US";

@@ -1,17 +1,142 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
-import Title from "@/app/components/ui/Title";
 import Spinner from "@/app/components/ui/Spinner";
 import Motion from "@/app/components/containers/Motion";
 import Dot from "@/app/components/ui/Dot";
 import LayoutButtons from "@/app/components/buttons/LayoutButtons";
-import { FaList, FaTh } from "react-icons/fa";
+
+const normalizeArtist = (artist) => {
+  if (!artist) return null;
+
+  if (typeof artist === "string") {
+    return { name: artist, slug: null, day: null };
+  }
+
+  const name = artist.name || "";
+  if (!name) return null;
+
+  return {
+    name,
+    slug: artist.artist_slug || null,
+    day: artist.artist_day || artist.day || null,
+  };
+};
+
+const sortArtistsByName = (artists) =>
+  [...artists].sort((a, b) => a.name.localeCompare(b.name));
+
+const ArtistRowItem = ({ artist, index, total }) => {
+  const hasSlug = Boolean(artist.slug);
+
+  return (
+    <div className="flex leading-none items-center text-cream gap-1 lg:gap-2 uppercase font-bold text-lg lg:text-2xl">
+      {hasSlug ? (
+        <Link href={`/artists/${artist.slug}`}>
+          <h1 className=" hover:text-gold duration-300">{artist.name}</h1>
+        </Link>
+      ) : (
+        <h1 className="brightness-70">{artist.name}</h1>
+      )}
+      {index < total - 1 && <Dot />}
+    </div>
+  );
+};
+
+const ArtistGroup = ({ group, index }) => (
+  <Motion
+    animation="fade"
+    delay={0.2 + index * 0.2}
+    className="center flex-col w-full lg:w-4xl px-4"
+  >
+    {group.title && (
+      <h2 className="text-gold text-2xl lg:text-3xl font-bold uppercase text-center mb-3">
+        {group.title}
+      </h2>
+    )}
+    <div className="flex flex-wrap items-center gap-2 justify-center">
+      {group.artists.map((artist, artistIndex) => (
+        <ArtistRowItem
+          key={`${group.key}-${artist.name}-${artistIndex}`}
+          artist={artist}
+          index={artistIndex}
+          total={group.artists.length}
+        />
+      ))}
+    </div>
+  </Motion>
+);
 
 const FestivalLineupDisplay = ({ festivalId }) => {
   const [lineup, setLineup] = useState(null);
   const [loading, setLoading] = useState(true);
   const [viewMode, setViewMode] = useState("all");
+
+  const layoutOptions = [
+    { value: "all", label: "Lineup" },
+    { value: "by-stage", label: "By Stage" },
+    { value: "by-day", label: "By Day" },
+  ];
+
+  const groups = useMemo(() => {
+    const safeLineup = Array.isArray(lineup) ? lineup : [];
+
+    if (safeLineup.length === 0) {
+      return [];
+    }
+
+    if (viewMode === "all") {
+      const artists = sortArtistsByName(
+        safeLineup
+          .flatMap((stage) => stage.artists)
+          .map(normalizeArtist)
+          .filter(Boolean),
+      );
+
+      return [
+        {
+          key: "all",
+          title: "",
+          artists,
+        },
+      ];
+    }
+
+    if (viewMode === "by-stage") {
+      return safeLineup.map((stage, stageIndex) => ({
+        key: `stage-${stage.stage_name || stageIndex}`,
+        title: (stage.stage_name || "TBA").toUpperCase(),
+        artists: sortArtistsByName(
+          (stage.artists || []).map(normalizeArtist).filter(Boolean),
+        ),
+      }));
+    }
+
+    const artistsByDay = safeLineup
+      .flatMap((stage) => stage.artists)
+      .map(normalizeArtist)
+      .filter(Boolean)
+      .reduce((acc, artist) => {
+        const day = artist.day || "TBA";
+        if (!acc[day]) {
+          acc[day] = [];
+        }
+        acc[day].push(artist);
+        return acc;
+      }, {});
+
+    const sortedDays = Object.keys(artistsByDay).sort((a, b) => {
+      if (a === "TBA") return 1;
+      if (b === "TBA") return -1;
+      return a.localeCompare(b);
+    });
+
+    return sortedDays.map((day) => ({
+      key: `day-${day}`,
+      title: day.toUpperCase(),
+      artists: sortArtistsByName(artistsByDay[day]),
+    }));
+  }, [lineup, viewMode]);
 
   useEffect(() => {
     const fetchLineup = async () => {
@@ -48,209 +173,12 @@ const FestivalLineupDisplay = ({ festivalId }) => {
     );
   }
 
-  if (!lineup || lineup.length === 0) {
+  if (groups.length === 0) {
     return null;
   }
 
-  // Get all artists from all stages and sort alphabetically
-  const getAllArtistsSorted = () => {
-    const allArtists = lineup.flatMap((stage) =>
-      stage.artists.map((artist) => artist.name || artist),
-    );
-    return allArtists.sort((a, b) => a.localeCompare(b));
-  };
-
-  // Sort artists within each stage alphabetically
-  const getLineupWithSortedArtists = () => {
-    return lineup.map((stage) => ({
-      ...stage,
-      artists: [...stage.artists].sort((a, b) => {
-        const nameA = a.name || a;
-        const nameB = b.name || b;
-        return nameA.localeCompare(nameB);
-      }),
-    }));
-  };
-
-  const layoutOptions = [
-    { value: "all", label: "Lineup" },
-    { value: "by-stage", label: "By Stage" },
-    { value: "by-day", label: "By Day" },
-  ];
-
-  const renderAllArtists = () => {
-    const sortedArtists = getAllArtistsSorted();
-    const allArtistsData = lineup.flatMap((stage) => stage.artists);
-
-    return (
-      <Motion
-        animation="fade"
-        delay={0.2}
-        className="space-y-4 center flex-col w-full lg:w-4xl"
-      >
-        <div className="flex flex-wrap items-center gap-2 justify-center">
-          {sortedArtists.map((artistName, index) => {
-            // Find the artist object to get slug
-            const artistObj = allArtistsData.find(
-              (a) => (a.name || a) === artistName,
-            );
-            const hasSlug = artistObj && artistObj.artist_slug;
-
-            return (
-              <div key={index} className="flex items-center gap-2">
-                {hasSlug ? (
-                  <Link href={`/artists/${artistObj.artist_slug}`}>
-                    <Title
-                      color="cream"
-                      className="uppercase leading-none cursor-pointer hover:text-gold transition-colors"
-                      text={artistName}
-                    />
-                  </Link>
-                ) : (
-                  <Title
-                    color="cream"
-                    className="uppercase leading-none brightness-70 cursor-default"
-                    text={artistName}
-                  />
-                )}
-                {index < sortedArtists.length - 1 && <Dot />}
-              </div>
-            );
-          })}
-        </div>
-      </Motion>
-    );
-  };
-
-  const renderByStage = () => {
-    const sortedLineup = getLineupWithSortedArtists();
-
-    return sortedLineup.map((stage, stageIndex) => (
-      <Motion
-        key={stageIndex}
-        animation="fade"
-        delay={stageIndex * 0.2}
-        className="center flex-col w-full lg:w-4xl"
-      >
-        <Title
-          text={stage.stage_name.toUpperCase()}
-          color="gold"
-          size="xl"
-          className="font-bold"
-        />
-        <div className="flex flex-wrap items-center gap-2 justify-center">
-          {stage.artists.map((artist, artistIndex) => {
-            const artistName = artist.name || artist;
-            const artistSlug =
-              typeof artist === "object" ? artist.artist_slug : null;
-            const hasSlug = artistSlug !== null;
-
-            return (
-              <div key={artistIndex} className="flex items-center gap-2">
-                {hasSlug ? (
-                  <Link href={`/artists/${artistSlug}`}>
-                    <Title
-                      color="cream"
-                      className="uppercase leading-none cursor-pointer hover:text-gold transition-colors"
-                      text={artistName}
-                    />
-                  </Link>
-                ) : (
-                  <Title
-                    color="cream"
-                    className="uppercase leading-none brightness-80 cursor-default"
-                    text={artistName}
-                  />
-                )}
-                {artistIndex < stage.artists.length - 1 && <Dot />}
-              </div>
-            );
-          })}
-        </div>
-      </Motion>
-    ));
-  };
-
-  const renderByDay = () => {
-    // Get all artists from all stages with their day information
-    const allArtistsWithDay = lineup.flatMap((stage) =>
-      stage.artists.map((artist) => ({
-        name: artist.name || artist,
-        slug: artist.artist_slug,
-        day: artist.artist_day || artist.day,
-      })),
-    );
-
-    // Group artists by day
-    const artistsByDay = allArtistsWithDay.reduce((acc, artist) => {
-      const day = artist.day || "TBA";
-      if (!acc[day]) {
-        acc[day] = [];
-      }
-      acc[day].push(artist);
-      return acc;
-    }, {});
-
-    // Sort days (TBA last, otherwise chronologically)
-    const sortedDays = Object.keys(artistsByDay).sort((a, b) => {
-      if (a === "TBA") return 1;
-      if (b === "TBA") return -1;
-      return a.localeCompare(b);
-    });
-
-    return sortedDays.map((day, dayIndex) => {
-      // Sort artists within each day alphabetically
-      const sortedArtists = artistsByDay[day].sort((a, b) =>
-        a.name.localeCompare(b.name),
-      );
-
-      return (
-        <Motion
-          key={dayIndex}
-          animation="fade"
-          delay={dayIndex * 0.2}
-          className="center flex-col w-full lg:w-4xl"
-        >
-          <Title
-            text={day.toUpperCase()}
-            color="gold"
-            size="xl"
-            className="font-bold"
-          />
-          <div className="flex flex-wrap items-center gap-2 justify-center">
-            {sortedArtists.map((artist, artistIndex) => {
-              const hasSlug = artist.slug !== null && artist.slug !== undefined;
-
-              return (
-                <div key={artistIndex} className="flex items-center gap-2">
-                  {hasSlug ? (
-                    <Link href={`/artists/${artist.slug}`}>
-                      <Title
-                        color="cream"
-                        className="uppercase leading-none cursor-pointer hover:text-gold transition-colors"
-                        text={artist.name}
-                      />
-                    </Link>
-                  ) : (
-                    <Title
-                      color="cream"
-                      className="uppercase leading-none brightness-80 cursor-default"
-                      text={artist.name}
-                    />
-                  )}
-                  {artistIndex < sortedArtists.length - 1 && <Dot />}
-                </div>
-              );
-            })}
-          </div>
-        </Motion>
-      );
-    });
-  };
-
   return (
     <div className="center flex-col relative py-20">
-      {/* Layout Toggle Buttons */}
       <div className="space-y-6">
         <div className="flex justify-center">
           <LayoutButtons
@@ -261,13 +189,11 @@ const FestivalLineupDisplay = ({ festivalId }) => {
             layoutId="festivalLineupLayout"
           />
         </div>
-        {/* Content Based on View Mode */}
-        <div className="space-y-7 center flex-col ">
-          {viewMode === "all"
-            ? renderAllArtists()
-            : viewMode === "by-stage"
-              ? renderByStage()
-              : renderByDay()}
+
+        <div className="space-y-7 center flex-col">
+          {groups.map((group, groupIndex) => (
+            <ArtistGroup key={group.key} group={group} index={groupIndex} />
+          ))}
         </div>
       </div>
     </div>

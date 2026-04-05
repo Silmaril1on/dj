@@ -119,20 +119,15 @@ export default function RaEvents() {
       setError("Please enter at least one URL");
       return;
     }
-
     setLoading(true);
     setError(null);
     setResults(null);
     setSelectedEvents([]);
-
     try {
-      // Split URLs by newline and clean them
       const urls = url
         .split(/\r?\n/)
         .map((entry) => entry.trim())
         .filter(Boolean);
-
-      // Use RA events API endpoint
       const response = await fetch("/api/apify/ra-events", {
         method: "POST",
         headers: {
@@ -140,13 +135,10 @@ export default function RaEvents() {
         },
         body: JSON.stringify({ urls }),
       });
-
       const data = await response.json();
-
       if (!response.ok) {
         throw new Error(data.error || "Failed to scrape data");
       }
-
       console.log("🎯 RA Events Results:", data.data);
       console.log("📊 Total items:", data.data.length);
       setResults(data.data);
@@ -178,24 +170,21 @@ export default function RaEvents() {
     }
   };
 
+  // inactive for now
   const handleAddToSchedule = async () => {
     if (!selectedArtist) {
       setError("Please select an artist first");
       return;
     }
-
     if (selectedEvents.length === 0) {
       setError("Please select at least one event");
       return;
     }
-
     setInsertingSchedule(true);
     setError(null);
     setInsertSuccess(null);
-
     try {
       const eventsToInsert = selectedEvents.map((index) => results[index]);
-
       const response = await fetch("/api/artists/schedule/insert", {
         method: "POST",
         headers: {
@@ -224,19 +213,17 @@ export default function RaEvents() {
     }
   };
 
+  // from RA : insert event data and club date if club name matches to venue name from the RA event
   const handleInsertData = async () => {
     if (selectedEvents.length === 0) {
       setError("Please select at least one event");
       return;
     }
-
     setInsertingData(true);
     setError(null);
     setInsertSuccess(null);
-
     try {
       const eventsToInsert = selectedEvents.map((index) => results[index]);
-
       const [eventsResponse, clubsResponse] = await Promise.all([
         fetch("/api/events/insert", {
           method: "POST",
@@ -257,23 +244,18 @@ export default function RaEvents() {
           }),
         }),
       ]);
-
       const [eventsData, clubsData] = await Promise.all([
         eventsResponse.json(),
         clubsResponse.json(),
       ]);
-
       if (!eventsResponse.ok) {
         throw new Error(eventsData.error || "Failed to insert events");
       }
-
       if (!clubsResponse.ok) {
         throw new Error(clubsData.error || "Failed to insert clubs");
       }
-
       console.log("✅ Insert success (events):", eventsData);
       console.log("✅ Insert success (clubs):", clubsData);
-
       const combinedErrors = [
         ...(eventsData.errors || []).map((err) => ({
           ...err,
@@ -284,7 +266,6 @@ export default function RaEvents() {
           source: "clubs",
         })),
       ];
-
       setInsertSuccess({
         target: "events+clubs",
         events: eventsData,
@@ -305,13 +286,17 @@ export default function RaEvents() {
   };
 
   return (
-    <div>
+    <div className="">
       {/* URL Input Section */}
       <div className="bg-neutral-900 border border-gold/30 p-6 mb-6">
-        <div className="mb-6">
-          <label className="block text-sm font-bold uppercase text-cream mb-2">
-            RA Events URL(s)
+        <div className="">
+          <label className="block text-sm font-bold uppercase text-cream ">
+            RA Events URLS
           </label>
+          <p className="secondary text-xs mb-3">
+            Scrapper for Resident Advisory Events or multiple Events with synced
+            data, including club insertion to database. data{" "}
+          </p>
           <textarea
             value={url}
             onChange={(e) => setUrl(e.target.value)}

@@ -36,10 +36,7 @@ const Submittions = ({ submissions, type = "artist" }) => {
   }
 
   return (
-    <SectionContainer
-      title={title}
-      description={`${submissions.length} pending submission${submissions.length !== 1 ? "s" : ""} awaiting review`}
-    >
+    <SectionContainer title={title} description={description}>
       <div className="w-full flex flex-col">
         {type === "artist" && <ImageUploadAutomation />}
         <SubmittionCard submissions={submissions} type={type} />

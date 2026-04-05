@@ -8,6 +8,7 @@ const createTier = () => ({ label: "", price: "", stock: true });
 
 const createTicket = () => ({
   title: "",
+  ticket_info: "",
   priceTiers: [createTier()],
   extraInfo: [],
 });
@@ -26,6 +27,7 @@ const normalizeTier = (tier = {}) => ({
 const normalizeTicket = (ticket = {}) => ({
   ...createTicket(),
   ...ticket,
+  ticket_info: ticket?.ticket_info || "",
   priceTiers:
     Array.isArray(ticket?.priceTiers) && ticket.priceTiers.length
       ? ticket.priceTiers.map((tier) => normalizeTier(tier))
@@ -344,7 +346,6 @@ const FestivalTicketsModal = ({ isOpen, onClose, festivalId, onSaved }) => {
                   showGoogle={false}
                   hideActions
                   renderAs="div"
-                  className="space-y-0"
                   idPrefix={`group-${groupIndex}`}
                   formConfig={{
                     initialData: { title: group.title || "" },
@@ -362,11 +363,14 @@ const FestivalTicketsModal = ({ isOpen, onClose, festivalId, onSaved }) => {
                     updateGroup(groupIndex, { title: data.title || "" })
                   }
                 />
-                <Button
-                  text="Remove section"
-                  onClick={() => removeGroup(groupIndex)}
-                  disabled={groups.length === 1}
-                />
+                {groupIndex > 0 && (
+                  <Button
+                    text="Remove section"
+                    onClick={() => removeGroup(groupIndex)}
+                    size="small"
+                    className="w-fit"
+                  />
+                )}
               </div>
 
               <div className="space-y-3">
@@ -375,35 +379,51 @@ const FestivalTicketsModal = ({ isOpen, onClose, festivalId, onSaved }) => {
                     key={ticketIndex}
                     className=" bg-stone-900 p-3 space-y-3"
                   >
-                    <div className="grid grid-cols-1 lg:grid-cols-[1fr_auto] gap-2">
+                    <div className="grid grid-cols-1 xl:grid-cols-3 gap-2 items-end">
                       <SubmissionForm
                         showGoogle={false}
                         hideActions
                         renderAs="div"
-                        className="space-y-0"
+                        className=" xl:col-span-2"
                         idPrefix={`ticket-${groupIndex}-${ticketIndex}`}
                         formConfig={{
-                          initialData: { title: ticket.title || "" },
+                          initialData: {
+                            title: ticket.title || "",
+                            ticket_info: ticket.ticket_info || "",
+                          },
                           fields: {
                             title: {
                               type: "text",
                               hideLabel: true,
                               placeholder: "Ticket title (e.g. Friday Ticket)",
                             },
+                            ticket_info: {
+                              type: "text",
+                              hideLabel: true,
+                              placeholder: "Extra informationn about ticket",
+                            },
                           },
-                          sections: [{ fields: ["title"] }],
+                          sections: [
+                            {
+                              gridClass:
+                                "grid grid-cols-1 md:grid-cols-2 gap-2",
+                              fields: ["title", "ticket_info"],
+                            },
+                          ],
                         }}
                         onDataChange={(data) =>
                           updateTicket(groupIndex, ticketIndex, {
                             title: data.title || "",
+                            ticket_info: data.ticket_info || "",
                           })
                         }
                       />
 
                       <Button
-                        text="Remove ticket"
+                        text="Remove"
                         onClick={() => removeTicket(groupIndex, ticketIndex)}
                         disabled={(group.tickets || []).length === 1}
+                        className="w-fit h-full xl:justify-self-end"
                       />
                     </div>
 
@@ -414,7 +434,7 @@ const FestivalTicketsModal = ({ isOpen, onClose, festivalId, onSaved }) => {
                       {(ticket.priceTiers || []).map((tier, tierIndex) => (
                         <div
                           key={tierIndex}
-                          className="grid grid-cols-1 xl:grid-cols-[1fr_auto] items-end gap-2"
+                          className="grid grid-cols-1 xl:grid-cols-[9fr_1fr] items-end gap-2"
                         >
                           <SubmissionForm
                             showGoogle={false}
@@ -463,13 +483,16 @@ const FestivalTicketsModal = ({ isOpen, onClose, festivalId, onSaved }) => {
                               })
                             }
                           />
-                          <Button
-                            text="Remove"
-                            onClick={() =>
-                              removeTier(groupIndex, ticketIndex, tierIndex)
-                            }
-                            disabled={(ticket.priceTiers || []).length === 1}
-                          />
+                          {tierIndex > 0 && (
+                            <Button
+                              text="Remove"
+                              onClick={() =>
+                                removeTier(groupIndex, ticketIndex, tierIndex)
+                              }
+                              size="small"
+                              className="w-fit"
+                            />
+                          )}
                         </div>
                       ))}
 

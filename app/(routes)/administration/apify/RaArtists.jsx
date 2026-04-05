@@ -8,403 +8,305 @@ import { useDispatch, useSelector } from "react-redux";
 import { setError } from "@/app/features/modalSlice";
 import { selectUser } from "@/app/features/userSlice";
 
+// --- Helpers ----------------------------------------------------------------
+
+const ALLOWED_SOCIAL_KEYS = [
+  "facebook",
+  "soundcloud",
+  "instagram",
+  "twitter",
+  "website",
+];
+
+function getSocialLinks(ra) {
+  return ALLOWED_SOCIAL_KEYS.map((k) => ra[k]).filter(Boolean);
+}
+
+function getFullName(ra) {
+  const first = (ra.firstName || "").trim();
+  const last = (ra.lastName || "").trim();
+  return first && last
+    ? `${first} ${last}`
+    : first || last || ra.artistName || "";
+}
+
+function buildInsertionPreview(ra) {
+  const truncate = (str, len = 300) =>
+    str && str.length > len ? str.substring(0, len) + "..." : str || null;
+  return {
+    stage_name: ra.artistName || null,
+    name: getFullName(ra) || null,
+    desc: truncate(ra.blurb),
+    bio: truncate(ra.bio),
+    status: "pending",
+    artist_slug: ra.urlSafeName || null,
+    social_links: getSocialLinks(ra),
+    label: ra.artistLabels?.map((l) => l.labelName).filter(Boolean) || [],
+    country: ra.artistAreas?.[0]?.countryUrl || null,
+    city: ra.artistAreas?.[0]?.areaName || null,
+    artist_image: ra.image || null,
+  };
+}
+
+/** Collect unique related artists from an array of RA artist data objects. */
+function collectRelatedPool(artistDataArray) {
+  const seen = new Set();
+  const pool = [];
+  for (const artist of artistDataArray) {
+    for (const rel of artist.relatedArtists || []) {
+      if (rel.artistName && !seen.has(rel.artistName)) {
+        seen.add(rel.artistName);
+        pool.push(rel);
+      }
+    }
+  }
+  return pool;
+}
+
+// --- Component --------------------------------------------------------------
+
 const RaArtists = () => {
   const dispatch = useDispatch();
   const user = useSelector(selectUser);
 
-  const [searchTerm, setSearchTerm] = useState("");
+  const [searchTerms, setSearchTerms] = useState("");
   const [loading, setLoading] = useState(false);
-  const [raData, setRaData] = useState(null);
-  const [mbData, setMbData] = useState(null);
-  const [mergedData, setMergedData] = useState(null);
-  const [error, setErrorState] = useState(null);
-  const [isInserting, setIsInserting] = useState(false);
-  const [insertSuccess, setInsertSuccess] = useState(null);
-  const [selectedGenres, setSelectedGenres] = useState(new Set());
+  const [artists, setArtists] = useState([]);
+  const [fetchError, setFetchError] = useState(null);
 
-  const handleFetchArtist = async () => {
-    const trimmedSearch = searchTerm.trim();
-    if (!trimmedSearch) {
-      setErrorState("Please enter an artist name or RA URL");
+  // Main insert
+  const [isInserting, setIsInserting] = useState(false);
+  const [insertResults, setInsertResults] = useState(null);
+
+  // Related artists: selectable pool + selection state
+  const [relatedPool, setRelatedPool] = useState([]); // { artistId, artistName, url, followerCount }[]
+  const [selectedRelated, setSelectedRelated] = useState(new Set());
+
+  // Related fetch / check / insert pipeline
+  const [relatedFetching, setRelatedFetching] = useState(false);
+  // { fetched: [], toInsert: [], alreadyExist: [] }
+  const [relatedFetchData, setRelatedFetchData] = useState(null);
+  const [isInsertingRelated, setIsInsertingRelated] = useState(false);
+  const [relatedInsertResults, setRelatedInsertResults] = useState(null);
+
+  // -- Toggle related artist selection --------------------------------------
+  const toggleRelated = (name) => {
+    setSelectedRelated((prev) => {
+      const next = new Set(prev);
+      next.has(name) ? next.delete(name) : next.add(name);
+      return next;
+    });
+  };
+
+  // -- Fetch main artists ----------------------------------------------------
+  const handleFetchArtists = async () => {
+    const lines = searchTerms
+      .split("\n")
+      .map((l) => l.trim())
+      .filter(Boolean);
+
+    if (lines.length === 0) {
+      setFetchError("Enter at least one RA artist URL");
       return;
     }
 
+    const urls = lines.map((line) =>
+      line.startsWith("http")
+        ? line
+        : `https://ra.co/dj/${line.toLowerCase().replace(/\s+/g, "")}`,
+    );
+
     setLoading(true);
-    setErrorState(null);
-    setRaData(null);
-    setMbData(null);
-    setMergedData(null);
-    setInsertSuccess(null);
-    setSelectedGenres(new Set());
+    setFetchError(null);
+    setArtists([]);
+    setInsertResults(null);
+    setRelatedPool([]);
+    setSelectedRelated(new Set());
+    setRelatedFetchData(null);
+    setRelatedInsertResults(null);
 
     try {
-      // Determine if it's a URL or artist name
-      const isUrl = trimmedSearch.startsWith("http");
-      const searchUrl = isUrl
-        ? trimmedSearch
-        : `https://ra.co/dj/${trimmedSearch.toLowerCase().replace(/\s+/g, "")}`;
-
-      // Fetch from RA
-      console.log("🎵 Fetching from RA:", searchUrl);
-      const raResponse = await fetch("/api/apify/ra-artists", {
+      const res = await fetch("/api/apify/ra-artists", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ url: searchUrl }),
+        body: JSON.stringify({ urls }),
       });
+      const json = await res.json();
+      if (!res.ok) throw new Error(json.error || "Failed to fetch artists");
 
-      const raResult = await raResponse.json();
-      console.log("🎵 RA Artist Response:", raResult);
+      const fetchedArtists = json.data || [];
+      setArtists(fetchedArtists);
 
-      if (!raResponse.ok) {
-        throw new Error(raResult.error || "Failed to fetch artist from RA");
-      }
+      // -- Console: Artists Ready For Insertion ------------------------------
+      const preview = fetchedArtists.map(buildInsertionPreview);
+      console.group("?? Artists Ready For Insertion");
+      preview.forEach((p) => {
+        console.log(`?? ${p.stage_name} ??`);
+        console.log(p);
+      });
+      console.groupEnd();
 
-      setRaData(raResult.data);
-
-      // Search for artist in MusicBrainz
-      const artistName =
-        raResult.data?.artistName || raResult.data?.name || trimmedSearch;
-      console.log("🎵 Searching MusicBrainz for:", artistName);
-
-      let fetchedMbData = null;
-
-      try {
-        const mbSearchResponse = await fetch(
-          `/api/automation/artist-album/search-musicbrainz?q=${encodeURIComponent(artistName)}`
-        );
-
-        if (!mbSearchResponse.ok) {
-          console.warn(
-            "⚠️ MusicBrainz search failed:",
-            mbSearchResponse.status
-          );
-        } else {
-          const mbSearchResult = await mbSearchResponse.json();
-          console.log("🎵 MusicBrainz search result:", mbSearchResult);
-
-          if (mbSearchResult.results && mbSearchResult.results.length > 0) {
-            // Find best match by comparing artist names
-            const searchLower = artistName.toLowerCase().trim();
-            const mbArtist =
-              mbSearchResult.results.find((result) => {
-                const nameLower = (result.name || "").toLowerCase().trim();
-                const stageNameLower = (result.stage_name || "")
-                  .toLowerCase()
-                  .trim();
-                return (
-                  nameLower === searchLower || stageNameLower === searchLower
-                );
-              }) || mbSearchResult.results[0]; // Fallback to first if no exact match
-
-            console.log("🎵 Found MusicBrainz artist:", mbArtist);
-
-            // Fetch detailed info from MusicBrainz
-            try {
-              const mbInfoResponse = await fetch(
-                `/api/automation/artist-album/artist-basic-info?mbid=${mbArtist.musicbrainz_id}`
-              );
-
-              if (mbInfoResponse.ok) {
-                const mbInfoResult = await mbInfoResponse.json();
-
-                if (mbInfoResult.success) {
-                  fetchedMbData = mbInfoResult.data;
-                  setMbData(mbInfoResult.data);
-                  console.log("🎵 MusicBrainz Info:", mbInfoResult.data);
-
-                  // Auto-select genres from MusicBrainz
-                  if (
-                    mbInfoResult.data.genres &&
-                    mbInfoResult.data.genres.length > 0
-                  ) {
-                    setSelectedGenres(new Set(mbInfoResult.data.genres));
-                  }
-                } else {
-                  console.warn(
-                    "⚠️ MusicBrainz info fetch unsuccessful:",
-                    mbInfoResult
-                  );
-                }
-              } else {
-                console.warn(
-                  "⚠️ MusicBrainz artist info failed:",
-                  mbInfoResponse.status
-                );
-              }
-            } catch (mbInfoError) {
-              console.warn(
-                "⚠️ Error fetching MusicBrainz artist info:",
-                mbInfoError.message
-              );
-            }
-          } else {
-            console.log("ℹ️ No MusicBrainz results found for:", artistName);
-          }
-        }
-      } catch (mbError) {
-        console.warn(
-          "⚠️ MusicBrainz search error (continuing with RA data only):",
-          mbError.message
-        );
-      }
-
-      // Merge data
-      mergeFetchedData(raResult.data, fetchedMbData);
+      // Build initial related pool
+      const pool = collectRelatedPool(fetchedArtists);
+      setRelatedPool(pool);
+      console.log(
+        `?? Related artists pool (${pool.length}):`,
+        pool.map((r) => `${r.artistName} (${r.followerCount ?? 0} followers)`),
+      );
     } catch (err) {
-      console.error("Error:", err);
-      setErrorState(err.message);
+      console.error("? Fetch error:", err);
+      setFetchError(err.message);
     } finally {
       setLoading(false);
     }
   };
 
-  const mergeFetchedData = (ra, mb) => {
-    // Get real name from RA firstName + lastName (only if both are non-empty strings)
-    const raRealName =
-      ra?.firstName && ra?.lastName && ra.firstName.trim() && ra.lastName.trim()
-        ? `${ra.firstName} ${ra.lastName}`.trim()
-        : null;
-
-    // Get labels from RA artistLabels
-    const raLabels = ra?.artistLabels
-      ? ra.artistLabels.map((label) => label.labelName).filter(Boolean)
-      : [];
-
-    // Filter MusicBrainz links to only allowed platforms
-    const allowedPlatforms = [
-      "facebook",
-      "soundcloud",
-      "twitter",
-      "beatport",
-      "appleMusic",
-      "instagram",
-      "youtube",
-      "spotify",
-    ];
-    const mbSocialLinks = mb?.externalLinks
-      ? Object.entries(mb.externalLinks)
-          .filter(([key, value]) => allowedPlatforms.includes(key) && value)
-          .map(([key, value]) => value)
-      : [];
-
-    // artists.stage_name = artistName from RA (RA always has artistName)
-    const finalStageName = ra?.artistName || mb?.stageName || mb?.name;
-
-    // artists.name = Real name (firstName + lastName from RA, or MusicBrainz legalName if RA doesn't provide)
-    let finalRealName = raRealName; // Try RA first
-    if (!finalRealName && mb) {
-      // If RA didn't provide firstName/lastName, use MusicBrainz legalName
-      finalRealName =
-        mb.legalName || (mb.name !== mb.stageName ? mb.name : null);
-    }
-    // If still no real name, use stage name as fallback
-    if (!finalRealName) {
-      finalRealName = finalStageName;
-    }
-
-    // Validate birth date - only accept full dates (YYYY-MM-DD), not just years
-    const birthDate = mb?.birthDate || null;
-    const validBirthDate =
-      birthDate && birthDate.match(/^\d{4}-\d{2}-\d{2}$/) ? birthDate : null;
-
-    const merged = {
-      // artists.name = Real/legal name (firstName + lastName from RA, or MusicBrainz legalName)
-      name: finalRealName || null,
-      // artists.stage_name = Artist/performance name (artistName from RA)
-      stage_name: finalStageName || null,
-
-      // From RA
-      bio: ra?.bio || null,
-      desc: ra?.blurb || null, // artists.desc = blurb from RA
-      artist_image: ra?.image || null, // Only from RA
-      label: raLabels.length > 0 ? raLabels : [], // artists.label from RA artistLabels
-
-      // From MusicBrainz (specific fields)
-      sex: mb?.gender || null,
-      birth: validBirthDate,
-      country: mb?.country || null,
-      city: mb?.birthCity || mb?.beginArea || null,
-      musicbrainz_artist_id: mb?.mbid || null,
-
-      // Social links - from MusicBrainz only
-      social_links: mbSocialLinks,
-
-      // Genres from MusicBrainz
-      genres: mb?.genres || [],
-
-      // Additional data
-      realName: finalRealName, // Same as name field
-      followers: ra?.followers || null,
-      charts: ra?.charts || null,
-    };
-
-    console.log("🎵 MERGED DATA FOR INSERTION:", merged);
-    console.log("📊 Data Sources:", {
-      "artists.name (real name)": finalRealName
-        ? raRealName
-          ? "RA (firstName + lastName)"
-          : "MusicBrainz (legalName)"
-        : "None",
-      "artists.stage_name": finalStageName
-        ? ra?.artistName
-          ? "RA (artistName)"
-          : "MusicBrainz (stageName)"
-        : "None",
-      "artists.desc (blurb)": ra?.blurb ? "RA" : "None",
-      "artists.label":
-        raLabels.length > 0 ? `RA (${raLabels.length} labels)` : "None",
-      bio: ra?.bio ? "RA" : "None",
-      gender: mb?.gender ? "MusicBrainz" : "None",
-      birthDate: mb?.birthDate ? "MusicBrainz" : "None",
-      location: mb?.country || mb?.city ? "MusicBrainz" : "None",
-      genres: mb?.genres?.length > 0 ? "MusicBrainz" : "None",
-      socialLinks: `MB: ${mbSocialLinks.length}, Total: ${merged.social_links.length}`,
-    });
-    setMergedData(merged);
-  };
-
-  const toggleGenreSelection = (genre) => {
-    setSelectedGenres((prev) => {
-      const newSet = new Set(prev);
-      if (newSet.has(genre)) {
-        newSet.delete(genre);
-      } else {
-        newSet.add(genre);
-      }
-      return newSet;
-    });
-  };
-
-  const handleInsertArtist = async () => {
-    if (!mergedData) {
-      setErrorState("No artist data to insert");
-      return;
-    }
-
-    const selectedGenresArray = Array.from(selectedGenres);
-    const finalInsertionData = {
-      ...mergedData,
-      genres: selectedGenresArray,
-    };
-
-    console.log("💾 FINAL INSERTION DATA:", finalInsertionData);
-
+  // -- Insert main artists ---------------------------------------------------
+  const handleInsertArtists = async () => {
+    if (artists.length === 0) return;
     setIsInserting(true);
-    setErrorState(null);
-    setInsertSuccess(null);
+    setInsertResults(null);
 
     try {
-      const response = await fetch(
-        "/api/automation/artist-album/insert-merged-artist",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(finalInsertionData),
-        }
-      );
+      const res = await fetch("/api/automation/artist-album/insert-ra-artist", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(artists),
+      });
+      const json = await res.json();
+      if (!res.ok) throw new Error(json.error || "Insert failed");
 
-      const data = await response.json();
-      console.log("💾 Insert Response:", data);
-
-      if (!response.ok) {
-        throw new Error(data.error || "Failed to insert artist");
-      }
-
-      setInsertSuccess(data.message);
-      dispatch(
-        setError({
-          message: "Artist inserted successfully!",
-          type: "success",
-        })
-      );
+      setInsertResults(json);
+      console.log("? Main insert result:", json);
+      dispatch(setError({ message: json.message, type: "success" }));
     } catch (err) {
-      console.error("Insert Error:", err);
-      setErrorState(err.message);
+      console.error("? Insert error:", err);
       dispatch(setError({ message: err.message, type: "error" }));
     } finally {
       setIsInserting(false);
     }
   };
 
-  const renderValue = (value, key = "") => {
-    if (value === null || value === undefined) {
-      return <span className="text-gray-500">null</span>;
-    }
+  // -- Fetch & check selected related artists --------------------------------
+  const handleFetchSelectedRelated = async () => {
+    if (selectedRelated.size === 0) return;
 
-    if (typeof value === "boolean") {
-      return <span className="text-purple-400">{String(value)}</span>;
-    }
+    const selectedItems = relatedPool.filter((r) =>
+      selectedRelated.has(r.artistName),
+    );
+    const relatedUrls = selectedItems
+      .filter((r) => r.url)
+      .map((r) => (r.url.startsWith("http") ? r.url : `https://ra.co${r.url}`));
 
-    if (typeof value === "number") {
-      return <span className="text-yellow-400">{value}</span>;
-    }
+    if (relatedUrls.length === 0) return;
 
-    if (typeof value === "string") {
-      // Check if it's a URL
-      if (value.startsWith("http://") || value.startsWith("https://")) {
-        return (
-          <a
-            href={value}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="text-blue-400 hover:text-blue-300 underline"
-          >
-            {value}
-          </a>
-        );
-      }
-      return <span className="text-green-400">"{value}"</span>;
-    }
+    setRelatedFetching(true);
+    setRelatedFetchData(null);
+    setRelatedInsertResults(null);
 
-    if (Array.isArray(value)) {
-      if (value.length === 0) {
-        return <span className="text-gray-500">[]</span>;
-      }
-      return (
-        <div className="ml-4">
-          <span className="text-gray-400">[</span>
-          {value.map((item, index) => (
-            <div key={index} className="ml-4">
-              <span className="text-gray-500">{index}: </span>
-              {renderValue(item)}
-              {index < value.length - 1 && (
-                <span className="text-gray-400">,</span>
-              )}
-            </div>
-          ))}
-          <span className="text-gray-400">]</span>
-        </div>
+    try {
+      console.log(
+        `?? Fetching ${relatedUrls.length} selected related artists...`,
+        relatedUrls,
       );
-    }
 
-    if (typeof value === "object") {
-      const entries = Object.entries(value);
-      if (entries.length === 0) {
-        return <span className="text-gray-500">{"{}"}</span>;
-      }
-      return (
-        <div className="ml-4">
-          <span className="text-gray-400">{"{"}</span>
-          {entries.map(([k, v], index) => (
-            <div key={k} className="ml-4">
-              <span className="text-cyan-400">"{k}"</span>
-              <span className="text-gray-400">: </span>
-              {renderValue(v, k)}
-              {index < entries.length - 1 && (
-                <span className="text-gray-400">,</span>
-              )}
-            </div>
-          ))}
-          <span className="text-gray-400">{"}"}</span>
-        </div>
+      const raRes = await fetch("/api/apify/ra-artists", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ urls: relatedUrls }),
+      });
+      const raJson = await raRes.json();
+      if (!raRes.ok) throw new Error(raJson.error || "Failed to fetch from RA");
+
+      const fetched = raJson.data || [];
+      const names = fetched.map((a) => a.artistName).filter(Boolean);
+
+      // DB duplicate check
+      const checkRes = await fetch(
+        "/api/automation/artist-album/check-existing-artists",
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ names }),
+        },
       );
-    }
+      const checkJson = await checkRes.json();
+      if (!checkRes.ok)
+        throw new Error(checkJson.error || "Failed to check existing artists");
 
-    return <span className="text-gray-300">{String(value)}</span>;
+      const alreadyExistSet = new Set(checkJson.alreadyExist || []);
+      const toInsert = fetched.filter(
+        (a) => !alreadyExistSet.has(a.artistName),
+      );
+
+      // -- Console log -------------------------------------------------------
+      console.group(
+        `?? Related Artists Ready For Insertion (${toInsert.length} of ${fetched.length})`,
+      );
+      toInsert.map(buildInsertionPreview).forEach((p) => {
+        console.log(`?? ${p.stage_name} ??`);
+        console.log(p);
+      });
+      if (alreadyExistSet.size > 0) {
+        console.log("?? Already in DB (skipping):", [...alreadyExistSet]);
+      }
+      console.groupEnd();
+
+      setRelatedFetchData({
+        fetched,
+        toInsert,
+        alreadyExist: checkJson.alreadyExist || [],
+      });
+    } catch (err) {
+      console.error("? Related fetch error:", err);
+      dispatch(setError({ message: err.message, type: "error" }));
+    } finally {
+      setRelatedFetching(false);
+    }
   };
 
+  // -- Insert selected related artists --------------------------------------
+  const handleInsertRelatedArtists = async () => {
+    if (!relatedFetchData || relatedFetchData.toInsert.length === 0) return;
+    setIsInsertingRelated(true);
+    setRelatedInsertResults(null);
+
+    try {
+      const res = await fetch("/api/automation/artist-album/insert-ra-artist", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(relatedFetchData.toInsert),
+      });
+      const json = await res.json();
+      if (!res.ok) throw new Error(json.error || "Insert failed");
+
+      setRelatedInsertResults(json);
+      console.log("? Related insert result:", json);
+      dispatch(setError({ message: json.message, type: "success" }));
+
+      // Build the next loop's related pool from the just-fetched batch
+      const nextPool = collectRelatedPool(relatedFetchData.fetched);
+      if (nextPool.length > 0) {
+        console.log(
+          `?? Next related pool (${nextPool.length}):`,
+          nextPool.map(
+            (r) => `${r.artistName} (${r.followerCount ?? 0} followers)`,
+          ),
+        );
+        setRelatedPool(nextPool);
+        setSelectedRelated(new Set());
+        setRelatedFetchData(null);
+        setRelatedInsertResults(null);
+      }
+    } catch (err) {
+      console.error("? Related insert error:", err);
+      dispatch(setError({ message: err.message, type: "error" }));
+    } finally {
+      setIsInsertingRelated(false);
+    }
+  };
+
+  // -- Guard -----------------------------------------------------------------
   if (!user?.is_admin) {
     return (
       <div className="min-h-screen bg-black p-8 flex items-center justify-center">
@@ -413,52 +315,49 @@ const RaArtists = () => {
     );
   }
 
+  // -- Render ----------------------------------------------------------------
   return (
     <div className="space-y-6">
-      {/* Search Section */}
+      {/* -- Search ----------------------------------------------------------- */}
       <div className="bg-neutral-900 border border-gold/30 p-6">
-        <Title text="Merged RA + MusicBrainz Artist Scraper" />
+        <Title text="RA Artist Scraper" />
         <Paragraph
-          text="Enter an artist name or RA URL (e.g., 'Armin van Buuren' or 'https://ra.co/dj/arminvanbuuren')"
+          text="RA artists scrapper with related artists scrapping and inserting. Only artists data from Resident Advisory"
           color="chino"
           className="mb-4"
         />
-
-        <div className="flex gap-2 mb-4">
-          <input
-            type="text"
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            onKeyDown={(e) => e.key === "Enter" && handleFetchArtist()}
-            placeholder="Artist name or RA URL..."
-            className="flex-1 px-4 py-2 bg-black border border-gold/30 text-cream focus:outline-none focus:border-gold"
+        <div className="flex flex-col gap-3">
+          <textarea
+            value={searchTerms}
+            onChange={(e) => setSearchTerms(e.target.value)}
+            placeholder={
+              "https://ra.co/dj/arminvanbuuren\nhttps://ra.co/dj/taleofus"
+            }
+            rows={4}
+            className="w-full px-4 py-2 bg-black border border-gold/30 text-cream focus:outline-none focus:border-gold resize-y font-mono text-sm"
             disabled={loading}
           />
-          <Button
-            text={loading ? "Fetching..." : "Fetch Artist"}
-            onClick={handleFetchArtist}
-            disabled={loading}
-          />
-        </div>
-
-        {error && (
-          <div className="bg-red-900/20 border border-red-500 p-4 text-red-300">
-            {error}
+          <div className="flex justify-end">
+            <Button
+              text={loading ? "Fetching..." : "Fetch Artists"}
+              onClick={handleFetchArtists}
+              disabled={loading}
+            />
           </div>
-        )}
-
-        {insertSuccess && (
-          <div className="bg-green-900/20 border border-green-500 p-4 text-green-300">
-            {insertSuccess}
+        </div>
+        {fetchError && (
+          <div className="mt-4 bg-red-900/20 border border-red-500 p-4 text-red-300">
+            {fetchError}
           </div>
         )}
       </div>
 
+      {/* -- Loading ----------------------------------------------------------- */}
       {loading && (
         <div className="bg-neutral-900 border border-gold/30 p-12 flex flex-col items-center justify-center">
           <Spinner type="logo" />
           <Paragraph
-            text="Fetching artist data from RA and MusicBrainz..."
+            text="Fetching artist data from RA..."
             color="chino"
             className="mt-4"
           />
@@ -468,244 +367,418 @@ const RaArtists = () => {
         </div>
       )}
 
-      {/* Merged Artist Info Section */}
-      {mergedData && (
-        <div className="bg-stone-900 border border-gold/30 p-6 rounded space-y-4">
-          <div className="flex items-center justify-between">
-            <Title text="Merged Artist Information" />
-            <div className="flex gap-2 text-xs">
-              <span className="px-2 py-1 bg-blue-500/20 text-blue-400 rounded">
-                RA Data
-              </span>
-              <span className="px-2 py-1 bg-purple-500/20 text-purple-400 rounded">
-                MusicBrainz Data
-              </span>
-            </div>
+      {/* -- Artist Cards ------------------------------------------------------ */}
+      {artists.length > 0 && (
+        <div className="space-y-4">
+          <Title text={`${artists.length} Artist(s) Fetched`} />
+
+          <div className="grid grid-cols-5 gap-3">
+            {artists.map((ra, idx) => {
+              const socialLinks = getSocialLinks(ra);
+              const fullName = getFullName(ra);
+              return (
+                <div
+                  key={idx}
+                  className="flex flex-col gap-2 border border-gold/30 bg-black/40 p-3 rounded text-xs"
+                >
+                  <div>
+                    <label className="text-[10px] text-chino/60 uppercase">
+                      Stage Name
+                    </label>
+                    <p className="text-cream font-semibold">{ra.artistName}</p>
+                  </div>
+                  {fullName && fullName !== ra.artistName && (
+                    <div>
+                      <label className="text-[10px] text-chino/60 uppercase">
+                        Real Name
+                      </label>
+                      <p className="text-cream">{fullName}</p>
+                    </div>
+                  )}
+                  {ra.urlSafeName && (
+                    <div>
+                      <label className="text-[10px] text-chino/60 uppercase">
+                        Slug
+                      </label>
+                      <p className="text-cream font-mono">{ra.urlSafeName}</p>
+                    </div>
+                  )}
+                  {ra.followerCount != null && (
+                    <div>
+                      <label className="text-[10px] text-chino/60 uppercase">
+                        Followers
+                      </label>
+                      <p className="text-cream">
+                        {ra.followerCount.toLocaleString()}
+                      </p>
+                    </div>
+                  )}
+                  {ra.blurb && (
+                    <div>
+                      <label className="text-[10px] text-chino/60 uppercase">
+                        Description
+                      </label>
+                      <p className="text-cream/80 leading-relaxed">
+                        {ra.blurb.length > 120
+                          ? ra.blurb.substring(0, 120) + "..."
+                          : ra.blurb}
+                      </p>
+                    </div>
+                  )}
+                  {ra.bio && (
+                    <div>
+                      <label className="text-[10px] text-chino/60 uppercase">
+                        Bio
+                      </label>
+                      <p className="text-cream/80 leading-relaxed">
+                        {ra.bio.length > 120
+                          ? ra.bio.substring(0, 120) + "..."
+                          : ra.bio}
+                      </p>
+                    </div>
+                  )}
+                  {socialLinks.length > 0 && (
+                    <div>
+                      <label className="text-[10px] text-chino/60 uppercase">
+                        Social Links
+                      </label>
+                      <div className="flex flex-wrap gap-1 mt-1">
+                        {socialLinks.map((link, i) => {
+                          let label = link;
+                          try {
+                            const host = new URL(link).hostname.replace(
+                              "www.",
+                              "",
+                            );
+                            label = host.split(".")[0];
+                            label =
+                              label.charAt(0).toUpperCase() + label.slice(1);
+                          } catch {}
+                          return (
+                            <a
+                              key={i}
+                              href={link}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="px-2 py-0.5 bg-gold/20 text-gold hover:bg-gold/30 rounded text-[10px]"
+                            >
+                              {label}
+                            </a>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              );
+            })}
           </div>
 
-          {/* Artist Image */}
-          {mergedData.artist_image && (
-            <div className="flex justify-center">
-              <Image
-                src={mergedData.artist_image}
-                alt={mergedData.name}
-                width={200}
-                height={200}
-                className="rounded-lg object-cover"
-                unoptimized
-              />
-            </div>
-          )}
-
-          {/* Artist Details Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <label className="text-xs text-chino/70 uppercase">
-                Artist Name
-              </label>
-              <p className="text-cream font-semibold">
-                {mergedData.stage_name}
-              </p>
-              <span className="text-[10px] text-blue-400">From RA</span>
-            </div>
-
-            {mergedData.realName && (
-              <div>
-                <label className="text-xs text-chino/70 uppercase">
-                  Real Name
-                </label>
-                <p className="text-cream font-semibold">
-                  {mergedData.realName}
-                </p>
-                <span className="text-[10px] text-blue-400">From RA</span>
-              </div>
-            )}
-
-            {mergedData.sex && (
-              <div>
-                <label className="text-xs text-chino/70 uppercase">
-                  Gender
-                </label>
-                <p className="text-cream capitalize">{mergedData.sex}</p>
-                <span className="text-[10px] text-purple-400">
-                  From MusicBrainz
-                </span>
-              </div>
-            )}
-
-            {mergedData.birth && (
-              <div>
-                <label className="text-xs text-chino/70 uppercase">Born</label>
-                <p className="text-cream">{mergedData.birth}</p>
-                <span className="text-[10px] text-purple-400">
-                  From MusicBrainz
-                </span>
-              </div>
-            )}
-
-            {(mergedData.city || mergedData.country) && (
-              <div>
-                <label className="text-xs text-chino/70 uppercase">
-                  Location
-                </label>
-                <p className="text-cream">
-                  {[mergedData.city, mergedData.country]
-                    .filter(Boolean)
-                    .join(", ")}
-                </p>
-                <span className="text-[10px] text-purple-400">
-                  From MusicBrainz
-                </span>
-              </div>
-            )}
-
-            {mergedData.followers && (
-              <div>
-                <label className="text-xs text-chino/70 uppercase">
-                  Followers
-                </label>
-                <p className="text-cream">{mergedData.followers}</p>
-                <span className="text-[10px] text-blue-400">From RA</span>
+          {/* -- Insert Main Artists ------------------------------------------- */}
+          <div className="bg-neutral-900 border border-gold/30 p-5 space-y-3">
+            <Button
+              text={
+                isInserting
+                  ? "Inserting..."
+                  : `INSERT ${artists.length} ARTIST(S) TO DATABASE`
+              }
+              onClick={handleInsertArtists}
+              disabled={isInserting}
+            />
+            {insertResults && (
+              <div className="text-sm space-y-1">
+                <p className="text-green-400">{insertResults.message}</p>
+                {insertResults.results?.inserted?.length > 0 && (
+                  <p className="text-cream/60">
+                    Inserted:{" "}
+                    {insertResults.results.inserted
+                      .map((a) => a.artistName)
+                      .join(", ")}
+                  </p>
+                )}
+                {insertResults.results?.skipped?.length > 0 && (
+                  <p className="text-yellow-400/80">
+                    Skipped (already exist):{" "}
+                    {insertResults.results.skipped
+                      .map((a) => a.artistName)
+                      .join(", ")}
+                  </p>
+                )}
               </div>
             )}
           </div>
 
-          {/* Bio */}
-          {mergedData.bio && (
-            <div>
-              <label className="text-xs text-chino/70 uppercase">
-                Biography
-              </label>
-              <p className="text-cream text-sm mt-2">{mergedData.bio}</p>
-              <span className="text-[10px] text-blue-400">From RA</span>
-            </div>
-          )}
-
-          {/* Labels */}
-          {mergedData.label && mergedData.label.length > 0 && (
-            <div>
-              <label className="text-xs text-chino/70 uppercase">Labels</label>
-              <div className="flex flex-wrap gap-2 mt-2">
-                {mergedData.label.map((labelName, idx) => (
-                  <span
-                    key={idx}
-                    className="px-3 py-1 text-xs rounded-full bg-orange-500/20 text-orange-400 border border-orange-500/30"
-                  >
-                    {labelName}
-                  </span>
-                ))}
+          {/* -- Related Artists Pool ------------------------------------------ */}
+          {relatedPool.length > 0 && (
+            <div className="bg-neutral-900 border border-gold/30 p-5 space-y-4">
+              <div>
+                <Title text="Related Artists" size="sm" />
+                <p className="text-chino/60 text-xs mt-1">
+                  Select the artists you want to scrape and insert. Only
+                  selected will be fetched from RA.
+                </p>
               </div>
-              <span className="text-[10px] text-blue-400 block mt-2">
-                From RA
-              </span>
-            </div>
-          )}
 
-          {/* Genres */}
-          {mergedData.genres && mergedData.genres.length > 0 && (
-            <div>
-              <label className="text-xs text-chino/70 uppercase">
-                Genres (Click to Select/Deselect)
-              </label>
-              <p className="text-[10px] text-chino/60 mb-2">
-                Select genres you want to add to the artist profile
-              </p>
-              <div className="flex flex-wrap gap-2 mt-2">
-                {mergedData.genres.map((genre, idx) => (
-                  <button
-                    key={idx}
-                    onClick={() => toggleGenreSelection(genre)}
-                    className={`px-3 py-1 text-xs rounded-full transition-all ${
-                      selectedGenres.has(genre)
-                        ? "bg-gold text-black font-bold"
-                        : "bg-gold/20 text-gold hover:bg-gold/30"
-                    }`}
-                  >
-                    {genre}
-                  </button>
-                ))}
+              {/* Select all / None controls */}
+              <div className="flex gap-3">
+                <button
+                  onClick={() =>
+                    setSelectedRelated(
+                      new Set(relatedPool.map((r) => r.artistName)),
+                    )
+                  }
+                  className="text-xs text-gold/70 hover:text-gold underline"
+                >
+                  Select all ({relatedPool.length})
+                </button>
+                <button
+                  onClick={() => setSelectedRelated(new Set())}
+                  className="text-xs text-chino/50 hover:text-chino underline"
+                >
+                  Clear
+                </button>
               </div>
-              <span className="text-[10px] text-purple-400 block mt-2">
-                From MusicBrainz
-              </span>
-            </div>
-          )}
 
-          {/* Social Links */}
-          {mergedData.social_links && mergedData.social_links.length > 0 && (
-            <div>
-              <label className="text-xs text-chino/70 uppercase">
-                Social Links
-              </label>
-              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2 mt-2">
-                {mergedData.social_links.map((link, idx) => {
-                  const domain = new URL(link).hostname.replace("www.", "");
-                  const platformName =
-                    domain.split(".")[0].charAt(0).toUpperCase() +
-                    domain.split(".")[0].slice(1);
-
+              {/* Selectable artist buttons */}
+              <div className="grid grid-cols-8 gap-2">
+                {relatedPool.map((rel, i) => {
+                  const isSelected = selectedRelated.has(rel.artistName);
                   return (
-                    <a
-                      key={idx}
-                      href={link}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="px-3 py-2 bg-gold/20 text-gold hover:bg-gold/30 text-xs rounded flex items-center gap-2 truncate"
+                    <button
+                      key={i}
+                      onClick={() => toggleRelated(rel.artistName)}
+                      className={`flex flex-col items-center px-3 py-2 rounded border text-xs transition-all ${
+                        isSelected
+                          ? "bg-gold text-black border-gold font-semibold"
+                          : "bg-neutral-800 text-chino border-neutral-700 hover:border-gold/50"
+                      }`}
                     >
-                      {platformName}
-                    </a>
+                      <span>{rel.artistName}</span>
+                      <span
+                        className={`mt-0.5 text-[10px] ${
+                          isSelected ? "text-black/60" : "text-chino/50"
+                        }`}
+                      >
+                        {(rel.followerCount ?? 0).toLocaleString()} followers
+                      </span>
+                    </button>
                   );
                 })}
               </div>
-              <span className="text-[10px] text-purple-400 block mt-2">
-                From RA + MusicBrainz (merged)
-              </span>
-            </div>
-          )}
 
-          {/* Insert Artist Button */}
-          <div className="pt-4 border-t border-gold/30">
-            <Button
-              text={isInserting ? "Inserting..." : "INSERT ARTIST TO DATABASE"}
-              onClick={handleInsertArtist}
-              disabled={isInserting}
-              className="w-full bg-green-500/30 hover:bg-green-500/40 disabled:bg-gray-600"
-            />
-            <p className="text-[10px] text-chino/60 mt-2 text-center">
-              {selectedGenres.size > 0
-                ? `Will insert with ${selectedGenres.size} selected genre(s)`
-                : "No genres selected"}
-            </p>
-          </div>
-        </div>
-      )}
+              {selectedRelated.size > 0 && (
+                <Button
+                  text={
+                    relatedFetching
+                      ? "Fetching & Checking..."
+                      : `Fetch & Check ${selectedRelated.size} Selected Artist(s)`
+                  }
+                  onClick={handleFetchSelectedRelated}
+                  disabled={relatedFetching || isInsertingRelated}
+                  className="w-full"
+                />
+              )}
 
-      {/* Raw JSON Data Section */}
-      {(raData || mbData) && (
-        <div className="bg-neutral-900 border border-gold/30 p-6">
-          <Title text="Raw Data (for debugging)" size="sm" />
+              {relatedFetching && (
+                <div className="flex items-center gap-3">
+                  <Spinner type="logo" />
+                  <p className="text-chino/70 text-sm">
+                    Fetching RA data and checking database for duplicates...
+                  </p>
+                </div>
+              )}
 
-          {raData && (
-            <div className="mb-4">
-              <h4 className="text-sm font-bold text-blue-400 mb-2">RA Data:</h4>
-              <div className="bg-black p-4 rounded overflow-x-auto max-h-96">
-                <pre className="text-sm font-mono whitespace-pre-wrap">
-                  {renderValue(raData)}
-                </pre>
-              </div>
-            </div>
-          )}
+              {/* Related fetch result summary + insert */}
+              {relatedFetchData && !relatedFetching && (
+                <div className="border-t border-gold/20 pt-4 space-y-3">
+                  <div className="bg-black/40 border border-gold/20 p-4 rounded text-sm space-y-1">
+                    <p className="text-cream font-semibold">
+                      Related Artists Check Result
+                    </p>
+                    <p className="text-cream/70">
+                      Fetched from RA:{" "}
+                      <span className="text-cream">
+                        {relatedFetchData.fetched.length}
+                      </span>
+                    </p>
+                    <p className="text-yellow-400/80">
+                      Already in database:{" "}
+                      <span className="text-yellow-400">
+                        {relatedFetchData.alreadyExist.length}
+                      </span>
+                      {relatedFetchData.alreadyExist.length > 0 && (
+                        <> - {relatedFetchData.alreadyExist.join(", ")}</>
+                      )}
+                    </p>
+                    <p className="text-green-400">
+                      Ready to insert:{" "}
+                      <span className="font-bold">
+                        {relatedFetchData.toInsert.length}
+                      </span>
+                      {relatedFetchData.toInsert.length > 0 && (
+                        <>
+                          {" "}
+                          -{" "}
+                          {relatedFetchData.toInsert
+                            .map((a) => a.artistName)
+                            .join(", ")}
+                        </>
+                      )}
+                    </p>
+                  </div>
 
-          {mbData && (
-            <div>
-              <h4 className="text-sm font-bold text-purple-400 mb-2">
-                MusicBrainz Data:
-              </h4>
-              <div className="bg-black p-4 rounded overflow-x-auto max-h-96">
-                <pre className="text-sm font-mono whitespace-pre-wrap">
-                  {renderValue(mbData)}
-                </pre>
-              </div>
+                  {/* Related fetched artists grid */}
+                  {relatedFetchData.toInsert.length > 0 && (
+                    <div className="grid grid-cols-5 gap-3">
+                      {relatedFetchData.toInsert.map((ra, idx) => {
+                        const fullName = getFullName(ra);
+                        const socialLinks = getSocialLinks(ra);
+                        return (
+                          <div
+                            key={idx}
+                            className="flex flex-col gap-2 border border-gold/30 bg-black/40 p-3 rounded text-xs"
+                          >
+                            <div>
+                              <label className="text-[10px] text-chino/60 uppercase">
+                                Stage Name
+                              </label>
+                              <p className="text-cream font-semibold">
+                                {ra.artistName}
+                              </p>
+                            </div>
+                            {fullName && fullName !== ra.artistName && (
+                              <div>
+                                <label className="text-[10px] text-chino/60 uppercase">
+                                  Real Name
+                                </label>
+                                <p className="text-cream">{fullName}</p>
+                              </div>
+                            )}
+                            {ra.urlSafeName && (
+                              <div>
+                                <label className="text-[10px] text-chino/60 uppercase">
+                                  Slug
+                                </label>
+                                <p className="text-cream font-mono">
+                                  {ra.urlSafeName}
+                                </p>
+                              </div>
+                            )}
+                            {ra.followerCount != null && (
+                              <div>
+                                <label className="text-[10px] text-chino/60 uppercase">
+                                  Followers
+                                </label>
+                                <p className="text-cream">
+                                  {ra.followerCount.toLocaleString()}
+                                </p>
+                              </div>
+                            )}
+                            {ra.blurb && (
+                              <div>
+                                <label className="text-[10px] text-chino/60 uppercase">
+                                  Description
+                                </label>
+                                <p className="text-cream/80 leading-relaxed">
+                                  {ra.blurb.length > 120
+                                    ? ra.blurb.substring(0, 120) + "..."
+                                    : ra.blurb}
+                                </p>
+                              </div>
+                            )}
+                            {ra.bio && (
+                              <div>
+                                <label className="text-[10px] text-chino/60 uppercase">
+                                  Bio
+                                </label>
+                                <p className="text-cream/80 leading-relaxed">
+                                  {ra.bio.length > 120
+                                    ? ra.bio.substring(0, 120) + "..."
+                                    : ra.bio}
+                                </p>
+                              </div>
+                            )}
+                            {socialLinks.length > 0 && (
+                              <div>
+                                <label className="text-[10px] text-chino/60 uppercase">
+                                  Social Links
+                                </label>
+                                <div className="flex flex-wrap gap-1 mt-1">
+                                  {socialLinks.map((link, i) => {
+                                    let label = link;
+                                    try {
+                                      const host = new URL(
+                                        link,
+                                      ).hostname.replace("www.", "");
+                                      label = host.split(".")[0];
+                                      label =
+                                        label.charAt(0).toUpperCase() +
+                                        label.slice(1);
+                                    } catch {}
+                                    return (
+                                      <a
+                                        key={i}
+                                        href={link}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="px-2 py-0.5 bg-gold/20 text-gold hover:bg-gold/30 rounded text-[10px]"
+                                      >
+                                        {label}
+                                      </a>
+                                    );
+                                  })}
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
+
+                  {relatedFetchData.toInsert.length > 0 &&
+                    !relatedInsertResults && (
+                      <Button
+                        text={
+                          isInsertingRelated
+                            ? "Inserting..."
+                            : `INSERT ${relatedFetchData.toInsert.length} RELATED ARTIST(S)?`
+                        }
+                        onClick={handleInsertRelatedArtists}
+                        disabled={isInsertingRelated}
+                        className="w-full bg-green-500/20 hover:bg-green-500/30"
+                      />
+                    )}
+
+                  {relatedInsertResults && (
+                    <div className="text-sm space-y-1">
+                      <p className="text-green-400">
+                        {relatedInsertResults.message}
+                      </p>
+                      {relatedInsertResults.results?.inserted?.length > 0 && (
+                        <p className="text-cream/60">
+                          Inserted:{" "}
+                          {relatedInsertResults.results.inserted
+                            .map((a) => a.artistName)
+                            .join(", ")}
+                        </p>
+                      )}
+                      {relatedInsertResults.results?.skipped?.length > 0 && (
+                        <p className="text-yellow-400/80">
+                          Skipped:{" "}
+                          {relatedInsertResults.results.skipped
+                            .map((a) => a.artistName)
+                            .join(", ")}
+                        </p>
+                      )}
+                      <p className="text-chino/60 text-xs mt-2">
+                        ? A new related artists pool has been loaded from the
+                        just-inserted batch. Select and repeat.
+                      </p>
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
           )}
         </div>

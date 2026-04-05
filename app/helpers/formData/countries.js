@@ -1,7 +1,10 @@
 export const countries = [
   "United States",
   "United Kingdom",
+  "Scotland",
+  "Wales",
   "Netherlands",
+  "Georgia",
   "Germany",
   "France",
   "Spain",
@@ -57,6 +60,7 @@ export const countries = [
   "Hong Kong",
   "Taiwan",
   "Israel",
+  "Palestine",
   "UAE",
   "Saudi Arabia",
   "Qatar",
@@ -165,6 +169,6 @@ export const countries = [
   "South Georgia and the South Sandwich Islands",
   "Bouvet Island",
   "Antarctica",
-  "Ukraine", 
+  "Ukraine",
   "russia",
 ];

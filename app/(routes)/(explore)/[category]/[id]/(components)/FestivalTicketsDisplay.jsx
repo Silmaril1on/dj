@@ -92,7 +92,10 @@ const FestivalTicketsDisplay = ({ festivalId }) => {
           const isCollapsed = Boolean(collapsedGroups[groupKey]);
 
           return (
-            <section key={groupKey} className="space-y-2 w-[75%] mx-auto">
+            <section
+              key={groupKey}
+              className="space-y-2 w-full lg:w-[75%] mx-auto"
+            >
               <button
                 type="button"
                 onClick={() => toggleGroup(groupKey)}
@@ -129,6 +132,12 @@ const FestivalTicketsDisplay = ({ festivalId }) => {
                               <h4 className="uppercase font-bold text-lg text-cream">
                                 {ticket.title}
                               </h4>
+
+                              {!!ticket?.ticket_info && (
+                                <p className="text-sm text-cream/80 mt-1">
+                                  {ticket.ticket_info}
+                                </p>
+                              )}
 
                               {!!ticket?.extraInfo?.length && (
                                 <ul

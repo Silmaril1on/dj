@@ -35,6 +35,7 @@ const sanitizeTicket = (ticket = {}) => {
 
   return {
     title,
+    ticket_info: normalizeText(ticket?.ticket_info),
     priceTiers: sanitizePriceTiers(ticket?.priceTiers),
     extraInfo: sanitizeExtraInfo(ticket?.extraInfo),
   };

@@ -6,6 +6,14 @@ import {
 import { cookies } from "next/headers";
 import { revalidateTag } from "next/cache";
 
+const generateSlug = (name) =>
+  name
+    .toLowerCase()
+    .trim()
+    .replace(/[^a-z0-9\s-]/g, "")
+    .replace(/\s+/g, "-")
+    .replace(/-+/g, "-");
+
 const buildLocationUrl = (venue) => {
   const lat = venue?.location?.latitude;
   const lon = venue?.location?.longitude;
@@ -134,18 +142,19 @@ export async function POST(req) {
 
         const clubData = {
           user_id: null,
-          name,
           country,
           city,
           capacity: null,
           description: null,
           social_links: null,
-          residents: null,
           status: "pending",
           club_image: null,
           address,
+          residents: null,
           location_url: locationUrl,
           venue_email: null,
+          name,
+          club_slug: generateSlug(name),
         };
 
         const { data: insertedData, error: insertError } = await supabaseAdmin

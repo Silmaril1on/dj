@@ -2,6 +2,8 @@
 const countryCodeToName = {
   US: "United States",
   GB: "United Kingdom",
+  "GB-SCT": "Scotland",
+  "GB-WLS": "Wales",
   NL: "Netherlands",
   DE: "Germany",
   FR: "France",
@@ -61,6 +63,7 @@ const countryCodeToName = {
   HK: "Hong Kong",
   TW: "Taiwan",
   IL: "Israel",
+  PS: "Palestine",
   SA: "Saudi Arabia",
   QA: "Qatar",
   KW: "Kuwait",
@@ -138,6 +141,7 @@ const countryCodeToName = {
   AQ: "Antarctica",
   RU: "Russia",
   GE: "Georgia",
+  GEO: "Georgia",
 };
 
 // Create reverse mapping (lowercase name to full name)

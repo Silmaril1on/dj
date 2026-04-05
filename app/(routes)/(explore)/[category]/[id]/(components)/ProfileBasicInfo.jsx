@@ -6,169 +6,157 @@ import Paragraph from "@/app/components/ui/Paragraph";
 import SpanText from "@/app/components/ui/SpanText";
 import Title from "@/app/components/ui/Title";
 import { capitalizeFirst, formatBirthdate } from "@/app/helpers/utils";
-import { FaCalendar, FaLink, FaGlobe } from "react-icons/fa";
+import { FaCalendar, FaLink } from "react-icons/fa";
 import EmailTag from "@/app/components/ui/EmailTag";
 import SocialLinks from "@/app/components/materials/SocialLinks";
-import { CiCalendar } from "react-icons/ci";
 
 const ProfileBasicInfo = ({ data, type }) => {
-  const renderEventInfo = () => (
-    <>
-      <Motion animation="pop" delay={0.4}>
-        {data.links && (
+  const isEvent = type === "events";
+  const isFestival = type === "festivals";
+
+  const safeFormatDate = (dateValue) => {
+    if (!dateValue) return null;
+    const parsed = new Date(dateValue);
+    if (Number.isNaN(parsed.getTime())) return null;
+    return formatBirthdate(dateValue);
+  };
+
+  const getDateText = () => {
+    if (isEvent) {
+      return safeFormatDate(data.date);
+    }
+
+    if (isFestival) {
+      const start = safeFormatDate(data.start_date);
+      const end = safeFormatDate(data.end_date);
+      if (start && end) return `${start} - ${end}`;
+      return start || end;
+    }
+
+    return null;
+  };
+
+  const formatCapacityValue = (value) => {
+    const numeric = Number(value);
+    if (Number.isFinite(numeric)) {
+      return numeric.toLocaleString();
+    }
+    return value;
+  };
+
+  const getCapacityRows = () => {
+    const rows = [];
+
+    if (data.capacity_total) {
+      rows.push({ label: "Capacity Total", value: data.capacity_total });
+    }
+
+    if (data.capacity_per_day) {
+      rows.push({ label: "Capacity Per Day", value: data.capacity_per_day });
+    }
+
+    if (!rows.length && data.capacity) {
+      rows.push({ label: "Capacity", value: data.capacity });
+    }
+
+    return rows;
+  };
+
+  const locationUrl = data.location_url || data.location;
+  const email = data.email || data.venue_email;
+  const dateText = getDateText();
+  const capacityRows = getCapacityRows();
+  const title = data.name || data.event_name;
+
+  const socialLinks = [
+    ...(Array.isArray(data.social_links) ? data.social_links : []),
+    ...(isFestival && data.website ? [data.website] : []),
+  ].filter(Boolean);
+
+  return (
+    <div className="flex  flex-1 relative justify-between items-start flex-col bg-stone-900 p-4">
+      {isEvent && data.links && (
+        <Motion animation="pop" delay={0.2} className="mb-3">
           <MyLink
             icon={<FaLink />}
             text="Check Event"
             target="_blank"
             href={data.links}
           />
-        )}
-        {data.promoter && (
+        </Motion>
+      )}
+
+      <Motion animation="fade" delay={0.3} className="space-y-1 w-full">
+        <Title size="xl" text={title} className="text-start" />
+      </Motion>
+
+      <Motion animation="left" delay={0.5} className="w-full py-3">
+        <ArtistCountry artistCountry={data} />
+        <Location address={data.address} location_url={locationUrl} />
+        {email && <EmailTag email={email} />}
+      </Motion>
+
+      {data.description && (
+        <Motion animation="fade" delay={0.6} className="w-full pb-4">
+          <Paragraph text={data.description} className="lg:pr-[15%]" />
+        </Motion>
+      )}
+
+      {isEvent && data.promoter && (
+        <Motion animation="fade" delay={0.65} className="w-full pb-2">
           <SpanText
             className="secondary"
             size="xs"
             color="cream"
             text={`Promoter: ${capitalizeFirst(data.promoter)}`}
           />
-        )}
-      </Motion>
-      <div className="space-y-3 py-5">
-        <Motion animation="fade" delay={0.3} className="space-y-1 w-full">
-          <Title size="xl" text={data.name} className="text-start" />
-          <Paragraph text={data.description} className=" lg:pr-[15%]" />
         </Motion>
-        <Motion animation="left" delay={1}>
-          <ArtistCountry artistCountry={data} />
-          <Location address={data.address} location_url={data.location_url} />
-        </Motion>
-      </div>
-      <div className="overflow-hidden">
-        <Motion animation="top" delay={0.7}>
+      )}
+
+      {dateText && (
+        <Motion animation="top" delay={0.7} className="w-full pb-2">
           <SpanText
-            icon={<CiCalendar />}
+            icon={<FaCalendar />}
             color="cream"
             size="md"
-            className="font-bold uppercase"
-            text={formatBirthdate(data.date)}
+            className="font-bold"
+            text={dateText}
           />
-          {data.doors_open && (
-            <SpanText text={`Doors open: ${data.doors_open}`} />
-          )}
-        </Motion>
-      </div>
-    </>
-  );
-
-  const renderClubInfo = () => (
-    <>
-      <div>
-        <Title size="xl" text={data.name} />
-        <ArtistCountry artistCountry={data} />
-      </div>
-      <Paragraph text={data.description} />
-      <div>
-        <Location address={data.address} location_url={data.location_url} />
-        {data.email && <EmailTag email={data.email} />}
-      </div>
-      <div>
-        <SocialLinks
-          animation={true}
-          animationDelay={1.2}
-          social_links={data.social_links}
-        />
-      </div>
-      {data.capacity && (
-        <div className="mt-4 text-xs text-stone-400">
-          Capacity: <span className="text-gold">{data.capacity}</span>
-        </div>
-      )}
-    </>
-  );
-
-  const renderFestivalInfo = () => (
-    <>
-      <div>
-        <Title size="xl" text={data.name} />
-        <ArtistCountry artistCountry={data} />
-      </div>
-      <div className="space-y-3 py-5">
-        {data.website && (
-          <Motion animation="pop" delay={0.4}>
-            <MyLink
-              icon={<FaGlobe />}
-              text="Official Website"
-              target="_blank"
-              href={data.website}
-            />
-          </Motion>
-        )}
-        <Motion animation="fade" delay={0.3} className="space-y-1">
-          <Paragraph text={data.description} />
-        </Motion>
-        <Motion animation="left" delay={1}>
-          <Location
-            address={data.address}
-            location_url={data.location_url || data.location}
-          />
-        </Motion>
-      </div>
-      {(data.start_date || data.end_date) && (
-        <div className="overflow-hidden">
-          <Motion animation="top" delay={0.7}>
+          {isEvent && data.doors_open && (
             <SpanText
-              icon={<FaCalendar />}
-              color="cream"
-              size="md"
-              className="font-bold"
-              text={`${formatBirthdate(data.start_date)} - ${formatBirthdate(data.end_date)}`}
+              text={`Doors open: ${data.doors_open}`}
+              className="uppercase"
             />
-          </Motion>
-        </div>
+          )}
+        </Motion>
       )}
-      <div>
-        <SocialLinks
-          animation={true}
-          animationDelay={1.2}
-          social_links={data.social_links}
-        />
-      </div>
-      {(data.capacity_total || data.capacity_per_day || data.capacity) && (
-        <div className="mt-4 text-xs text-stone-400 space-y-1">
-          {data.capacity_total && (
-            <div>
-              Capacity Total:{" "}
+
+      {capacityRows.length > 0 && (
+        <Motion
+          animation="fade"
+          delay={0.8}
+          className="mt-2 w-full text-xs text-stone-400 space-y-1 leading-none"
+        >
+          {capacityRows.map((row) => (
+            <div key={row.label}>
+              {row.label}:{" "}
               <span className="text-gold">
-                {parseInt(data.capacity_total).toLocaleString()}
+                {formatCapacityValue(row.value)}
               </span>
             </div>
-          )}
-          {data.capacity_per_day && (
-            <div>
-              Capacity Per Day:{" "}
-              <span className="text-gold">
-                {parseInt(data.capacity_per_day).toLocaleString()}
-              </span>
-            </div>
-          )}
-          {!data.capacity_total && !data.capacity_per_day && data.capacity && (
-            <div>
-              Capacity: <span className="text-gold">{data.capacity}</span>
-            </div>
-          )}
-        </div>
+          ))}
+        </Motion>
       )}
-    </>
-  );
 
-  const contentMap = {
-    events: renderEventInfo,
-    clubs: renderClubInfo,
-    festivals: renderFestivalInfo,
-  };
-
-  return (
-    <div className="flex flex-1 relative justify-between items-start flex-col bg-stone-900 p-4">
-      {contentMap[type] ? contentMap[type]() : null}
+      {socialLinks.length > 0 && (
+        <Motion animation="fade" delay={0.9} className="mt-4">
+          <SocialLinks
+            animation={true}
+            animationDelay={1}
+            social_links={socialLinks}
+          />
+        </Motion>
+      )}
     </div>
   );
 };

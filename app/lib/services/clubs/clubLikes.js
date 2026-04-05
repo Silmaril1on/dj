@@ -3,14 +3,14 @@ import { revalidateTag } from "next/cache";
 import {
   ServiceError,
   getAuthenticatedContext,
-  getSupabaseServerClient,
+  getSupabaseAdminClient,
 } from "../shared";
 
 export async function getClubLikes(cookieStore, clubId) {
   if (!clubId) throw new ServiceError("Club ID is required", 400);
-  const supabase = await getSupabaseServerClient(cookieStore);
+  const admin = getSupabaseAdminClient();
 
-  const { count: likesCount, error: countError } = await supabase
+  const { count: likesCount, error: countError } = await admin
     .from("club_likes")
     .select("*", { count: "exact", head: true })
     .eq("club_id", clubId);
@@ -20,7 +20,7 @@ export async function getClubLikes(cookieStore, clubId) {
   let isLiked = false;
   try {
     const { user } = await getAuthenticatedContext(cookieStore);
-    const { data: userLike, error } = await supabase
+    const { data: userLike, error } = await admin
       .from("club_likes")
       .select("id")
       .eq("club_id", clubId)
@@ -37,9 +37,10 @@ export async function getClubLikes(cookieStore, clubId) {
 
 export async function toggleClubLike(cookieStore, clubId) {
   if (!clubId) throw new ServiceError("Club ID is required", 400);
-  const { user, supabase } = await getAuthenticatedContext(cookieStore);
+  const { user } = await getAuthenticatedContext(cookieStore);
+  const admin = getSupabaseAdminClient();
 
-  const { data: existing, error: checkError } = await supabase
+  const { data: existing, error: checkError } = await admin
     .from("club_likes")
     .select("id")
     .eq("club_id", clubId)
@@ -53,20 +54,20 @@ export async function toggleClubLike(cookieStore, clubId) {
   const wasLiked = !!existing;
 
   if (wasLiked) {
-    const { error } = await supabase
+    const { error } = await admin
       .from("club_likes")
       .delete()
       .eq("club_id", clubId)
       .eq("user_id", user.id);
     if (error) throw new ServiceError("Failed to remove like", 500);
   } else {
-    const { error } = await supabase
+    const { error } = await admin
       .from("club_likes")
       .insert({ club_id: clubId, user_id: user.id });
     if (error) throw new ServiceError("Failed to add like", 500);
   }
 
-  const { count: likesCount, error: countError } = await supabase
+  const { count: likesCount, error: countError } = await admin
     .from("club_likes")
     .select("*", { count: "exact", head: true })
     .eq("club_id", clubId);
