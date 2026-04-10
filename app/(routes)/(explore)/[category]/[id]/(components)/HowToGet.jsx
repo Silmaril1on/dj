@@ -1,11 +1,8 @@
 "use client";
 import { useEffect, useRef, useState, useCallback } from "react";
-import {
-  useLoadScript,
-  GoogleMap,
-  OverlayView,
-  Marker,
-} from "@react-google-maps/api";
+import { useSelector } from "react-redux";
+import { selectUser } from "@/app/features/userSlice";
+import { useLoadScript, GoogleMap, OverlayView } from "@react-google-maps/api";
 import {
   FiNavigation,
   FiMapPin,
@@ -27,19 +24,56 @@ const MAP_STYLES = [
   { elementType: "labels.text.stroke", stylers: [{ color: "#1a1a1a" }] },
   { elementType: "labels.text.fill", stylers: [{ color: "#c8a84b" }] },
   {
-    featureType: "administrative.locality",
-    elementType: "labels.text.fill",
-    stylers: [{ color: "#d4a843" }],
+    featureType: "administrative.country",
+    elementType: "geometry.stroke",
+    stylers: [{ color: "#5e500c" }, { weight: 1.5 }],
   },
   {
-    featureType: "poi",
+    featureType: "administrative.country",
     elementType: "labels.text.fill",
-    stylers: [{ color: "#c8a84b" }],
+    stylers: [{ color: "#fcb913" }],
+  },
+  {
+    featureType: "administrative.locality",
+    elementType: "labels.text.fill",
+    stylers: [{ color: "#ccc3a6" }],
+  },
+  {
+    featureType: "poi.business",
+    stylers: [{ visibility: "off" }],
+  },
+  {
+    featureType: "poi.attraction",
+    stylers: [{ visibility: "off" }],
+  },
+  {
+    featureType: "transit.station",
+    stylers: [{ visibility: "off" }],
+  },
+  {
+    featureType: "transit",
+    elementType: "labels.icon",
+    stylers: [{ visibility: "off" }],
   },
   {
     featureType: "poi.park",
     elementType: "geometry",
     stylers: [{ color: "#222c1f" }],
+  },
+  {
+    featureType: "poi.park",
+    elementType: "labels.text.fill",
+    stylers: [{ color: "#6b8f5a" }],
+  },
+  {
+    featureType: "water",
+    elementType: "geometry",
+    stylers: [{ color: "#021d38" }],
+  },
+  {
+    featureType: "water",
+    elementType: "labels.text.fill",
+    stylers: [{ color: "#515c6d" }],
   },
   {
     featureType: "road",
@@ -58,33 +92,26 @@ const MAP_STYLES = [
   },
   {
     featureType: "road.highway",
-    elementType: "geometry.stroke",
-    stylers: [{ color: "#1a1400" }],
-  },
-  {
-    featureType: "road.highway",
     elementType: "labels.text.fill",
     stylers: [{ color: "#f3d19c" }],
   },
   {
-    featureType: "road.highway",
+    featureType: "road",
     elementType: "labels.icon",
     stylers: [{ visibility: "off" }],
   },
   {
-    featureType: "transit",
-    elementType: "geometry",
-    stylers: [{ color: "#2f3948" }],
+    featureType: "poi.sports_complex",
+    stylers: [{ visibility: "on" }],
   },
   {
-    featureType: "water",
-    elementType: "geometry",
-    stylers: [{ color: "#0d1b2a" }],
+    featureType: "poi.attraction",
+    elementType: "labels.text",
+    stylers: [{ visibility: "on" }],
   },
   {
-    featureType: "water",
-    elementType: "labels.text.fill",
-    stylers: [{ color: "#515c6d" }],
+    featureType: "poi.place_of_worship",
+    stylers: [{ visibility: "on" }],
   },
 ];
 
@@ -93,6 +120,7 @@ const LIBRARIES = ["places"];
 
 // ── Main component ──────────────────────────────────────────────────────────
 const HowToGet = ({ data, type }) => {
+  const user = useSelector(selectUser);
   const address = data?.address;
   const locationUrl = data?.location_url;
   const { isLoaded, loadError } = useLoadScript({
@@ -112,6 +140,14 @@ const HowToGet = ({ data, type }) => {
       .then(setVenueCoords)
       .catch(() => setVenueCoords(null));
   }, [isLoaded, address]);
+
+  // Auto-fetch user location when map loads so the pin appears immediately
+  // TODO: remove simulated coords and restore geolocation when done testing
+  useEffect(() => {
+    if (!isLoaded) return;
+    // Simulated location: Frankfurt, Germany
+    setUserCoords({ lat: 50.1244676, lng: 8.4213321 });
+  }, [isLoaded]);
 
   const onMapLoad = useCallback(
     (map) => {
@@ -133,34 +169,22 @@ const HowToGet = ({ data, type }) => {
     if (mapRef.current && venueCoords) mapRef.current.panTo(venueCoords);
   }, [venueCoords]);
 
-  const handleGetDistance = () => {
-    if (!navigator.geolocation) {
-      setGeoError("Geolocation is not supported by your browser.");
-      return;
-    }
+  const handleGetDistance = async () => {
+    // TODO: remove simulated coords and restore geolocation when done testing
+    const coords = { lat: 50.1244676, lng: 8.4213321 }; // Frankfurt simulation
+    setUserCoords(coords);
     setLoadingDistance(true);
     setGeoError(null);
-
-    navigator.geolocation.getCurrentPosition(
-      async (pos) => {
-        const coords = { lat: pos.coords.latitude, lng: pos.coords.longitude };
-        setUserCoords(coords);
-        try {
-          const res = await fetch(
-            `/api/distance?origin=${encodeURIComponent(`${coords.lat},${coords.lng}`)}&destination=${encodeURIComponent(address)}`,
-          );
-          if (res.ok) setDistanceInfo(await res.json());
-        } catch {
-          // silent
-        } finally {
-          setLoadingDistance(false);
-        }
-      },
-      (err) => {
-        setGeoError(err.message || "Could not get your location.");
-        setLoadingDistance(false);
-      },
-    );
+    try {
+      const res = await fetch(
+        `/api/distance?origin=${encodeURIComponent(`${coords.lat},${coords.lng}`)}&destination=${encodeURIComponent(address)}`,
+      );
+      if (res.ok) setDistanceInfo(await res.json());
+    } catch {
+      // silent
+    } finally {
+      setLoadingDistance(false);
+    }
   };
 
   if (!address && !locationUrl) return null;
@@ -171,59 +195,6 @@ const HowToGet = ({ data, type }) => {
       description="Venue location, directions and distance from your current position"
     >
       <div className="flex flex-col gap-3 w-[70%]">
-        {/* Address & action row */}
-        <div className="flex flex-col sm:flex-row sm:items-center gap-3 mb-4">
-          {address && (
-            <div className="flex items-center gap-2 text-stone-300 secondary text-sm">
-              <FiMapPin className="text-yellow-500 shrink-0" />
-              <span>{address}</span>
-            </div>
-          )}
-          <div className="flex gap-2 sm:ml-auto flex-wrap">
-            {locationUrl && (
-              <Button
-                href={locationUrl}
-                target="_blank"
-                icon={<FiExternalLink size={13} />}
-                text="Open in Map"
-              />
-            )}
-            <button
-              onClick={handleGetDistance}
-              disabled={loadingDistance}
-              className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold bg-yellow-600 text-black hover:bg-yellow-500 transition-colors rounded disabled:opacity-50"
-            >
-              <FiNavigation size={13} />
-              {loadingDistance ? "Locating…" : "Get Distance"}
-            </button>
-          </div>
-        </div>
-
-        {/* Distance result */}
-        {distanceInfo && (
-          <div className="flex gap-6 mb-4 text-sm">
-            <div className="flex items-center gap-2 text-stone-200">
-              <FiNavigation className="text-yellow-500" />
-              <span>
-                <span className="text-yellow-400 font-bold">
-                  {distanceInfo.distance}
-                </span>{" "}
-                away
-              </span>
-            </div>
-            <div className="flex items-center gap-2 text-stone-200">
-              <FiClock className="text-yellow-500" />
-              <span>
-                ~{" "}
-                <span className="text-yellow-400 font-bold">
-                  {distanceInfo.duration}
-                </span>{" "}
-                by car
-              </span>
-            </div>
-          </div>
-        )}
-
         {geoError && <p className="text-red-400 text-xs mb-3">{geoError}</p>}
 
         {/* Map container */}
@@ -260,6 +231,51 @@ const HowToGet = ({ data, type }) => {
                   gestureHandling: "greedy",
                 }}
               >
+                {/* Address & action row */}
+                <div className="flex flex-col sm:flex-row sm:items-center gap-3 absolute top-3 left-3 z-10">
+                  <div className="flex gap-2 sm:ml-auto flex-wrap">
+                    {locationUrl && (
+                      <Button
+                        href={locationUrl}
+                        target="_blank"
+                        size="small"
+                        icon={<FiExternalLink size={13} />}
+                        text="Open in Map"
+                      />
+                    )}
+                    <Button
+                      onClick={handleGetDistance}
+                      size="small"
+                      disabled={loadingDistance}
+                      icon={<FiNavigation size={13} />}
+                      text={loadingDistance ? "Locating…" : "Get Distance"}
+                    />
+                  </div>
+                </div>
+                {/* Distance result */}
+                {distanceInfo && (
+                  <div className="flex flex-col text-sm absolute top-12 left-3 z-10">
+                    <div className="flex items-center gap-2 text-stone-200">
+                      <FiNavigation className="text-yellow-500" />
+                      <span>
+                        <span className="text-yellow-400 font-bold">
+                          {distanceInfo.distance}
+                        </span>{" "}
+                        <span className="font-">away</span>
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-2 text-stone-200">
+                      <FiClock className="text-yellow-500" />
+                      <span>
+                        <span className="text-yellow-400 font-bold">
+                          {distanceInfo.duration}
+                        </span>{" "}
+                        by car
+                      </span>
+                    </div>
+                  </div>
+                )}
+
                 {venueCoords && (
                   <OverlayView
                     position={venueCoords}
@@ -278,18 +294,19 @@ const HowToGet = ({ data, type }) => {
                 )}
 
                 {userCoords && (
-                  <Marker
+                  <OverlayView
                     position={userCoords}
-                    title="Your location"
-                    icon={{
-                      path: window.google.maps.SymbolPath.CIRCLE,
-                      scale: 8,
-                      fillColor: "#3b82f6",
-                      fillOpacity: 1,
-                      strokeColor: "#fff",
-                      strokeWeight: 2,
-                    }}
-                  />
+                    mapPaneName="overlayMouseTarget"
+                    getPixelPositionOffset={(w, h) => ({
+                      x: -(w / 2),
+                      y: -(h / 2),
+                    })}
+                  >
+                    <UserLocationCard
+                      image={user?.user_avatar}
+                      username={user?.userName}
+                    />
+                  </OverlayView>
                 )}
               </GoogleMap>
               {/* Info overlay (left side gradient panel) */}
@@ -321,70 +338,92 @@ const MapInfoOverlay = ({ data, type }) => {
       : null;
 
   return (
-    <div className="absolute bg-linear-to-r from-black/90 to-transparent inset-y-0 left-0 w-[25%] pointer-events-none z-10 flex flex-col justify-center gap-2 p-4">
-      {/* Name */}
-      <h4 className="text-yellow-400 font-bold text-sm line-clamp-2">
-        {data.name}
-      </h4>
-      <div className="">
-        {dateText && <p className="text-cream text-sm font-bold">{dateText}</p>}
-        {isEvent && data.doors_open && (
-          <p className="text-cream/80 text-[10px] font-light secondary">
-            <span>Doors Open: </span>
-            <b className="font-bold">{data.doors_open}</b>
-          </p>
+    <div className="absolute bg-linear-to-t from-black from-20% to-transparent left-0 bottom-0 w-full h-[20%] pointer-events-none z-5 flex justify-between items-end gap-2 pb-2 px-3">
+      <div className="*:leading-none">
+        <h4 className="font-bold text-xl">{data.name}</h4>
+        {(data.country || data.city) && (
+          <ArtistCountry
+            artistCountry={data}
+            showFlag={true}
+            className="text-cream/80 text-xs"
+          />
         )}
-        {isEvent && data.promoter && (
-          <p className="text-cream/80 text-[10px] font-light secondary">
-            <span>Promoter: </span>
-            <b className="font-bold">{data.promoter}</b>
-          </p>
-        )}
+        <div className="leading-none">
+          {dateText && (
+            <p className="text-cream text-sm font-bold">{dateText}</p>
+          )}
+          {isEvent && data.doors_open && (
+            <p className="text-cream/80 text-[10px] font-light secondary">
+              <span>Doors Open: </span>
+              <b className="font-bold">{data.doors_open}</b>
+            </p>
+          )}
+          {isEvent && data.promoter && (
+            <p className="text-cream/80 text-[10px] font-light secondary">
+              <span>Promoter: </span>
+              <b className="font-bold">{data.promoter}</b>
+            </p>
+          )}
+        </div>
       </div>
-      {/* Minimum age badge */}
-      {data.minimum_age != null && (
-        <span className="w-fit px-5 pt-0.5 font-bold border border-green-500 text-green-500 bg-green-900/80">
-          {data.minimum_age}+
-        </span>
-      )}
-
-      {/* Country / city */}
-      {(data.country || data.city) && (
-        <ArtistCountry
-          artistCountry={data}
-          showFlag={true}
-          className="text-cream/80 text-xs"
-        />
-      )}
 
       {/* Lineup (events + festivals) */}
       {displayArtists.length > 0 && (
-        <>
-          <p className="text-cream text-[10px] uppercase tracking-wide mb-1">
+        <div className="">
+          <p className="text-cream secondary text-[10px] tracking-wide mb-1 italic">
             Lineup
           </p>
-          <div className="grid grid-cols-3">
-            <div className="flex flex-wrap gap-1">
-              {displayArtists.map((artist, i) => (
-                <span
-                  key={i}
-                  className="text-[10px] bg-stone-700/80 text-stone-300 px-1.5 py-0.5"
-                >
-                  {artist}
-                </span>
-              ))}
-              {remaining > 0 && (
-                <span className="text-[10px] text-yellow-600 px-1 py-0.5 italic">
-                  +{remaining} more…
-                </span>
-              )}
-            </div>
+          <div className="grid grid-cols-4 gap-1">
+            {displayArtists.map((artist, i) => (
+              <span
+                key={i}
+                className="text-xs text-cream font-bold text-center bg-stone-800 px-2 pt-0.5"
+              >
+                {artist}
+              </span>
+            ))}
+            {remaining > 0 && (
+              <span className="text-[10px] text-yellow-600 px-1 py-0.5 italic">
+                +{remaining} more…
+              </span>
+            )}
           </div>
-        </>
+        </div>
       )}
     </div>
   );
 };
+
+const UserLocationCard = ({ image, username }) => (
+  <div
+    className="relative flex items-center justify-center "
+    style={{ width: 90, height: 90, pointerEvents: "none" }}
+  >
+    <div className="user-ring-1 absolute w-12 h-12 rounded-full border-2 border-green-500/70" />
+    <div className="user-ring-2 absolute w-12 h-12 rounded-full border border-green-400/40" />
+    <div className="user-pulse relative z-10 flex flex-col items-center gap-1">
+      <div
+        className="w-9 h-9 rounded-full overflow-hidden border-2 border-green-500"
+        style={{ boxShadow: "0 0 14px rgba(34,197,94,0.6)" }}
+      >
+        {image ? (
+          <img
+            src={image}
+            alt={username}
+            className="w-full h-full object-cover"
+          />
+        ) : (
+          <div className="w-full h-full bg-stone-900 flex items-center justify-center text-green-400 font-bold text-sm">
+            {username?.[0]?.toUpperCase() ?? "?"}
+          </div>
+        )}
+      </div>
+      <span className="bg-black/80 text-cream text-xs font-semibold px-1.5 py-0.5 rounded max-w-[96px] truncate leading-none whitespace-nowrap">
+        {username ?? "You"}
+      </span>
+    </div>
+  </div>
+);
 
 const LocationCard = ({ image, name, venueName }) => (
   <div

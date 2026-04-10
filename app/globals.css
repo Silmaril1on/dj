@@ -141,3 +141,36 @@ html {
 .venue-ring-2 {
   animation: venueRing 2s ease-out 0.7s infinite;
 }
+
+@keyframes userPulse {
+  0%,
+  100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(0.92);
+  }
+}
+
+@keyframes userRing {
+  0% {
+    transform: scale(0.5);
+    opacity: 0.8;
+  }
+  100% {
+    transform: scale(2.5);
+    opacity: 0;
+  }
+}
+
+.user-pulse {
+  animation: userPulse 2.2s ease-in-out infinite;
+}
+
+.user-ring-1 {
+  animation: userRing 2.2s ease-out infinite;
+}
+
+.user-ring-2 {
+  animation: userRing 2.2s ease-out 0.8s infinite;
+}
