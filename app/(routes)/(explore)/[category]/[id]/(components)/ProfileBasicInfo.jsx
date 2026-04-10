@@ -62,7 +62,7 @@ const ProfileBasicInfo = ({ data, type }) => {
     return rows;
   };
 
-  const locationUrl = data.location_url || data.location;
+  const locationUrl = data.location_url;
   const email = data.email || data.venue_email;
   const dateText = getDateText();
   const capacityRows = getCapacityRows();

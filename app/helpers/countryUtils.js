@@ -95,6 +95,7 @@ const countryCodeToName = {
   MU: "Mauritius",
   SC: "Seychelles",
   KM: "Comoros",
+  MD: "Moldova",
   DJ: "Djibouti",
   ER: "Eritrea",
   SO: "Somalia",

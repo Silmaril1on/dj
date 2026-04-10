@@ -32,6 +32,7 @@ export const countries = [
   "Lithuania",
   "Luxembourg",
   "Malta",
+  "Moldova",
   "Cyprus",
   "Australia",
   "New Zealand",

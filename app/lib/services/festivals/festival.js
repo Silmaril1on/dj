@@ -42,7 +42,7 @@ export async function getAllFestivals({
   let query = admin
     .from("festivals")
     .select(
-      "id, name, festival_slug, poster, country, city, location, start_date, end_date, description, created_at",
+      "id, name, festival_slug, poster, country, city, location_url, start_date, end_date, description, created_at",
       { count: "exact" },
     )
     .eq("status", "approved");
@@ -234,7 +234,7 @@ export async function createFestival(formData, cookieStore) {
       poster: posterUrlData.publicUrl,
       start_date: start_date || null,
       end_date: end_date || null,
-      location: formData.get("location")?.trim() || null,
+      location_url: formData.get("location_url")?.trim() || null,
       capacity_total: formData.get("capacity_total")?.trim() || null,
       capacity_per_day: formData.get("capacity_per_day")?.trim() || null,
       country: formData.get("country")?.trim() || null,
@@ -251,10 +251,12 @@ export async function createFestival(formData, cookieStore) {
     throw new ServiceError("Failed to submit festival", 500);
   }
 
-  await supabase
-    .from("users")
-    .update({ submitted_festival_id: data.id })
-    .eq("id", user.id);
+  if (!user.is_admin) {
+    await supabase
+      .from("users")
+      .update({ submitted_festival_id: data.id })
+      .eq("id", user.id);
+  }
 
   try {
     await admin.from("notifications").insert({
@@ -321,7 +323,7 @@ export async function updateFestival(formData, cookieStore) {
     bio: formData.get("bio")?.trim() || null,
     start_date,
     end_date,
-    location: formData.get("location")?.trim() || null,
+    location_url: formData.get("location_url")?.trim() || null,
     capacity_total: formData.get("capacity_total")?.trim() || null,
     capacity_per_day: formData.get("capacity_per_day")?.trim() || null,
     country: formData.get("country")?.trim() || null,

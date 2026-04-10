@@ -74,14 +74,14 @@ export async function getAllClubs({
   };
 }
 
-export async function getClubById(slug, cookieStore) {
-  if (!slug) throw new ServiceError("Club slug is required", 400);
+export async function getClubById(id, cookieStore) {
+  if (!id) throw new ServiceError("Club ID is required", 400);
   const admin = getSupabaseAdminClient();
   const supabase = await getSupabaseServerClient(cookieStore);
   const { data, error } = await supabase
     .from("clubs")
     .select("*")
-    .eq("club_slug", slug)
+    .eq("id", id)
     .single();
   if (error || !data) throw new ServiceError("Club not found", 404);
 

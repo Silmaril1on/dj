@@ -7,6 +7,7 @@ import ProfileBasicInfo from "./(components)/ProfileBasicInfo";
 import ProfilePoster from "./(components)/ProfilePoster";
 import FestivalLineupDisplay from "./(components)/FestivalLineupDisplay";
 import FestivalTicketsDisplay from "./(components)/FestivalTicketsDisplay";
+import HowToGet from "./(components)/HowToGet";
 import { PROFILE_TYPE_CONFIG, extractProfileData } from "./profileConfigs";
 
 const SingleDataProfile = ({ data, type = "events", currentUserId = null }) => {
@@ -57,6 +58,11 @@ const SingleDataProfile = ({ data, type = "events", currentUserId = null }) => {
 
       {type === "festivals" && (
         <FestivalTicketsDisplay festivalId={profileData.id} />
+      )}
+
+      {/* How to Get There — clubs, events, festivals */}
+      {["clubs", "events", "festivals"].includes(type) && (
+        <HowToGet data={profileData} type={type} />
       )}
     </div>
   );

@@ -805,7 +805,7 @@ export const formConfigs = {
       bio: "",
       start_date: "",
       end_date: "",
-      location: "",
+      location_url: "",
       address: "",
       capacity_total: "",
       capacity_per_day: "",
@@ -858,11 +858,11 @@ export const formConfigs = {
         required: false,
         label: "End Date",
       },
-      location: {
+      location_url: {
         type: "text",
         required: false,
-        label: "Location",
-        placeholder: "Festival venue/location",
+        label: "Location URL",
+        placeholder: "Festival venue/location URL",
       },
       address: {
         type: "text",
@@ -922,7 +922,7 @@ export const formConfigs = {
       },
       {
         title: "Event Details",
-        fields: ["start_date", "end_date", "location"],
+        fields: ["start_date", "end_date", "location_url"],
         gridClass: "grid grid-cols-1 md:grid-cols-3 gap-4",
       },
       {

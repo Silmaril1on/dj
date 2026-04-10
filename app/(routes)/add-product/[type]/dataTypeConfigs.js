@@ -25,6 +25,7 @@ export const DATA_TYPE_CONFIGS = {
       title: "You have already submitted an artist",
       description:
         "You can only submit one artist profile. To edit your submission, use the edit link or contact support.",
+      adminBypass: true,
     },
     mapInitialData: (data, defaults) => ({
       ...defaults,
@@ -199,7 +200,7 @@ export const DATA_TYPE_CONFIGS = {
       poster: data.poster || "",
       start_date: data.start_date || "",
       end_date: data.end_date || "",
-      location: data.location || "",
+      location_url: data.location_url || "",
       address: data.address || "",
       capacity_total: data.capacity_total || "",
       capacity_per_day: data.capacity_per_day || "",
@@ -213,7 +214,7 @@ export const DATA_TYPE_CONFIGS = {
       name: result.data?.name || "",
       country: result.data?.country || "",
       city: result.data?.city || "",
-      location: result.data?.location || "",
+      location_url: result.data?.location_url || "",
       description: result.data?.description || "",
     }),
     beforeSubmit: (formData) => {

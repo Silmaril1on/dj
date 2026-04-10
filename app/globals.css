@@ -108,3 +108,36 @@ html {
     background-position: 0% 50%;
   }
 }
+
+@keyframes venuePulse {
+  0%,
+  100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(0.8);
+  }
+}
+
+@keyframes venueRing {
+  0% {
+    transform: scale(0.5);
+    opacity: 0.9;
+  }
+  100% {
+    transform: scale(2.2);
+    opacity: 0;
+  }
+}
+
+.venue-pulse {
+  animation: venuePulse 2s ease-in-out infinite;
+}
+
+.venue-ring-1 {
+  animation: venueRing 2s ease-out infinite;
+}
+
+.venue-ring-2 {
+  animation: venueRing 2s ease-out 0.7s infinite;
+}

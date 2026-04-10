@@ -104,6 +104,7 @@ export const getCountryCode = (countryName) => {
     sudan: "SD",
     "south sudan": "SS",
     chad: "TD",
+    moldova: "MD",
     niger: "NE",
     mali: "ML",
     "burkina faso": "BF",

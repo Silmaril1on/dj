@@ -196,10 +196,12 @@ export async function createArtist(formData, cookieStore) {
     );
   }
 
-  await supabase
-    .from("users")
-    .update({ submitted_artist_id: newArtist.id })
-    .eq("id", user.id);
+  if (!user.is_admin) {
+    await supabase
+      .from("users")
+      .update({ submitted_artist_id: newArtist.id })
+      .eq("id", user.id);
+  }
 
   try {
     await admin.from("notifications").insert({

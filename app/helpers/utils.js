@@ -25,18 +25,14 @@ export const formatBirthdate = (dateString) => {
 
 export const toDateOnlyString = (value) => {
   if (!value) return null;
-
   if (typeof value === "string" && /^\d{4}-\d{2}-\d{2}$/.test(value)) {
     return value;
   }
-
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) return null;
-
   const year = date.getFullYear();
   const month = String(date.getMonth() + 1).padStart(2, "0");
   const day = String(date.getDate()).padStart(2, "0");
-
   return `${year}-${month}-${day}`;
 };
 
@@ -78,3 +74,30 @@ export const markdownToHtml = (text) => {
     .replace(/`(.*?)`/g, "<code>$1</code>")
     .replace(/\n/g, "<br>");
 };
+
+// Geocode an address string → { lat, lng } using the Google Maps JS API (browser-only)
+export function geocodeAddress(address) {
+  return new Promise((resolve, reject) => {
+    const geocoder = new window.google.maps.Geocoder();
+    geocoder.geocode({ address }, (results, status) => {
+      if (status === "OK" && results[0]) {
+        const { lat, lng } = results[0].geometry.location;
+        resolve({ lat: lat(), lng: lng() });
+      } else {
+        reject(new Error(`Geocode failed: ${status}`));
+      }
+    });
+  });
+}
+
+// Normalize artist lineup arrays (strings or objects) to plain name strings
+export function normalizeLineup(lineup) {
+  if (!Array.isArray(lineup)) return [];
+  return lineup
+    .map((a) =>
+      typeof a === "object" && a !== null
+        ? a.name || a.stage_name || ""
+        : String(a),
+    )
+    .filter(Boolean);
+}

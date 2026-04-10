@@ -79,13 +79,15 @@ export const extractProfileData = (data, type) => {
     doors_open: type === "events" ? data.doors_open : null,
     links: type === "events" ? data.links : null,
     promoter: type === "events" ? data.promoter : null,
+    minimum_age: type === "events" ? (data.minimum_age ?? null) : null,
+    venue_name: type === "events" ? data.venue_name || null : null,
+    event_type: type === "events" ? data.event_type || null : null,
     // Festival-specific
     start_date: type === "festivals" ? data.start_date : null,
     end_date: type === "festivals" ? data.end_date : null,
     website: type === "festivals" ? data.website : null,
     capacity_total: type === "festivals" ? data.capacity_total : null,
     capacity_per_day: type === "festivals" ? data.capacity_per_day : null,
-    location: type === "festivals" ? data.location : null,
   };
 };
 

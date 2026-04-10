@@ -89,7 +89,7 @@ const TYPE_CONFIGS = {
   festival: {
     table: "festivals",
     select: `
-      id, name, country, city, location, address, start_date, end_date,
+      id, name, country, city, location_url, address, start_date, end_date,
       capacity_total, status, created_at, poster, description, social_links, user_id,
       users:user_id(id, userName, email, user_avatar)
     `,
@@ -97,7 +97,7 @@ const TYPE_CONFIGS = {
       id: item.id,
       name: item.name,
       address: item.address,
-      location_url: item.location,
+      location_url: item.location_url,
       start_date: item.start_date,
       end_date: item.end_date,
       capacity_total: item.capacity_total,
