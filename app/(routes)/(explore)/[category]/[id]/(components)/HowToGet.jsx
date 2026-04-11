@@ -2,21 +2,26 @@
 import { useEffect, useRef, useState, useCallback } from "react";
 import { useSelector } from "react-redux";
 import { selectUser } from "@/app/features/userSlice";
-import { useLoadScript, GoogleMap, OverlayView } from "@react-google-maps/api";
+import {
+  useLoadScript,
+  GoogleMap,
+  OverlayView,
+  DirectionsRenderer,
+} from "@react-google-maps/api";
 import {
   FiNavigation,
   FiMapPin,
   FiClock,
   FiExternalLink,
+  FiRadio,
 } from "react-icons/fi";
+import { MdOutlineLocalParking, MdLocalHotel } from "react-icons/md";
 import Button from "@/app/components/buttons/Button";
 import SectionContainer from "@/app/components/containers/SectionContainer";
-import {
-  formatBirthdate,
-  geocodeAddress,
-  normalizeLineup,
-} from "@/app/helpers/utils";
+import { formatBirthdate, geocodeAddress } from "@/app/helpers/utils";
 import ArtistCountry from "@/app/components/materials/ArtistCountry";
+import Close from "@/app/components/buttons/Close";
+import Motion from "@/app/components/containers/Motion";
 
 // Custom dark/gold map style to match the app theme
 const MAP_STYLES = [
@@ -118,6 +123,24 @@ const MAP_STYLES = [
 const MAP_CONTAINER_STYLE = { width: "100%", height: "100%" };
 const LIBRARIES = ["places"];
 
+const PRIMARY_ROUTE_OPTIONS = {
+  suppressMarkers: true,
+  polylineOptions: {
+    strokeColor: "#fcb913",
+    strokeWeight: 5,
+    strokeOpacity: 0.85,
+  },
+};
+
+const ALT_ROUTE_OPTIONS = {
+  suppressMarkers: true,
+  polylineOptions: {
+    strokeColor: "#c8a84b",
+    strokeWeight: 3,
+    strokeOpacity: 0.35,
+  },
+};
+
 // ── Main component ──────────────────────────────────────────────────────────
 const HowToGet = ({ data, type }) => {
   const user = useSelector(selectUser);
@@ -130,9 +153,25 @@ const HowToGet = ({ data, type }) => {
   const [venueCoords, setVenueCoords] = useState(null);
   const [userCoords, setUserCoords] = useState(null);
   const [distanceInfo, setDistanceInfo] = useState(null);
+  const [directions, setDirections] = useState(null);
   const [geoError, setGeoError] = useState(null);
   const [loadingDistance, setLoadingDistance] = useState(false);
+  const [showLocationModal, setShowLocationModal] = useState(false);
+  const [locationInput, setLocationInput] = useState("");
+  const [loadingLocation, setLoadingLocation] = useState(false);
+  const [nearbyPlaces, setNearbyPlaces] = useState({
+    parking: [],
+    lodging: [],
+    transit: [],
+  });
+  const [loadingNearby, setLoadingNearby] = useState({
+    parking: false,
+    lodging: false,
+    transit: false,
+  });
+  const [activeNearby, setActiveNearby] = useState(new Set());
   const mapRef = useRef(null);
+  const fetchedCategoriesRef = useRef(new Set());
 
   useEffect(() => {
     if (!isLoaded || !address) return;
@@ -169,23 +208,127 @@ const HowToGet = ({ data, type }) => {
     if (mapRef.current && venueCoords) mapRef.current.panTo(venueCoords);
   }, [venueCoords]);
 
-  const handleGetDistance = async () => {
+  const computeRoute = useCallback(
+    (origin) => {
+      if (!window.google || !address) return;
+      const svc = new window.google.maps.DirectionsService();
+      svc.route(
+        {
+          origin,
+          destination: address,
+          travelMode: window.google.maps.TravelMode.DRIVING,
+          provideRouteAlternatives: true,
+        },
+        (result, status) => {
+          if (status === "OK") {
+            setDirections(result);
+            if (mapRef.current && result.routes[0]?.bounds) {
+              mapRef.current.fitBounds(result.routes[0].bounds, {
+                top: 80,
+                right: 60,
+                bottom: 80,
+                left: 60,
+              });
+            }
+          }
+        },
+      );
+    },
+    [address],
+  );
+
+  const fetchDistanceAndRoute = useCallback(
+    async (coords) => {
+      setLoadingDistance(true);
+      setGeoError(null);
+      setDistanceInfo(null);
+      setDirections(null);
+      try {
+        const res = await fetch(
+          `/api/distance?origin=${encodeURIComponent(`${coords.lat},${coords.lng}`)}&destination=${encodeURIComponent(address)}`,
+        );
+        if (res.ok) setDistanceInfo(await res.json());
+        computeRoute(coords);
+      } catch {
+        // silent
+      } finally {
+        setLoadingDistance(false);
+      }
+    },
+    [address, computeRoute],
+  );
+
+  const handleGetDistance = () => {
     // TODO: remove simulated coords and restore geolocation when done testing
     const coords = { lat: 50.1244676, lng: 8.4213321 }; // Frankfurt simulation
     setUserCoords(coords);
-    setLoadingDistance(true);
-    setGeoError(null);
+    fetchDistanceAndRoute(coords);
+  };
+
+  const handleCalculate = async () => {
+    if (!locationInput.trim()) return;
+    setLoadingLocation(true);
     try {
-      const res = await fetch(
-        `/api/distance?origin=${encodeURIComponent(`${coords.lat},${coords.lng}`)}&destination=${encodeURIComponent(address)}`,
-      );
-      if (res.ok) setDistanceInfo(await res.json());
+      const coords = await geocodeAddress(locationInput);
+      setUserCoords(coords);
+      setShowLocationModal(false);
+      setLocationInput("");
+      await fetchDistanceAndRoute(coords);
     } catch {
       // silent
     } finally {
-      setLoadingDistance(false);
+      setLoadingLocation(false);
     }
   };
+
+  const fetchNearby = useCallback(
+    (category) => {
+      if (!venueCoords || !mapRef.current || !window.google) return;
+
+      // Toggle off
+      if (activeNearby.has(category)) {
+        setActiveNearby((prev) => {
+          const next = new Set(prev);
+          next.delete(category);
+          return next;
+        });
+        return;
+      }
+
+      // Already fetched — just show
+      if (fetchedCategoriesRef.current.has(category)) {
+        setActiveNearby((prev) => new Set([...prev, category]));
+        return;
+      }
+
+      // Fetch from Places API
+      const TYPE_MAP = {
+        parking: "parking",
+        lodging: "lodging",
+        transit: "transit_station",
+      };
+      setLoadingNearby((prev) => ({ ...prev, [category]: true }));
+      const svc = new window.google.maps.places.PlacesService(mapRef.current);
+      svc.nearbySearch(
+        { location: venueCoords, radius: 5000, type: TYPE_MAP[category] },
+        (results, status) => {
+          setLoadingNearby((prev) => ({ ...prev, [category]: false }));
+          if (
+            status === window.google.maps.places.PlacesServiceStatus.OK &&
+            results
+          ) {
+            fetchedCategoriesRef.current.add(category);
+            setNearbyPlaces((prev) => ({
+              ...prev,
+              [category]: results.slice(0, 20),
+            }));
+            setActiveNearby((prev) => new Set([...prev, category]));
+          }
+        },
+      );
+    },
+    [venueCoords, activeNearby],
+  );
 
   if (!address && !locationUrl) return null;
 
@@ -198,7 +341,7 @@ const HowToGet = ({ data, type }) => {
         {geoError && <p className="text-red-400 text-xs mb-3">{geoError}</p>}
 
         {/* Map container */}
-        <div className="relative w-full h-150 rounded overflow-hidden border border-stone-700">
+        <div className="relative w-full h-150 rounded overflow-hidden border border-cream/30">
           {loadError && (
             <div className="w-full h-full flex items-center justify-center text-stone-500 text-sm">
               Map failed to load.
@@ -231,41 +374,67 @@ const HowToGet = ({ data, type }) => {
                   gestureHandling: "greedy",
                 }}
               >
-                {/* Address & action row */}
-                <div className="flex flex-col sm:flex-row sm:items-center gap-3 absolute top-3 left-3 z-10">
-                  <div className="flex gap-2 sm:ml-auto flex-wrap">
-                    {locationUrl && (
-                      <Button
-                        href={locationUrl}
-                        target="_blank"
-                        size="small"
-                        icon={<FiExternalLink size={13} />}
-                        text="Open in Map"
-                      />
-                    )}
-                    <Button
-                      onClick={handleGetDistance}
-                      size="small"
-                      disabled={loadingDistance}
-                      icon={<FiNavigation size={13} />}
-                      text={loadingDistance ? "Locating…" : "Get Distance"}
+                {/* Route polylines — primary + alternatives */}
+                {directions &&
+                  directions.routes.map((_, i) => (
+                    <DirectionsRenderer
+                      key={i}
+                      directions={directions}
+                      routeIndex={i}
+                      options={
+                        i === 0 ? PRIMARY_ROUTE_OPTIONS : ALT_ROUTE_OPTIONS
+                      }
                     />
+                  ))}
+
+                {/* Bottom action bar */}
+                <div className="absolute bottom-3 left-3 right-3 z-10 flex items-center justify-end">
+                  <div className="flex gap-2 overflow-hidden">
+                    <Motion animation="top" delay={0.2}>
+                      <Button
+                        onClick={() => setShowLocationModal(true)}
+                        size="small"
+                        icon={<FiMapPin size={13} />}
+                        text="Change Location"
+                      />
+                    </Motion>
+                    {locationUrl && (
+                      <Motion animation="top" delay={0.4}>
+                        <Button
+                          href={locationUrl}
+                          target="_blank"
+                          size="small"
+                          icon={<FiExternalLink size={13} />}
+                          text="Open in Map"
+                        />
+                      </Motion>
+                    )}
+                    <Motion animation="top" delay={0.6}>
+                      <Button
+                        onClick={handleGetDistance}
+                        size="small"
+                        disabled={loadingDistance}
+                        icon={<FiNavigation size={13} />}
+                        text={loadingDistance ? "Locating…" : "Get Distance"}
+                      />
+                    </Motion>
                   </div>
                 </div>
+
                 {/* Distance result */}
                 {distanceInfo && (
-                  <div className="flex flex-col text-sm absolute top-12 left-3 z-10">
-                    <div className="flex items-center gap-2 text-stone-200">
+                  <div className="flex gap-3 text-sm absolute bottom-12 right-3 z-10">
+                    <div className="flex items-center gap-1 text-stone-200">
                       <FiNavigation className="text-yellow-500" />
                       <span>
                         <span className="text-yellow-400 font-bold">
                           {distanceInfo.distance}
                         </span>{" "}
-                        <span className="font-">away</span>
+                        away
                       </span>
                     </div>
-                    <div className="flex items-center gap-2 text-stone-200">
-                      <FiClock className="text-yellow-500" />
+                    <div className="flex items-center gap-1 text-stone-200">
+                      <FiClock size={13} className="text-yellow-500" />
                       <span>
                         <span className="text-yellow-400 font-bold">
                           {distanceInfo.duration}
@@ -276,16 +445,101 @@ const HowToGet = ({ data, type }) => {
                   </div>
                 )}
 
+                {/* Nearby category toggles */}
+                <div className="absolute overflow-hidden right-3 bottom-20 z-10 flex flex-col items-end gap-1">
+                  {[
+                    {
+                      key: "parking",
+                      label: "Parkings",
+                      Icon: MdOutlineLocalParking,
+                      delay: 0.8,
+                    },
+                    {
+                      key: "lodging",
+                      label: "Hotels",
+                      Icon: MdLocalHotel,
+                      delay: 1,
+                    },
+                    {
+                      key: "transit",
+                      label: "Stations",
+                      Icon: FiRadio,
+                      delay: 1.2,
+                    },
+                  ].map(({ key, label, Icon, delay }) => {
+                    const isActive = activeNearby.has(key);
+                    const isLoading = loadingNearby[key];
+                    return (
+                      <Motion key={key} animation="left" delay={delay}>
+                        <button
+                          onClick={() => fetchNearby(key)}
+                          disabled={isLoading || !venueCoords}
+                          title={`${isActive ? "Hide" : "Show"} ${label}`}
+                          className={`w-9 h-9 flex items-center justify-center rounded-full cursor-pointer backdrop-blur-xs border transition-colors ${
+                            isActive
+                              ? "bg-gold border-gold text-black"
+                              : "bg-gold/20 border-gold/30 text-gold hover:bg-gold/40"
+                          } disabled:opacity-40 disabled:cursor-not-allowed`}
+                        >
+                          <Icon size={15} />
+                        </button>
+                      </Motion>
+                    );
+                  })}
+                </div>
+
+                {/* Nearby radius notice */}
+                {activeNearby.size > 0 && (
+                  <div className="absolute top-3 right-3 z-10 flex flex-col items-end gap-0.5">
+                    {[...activeNearby].map((category) => {
+                      const labels = {
+                        parking: "parking spots",
+                        lodging: "hotels",
+                        transit: "transit stations",
+                      };
+                      const count = nearbyPlaces[category]?.length ?? 0;
+                      return (
+                        <p
+                          key={category}
+                          className="bg-black/70 secondary backdrop-blur-sm text-cream/80 text-[10px] px-2 py-1 rounded leading-none"
+                        >
+                          Showing{" "}
+                          <span className="text-gold font-semibold">
+                            {count} {labels[category]}
+                          </span>{" "}
+                          within a 5 km radius of this venue
+                        </p>
+                      );
+                    })}
+                  </div>
+                )}
+
+                {/* Nearby place pins */}
+                {Object.entries(nearbyPlaces).map(([category, places]) =>
+                  activeNearby.has(category)
+                    ? places.map((place, i) => (
+                        <OverlayView
+                          key={`${category}-${i}`}
+                          position={place.geometry.location}
+                          mapPaneName="overlayMouseTarget"
+                          getPixelPositionOffset={() => ({ x: -32, y: -32 })}
+                        >
+                          <Motion animation="fade" delay={i * 0.1}>
+                            <NearbyPin category={category} name={place.name} />
+                          </Motion>
+                        </OverlayView>
+                      ))
+                    : null,
+                )}
+
                 {venueCoords && (
                   <OverlayView
                     position={venueCoords}
                     mapPaneName="overlayMouseTarget"
-                    getPixelPositionOffset={(w, h) => ({
-                      x: -(w / 2),
-                      y: -(h / 2),
-                    })}
+                    getPixelPositionOffset={() => ({ x: -55, y: -55 })}
                   >
-                    <LocationCard
+                    <LocationPin
+                      type="venue"
                       image={data?.image}
                       name={data?.name}
                       venueName={type === "events" ? data?.venue_name : null}
@@ -297,19 +551,49 @@ const HowToGet = ({ data, type }) => {
                   <OverlayView
                     position={userCoords}
                     mapPaneName="overlayMouseTarget"
-                    getPixelPositionOffset={(w, h) => ({
-                      x: -(w / 2),
-                      y: -(h / 2),
-                    })}
+                    getPixelPositionOffset={() => ({ x: -45, y: -45 })}
                   >
-                    <UserLocationCard
+                    <LocationPin
+                      type="user"
                       image={user?.user_avatar}
-                      username={user?.userName}
+                      name={user?.userName}
                     />
                   </OverlayView>
                 )}
+
+                {/* Location override modal */}
+                {showLocationModal && (
+                  <div className="absolute inset-0 z-20 flex items-center justify-center bg-black/40 backdrop-blur-[2px]">
+                    <div className="bg-stone-950 border border-cream/20 p-3 w-72 flex flex-col gap-3">
+                      <div className="flex items-center justify-between mb-1">
+                        <h3 className="text-cream font-bold text-sm tracking-wide">
+                          Change Origin
+                        </h3>
+                        <Close onClick={() => setShowLocationModal(false)} />
+                      </div>
+                      <input
+                        type="text"
+                        value={locationInput}
+                        onChange={(e) => setLocationInput(e.target.value)}
+                        onKeyDown={(e) =>
+                          e.key === "Enter" && handleCalculate()
+                        }
+                        placeholder="e.g. Berlin, Freiburg…"
+                        autoFocus
+                      />
+                      <Button
+                        onClick={handleCalculate}
+                        size="small"
+                        className="w-fit"
+                        disabled={loadingLocation || !locationInput.trim()}
+                        icon={<FiNavigation size={13} />}
+                        text={loadingLocation ? "Calculating…" : "Calculate"}
+                      />
+                    </div>
+                  </div>
+                )}
               </GoogleMap>
-              {/* Info overlay (left side gradient panel) */}
+              {/* Info overlay (bottom gradient panel) */}
               <MapInfoOverlay data={data} type={type} />
             </>
           )}
@@ -324,10 +608,6 @@ const MapInfoOverlay = ({ data, type }) => {
 
   const isEvent = type === "events";
   const isFestival = type === "festivals";
-  const artists = normalizeLineup(data.lineup);
-  const MAX_ARTISTS = 12;
-  const displayArtists = artists.slice(0, MAX_ARTISTS);
-  const remaining = artists.length - MAX_ARTISTS;
 
   const dateText = isEvent
     ? formatBirthdate(data.date)
@@ -366,91 +646,117 @@ const MapInfoOverlay = ({ data, type }) => {
           )}
         </div>
       </div>
-
-      {/* Lineup (events + festivals) */}
-      {displayArtists.length > 0 && (
-        <div className="">
-          <p className="text-cream secondary text-[10px] tracking-wide mb-1 italic">
-            Lineup
-          </p>
-          <div className="grid grid-cols-4 gap-1">
-            {displayArtists.map((artist, i) => (
-              <span
-                key={i}
-                className="text-xs text-cream font-bold text-center bg-stone-800 px-2 pt-0.5"
-              >
-                {artist}
-              </span>
-            ))}
-            {remaining > 0 && (
-              <span className="text-[10px] text-yellow-600 px-1 py-0.5 italic">
-                +{remaining} more…
-              </span>
-            )}
-          </div>
-        </div>
-      )}
     </div>
   );
 };
 
-const UserLocationCard = ({ image, username }) => (
-  <div
-    className="relative flex items-center justify-center "
-    style={{ width: 90, height: 90, pointerEvents: "none" }}
-  >
-    <div className="user-ring-1 absolute w-12 h-12 rounded-full border-2 border-green-500/70" />
-    <div className="user-ring-2 absolute w-12 h-12 rounded-full border border-green-400/40" />
-    <div className="user-pulse relative z-10 flex flex-col items-center gap-1">
-      <div
-        className="w-9 h-9 rounded-full overflow-hidden border-2 border-green-500"
-        style={{ boxShadow: "0 0 14px rgba(34,197,94,0.6)" }}
-      >
-        {image ? (
-          <img
-            src={image}
-            alt={username}
-            className="w-full h-full object-cover"
-          />
-        ) : (
-          <div className="w-full h-full bg-stone-900 flex items-center justify-center text-green-400 font-bold text-sm">
-            {username?.[0]?.toUpperCase() ?? "?"}
-          </div>
-        )}
-      </div>
-      <span className="bg-black/80 text-cream text-xs font-semibold px-1.5 py-0.5 rounded max-w-[96px] truncate leading-none whitespace-nowrap">
-        {username ?? "You"}
-      </span>
-    </div>
-  </div>
-);
+const LocationPin = ({ type = "venue", image, name, venueName }) => {
+  const isUser = type === "user";
+  const color = isUser ? "green" : "yellow";
+  const size = isUser
+    ? { outer: 90, ring: "w-12 h-12", img: "w-9 h-9" }
+    : { outer: 110, ring: "w-14 h-14", img: "w-10 h-10" };
+  const ringBorder = isUser
+    ? {
+        strong: "border-green-500/70",
+        soft: "border-green-400/40",
+        img: "border-green-500",
+      }
+    : {
+        strong: "border-yellow-500/70",
+        soft: "border-yellow-400/40",
+        img: "border-yellow-500",
+      };
+  const glow = isUser
+    ? "0 0 14px rgba(34,197,94,0.6)"
+    : "0 0 16px rgba(200,168,75,0.65)";
+  const fallbackText = isUser ? "text-green-400" : "text-yellow-500";
+  const pulse = isUser ? "user-pulse" : "venue-pulse";
+  const ring1 = isUser ? "user-ring-1" : "venue-ring-1";
+  const ring2 = isUser ? "user-ring-2" : "venue-ring-2";
+  const label = isUser ? (name ?? "You") : venueName || name;
+  const fallback = isUser
+    ? (name?.[0]?.toUpperCase() ?? "?")
+    : name?.[0]?.toUpperCase();
+  const rounded = isUser ? "rounded-full" : "";
 
-const LocationCard = ({ image, name, venueName }) => (
-  <div
-    className="relative flex items-center justify-center"
-    style={{ width: 110, height: 110, pointerEvents: "none" }}
-  >
-    <div className="venue-ring-1 absolute w-14 h-14 rounded-full border-2 border-yellow-500/70" />
-    <div className="venue-ring-2 absolute w-14 h-14 rounded-full border border-yellow-400/40" />
-    {/* Card */}
-    <div className="venue-pulse relative z-10 flex flex-col items-center gap-1">
+  return (
+    <div
+      className="relative flex items-center justify-center"
+      style={{ width: size.outer, height: size.outer, pointerEvents: "none" }}
+    >
       <div
-        className="w-10 h-10 overflow-hidden border-2 border-yellow-500"
-        style={{ boxShadow: "0 0 16px rgba(200,168,75,0.65)" }}
+        className={`${ring1} absolute ${size.ring} rounded-full border-2 ${ringBorder.strong}`}
+      />
+      <div
+        className={`${ring2} absolute ${size.ring} rounded-full border ${ringBorder.soft}`}
+      />
+      <div
+        className={`${pulse} relative z-10 flex flex-col items-center gap-1`}
       >
-        {image ? (
-          <img src={image} alt={name} className="w-full h-full object-cover" />
-        ) : (
-          <div className="w-full h-full bg-stone-900 flex items-center justify-center text-yellow-500 font-bold text-sm">
-            {name?.[0]?.toUpperCase()}
-          </div>
-        )}
+        <div
+          className={`${size.img} ${rounded} overflow-hidden border-2 ${ringBorder.img}`}
+          style={{ boxShadow: glow }}
+        >
+          {image ? (
+            <img
+              src={image}
+              alt={name}
+              className="w-full h-full object-cover"
+            />
+          ) : (
+            <div
+              className={`w-full h-full bg-stone-900 flex items-center justify-center ${fallbackText} font-bold text-sm`}
+            >
+              {fallback}
+            </div>
+          )}
+        </div>
+        <span className="bg-black/80 text-cream text-xs font-semibold px-1.5 py-0.5 rounded max-w-[96px] truncate leading-none whitespace-nowrap">
+          {label}
+        </span>
       </div>
-      <span className="bg-black/80 text-cream text-xs font-semibold px-1.5 py-0.5 rounded max-w-[96px] truncate leading-none whitespace-nowrap">
-        {venueName || name}
-      </span>
     </div>
-  </div>
-);
+  );
+};
+
+const NEARBY_PIN_CONFIG = {
+  parking: {
+    letter: "P",
+    colors:
+      "border-blue-500/70 bg-blue-500/30 text-blue-400 shadow-blue-500/60",
+  },
+  lodging: {
+    letter: "H",
+    colors:
+      "border-purple-500/70 bg-purple-500/20 text-purple-400 shadow-purple-500/60",
+  },
+  transit: {
+    letter: "T",
+    colors:
+      "border-orange-500/70 bg-orange-500/20 text-orange-400 shadow-orange-500/60",
+  },
+};
+
+const NearbyPin = ({ category, name }) => {
+  const cfg = NEARBY_PIN_CONFIG[category];
+  return (
+    <div
+      className="relative flex items-center justify-center"
+      style={{ width: 64, height: 64, pointerEvents: "none" }}
+    >
+      <div className="relative z-10 flex flex-col items-center gap-0.5">
+        <div
+          className={`w-6 h-6 rounded-full flex items-center backdrop-blur-lg justify-center border-2 font-bold text-[10px] shadow-md ${cfg.colors}`}
+        >
+          {cfg.letter}
+        </div>
+        <span className="bg-black/80 text-cream text-[9px] font-semibold px-1 py-0.5 rounded max-w-[70px] truncate leading-none whitespace-nowrap">
+          {name}
+        </span>
+      </div>
+    </div>
+  );
+};
 
 export default HowToGet;
