@@ -105,7 +105,7 @@ const ContentSide = ({ currentNews }) => {
   };
   return (
     <motion.article
-      className="left-clip bg-stone-900 absolute right-[7.5%] lg:right-30 top-0 w-2/4 h-full"
+      className="left-clip bg-stone-900 absolute right-3 lg:right-30 top-0 w-[55%] lg:w-2/4 h-full"
       variants={contentVariants}
       initial="initial"
       animate="animate"
@@ -116,7 +116,7 @@ const ContentSide = ({ currentNews }) => {
           <Title
             text={currentNews.title}
             color="gold"
-            className="text-end text-xs leading-6"
+            className="text-end text-xs leading-none lg:leading-6"
           />
         </FlexBox>
         <div className="flex items-end flex-col">
@@ -159,7 +159,7 @@ const ImageSide = ({ currentNews }) => {
   };
   return (
     <motion.div
-      className="right-clip h-full w-2/4 left-[7.5%] lg:left-30 top-0 absolute"
+      className="right-clip h-full w-[55%] lg:w-2/4 left-3 lg:left-30 top-0 absolute"
       variants={imageVariants}
       initial="initial"
       animate="animate"

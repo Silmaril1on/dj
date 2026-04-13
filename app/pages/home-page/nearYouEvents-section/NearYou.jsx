@@ -147,17 +147,25 @@ const NearYou = () => {
   const [usedCity, setUsedCity] = useState(false);
 
   useEffect(() => {
-    try {
-      const stored = localStorage.getItem("userLocation");
-      if (stored) {
-        const parsed = JSON.parse(stored);
-        if (parsed?.country)
-          setLocation({ country: parsed.country, city: parsed.city || null });
+    const readLocation = () => {
+      try {
+        const stored = localStorage.getItem("userLocation");
+        if (stored) {
+          const parsed = JSON.parse(stored);
+          if (parsed?.country)
+            setLocation({ country: parsed.country, city: parsed.city || null });
+        }
+      } catch {
+        // localStorage unavailable
       }
-    } catch {
-      // localStorage unavailable
-    }
-    setLoading(false);
+      setLoading(false);
+    };
+
+    readLocation();
+
+    // Re-read when UserRegion writes location in this tab after component already mounted
+    window.addEventListener("userLocationSet", readLocation);
+    return () => window.removeEventListener("userLocationSet", readLocation);
   }, []);
 
   useEffect(() => {
@@ -209,9 +217,9 @@ const NearYou = () => {
   return (
     <SectionContainer
       title={`Don't Miss ${usedCity && location?.city ? location.city : location?.country || ""} Events`}
-      description="Upcoming events near you. Get reminders, share with friends, and discover who's playing around"
+      description="Upcoming events near you. Get reminders  and discover who's playing around"
     >
-      <div className="grid grid-cols-2 gap-3 px-2 lg:px-[15%] pb-3 w-full ">
+      <div className="grid lg:grid-cols-2 gap-3  lg:px-[15%] pb-3 w-full ">
         {/* Left — featured */}
         <div className="relative h-full min-h-[400px] overflow-hidden">
           <AnimatePresence mode="sync" initial={false}>
@@ -220,7 +228,7 @@ const NearYou = () => {
         </div>
 
         {/* Right — 3×3 thumbnails */}
-        <div className="grid grid-cols-3 gap-x-3">
+        <div className="grid grid-cols-3 gap-x-3 ">
           {thumbEvents.map((event, i) => (
             <ThumbCard
               key={event._key}

@@ -28,6 +28,7 @@ const writeCache = (loc) => {
       CACHE_KEY,
       JSON.stringify({ ...loc, timestamp: Date.now() }),
     );
+    window.dispatchEvent(new CustomEvent("userLocationSet"));
   } catch {}
 };
 
