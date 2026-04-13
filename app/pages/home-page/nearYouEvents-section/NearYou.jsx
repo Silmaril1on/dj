@@ -147,11 +147,6 @@ const NearYou = () => {
   const [usedCity, setUsedCity] = useState(false);
 
   useEffect(() => {
-    // TEST: Frankfurt override
-    setLocation({ country: "Germany", city: "Frankfurt" });
-    setLoading(false);
-    return;
-
     try {
       const stored = localStorage.getItem("userLocation");
       if (stored) {
