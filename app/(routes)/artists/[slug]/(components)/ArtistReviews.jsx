@@ -11,8 +11,6 @@ const ArtistReviews = ({ data, slug }) => {
     return null;
   }
 
-  console.log(data, "6 REVIEWS for current artist ARTISTREVIEWS.jsx");
-
   return (
     <SectionContainer
       size="sm"

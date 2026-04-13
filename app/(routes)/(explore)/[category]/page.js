@@ -28,7 +28,6 @@ const CategoryListingPage = async ({ params }) => {
   try {
     const response = await fetch(config.apiEndpoint(process.env.PROJECT_URL), {
       ...config.fetchOptions,
-      cache: "no-store",
       headers: {
         ...config.fetchOptions?.headers,
         Cookie: cookieHeader,

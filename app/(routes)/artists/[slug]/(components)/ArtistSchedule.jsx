@@ -192,8 +192,6 @@ const ArtistSchedule = ({
     return status === activeType;
   });
 
-  console.log(data, "Artist Schedule data from ARTISTTSCHEDULE.jsx");
-
   return (
     <SectionContainer title={title} description={description} className="mt-10">
       <article className="center flex-col w-full">

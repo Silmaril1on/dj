@@ -4,7 +4,7 @@ export const CATEGORY_CONFIGS = {
     listing: {
       apiEndpoint: (baseUrl) => `${baseUrl}/api/club?limit=30&offset=0`,
       fetchOptions: {
-        next: { revalidate: 1200, tags: ["clubs"] },
+        cache: "no-store",
         headers: { "Content-Type": "application/json" },
       },
       extractData: (json) => json?.data || [],
@@ -40,7 +40,7 @@ export const CATEGORY_CONFIGS = {
       apiEndpoint: (baseUrl) =>
         `${baseUrl}/api/events/get-upcoming-events?limit=20&offset=0`,
       fetchOptions: {
-        next: { revalidate: 1200, tags: ["events"] },
+        cache: "no-store",
         headers: { "Content-Type": "application/json" },
       },
       extractData: (json) => json?.data || [],

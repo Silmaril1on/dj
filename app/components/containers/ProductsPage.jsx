@@ -239,8 +239,6 @@ const ProductsPage = ({
 
   const hasServerFilters = Object.keys(serverFilters).length > 0;
 
-  console.log(initialData, "////");
-
   return (
     <div className="space-y-3 px-3 lg:px-4 pb-5">
       {/* Headline */}
