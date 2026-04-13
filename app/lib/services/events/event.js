@@ -22,6 +22,69 @@ const normalizeArtistName = (name) =>
 const EVENT_SELECT_LIMITED =
   "id, event_image, event_name, date, country, city, artists, event_type";
 
+export async function getNearYouEvents(country, city, { limit = 10 } = {}) {
+  if (!country) throw new ServiceError("Country is required", 400);
+  const todayStr = getTodayDateOnlyString();
+
+  const EVENT_NEAR_YOU_FIELDS =
+    "id, event_name, event_image, date, city, country, artists, venue_name, address, location_url, promoter, doors_open, links";
+
+  let data = null;
+  let usedCity = false;
+
+  // Try city-level first
+  if (city) {
+    const { data: cityData, error: cityError } = await supabaseAdmin
+      .from("events")
+      .select(EVENT_NEAR_YOU_FIELDS)
+      .eq("country", country)
+      .ilike("city", city)
+      .eq("status", "approved")
+      .gte("date", todayStr)
+      .order("date", { ascending: true })
+      .limit(limit);
+
+    if (!cityError && cityData?.length > 0) {
+      data = cityData;
+      usedCity = true;
+    }
+  }
+
+  // Fall back to country-level
+  if (!data) {
+    const { data: countryData, error: countryError } = await supabaseAdmin
+      .from("events")
+      .select(EVENT_NEAR_YOU_FIELDS)
+      .eq("country", country)
+      .eq("status", "approved")
+      .gte("date", todayStr)
+      .order("date", { ascending: true })
+      .limit(limit);
+
+    if (countryError) throw new ServiceError("Failed to fetch events", 500);
+    data = countryData;
+  }
+
+  if (!data?.length) return [];
+
+  const eventIds = data.map((e) => e.id);
+  const { data: likesData } = await supabaseAdmin
+    .from("event_likes")
+    .select("event_id")
+    .in("event_id", eventIds);
+
+  const likesCountMap = {};
+  (likesData || []).forEach((like) => {
+    likesCountMap[like.event_id] = (likesCountMap[like.event_id] || 0) + 1;
+  });
+
+  return data.map((event) => ({
+    ...event,
+    likesCount: likesCountMap[event.id] || 0,
+    _cityMatch: usedCity,
+  }));
+}
+
 export async function getLimitedEvents({ limit = 15, offset = 0 } = {}) {
   const todayStr = getTodayDateOnlyString();
 

@@ -628,16 +628,16 @@ export const formConfigs = {
         placeholder: "Enter news title",
       },
       description: {
-        type: "textarea",
-        required: true,
-        label: "Content",
-        placeholder: "Enter the main content of the news article",
-      },
-      content: {
         type: "text",
         required: false,
         label: "Sub-title",
         placeholder: "Enter a sub-title",
+      },
+      content: {
+        type: "textarea",
+        required: true,
+        label: "Content",
+        placeholder: "Enter the main content of the news article",
       },
       link: {
         type: "text",

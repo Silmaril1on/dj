@@ -25,6 +25,7 @@ export const countries = [
   "Romania",
   "Bulgaria",
   "Croatia",
+  "Serbia",
   "Slovakia",
   "Slovenia",
   "Estonia",

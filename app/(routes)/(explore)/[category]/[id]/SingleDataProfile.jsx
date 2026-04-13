@@ -8,6 +8,7 @@ import ProfilePoster from "./(components)/ProfilePoster";
 import FestivalLineupDisplay from "./(components)/FestivalLineupDisplay";
 import FestivalTicketsDisplay from "./(components)/FestivalTicketsDisplay";
 import HowToGet from "./(components)/HowToGet";
+import CountDown from "./(components)/CountDown";
 import { PROFILE_TYPE_CONFIG, extractProfileData } from "./profileConfigs";
 
 const SingleDataProfile = ({ data, type = "events", currentUserId = null }) => {
@@ -21,8 +22,6 @@ const SingleDataProfile = ({ data, type = "events", currentUserId = null }) => {
     type === "clubs" ? "club" : type === "events" ? "event" : "festival",
     profileData.id,
   );
-
-  console.log(data, "Data from Events, Clubs, Festivals Page");
 
   return (
     <div className="flex flex-col pb-5">
@@ -58,6 +57,11 @@ const SingleDataProfile = ({ data, type = "events", currentUserId = null }) => {
 
       {type === "festivals" && (
         <FestivalTicketsDisplay festivalId={profileData.id} />
+      )}
+
+      {/* Countdown — festivals only */}
+      {type === "festivals" && profileData.start_date && (
+        <CountDown startDate={profileData.start_date} />
       )}
 
       {/* How to Get There — clubs, events, festivals */}

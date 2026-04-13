@@ -6,7 +6,11 @@ import { FaFacebook } from "react-icons/fa";
 import { FaXTwitter, FaRegCopy } from "react-icons/fa6";
 import ActionButton from "@/app/components/buttons/ActionButton";
 
-const ShareButton = ({ className, artistName = "this artist" }) => {
+const ShareButton = ({
+  className,
+  artistName = "this artist",
+  url: urlProp,
+}) => {
   const [isOpen, setIsOpen] = useState(false);
   const [copied, setCopied] = useState(false);
   const dropdownRef = useRef(null);
@@ -30,9 +34,11 @@ const ShareButton = ({ className, artistName = "this artist" }) => {
 
   const getCurrentUrl = () => {
     if (typeof window !== "undefined") {
-      return window.location.href;
+      return urlProp
+        ? `${window.location.origin}${urlProp}`
+        : window.location.href;
     }
-    return "";
+    return urlProp || "";
   };
 
   const handleShare = (type) => {

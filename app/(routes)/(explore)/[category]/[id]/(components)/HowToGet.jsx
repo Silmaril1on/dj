@@ -123,6 +123,8 @@ const MAP_STYLES = [
 const MAP_CONTAINER_STYLE = { width: "100%", height: "100%" };
 const LIBRARIES = ["places"];
 
+const FRANKFURT = { lat: 50.1109, lng: 8.6821 };
+
 const PRIMARY_ROUTE_OPTIONS = {
   suppressMarkers: true,
   polylineOptions: {
@@ -180,13 +182,26 @@ const HowToGet = ({ data, type }) => {
       .catch(() => setVenueCoords(null));
   }, [isLoaded, address]);
 
-  // Auto-fetch user location when map loads so the pin appears immediately
-  // TODO: remove simulated coords and restore geolocation when done testing
+  // Auto-populate user location once map + venue are ready
   useEffect(() => {
-    if (!isLoaded) return;
-    // Simulated location: Frankfurt, Germany
-    setUserCoords({ lat: 50.1244676, lng: 8.4213321 });
-  }, [isLoaded]);
+    if (!isLoaded || !venueCoords) return;
+    let coords = null;
+    try {
+      const raw = localStorage.getItem("userLocation");
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        if (parsed?.lat && parsed?.lng)
+          coords = { lat: parsed.lat, lng: parsed.lng };
+      }
+    } catch {
+      // unavailable
+    }
+    if (coords) {
+      setUserCoords(coords);
+      fetchDistanceAndRoute(coords);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isLoaded, venueCoords]);
 
   const onMapLoad = useCallback(
     (map) => {
@@ -259,10 +274,26 @@ const HowToGet = ({ data, type }) => {
   );
 
   const handleGetDistance = () => {
-    // TODO: remove simulated coords and restore geolocation when done testing
-    const coords = { lat: 50.1244676, lng: 8.4213321 }; // Frankfurt simulation
-    setUserCoords(coords);
-    fetchDistanceAndRoute(coords);
+    if (!navigator.geolocation) {
+      setGeoError("Geolocation is not supported by your browser.");
+      return;
+    }
+    setLoadingDistance(true);
+    setGeoError(null);
+    navigator.geolocation.getCurrentPosition(
+      ({ coords }) => {
+        const userLocation = { lat: coords.latitude, lng: coords.longitude };
+        setUserCoords(userLocation);
+        fetchDistanceAndRoute(userLocation);
+      },
+      () => {
+        setLoadingDistance(false);
+        setGeoError(
+          "Unable to retrieve your location. Please allow location access.",
+        );
+      },
+      { enableHighAccuracy: true, timeout: 10000 },
+    );
   };
 
   const handleCalculate = async () => {
@@ -470,7 +501,7 @@ const HowToGet = ({ data, type }) => {
                     const isActive = activeNearby.has(key);
                     const isLoading = loadingNearby[key];
                     return (
-                      <Motion key={key} animation="left" delay={delay}>
+                      <Motion key={key} animation="fade" delay={delay}>
                         <button
                           onClick={() => fetchNearby(key)}
                           disabled={isLoading || !venueCoords}

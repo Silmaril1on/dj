@@ -27,6 +27,7 @@ const countryCodeToName = {
   RO: "Romania",
   BG: "Bulgaria",
   HR: "Croatia",
+  RS: "Serbia",
   SK: "Slovakia",
   SI: "Slovenia",
   EE: "Estonia",

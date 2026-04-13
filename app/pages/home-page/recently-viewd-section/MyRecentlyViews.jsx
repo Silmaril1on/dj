@@ -56,8 +56,6 @@ const MyRecentlyViews = () => {
     return null;
   }
 
-  console.log(recentItems, "///recentItems");
-
   const cardWidth = 176;
   const spacing = 12;
   const totalContentWidth = recentItems.length * (cardWidth + spacing);

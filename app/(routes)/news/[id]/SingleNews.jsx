@@ -1,9 +1,8 @@
-"use client"
+"use client";
 import Title from "@/app/components/ui/Title";
 import Paragraph from "@/app/components/ui/Paragraph";
 import ProfilePicture from "@/app/components/materials/ProfilePicture";
 import MyLink from "@/app/components/ui/MyLink";
-import EmailTag from '@/app/components/ui/EmailTag';
 import SpanText from "@/app/components/ui/SpanText";
 import { formatTime } from "@/app/helpers/utils";
 import { FaLink } from "react-icons/fa";
@@ -26,11 +25,10 @@ const SingleNews = ({ news }) => {
             />
           </div>
         </div>
-        <EmailTag email={news.submitter.email} />
       </div>
       <Title text={news.title} size="xl" />
       <Paragraph text={news.description} className="mt-2" />
-          <div className=" px-[20%]">
+      <div className=" px-[20%]">
         <img
           src={news.news_image}
           alt={news.title}

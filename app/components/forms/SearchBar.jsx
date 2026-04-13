@@ -13,6 +13,7 @@ const SearchBar = () => {
   const [showDropdown, setShowDropdown] = useState(false);
   const router = useRouter();
   const timeoutRef = useRef();
+  const abortRef = useRef();
 
   const handleChange = (e) => {
     e.stopPropagation();
@@ -28,11 +29,22 @@ const SearchBar = () => {
 
     setLoading(true);
     timeoutRef.current = setTimeout(async () => {
-      const res = await fetch(`/api/search?q=${encodeURIComponent(value)}`);
-      const data = await res.json();
-      setResults(data.results || []);
-      setShowDropdown(true);
-      setLoading(false);
+      abortRef.current?.abort();
+      abortRef.current = new AbortController();
+      try {
+        const res = await fetch(`/api/search?q=${encodeURIComponent(value)}`, {
+          signal: abortRef.current.signal,
+        });
+        const data = await res.json();
+        setResults(data.results || []);
+        setShowDropdown(true);
+      } catch (err) {
+        if (err.name !== "AbortError") {
+          setResults([]);
+        }
+      } finally {
+        setLoading(false);
+      }
     }, 300);
   };
 
@@ -40,8 +52,11 @@ const SearchBar = () => {
     setShowDropdown(false);
     setQuery("");
     if (item.type === "artist") router.push(`/artists/${item.artist_slug}`);
-    if (item.type === "club") router.push(`/clubs/${item.id}`);
+    if (item.type === "club")
+      router.push(`/clubs/${item.club_slug || item.id}`);
     if (item.type === "event") router.push(`/events/${item.id}`);
+    if (item.type === "festival")
+      router.push(`/festivals/${item.festival_slug || item.id}`);
   };
 
   return (
@@ -49,7 +64,7 @@ const SearchBar = () => {
       initial={{ y: "-100px" }}
       animate={{ y: 0 }}
       transition={{ duration: 0.4, delay: 0.7 }}
-      className="relative center w-full"
+      className="relative center w-full "
     >
       <div className="relative w-full">
         <input
@@ -88,7 +103,9 @@ const SearchBar = () => {
                     ? item.artist_image
                     : item.type === "club"
                       ? item.club_image
-                      : item.event_image
+                      : item.type === "festival"
+                        ? item.poster
+                        : item.event_image
                 }
                 alt={item.name || item.stage_name || item.event_name}
                 className="w-8 h-8 rounded object-cover"
@@ -99,6 +116,7 @@ const SearchBar = () => {
                   {item.type === "artist" && (item.stage_name || item.name)}
                   {item.type === "club" && item.name}
                   {item.type === "event" && item.venue_name}
+                  {item.type === "festival" && item.name}
                 </div>
                 <div className="text-[10px] lg:text-xs text-stone-400 flex items-center">
                   <ArtistCountry

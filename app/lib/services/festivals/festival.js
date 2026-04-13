@@ -115,10 +115,14 @@ export async function getFestivalById(slug, cookieStore) {
   if (!slug) throw new ServiceError("Festival slug is required", 400);
   const supabase = await getSupabaseServerClient(cookieStore);
 
+  const isUUID =
+    /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(
+      slug,
+    );
   const { data: festival, error } = await supabase
     .from("festivals")
     .select("*")
-    .eq("festival_slug", slug)
+    .eq(isUUID ? "id" : "festival_slug", slug)
     .single();
 
   if (error || !festival) throw new ServiceError("Festival not found", 404);

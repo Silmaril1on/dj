@@ -28,6 +28,7 @@ export const getCountryCode = (countryName) => {
     romania: "RO",
     bulgaria: "BG",
     croatia: "HR",
+    serbia: "RS",
     slovakia: "SK",
     slovenia: "SI",
     estonia: "EE",

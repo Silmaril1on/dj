@@ -37,17 +37,6 @@ export const filterConfigs = {
       options: [],
     },
     {
-      name: "capacity",
-      label: "Capacity",
-      type: "select",
-      options: [
-        { value: "small", label: "Small (0-500)" },
-        { value: "medium", label: "Medium (500-1500)" },
-        { value: "large", label: "Large (1500-5000)" },
-        { value: "massive", label: "Massive (5000+)" },
-      ],
-    },
-    {
       name: "sort",
       label: "Sort By",
       type: "select",
@@ -80,16 +69,6 @@ export const filterConfigs = {
       label: "Genre",
       type: "select",
       options: [],
-    },
-    {
-      name: "rating_range",
-      label: "Rating Range",
-      type: "select",
-      options: [
-        { value: "high", label: "High (8.0-10.0)" },
-        { value: "medium", label: "Medium (6.0-7.9)" },
-        { value: "low", label: "Low (0-5.9)" },
-      ],
     },
     {
       name: "sort",
