@@ -33,7 +33,7 @@ const NavLinks = ({ type, onClose }) => {
       {links.map((link, index) => (
         <Motion
           key={link.href}
-          animation={isSidebar ? "left" : "fade"}
+          animation={isSidebar ? " " : "fade"}
           delay={isSidebar ? index * 0.15 : 0.4}
         >
           <Link className="  " href={link.href} onClick={handleLinkClick}>

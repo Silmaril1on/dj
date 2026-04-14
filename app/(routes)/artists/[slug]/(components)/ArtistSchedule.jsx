@@ -243,14 +243,12 @@ const ArtistSchedule = ({
                         </button>
                       </>
                     )}
-                    <MdCalendarToday size={18} />
-                    <span className="font-semibold text-xs lg:text-lg  pointer-events-none">
+                    <span className="font-semibold text-xs lg:text-lg  pointer-events-none leading-none">
                       {formatBirthdate(schedule.date)}
                     </span>
                   </div>
                   {/* Time */}
-                  <div className="flex justify-start lg:justify-center items-center gap-2 text-xs lg:text-base text-chino font-bold pointer-events-none">
-                    <MdAccessTime />
+                  <div className="flex justify-start lg:justify-center items-center gap-2 text-xs lg:text-base text-chino pointer-events-none leading-none">
                     <span>{schedule.time}</span>
                   </div>
                   {/* Location or Minimum Age */}

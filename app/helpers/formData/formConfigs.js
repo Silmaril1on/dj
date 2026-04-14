@@ -841,7 +841,7 @@ export const formConfigs = {
         placeholder: "Brief description of the festival",
         rows: 3,
       },
-      story: {
+      bio: {
         type: "textarea",
         required: false,
         label: "Story",

@@ -201,7 +201,7 @@ const Panel = ({ open, setOpen, event }) => {
                   />
                 </div>
                 <Title
-                  className="uppercase text-start"
+                  className="uppercase text-start leading-4"
                   text={event.event_name}
                 />
                 <FlexBox type="column-start" className="my-2 lg:my-4">
@@ -245,7 +245,7 @@ const Panel = ({ open, setOpen, event }) => {
                 </FlexBox>
                 {event?.description && (
                   <div className="w-[80%] mt-2">
-                    <Paragraph text={truncateString(event?.description, 500)} />
+                    <Paragraph text={truncateString(event?.description, 300)} />
                   </div>
                 )}
               </div>

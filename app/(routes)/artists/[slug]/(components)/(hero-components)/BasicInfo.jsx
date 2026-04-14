@@ -112,7 +112,7 @@ const Label = ({ label }) => {
       {label?.map((item, idx) => (
         <h1
           key={idx}
-          className={`px-4 py-1 cursor-pointer duration-300 hover:bg-emperor/40 bg-cream/20 border border-cream/30 rounded-sm uppercase text-cream font-bold ${
+          className={`px-4 py-1 cursor-pointer duration-300 center text-center hover:bg-emperor/40 bg-cream/20 border border-cream/30 rounded-sm uppercase text-cream font-bold ${
             label.length > 3 ? "text-xs" : "text-sm"
           }`}
         >

@@ -87,21 +87,21 @@ const ProductCard = ({
               Capacity: {capacity.toLocaleString()}
             </p>
           )}
+          {artists.length > 0 && (
+            <div className="flex flex-wrap pt-1">
+              {artists.slice(0, 5).map((artist, idx) => (
+                <div className="flex mr-2 space-x-1 items-center" key={idx}>
+                  <Title
+                    color="chino"
+                    className="uppercase text-[12px] lg:text-lg"
+                    text={artist}
+                  />
+                  {idx < artists.length - 1 && <Dot />}
+                </div>
+              ))}
+            </div>
+          )}
         </div>
-        {artists.length > 0 && (
-          <div className="flex flex-wrap">
-            {artists.slice(0, 5).map((artist, idx) => (
-              <div className="flex mr-2 space-x-1 items-center" key={idx}>
-                <Title
-                  color="chino"
-                  className="uppercase text-[12px] lg:text-lg leading-none"
-                  text={artist}
-                />
-                {idx < artists.length - 1 && <Dot className="leading-none" />}
-              </div>
-            ))}
-          </div>
-        )}
         {hasScore && (
           <div className="absolute z-10 top-4 left-4">
             <SpanText
