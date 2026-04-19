@@ -26,7 +26,7 @@ const SingleDataProfile = ({ data, type = "events", currentUserId = null }) => {
   return (
     <div className="flex flex-col pb-5">
       {/* Header with Lineup and Actions/Controls */}
-      <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-2 p-2 lg:p-4">
+      <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-2 p-1 lg:p-4">
         <ProfileLineup title={config.lineupTitle} data={profileData.lineup} />
         <ProfileActions
           data={profileData}

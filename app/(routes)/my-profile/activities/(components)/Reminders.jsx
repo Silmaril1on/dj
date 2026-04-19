@@ -28,7 +28,7 @@ const Reminders = ({ reminders = [], error = null }) => {
         <ProductCard
           key={event.id}
           id={event.id}
-          image={event.event_image}
+          image={event.image_url}
           name={event.venue_name || "Event"}
           country={event.country}
           city={event.city}

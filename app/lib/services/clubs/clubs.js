@@ -3,16 +3,18 @@ import {
   ServiceError,
   parseArrayField,
   validateImageFile,
-  extractPublicObjectPath,
   sanitizeStorageBaseName,
-  sanitizeFileExtension,
   getAuthenticatedContext,
   getSupabaseServerClient,
   getSupabaseAdminClient,
 } from "../shared";
+import {
+  processAndUploadImage,
+  deleteImageVariants,
+} from "@/app/lib/services/imageProcessing";
 
 const CLUB_SELECT_LIMITED =
-  "id, name, club_slug, country, city, club_image, capacity, address";
+  "id, name, club_slug, country, city, image_url, capacity, address";
 
 const validateClubContactFields = ({ location_url, venue_email }) => {
   if (venue_email && String(venue_email).trim() !== "") {
@@ -78,11 +80,12 @@ export async function getClubById(id, cookieStore) {
   if (!id) throw new ServiceError("Club ID is required", 400);
   const admin = getSupabaseAdminClient();
   const supabase = await getSupabaseServerClient(cookieStore);
-  const { data, error } = await supabase
-    .from("clubs")
-    .select("*")
-    .eq("id", id)
-    .single();
+  const isUUID =
+    /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id);
+  const baseQuery = supabase.from("clubs").select("*");
+  const { data, error } = await (
+    isUUID ? baseQuery.eq("id", id) : baseQuery.eq("club_slug", id)
+  ).single();
   if (error || !data) throw new ServiceError("Club not found", 404);
 
   const { count: likesCount } = await admin
@@ -131,21 +134,28 @@ export async function createClub(formData, cookieStore) {
   validateClubContactFields({ location_url, venue_email });
   validateImageFile({
     file: clubImage,
-    maxSize: 1 * 1024 * 1024,
+    maxSize: 10 * 1024 * 1024,
     requiredMessage: "Club image is required",
   });
 
-  const fileExtension = sanitizeFileExtension(clubImage.name);
-  const fileName = `${sanitizeStorageBaseName(name, "club")}_${Date.now()}.${fileExtension}`;
+  const fileExtension = sanitizeStorageBaseName(name, "club");
+  const baseName = `${fileExtension}_${Date.now()}`;
 
-  const { error: uploadError } = await admin.storage
-    .from("club_images")
-    .upload(fileName, clubImage, { cacheControl: "3600", upsert: false });
-  if (uploadError) throw new ServiceError("Failed to upload image", 500);
+  console.log("[createClub] Starting image upload. baseName:", baseName);
 
-  const {
-    data: { publicUrl },
-  } = admin.storage.from("club_images").getPublicUrl(fileName);
+  let imageUrls;
+  try {
+    imageUrls = await processAndUploadImage(
+      clubImage,
+      admin,
+      "club_images",
+      baseName,
+    );
+    console.log("[createClub] Image upload complete. URLs:", imageUrls);
+  } catch (err) {
+    console.error("[createClub] Image upload failed:", err.message);
+    throw new ServiceError(err.message || "Failed to upload image", 500);
+  }
 
   const social_links = parseArrayField(formData, "social_links");
   const residents = parseArrayField(formData, "residents");
@@ -163,7 +173,7 @@ export async function createClub(formData, cookieStore) {
     social_links,
     residents,
     status: "pending",
-    club_image: publicUrl,
+    image_url: imageUrls,
     address: address || null,
     location_url:
       location_url && String(location_url).trim() !== ""
@@ -175,16 +185,35 @@ export async function createClub(formData, cookieStore) {
         : null,
   };
 
+  console.log("[createClub] Inserting club into DB:", {
+    name,
+    status: "pending",
+    user_id: user.id,
+  });
+
   const { data: newClub, error: insertError } = await admin
     .from("clubs")
     .insert([clubData])
     .select()
     .single();
-  if (insertError)
+  if (insertError) {
+    console.error(
+      "[createClub] DB insert failed:",
+      insertError.message,
+      insertError,
+    );
     throw new ServiceError(
       `Failed to create club: ${insertError.message}`,
       500,
     );
+  }
+
+  console.log(
+    "[createClub] Club created successfully. id:",
+    newClub.id,
+    "image_url:",
+    newClub.image_url,
+  );
 
   if (!user.is_admin) {
     await supabase
@@ -242,35 +271,33 @@ export async function updateClub(formData, cookieStore) {
   const venue_email = formData.get("venue_email");
   validateClubContactFields({ location_url, venue_email });
 
-  let clubImageUrl = existingClub.club_image;
+  let clubImageUrl = existingClub.image_url;
   const clubImage = formData.get("club_image");
   if (clubImage instanceof File && clubImage.size > 0) {
     validateImageFile({
       file: clubImage,
       required: false,
-      maxSize: 1 * 1024 * 1024,
+      maxSize: 10 * 1024 * 1024,
     });
-    const oldImagePath = extractPublicObjectPath(
-      existingClub.club_image,
-      "club_images",
+
+    await deleteImageVariants(existingClub.image_url, admin, "club_images");
+
+    const safeName = sanitizeStorageBaseName(
+      name || existingClub.name || "club",
+      "club",
     );
-    if (oldImagePath) {
-      await admin.storage.from("club_images").remove([oldImagePath]);
+    const baseName = `${safeName}_${Date.now()}`;
+
+    try {
+      clubImageUrl = await processAndUploadImage(
+        clubImage,
+        admin,
+        "club_images",
+        baseName,
+      );
+    } catch (err) {
+      throw new ServiceError(err.message || "Failed to upload image", 500);
     }
-
-    const safeName = name || existingClub.name || "club";
-    const fileExtension = sanitizeFileExtension(clubImage.name);
-    const fileName = `${sanitizeStorageBaseName(safeName, "club")}_${Date.now()}.${fileExtension}`;
-
-    const { error: uploadError } = await admin.storage
-      .from("club_images")
-      .upload(fileName, clubImage, { cacheControl: "3600", upsert: false });
-
-    if (uploadError) throw new ServiceError("Failed to upload image", 500);
-    const {
-      data: { publicUrl },
-    } = admin.storage.from("club_images").getPublicUrl(fileName);
-    clubImageUrl = publicUrl;
   }
 
   const rawSlug = formData.get("club_slug");
@@ -284,7 +311,7 @@ export async function updateClub(formData, cookieStore) {
     address: formData.get("address"),
     residents: parseArrayField(formData, "residents"),
     social_links: parseArrayField(formData, "social_links"),
-    club_image: clubImageUrl,
+    image_url: clubImageUrl,
     location_url:
       location_url && String(location_url).trim() !== ""
         ? String(location_url).trim()
@@ -334,14 +361,8 @@ export async function deleteClub(clubId, cookieStore) {
     throw new ServiceError("You are not allowed to delete this club", 403);
   }
 
-  if (existingClub.club_image) {
-    const oldImagePath = extractPublicObjectPath(
-      existingClub.club_image,
-      "club_images",
-    );
-    if (oldImagePath) {
-      await admin.storage.from("club_images").remove([oldImagePath]);
-    }
+  if (existingClub.image_url) {
+    await deleteImageVariants(existingClub.image_url, admin, "club_images");
   }
 
   const { error } = await admin.from("clubs").delete().eq("id", clubId);

@@ -8,12 +8,15 @@ import {
   ServiceError,
   parseArrayField,
   validateImageFile,
-  extractPublicObjectPath,
   sanitizeFileExtension,
   getAuthenticatedContext,
   getSupabaseServerClient,
   getSupabaseAdminClient,
 } from "@/app/lib/services/shared";
+import {
+  processAndUploadImage,
+  deleteImageVariants,
+} from "@/app/lib/services/imageProcessing";
 
 export async function getArtistProfile(slug) {
   return unstable_cache(
@@ -40,7 +43,7 @@ export async function getArtistById(id, cookieStore) {
   const { data, error } = await supabase
     .from("artists")
     .select(
-      "id, name, stage_name, artist_slug, country, city, sex, is_band, birth, desc, bio, genres, social_links, label, artist_image, status, created_at, updated_at, user_id",
+      "id, name, stage_name, artist_slug, country, city, sex, is_band, birth, desc, bio, genres, social_links, label, image_url, status, created_at, updated_at, user_id",
     )
     .eq("id", id)
     .single();
@@ -55,7 +58,7 @@ export async function getArtisForHomePage(cookieStore, userId = null) {
   const { data: artists, error: artistsError } = await supabase
     .rpc("get_random_artists", { limit_count: 18 })
     .select(
-      "id, name, stage_name, artist_image, artist_slug, country, city, rating_stats",
+      "id, name, stage_name, image_url, artist_slug, country, city, rating_stats",
     )
     .eq("status", "approved");
 
@@ -142,7 +145,7 @@ export async function createArtist(formData, cookieStore) {
 
   validateImageFile({
     file: artistImage,
-    maxSize: 1 * 1024 * 1024,
+    maxSize: 10 * 1024 * 1024,
     requiredMessage: "Artist image is required",
   });
 
@@ -151,22 +154,27 @@ export async function createArtist(formData, cookieStore) {
   const label = parseArrayField(formData, "label");
 
   const randomId = Math.random().toString(36).substring(2, 15);
-  const fileExtension = sanitizeFileExtension(artistImage.name);
-  const fileName = `artist_${Date.now()}_${randomId}.${fileExtension}`;
+  const baseName = `artist_${Date.now()}_${randomId}`;
 
-  const { error: uploadError } = await admin.storage
-    .from("artist_profile_images")
-    .upload(fileName, artistImage, { cacheControl: "3600", upsert: false });
+  console.log("[createArtist] Starting image upload. baseName:", baseName);
 
-  if (uploadError) throw new ServiceError("Failed to upload image", 500);
-
-  const {
-    data: { publicUrl },
-  } = admin.storage.from("artist_profile_images").getPublicUrl(fileName);
+  let imageUrls;
+  try {
+    imageUrls = await processAndUploadImage(
+      artistImage,
+      admin,
+      "artist_profile_images",
+      baseName,
+    );
+    console.log("[createArtist] Image upload complete. URLs:", imageUrls);
+  } catch (err) {
+    console.error("[createArtist] Image upload failed:", err.message);
+    throw new ServiceError(err.message || "Failed to upload image", 500);
+  }
 
   const artistData = {
     name,
-    artist_image: publicUrl,
+    image_url: imageUrls,
     stage_name: stage_name || null,
     artist_slug: String(artist_slug).trim().toLowerCase(),
     sex: sex || null,
@@ -183,6 +191,13 @@ export async function createArtist(formData, cookieStore) {
     user_id: user.id,
   };
 
+  console.log("[createArtist] Inserting artist into DB. Data:", {
+    name,
+    artist_slug: artistData.artist_slug,
+    status: artistData.status,
+    user_id: user.id,
+  });
+
   const { data: newArtist, error: insertError } = await admin
     .from("artists")
     .insert([artistData])
@@ -190,11 +205,23 @@ export async function createArtist(formData, cookieStore) {
     .single();
 
   if (insertError) {
+    console.error(
+      "[createArtist] DB insert failed:",
+      insertError.message,
+      insertError,
+    );
     throw new ServiceError(
       `Failed to create artist: ${insertError.message}`,
       500,
     );
   }
+
+  console.log(
+    "[createArtist] Artist created successfully. id:",
+    newArtist.id,
+    "image_url:",
+    newArtist.image_url,
+  );
 
   if (!user.is_admin) {
     await supabase
@@ -256,7 +283,7 @@ export async function updateArtist(formData, cookieStore) {
 
   const { data: existingArtist, error: existingError } = await supabase
     .from("artists")
-    .select("artist_image")
+    .select("image_url")
     .eq("id", artistId)
     .single();
 
@@ -290,33 +317,32 @@ export async function updateArtist(formData, cookieStore) {
   if (artistImage instanceof File && artistImage.size > 0) {
     validateImageFile({
       file: artistImage,
-      maxSize: 1 * 1024 * 1024,
+      maxSize: 5 * 1024 * 1024,
       required: false,
     });
 
-    const oldImagePath = extractPublicObjectPath(
-      existingArtist.artist_image,
+    await deleteImageVariants(
+      existingArtist.image_url,
+      admin,
       "artist_profile_images",
     );
-    if (oldImagePath) {
-      await admin.storage.from("artist_profile_images").remove([oldImagePath]);
-    }
 
     const randomId = Math.random().toString(36).substring(2, 15);
-    const fileExtension = sanitizeFileExtension(artistImage.name);
-    const fileName = `artist_${Date.now()}_${randomId}.${fileExtension}`;
+    const baseName = `artist_${Date.now()}_${randomId}`;
 
-    const { error: uploadError } = await admin.storage
-      .from("artist_profile_images")
-      .upload(fileName, artistImage, { cacheControl: "3600", upsert: false });
+    let imageUrls;
+    try {
+      imageUrls = await processAndUploadImage(
+        artistImage,
+        admin,
+        "artist_profile_images",
+        baseName,
+      );
+    } catch (err) {
+      throw new ServiceError(err.message || "Failed to upload image", 500);
+    }
 
-    if (uploadError) throw new ServiceError("Failed to upload image", 500);
-
-    const {
-      data: { publicUrl },
-    } = admin.storage.from("artist_profile_images").getPublicUrl(fileName);
-
-    updateFields.artist_image = publicUrl;
+    updateFields.image_url = imageUrls;
   }
 
   Object.keys(updateFields).forEach((key) => {

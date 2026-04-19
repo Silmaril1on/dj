@@ -7,7 +7,6 @@ import ArtistCountry from "@/app/components/materials/ArtistCountry";
 import FlexBox from "@/app/components/containers/FlexBox";
 import Dot from "@/app/components/ui/Dot";
 import Paragraph from "@/app/components/ui/Paragraph";
-import Image from "next/image";
 import MyLink from "@/app/components/ui/MyLink";
 import SpanText from "@/app/components/ui/SpanText";
 import { FaArrowRight } from "react-icons/fa";
@@ -18,6 +17,7 @@ import {
   formatBirthdate,
   isOnOrAfterToday,
   truncateString,
+  resolveImage,
 } from "@/app/helpers/utils";
 
 const Events = ({ events = [] }) => {
@@ -97,14 +97,11 @@ const Panel = ({ open, setOpen, event }) => {
           className="bg-stone-900 lg:mx-1 hover:bg-gold/50 cursor-pointer border border-gold/30 hover:border-gold/50 duration-300 flex flex-row-reverse lg:flex-col justify-end items-center gap-4 relative group"
           onClick={() => setOpen(event.id)}
         >
-          {event.event_image && (
-            <Image
-              src={event.event_image}
+          {resolveImage(event.image_url, "md") && (
+            <img
+              src={resolveImage(event.image_url, "md")}
               alt={event.event_name}
-              fill
-              priority
-              sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-              className="object-cover relative z-0"
+              className="absolute inset-0 w-full h-full object-cover z-0"
             />
           )}
           <div className="bg-black/60 relative z-[2] w-full h-full p-2 lg:p-5 backdrop-blur-xs flex justify-start">
@@ -133,13 +130,11 @@ const Panel = ({ open, setOpen, event }) => {
             exit="closed"
             className="w-full h-full overflow-hidden relative flex items-end lg:mx-1 border border-gold/30"
           >
-            {event.event_image && (
-              <Image
-                src={event.event_image}
+            {resolveImage(event.image_url, "lg") && (
+              <img
+                src={resolveImage(event.image_url, "lg")}
                 alt={event.event_name}
-                width={800}
-                height={800}
-                className="absolute  right-0"
+                className="absolute right-0 h-full w-auto object-cover"
               />
             )}
             <motion.div

@@ -9,7 +9,7 @@ const getCachedSubmittedArtist = unstable_cache(
     const { data, error } = await supabaseAdmin
       .from("artists")
       .select(
-        "id, name, stage_name, artist_image, artist_slug, status, created_at, city, country",
+        "id, name, stage_name, image_url, artist_slug, status, created_at, city, country",
       )
       .eq("id", submittedArtistId);
 

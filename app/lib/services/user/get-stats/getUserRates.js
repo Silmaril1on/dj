@@ -45,7 +45,7 @@ export async function getUserRates({ page = 1, limit = 20 } = {}) {
         id: rating.artists.id,
         name: rating.artists.name,
         stage_name: rating.artists.stage_name,
-        artist_image: rating.artists.artist_image,
+        image_url: rating.artists.image_url,
         artist_slug: rating.artists.artist_slug,
         country: rating.artists.country,
         city: rating.artists.city,

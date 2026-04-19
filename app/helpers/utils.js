@@ -101,3 +101,33 @@ export function normalizeLineup(lineup) {
     )
     .filter(Boolean);
 }
+
+// Image optimization
+export const getImageUrl = (path) => {
+  if (!path) return "";
+  if (typeof path === "object") return resolveImage(path, "md");
+  if (path.startsWith("http")) {
+    return path;
+  }
+  return `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/${path}`;
+};
+
+export const resolveImage = (imageUrl, size = "md") => {
+  if (!imageUrl) return null;
+  if (typeof imageUrl === "string") {
+    // JSONB sometimes arrives as a raw JSON string through serialization boundaries
+    if (imageUrl.trimStart().startsWith("{")) {
+      try {
+        const parsed = JSON.parse(imageUrl);
+        return parsed[size] ?? parsed.md ?? parsed.lg ?? parsed.sm ?? null;
+      } catch {
+        // not JSON — treat as a plain URL
+      }
+    }
+    return imageUrl || null;
+  }
+  if (typeof imageUrl === "object") {
+    return imageUrl[size] ?? imageUrl.md ?? imageUrl.lg ?? imageUrl.sm ?? null;
+  }
+  return null;
+};

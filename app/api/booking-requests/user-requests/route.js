@@ -13,7 +13,7 @@ export async function GET(request) {
     if (userError || !user) {
       return NextResponse.json(
         { error: "User not authenticated" },
-        { status: 401 }
+        { status: 401 },
       );
     }
 
@@ -30,29 +30,34 @@ export async function GET(request) {
       console.error("Booking requests error:", bookingError);
       return NextResponse.json(
         { error: `Failed to fetch booking requests: ${bookingError.message}` },
-        { status: 500 }
+        { status: 500 },
       );
     }
-
 
     if (!bookingRequests?.length) {
       return NextResponse.json({
         success: true,
         bookingRequests: [],
-        message: "No booking requests found"
+        message: "No booking requests found",
       });
     }
 
     // Separate requests by user role
-    const receiverRequests = bookingRequests.filter(req => req.receiver_id === user.id);
-    const requesterRequests = bookingRequests.filter(req => req.requester_id === user.id);
+    const receiverRequests = bookingRequests.filter(
+      (req) => req.receiver_id === user.id,
+    );
+    const requesterRequests = bookingRequests.filter(
+      (req) => req.requester_id === user.id,
+    );
 
     let formattedRequests = [];
 
     // Handle receiver requests (DJ) - show requester data
     if (receiverRequests.length > 0) {
-      const requesterIds = [...new Set(receiverRequests.map(req => req.requester_id))];
-      
+      const requesterIds = [
+        ...new Set(receiverRequests.map((req) => req.requester_id)),
+      ];
+
       const { data: requesterUsers, error: requesterError } = await supabase
         .from("users")
         .select("id, first_name, last_name, userName, user_avatar")
@@ -65,18 +70,19 @@ export async function GET(request) {
       }
 
       const requesterMap = (requesterUsers || []).reduce((acc, userData) => {
-        const fullName = `${userData.first_name || ''} ${userData.last_name || ''}`.trim();
+        const fullName =
+          `${userData.first_name || ""} ${userData.last_name || ""}`.trim();
         acc[userData.id] = {
           id: userData.id,
           avatar: userData.user_avatar,
           userName: userData.userName,
           full_name: fullName || userData.userName,
-          email: userData.email || null
+          email: userData.email || null,
         };
         return acc;
       }, {});
 
-      const receiverFormatted = receiverRequests.map(request => ({
+      const receiverFormatted = receiverRequests.map((request) => ({
         id: request.id,
         event_name: request.event_name,
         venue_name: request.venue_name,
@@ -85,18 +91,18 @@ export async function GET(request) {
         response: request.response,
         created_at: request.created_at,
         updated_at: request.updated_at,
-        user_role: 'receiver',
+        user_role: "receiver",
         // For receiver, show requester data
         display_user: requesterMap[request.requester_id] || {
           id: request.requester_id,
           avatar: null,
-          userName: 'Unknown User',
-          full_name: 'Unknown User',
-          email: null
+          userName: "Unknown User",
+          full_name: "Unknown User",
+          email: null,
         },
         requester_id: request.requester_id,
         receiver_id: request.receiver_id,
-        artist_id: request.artist_id
+        artist_id: request.artist_id,
       }));
 
       formattedRequests.push(...receiverFormatted);
@@ -104,11 +110,13 @@ export async function GET(request) {
 
     // Handle requester requests - show artist data
     if (requesterRequests.length > 0) {
-      const artistIds = [...new Set(requesterRequests.map(req => req.artist_id))];
-      
+      const artistIds = [
+        ...new Set(requesterRequests.map((req) => req.artist_id)),
+      ];
+
       const { data: artistData, error: artistError } = await supabase
         .from("artists")
-        .select("id, name, stage_name, artist_image")
+        .select("id, name, stage_name, image_url")
         .in("id", artistIds);
 
       if (artistError) {
@@ -120,15 +128,15 @@ export async function GET(request) {
       const artistMap = (artistData || []).reduce((acc, artist) => {
         acc[artist.id] = {
           id: artist.id,
-          avatar: artist.artist_image,
+          avatar: artist.image_url,
           userName: artist.stage_name || artist.name,
           full_name: artist.name,
-          email: null // Artists don't have email
+          email: null, // Artists don't have email
         };
         return acc;
       }, {});
 
-      const requesterFormatted = requesterRequests.map(request => ({
+      const requesterFormatted = requesterRequests.map((request) => ({
         id: request.id,
         event_name: request.event_name,
         venue_name: request.venue_name,
@@ -137,40 +145,44 @@ export async function GET(request) {
         response: request.response,
         created_at: request.created_at,
         updated_at: request.updated_at,
-        user_role: 'requester',
+        user_role: "requester",
         // For requester, show artist data
         display_user: artistMap[request.artist_id] || {
           id: request.artist_id,
           avatar: null,
-          userName: 'Unknown Artist',
-          full_name: 'Unknown Artist',
-          email: null
+          userName: "Unknown Artist",
+          full_name: "Unknown Artist",
+          email: null,
         },
         requester_id: request.requester_id,
         receiver_id: request.receiver_id,
-        artist_id: request.artist_id
+        artist_id: request.artist_id,
       }));
 
       formattedRequests.push(...requesterFormatted);
     }
 
     // Add unread messages count (simplified for now)
-    formattedRequests = formattedRequests.map(request => ({
+    formattedRequests = formattedRequests.map((request) => ({
       ...request,
-      unread_messages: 0
+      unread_messages: 0,
     }));
 
     // Sort by updated_at descending
-    formattedRequests.sort((a, b) => new Date(b.updated_at) - new Date(a.updated_at));
+    formattedRequests.sort(
+      (a, b) => new Date(b.updated_at) - new Date(a.updated_at),
+    );
 
     return NextResponse.json({
       success: true,
       bookingRequests: formattedRequests,
-      message: "Booking requests fetched successfully"
+      message: "Booking requests fetched successfully",
     });
-
   } catch (err) {
     console.error("User requests fetch error:", err);
-    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
+    return NextResponse.json(
+      { error: "Internal server error" },
+      { status: 500 },
+    );
   }
 }

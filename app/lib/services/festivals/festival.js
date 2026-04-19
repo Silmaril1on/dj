@@ -3,13 +3,15 @@ import {
   ServiceError,
   parseArrayField,
   validateImageFile,
-  extractPublicObjectPath,
-  sanitizeFileExtension,
   getAuthenticatedContext,
   getSupabaseServerClient,
   getSupabaseAdminClient,
 } from "../shared";
 import { getServerUser } from "@/app/lib/config/supabaseServer";
+import {
+  processAndUploadImage,
+  deleteImageVariants,
+} from "@/app/lib/services/imageProcessing";
 
 function escapeLike(input) {
   return input.replace(/[%_]/g, (m) => `\\${m}`);
@@ -42,7 +44,7 @@ export async function getAllFestivals({
   let query = admin
     .from("festivals")
     .select(
-      "id, name, festival_slug, poster, country, city, location_url, start_date, end_date, description, created_at",
+      "id, name, festival_slug, image_url, country, city, location_url, start_date, end_date, description, created_at",
       { count: "exact" },
     )
     .eq("status", "approved");
@@ -208,23 +210,38 @@ export async function createFestival(formData, cookieStore) {
   validateFestivalDates(start_date, end_date);
   validateImageFile({
     file: poster,
-    maxSize: 2 * 1024 * 1024,
+    maxSize: 10 * 1024 * 1024,
     requiredMessage: "Please upload a valid poster image",
   });
 
-  const fileExtension = sanitizeFileExtension(poster.name);
-  const posterPath = `festivals/${user.id}-${Date.now()}-poster.${fileExtension}`;
+  const posterBaseName = `festivals/${user.id}_${Date.now()}_poster`;
 
-  const { error: uploadError } = await admin.storage
-    .from("festival_images")
-    .upload(posterPath, poster, { contentType: poster.type, upsert: false });
-  if (uploadError) throw new ServiceError("Failed to upload poster image", 500);
+  console.log(
+    "[createFestival] Starting image upload. baseName:",
+    posterBaseName,
+  );
 
-  const { data: posterUrlData } = admin.storage
-    .from("festival_images")
-    .getPublicUrl(posterPath);
+  let posterUrls;
+  try {
+    posterUrls = await processAndUploadImage(
+      poster,
+      admin,
+      "festival_images",
+      posterBaseName,
+    );
+    console.log("[createFestival] Image upload complete. URLs:", posterUrls);
+  } catch (err) {
+    console.error("[createFestival] Image upload failed:", err.message);
+    throw new ServiceError(err.message || "Failed to upload poster image", 500);
+  }
 
   const festival_slug = formData.get("festival_slug");
+
+  console.log("[createFestival] Inserting festival into DB:", {
+    name: String(name).trim(),
+    status: "pending",
+    user_id: user.id,
+  });
 
   const { data, error } = await supabase
     .from("festivals")
@@ -235,7 +252,7 @@ export async function createFestival(formData, cookieStore) {
         : null,
       description: formData.get("description")?.trim() || null,
       bio: formData.get("bio")?.trim() || null,
-      poster: posterUrlData.publicUrl,
+      image_url: posterUrls,
       start_date: start_date || null,
       end_date: end_date || null,
       location_url: formData.get("location_url")?.trim() || null,
@@ -252,9 +269,20 @@ export async function createFestival(formData, cookieStore) {
     .single();
 
   if (error) {
-    await admin.storage.from("festival_images").remove([posterPath]);
+    console.error("[createFestival] DB insert failed:", error.message, error);
+    // attempt best-effort cleanup of uploaded variants
+    await deleteImageVariants(posterUrls, admin, "festival_images").catch(
+      () => {},
+    );
     throw new ServiceError("Failed to submit festival", 500);
   }
+
+  console.log(
+    "[createFestival] Festival created successfully. id:",
+    data.id,
+    "image_url:",
+    data.image_url,
+  );
 
   if (!user.is_admin) {
     await supabase
@@ -297,7 +325,7 @@ export async function updateFestival(formData, cookieStore) {
 
   const { data: existingFestival, error: fetchError } = await supabase
     .from("festivals")
-    .select("id, user_id, poster")
+    .select("id, user_id, image_url")
     .eq("id", festivalId)
     .single();
 
@@ -343,28 +371,29 @@ export async function updateFestival(formData, cookieStore) {
     validateImageFile({
       file: poster,
       required: false,
-      maxSize: 5 * 1024 * 1024,
+      maxSize: 10 * 1024 * 1024,
     });
-    const fileExtension = sanitizeFileExtension(poster.name);
-    const posterPath = `festivals/${user.id}-${Date.now()}-poster.${fileExtension}`;
 
-    const { error: uploadError } = await admin.storage
-      .from("festival_images")
-      .upload(posterPath, poster, { contentType: poster.type, upsert: false });
-    if (uploadError)
-      throw new ServiceError("Failed to upload poster image", 500);
-
-    const { data: posterUrlData } = admin.storage
-      .from("festival_images")
-      .getPublicUrl(posterPath);
-    updateData.poster = posterUrlData.publicUrl;
-
-    const oldPosterPath = extractPublicObjectPath(
-      existingFestival.poster,
+    await deleteImageVariants(
+      existingFestival.image_url,
+      admin,
       "festival_images",
     );
-    if (oldPosterPath)
-      await admin.storage.from("festival_images").remove([oldPosterPath]);
+
+    const posterBaseName = `festivals/${user.id}_${Date.now()}_poster`;
+    try {
+      updateData.image_url = await processAndUploadImage(
+        poster,
+        admin,
+        "festival_images",
+        posterBaseName,
+      );
+    } catch (err) {
+      throw new ServiceError(
+        err.message || "Failed to upload poster image",
+        500,
+      );
+    }
   }
 
   const { data, error } = await supabase

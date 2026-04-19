@@ -6,7 +6,7 @@ import SpanText from "@/app/components/ui/SpanText";
 import { useState } from "react";
 import ReviewActions from "./ReviewActions";
 import Title from "@/app/components/ui/Title";
-import { formatTime } from "@/app/helpers/utils";
+import { formatTime, resolveImage } from "@/app/helpers/utils";
 import { AnimatePresence } from "framer-motion";
 import ArtistName from "@/app/components/materials/ArtistName";
 import Motion from "@/app/components/containers/Motion";
@@ -104,7 +104,12 @@ const ReviewList = ({ reviewsData, onReviewUpdate }) => {
               type="row-start"
               className="items-center gap-3 border-b border-gold/20 pb-2"
             >
-              <ProfilePicture avatar_url={item.artist.artist_image} />
+              <ProfilePicture
+                avatar_url={resolveImage(
+                  item.artist.image_url ?? item.artist.artist_image,
+                  "sm",
+                )}
+              />
               <ArtistName artistName={item.artist} />
             </FlexBox>
             <FlexBox type="column-start" className="items-center ">

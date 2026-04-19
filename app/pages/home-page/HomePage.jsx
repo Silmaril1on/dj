@@ -18,6 +18,18 @@ const HomePage = ({ events = [] }) => {
       <NearYou />
       <AppDataStats />
       <MyRecentlyViews />
+      {/* <div className="h-screen center w-full gap-10">
+        <div className="w-64 h-64 rounded-full overflow-hidden">
+          <img src="/assets/menu-icon-1.webp" className="scale-125" />
+        </div>
+        <div className="w-64 h-64 rounded-full overflow-hidden">
+          <img
+            src="/assets/menu-icon-2.jpg"
+            className="scale-125 h-full w-full object-cover"
+          />
+        </div>
+        <div className="w-30 h-30 rounded-full"></div>
+      </div> */}
     </div>
   );
 };

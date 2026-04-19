@@ -14,7 +14,7 @@ export default async function LikesStatsSlot() {
         itemsKey="recentArtists"
         paragraphText="Your total likes and the latest artists you've clicked with. Tap any name to jump into their profile."
         getHref={(a) => `/artists/${a.artist_slug}`}
-        imageField="artist_image"
+        imageField="image_url"
         primaryNameField="stage_name"
         secondaryNameField="name"
         dateField="liked_at"

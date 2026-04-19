@@ -1,13 +1,16 @@
 "use client";
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import Image from "next/image";
 import { AnimatePresence, motion } from "framer-motion";
 import SectionContainer from "@/app/components/containers/SectionContainer";
 import Motion from "@/app/components/containers/Motion";
 import ShareButton from "@/app/components/buttons/ShareButton";
 import ReminderButton from "@/app/components/buttons/artist-buttons/ReminderButton";
-import { capitalizeFirst, formatBirthdate } from "@/app/helpers/utils";
+import {
+  capitalizeFirst,
+  formatBirthdate,
+  resolveImage,
+} from "@/app/helpers/utils";
 import { FaUsers, FaCalendarAlt } from "react-icons/fa";
 
 // ── Large featured card (left column) ────────────────────────────────────────
@@ -40,13 +43,12 @@ const FeaturedCard = ({ event }) => {
         </div>
         <Link href={`/events/${event.id}`} className="group block h-full">
           <div className="relative w-full h-full overflow-hidden bg-stone-900 border border-gold/20">
-            {event.event_image ? (
-              <Image
-                src={event.event_image}
+            {resolveImage(event.image_url, "lg") ? (
+              <img
+                src={resolveImage(event.image_url, "lg")}
                 alt={event.event_name || "Event"}
-                fill
-                sizes="(max-width: 1024px) 100vw, 50vw"
-                className="object-cover group-hover:scale-105 transition-transform duration-500"
+                loading="lazy"
+                className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
               />
             ) : (
               <div className="w-full h-full bg-stone-800" />
@@ -110,13 +112,12 @@ const ThumbCard = ({ event, active, onClick, delay }) => (
         active ? " brightness-100" : "opacity-60 hover:opacity-100"
       }`}
     >
-      {event.event_image ? (
-        <Image
-          src={event.event_image}
+      {resolveImage(event.image_url, "sm") ? (
+        <img
+          src={resolveImage(event.image_url, "sm")}
           alt={event.event_name || "Event"}
-          fill
-          sizes="(max-width: 1024px) 33vw, 17vw"
-          className="object-cover group-hover:scale-105 transition-transform duration-300"
+          loading="lazy"
+          className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
         />
       ) : (
         <div className="w-full h-full bg-stone-800" />

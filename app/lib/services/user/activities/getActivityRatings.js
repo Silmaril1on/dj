@@ -21,7 +21,7 @@ const getCachedRatings = unstable_cache(
               id,
               name,
               stage_name,
-              artist_image,
+              image_url,
               artist_slug,
               country,
               city
@@ -52,7 +52,7 @@ const getCachedRatings = unstable_cache(
             id: r.artists.id,
             name: r.artists.name,
             stage_name: r.artists.stage_name,
-            artist_image: r.artists.artist_image,
+            image_url: r.artists.image_url,
             artist_slug: r.artists.artist_slug,
             country: r.artists.country,
             city: r.artists.city,

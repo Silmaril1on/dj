@@ -21,7 +21,7 @@ export async function GET(request) {
         supabase
           .from("artists")
           .select(
-            "id, name, stage_name, artist_image, country, city, genres, artist_slug",
+            "id, name, stage_name, image_url, country, city, genres, artist_slug",
           )
           .or(`name.ilike.%${query}%,stage_name.ilike.%${query}%`)
           .eq("status", "approved")
@@ -30,7 +30,7 @@ export async function GET(request) {
         // Search Clubs by name
         supabase
           .from("clubs")
-          .select("id, name, country, city, club_image, club_slug")
+          .select("id, name, country, city, image_url, club_slug")
           .ilike("name", `%${query}%`)
           .eq("status", "approved")
           .limit(10),
@@ -41,7 +41,7 @@ export async function GET(request) {
         // Search Festivals by name
         supabase
           .from("festivals")
-          .select("id, name, country, city, poster, festival_slug")
+          .select("id, name, country, city, image_url, festival_slug")
           .ilike("name", `%${query}%`)
           .eq("status", "approved")
           .limit(10),

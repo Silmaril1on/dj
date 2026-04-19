@@ -6,7 +6,7 @@ import ErrorCode from "@/app/components/ui/ErrorCode";
 import StatusIndicator from "@/app/components/ui/StatusIndicator";
 import Title from "@/app/components/ui/Title";
 import Link from "next/link";
-import { formatTime } from "@/app/helpers/utils";
+import { formatTime, resolveImage } from "@/app/helpers/utils";
 import { MdVisibility } from "react-icons/md";
 
 const SubmittedProfileCard = ({
@@ -69,7 +69,10 @@ const SubmittedProfileCard = ({
     >
       <section className="gap-4 w-full pb-4 flex flex-col lg:flex-row">
         <div className="flex gap-2">
-          <ProfilePicture type="avatar" avatar_url={item[imageField]} />
+          <ProfilePicture
+            type="avatar"
+            avatar_url={resolveImage(item[imageField], "md")}
+          />
           <div className="flex items-start justify-center flex-col">
             <Title
               size="lg"

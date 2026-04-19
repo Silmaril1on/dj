@@ -7,6 +7,7 @@ import Image from "next/image";
 import Link from "next/link";
 import MetaScore from "@/app/components/materials/MetaScore";
 import LikeButton from "@/app/components/buttons/artist-buttons/LikeButton";
+import { resolveImage } from "@/app/helpers/utils";
 
 const ArtistCard = ({
   artist,
@@ -55,14 +56,23 @@ const ArtistCard = ({
           className="flex flex-col h-full relative"
         >
           <div className="w-full h-44 lg:h-64 overflow-hidden relative">
-            <Image
-              className="brightness-90 group-hover:brightness-100 duration-300 w-full h-full object-cover"
-              src={artist.artist_image}
-              width={500}
-              height={500}
-              alt={artist.name}
-              priority
-            />
+            {resolveImage(artist.image_url, "md") ? (
+              <img
+                src={resolveImage(artist.image_url, "md")}
+                alt={artist.name}
+                loading="eager"
+                className="brightness-90 group-hover:brightness-100 duration-300 w-full h-full object-cover"
+              />
+            ) : (
+              <Image
+                src="/assets/elivagar-logo.png"
+                alt={artist.name}
+                width={500}
+                height={500}
+                className="w-full h-full object-cover"
+                priority
+              />
+            )}
             <LikeButton
               size={16}
               className="absolute top-1.5 left-1.5"
@@ -104,14 +114,22 @@ const ArtistCard = ({
     >
       <Link href={`/artists/${artist.artist_slug}`}>
         <div className="w-full h-44 lg:h-64 overflow-hidden rounded-sm relative">
-          <Image
-            className="brightness-90 group-hover:brightness-100 duration-300 w-full h-full object-cover"
-            src={artist.artist_image}
-            width={500}
-            height={500}
-            alt={artist.name}
-            priority
-          />
+          {resolveImage(artist.image_url, "md") ? (
+            <img
+              src={resolveImage(artist.image_url, "md")}
+              alt={artist.name}
+              loading="lazy"
+              className="brightness-90 group-hover:brightness-100 duration-300 w-full h-full object-cover"
+            />
+          ) : (
+            <Image
+              src="/assets/elivagar-logo.png"
+              alt={artist.name}
+              width={500}
+              height={500}
+              className="w-full h-full object-cover"
+            />
+          )}
           <LikeButton
             size={16}
             className="absolute top-1.5 left-1.5"

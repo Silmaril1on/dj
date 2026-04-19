@@ -1,8 +1,8 @@
 "use client";
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import Image from "next/image";
 import SectionContainer from "@/app/components/containers/SectionContainer";
+import { resolveImage } from "@/app/helpers/utils";
 import ArtistCountry from "@/app/components/materials/ArtistCountry";
 import Motion from "@/app/components/containers/Motion";
 
@@ -54,7 +54,7 @@ const RelatedArtists = ({ artistId, genres }) => {
       title="Related Artists"
       description="Artists with similar genres you might enjoy"
     >
-      <div className="grid grid-cols-4 lg:w-[60%] gap-4 lg:gap-8 px-2 lg:px-4">
+      <div className="grid grid-cols-4 lg:w-[60%] gap-4 lg:gap-8 px-2 lg:px-4 my-8">
         {artists.map((artist, i) => (
           <Motion key={artist.id} animation="top" delay={i * 0.05}>
             <Link
@@ -62,12 +62,10 @@ const RelatedArtists = ({ artistId, genres }) => {
               className="flex flex-col gap-1 opacity-80 hover:opacity-100 duration-300"
             >
               <div className="relative aspect-square overflow-hidden rounded-full">
-                <Image
-                  src={artist.artist_image}
+                <img
+                  src={resolveImage(artist.image_url, "md")}
                   alt={artist.stage_name || artist.name}
-                  fill
-                  sizes="(max-width: 640px) 25vw, 12vw"
-                  className="object-cover group-hover:scale-105 transition-transform duration-300"
+                  className="object-cover w-full h-full group-hover:scale-105 transition-transform duration-300"
                 />
               </div>
               <div className="center flex-col">

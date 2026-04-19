@@ -9,7 +9,7 @@ export default async function SubmittedArtistsSlot() {
         data={submittedArtist}
         title="My Artist Profile"
         description="Your artist profile"
-        imageField="artist_image"
+        imageField="image_url"
         getDisplayName={(item) => item.stage_name || item.name}
         getHref={(item) => `/artists/${item.artist_slug}`}
         submitHref="/add-product/artist"

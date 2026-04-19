@@ -11,6 +11,7 @@ import ArtistName from "@/app/components/materials/ArtistName";
 import Motion from "@/app/components/containers/Motion";
 import ErrorCode from "@/app/components/ui/ErrorCode";
 import Button from "@/app/components/buttons/Button";
+import { resolveImage } from "@/app/helpers/utils";
 
 const UserRatingsPage = ({ ratingsData, error, currentPage = 1 }) => {
   const [ratings, setRatings] = useState(ratingsData?.ratings || []);
@@ -78,14 +79,29 @@ const UserRatingsPage = ({ ratingsData, error, currentPage = 1 }) => {
                 key={rating.id}
                 className="bg-stone-900 group flex-col flex p-1 bordered "
               >
-                <div className="h-34 w-full relative">
-                  <Image
-                    src={rating.artist.artist_image}
-                    alt={rating.artist.stage_name || rating.artist.name}
-                    width={100}
-                    height={100}
-                    className="object-cover w-full h-full brightness-80 group-hover:brightness-100 duration-300"
-                  />
+                <div className="h-34 w-full relative overflow-hidden">
+                  {resolveImage(
+                    rating.artist.image_url ?? rating.artist.artist_image,
+                    "sm",
+                  ) ? (
+                    <img
+                      src={resolveImage(
+                        rating.artist.image_url ?? rating.artist.artist_image,
+                        "sm",
+                      )}
+                      alt={rating.artist.stage_name || rating.artist.name}
+                      loading="lazy"
+                      className="object-cover w-full h-full brightness-80 group-hover:brightness-100 duration-300"
+                    />
+                  ) : (
+                    <Image
+                      src="/assets/elivagar-logo.png"
+                      alt="artist"
+                      width={100}
+                      height={100}
+                      className="object-cover w-full h-full"
+                    />
+                  )}
                   <RatingButton
                     size={12}
                     artist={rating.artist}

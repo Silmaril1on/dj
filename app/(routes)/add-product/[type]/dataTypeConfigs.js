@@ -1,6 +1,29 @@
 import { formConfigs } from "@/app/helpers/formData/formConfigs";
 
 /**
+ * Extract a usable image string from either a legacy string URL or the new
+ * JSONB {sm, md, lg} object. Falls back to lg → md → sm → "".
+ */
+const resolveImageUrl = (imageUrl, size = "lg") => {
+  if (!imageUrl) return "";
+  if (typeof imageUrl === "string") {
+    if (imageUrl.trimStart().startsWith("{")) {
+      try {
+        const parsed = JSON.parse(imageUrl);
+        return parsed[size] || parsed.lg || parsed.md || parsed.sm || "";
+      } catch {
+        /* not JSON */
+      }
+    }
+    return imageUrl;
+  }
+  if (typeof imageUrl === "object") {
+    return imageUrl[size] || imageUrl.lg || imageUrl.md || imageUrl.sm || "";
+  }
+  return "";
+};
+
+/**
  * Central configuration for all submittable data types.
  * Adding a new type requires only a new entry here — no new route or component needed.
  */
@@ -42,12 +65,12 @@ export const DATA_TYPE_CONFIGS = {
       genres: data.genres || [""],
       social_links: data.social_links || [""],
       label: data.label || [""],
-      artist_image: data.artist_image || "",
+      artist_image: resolveImageUrl(data.image_url, "sm"),
     }),
     extractData: (json) => json.artist,
     mapSuccessPayload: (result) => ({
       type: "artist",
-      image: result.data?.artist_image || "",
+      image: resolveImageUrl(result.data?.image_url),
       name: result.data?.name || "",
       stage_name: result.data?.stage_name || "",
       country: result.data?.country || "",
@@ -97,7 +120,7 @@ export const DATA_TYPE_CONFIGS = {
         city: data.city || "",
         address: data.address || "",
         description: data.description || "",
-        club_image: data.club_image || "",
+        club_image: resolveImageUrl(data.image_url, "sm"),
         social_links: normalize(data.social_links),
         residents: normalize(data.residents),
         capacity: data.capacity || "",
@@ -107,7 +130,7 @@ export const DATA_TYPE_CONFIGS = {
     },
     mapSuccessPayload: (result) => ({
       type: "club",
-      image: result.data?.club_image || "",
+      image: resolveImageUrl(result.data?.image_url),
       name: result.data?.name || "",
       country: result.data?.country || "",
       city: result.data?.city || "",
@@ -148,6 +171,8 @@ export const DATA_TYPE_CONFIGS = {
             : defaultValue,
         ]),
       );
+      // Map image_url JSONB to the event_image field (sm for preview)
+      mapped.event_image = resolveImageUrl(data.image_url, "sm");
       // artists come back as objects {name, id, artist_slug} from the API — flatten to strings
       if (Array.isArray(mapped.artists) && mapped.artists.length > 0) {
         mapped.artists = mapped.artists.map((a) =>
@@ -158,7 +183,7 @@ export const DATA_TYPE_CONFIGS = {
     },
     mapSuccessPayload: (result) => ({
       type: "event",
-      image: result.data?.event_image || "",
+      image: resolveImageUrl(result.data?.image_url),
       name: result.data?.event_name || "",
       country: result.data?.country || "",
       city: result.data?.city || "",
@@ -197,7 +222,7 @@ export const DATA_TYPE_CONFIGS = {
       festival_slug: data.festival_slug || "",
       description: data.description || "",
       bio: data.bio || "",
-      poster: data.poster || "",
+      poster: resolveImageUrl(data.image_url, "sm"),
       start_date: data.start_date || "",
       end_date: data.end_date || "",
       location_url: data.location_url || "",
@@ -210,7 +235,7 @@ export const DATA_TYPE_CONFIGS = {
     }),
     mapSuccessPayload: (result) => ({
       type: "festival",
-      image: result.data?.poster || "",
+      image: resolveImageUrl(result.data?.image_url),
       name: result.data?.name || "",
       country: result.data?.country || "",
       city: result.data?.city || "",
@@ -251,7 +276,9 @@ export const DATA_TYPE_CONFIGS = {
     }),
     mapSuccessPayload: (result) => ({
       type: "news",
-      image: result.data?.news_image || "",
+      image:
+        resolveImageUrl(result.data?.news_image) ||
+        resolveImageUrl(result.data?.image_url),
       title: result.data?.title || "",
       description: result.data?.description || "",
     }),

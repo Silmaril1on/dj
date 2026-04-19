@@ -8,7 +8,7 @@ import SpanText from "@/app/components/ui/SpanText";
 import ArtistCountry from "@/app/components/materials/ArtistCountry";
 import Dot from "@/app/components/ui/Dot";
 import { FaStar, FaUsers } from "react-icons/fa";
-import { truncateString } from "@/app/helpers/utils";
+import { resolveImage, truncateString } from "@/app/helpers/utils";
 import LikeButton from "@/app/components/buttons/artist-buttons/LikeButton";
 
 const ProductCard = ({
@@ -38,6 +38,10 @@ const ProductCard = ({
   const hasLikesCount = parsedLikesCount > 0;
   const isLikeable = type === "club" || type === "festival";
 
+  console.log(image, "iimg");
+
+  const resolvedImage = resolveImage(image, "md");
+
   return (
     <motion.div
       key={id}
@@ -48,14 +52,12 @@ const ProductCard = ({
     >
       <Link href={href}>
         <div className="relative h-44 lg:h-80 brightness overflow-hidden">
-          {image ? (
-            <Image
-              src={image}
+          {resolvedImage ? (
+            <img
+              src={resolvedImage}
               alt={name}
-              fill
-              sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, (max-width: 1536px) 33vw, 400px"
-              quality={75}
-              className="object-cover"
+              loading="lazy"
+              className="w-full h-full object-cover"
             />
           ) : (
             <Image

@@ -7,15 +7,6 @@ const CANDIDATE_POOL = 60;
 const MIN_SHARED_STRICT = 2; // primary threshold
 const MIN_SHARED_FALLBACK = 1; // fallback threshold
 
-/**
- * Returns up to 8 approved artists ranked by shared genre count.
- * - Prefers artists sharing ≥2 genres (more precise match).
- * - Falls back to ≥1 match to fill remaining slots if needed.
- *
- * @param {string}   artistId - ID of the current artist (excluded)
- * @param {string[]} genres   - Genres of the current artist
- * @returns {Promise<Object[]>}
- */
 export async function getRelatedArtists(artistId, genres) {
   if (!artistId || !Array.isArray(genres) || genres.length === 0) return [];
 
@@ -26,9 +17,7 @@ export async function getRelatedArtists(artistId, genres) {
     async () => {
       const { data, error } = await supabaseAdmin
         .from("artists")
-        .select(
-          "id, name, stage_name, artist_image, artist_slug, country, genres",
-        )
+        .select("id, name, stage_name, image_url, artist_slug, country, genres")
         .eq("status", "approved")
         .neq("id", artistId)
         .overlaps("genres", sortedGenres)

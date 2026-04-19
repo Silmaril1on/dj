@@ -21,7 +21,7 @@ const getCachedReviewsStats = unstable_cache(
             id,
             name,
             stage_name,
-            artist_image,
+            image_url,
             artist_slug
           )
         `,
@@ -40,7 +40,7 @@ const getCachedReviewsStats = unstable_cache(
         id: review.artists.id,
         name: review.artists.name,
         stage_name: review.artists.stage_name,
-        artist_image: review.artists.artist_image,
+        image_url: review.artists.image_url,
         artist_slug: review.artists.artist_slug,
         reviewed_at: review.created_at,
       })) || [];

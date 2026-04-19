@@ -97,7 +97,7 @@ export async function PUT(request) {
           id,
           name,
           stage_name,
-          artist_image
+          image_url
         )
       `,
       )
@@ -122,7 +122,7 @@ export async function PUT(request) {
         id: updatedReview.artists.id,
         name: updatedReview.artists.name,
         stage_name: updatedReview.artists.stage_name,
-        artist_image: updatedReview.artists.artist_image,
+        image_url: updatedReview.artists.image_url,
       },
     };
 

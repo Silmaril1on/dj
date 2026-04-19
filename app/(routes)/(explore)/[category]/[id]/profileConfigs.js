@@ -1,7 +1,7 @@
 // Profile type configurations
 export const PROFILE_TYPE_CONFIG = {
   clubs: {
-    imageKey: "club_image",
+    imageKey: "image_url",
     nameKey: "name",
     hasLineup: true,
     lineupKey: "residents",
@@ -17,7 +17,7 @@ export const PROFILE_TYPE_CONFIG = {
     scheduleDescription: "See all upcoming events at this club",
   },
   events: {
-    imageKey: "event_image",
+    imageKey: "image_url",
     nameKey: "event_name",
     hasLineup: true,
     lineupKey: "artists",
@@ -31,7 +31,7 @@ export const PROFILE_TYPE_CONFIG = {
     hasEventDetails: true,
   },
   festivals: {
-    imageKey: "poster",
+    imageKey: "image_url",
     nameKey: "name",
     hasLineup: true,
     lineupKey: "lineup",

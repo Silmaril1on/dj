@@ -69,7 +69,7 @@ const ProfileLineup = ({ title = "Lineup", data = [] }) => {
                     className="uppercase leading-none"
                   />
                 )}
-                {index < data.length - 1 && <Dot />}
+                {index < data.length - 1 && <Dot className="pr-1" />}
               </Motion>
             );
           })}

@@ -10,6 +10,7 @@ import LikeButton from "@/app/components/buttons/artist-buttons/LikeButton";
 import Motion from "@/app/components/containers/Motion";
 import { motion } from "framer-motion";
 import Image from "next/image";
+import { resolveImage } from "@/app/helpers/utils";
 
 const Avatar = ({ data, onLikeChange }) => {
   const user = useSelector(selectUser);
@@ -63,14 +64,23 @@ const Avatar = ({ data, onLikeChange }) => {
           whileHover={{ scale: 1.02 }}
           transition={{ duration: 0.6, ease: "easeInOut" }}
         >
-          <Image
-            src={data.artist_image}
-            alt={data.name}
-            width={900}
-            height={900}
-            className="object-cover w-full h-full transition-transform duration-700"
-            priority
-          />
+          {resolveImage(data.image_url, "lg") ? (
+            <img
+              src={resolveImage(data.image_url, "lg")}
+              alt={data.name}
+              className="object-cover w-full h-full transition-transform duration-700"
+            />
+          ) : (
+            <Image
+              src="/assets/elivagar-logo.png"
+              alt={data.name}
+              width={900}
+              height={900}
+              className="object-cover w-full h-full"
+              priority
+            />
+          )}
+
           <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent"></div>
         </motion.div>
       </div>

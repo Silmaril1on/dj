@@ -5,6 +5,7 @@ import { FaSearch } from "react-icons/fa";
 import { motion } from "framer-motion";
 import Spinner from "../ui/Spinner";
 import ArtistCountry from "../materials/ArtistCountry";
+import { resolveImage } from "@/app/helpers/utils";
 
 const SearchBar = () => {
   const [query, setQuery] = useState("");
@@ -99,13 +100,8 @@ const SearchBar = () => {
             >
               <img
                 src={
-                  item.type === "artist"
-                    ? item.artist_image
-                    : item.type === "club"
-                      ? item.club_image
-                      : item.type === "festival"
-                        ? item.poster
-                        : item.event_image
+                  resolveImage(item.image_url, "sm") ||
+                  "/assets/elivagar-logo.png"
                 }
                 alt={item.name || item.stage_name || item.event_name}
                 className="w-8 h-8 rounded object-cover"

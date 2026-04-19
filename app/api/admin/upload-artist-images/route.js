@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { supabaseAdmin } from "@/app/lib/config/supabaseServer";
 import { findArtistImage } from "@/app/helpers/imageAutomation";
+import { processAndUploadImage } from "@/app/lib/services/imageProcessing";
 import fs from "fs";
 
 export async function POST(request) {
@@ -8,15 +9,15 @@ export async function POST(request) {
     // Get all pending artists without images
     const { data: artists, error: artistsError } = await supabaseAdmin
       .from("artists")
-      .select("id, name, stage_name, artist_image")
+      .select("id, name, stage_name, image_url")
       .eq("status", "pending")
-      .is("artist_image", null);
+      .is("image_url", null);
 
     if (artistsError) {
       console.error("Error fetching artists:", artistsError);
       return NextResponse.json(
         { error: "Failed to fetch artists", details: artistsError.message },
-        { status: 500 }
+        { status: 500 },
       );
     }
 
@@ -53,62 +54,39 @@ export async function POST(request) {
         // Read the image file
         const imageBuffer = fs.readFileSync(imageInfo.filePath);
 
-        // Determine MIME type
-        const mimeTypes = {
-          webp: "image/webp",
-          png: "image/png",
-          jpg: "image/jpeg",
-          jpeg: "image/jpeg",
-        };
-        const contentType = mimeTypes[imageInfo.extension] || "image/jpeg";
-
-        // Generate unique filename for storage
+        // Generate base name for storage variants
         const randomId = Math.random().toString(36).substring(2, 15);
-        const storagePath = `artist_${Date.now()}_${randomId}.${imageInfo.extension}`;
+        const baseName = `artist_${Date.now()}_${randomId}`;
 
-        // Upload to Supabase Storage
-        const { data: uploadData, error: uploadError } =
-          await supabaseAdmin.storage
-            .from("artist_profile_images")
-            .upload(storagePath, imageBuffer, {
-              contentType,
-              cacheControl: "3600",
-              upsert: false,
-            });
-
-        if (uploadError) {
-          console.error(`Upload error for ${artist.name}:`, uploadError);
+        // Process into sm/md/lg and upload all 3 variants
+        let imageUrls;
+        try {
+          imageUrls = await processAndUploadImage(
+            imageBuffer,
+            supabaseAdmin,
+            "artist_profile_images",
+            baseName,
+          );
+        } catch (uploadErr) {
+          console.error(`Upload error for ${artist.name}:`, uploadErr);
           results.push({
             artistId: artist.id,
             artistName: artist.name || artist.stage_name,
             status: "failed",
-            reason: `Upload failed: ${uploadError.message}`,
+            reason: `Upload failed: ${uploadErr.message}`,
           });
           failCount++;
           continue;
         }
 
-        // Get public URL
-        const {
-          data: { publicUrl },
-        } = supabaseAdmin.storage
-          .from("artist_profile_images")
-          .getPublicUrl(storagePath);
-
-        // Update artist record with image URL
+        // Update artist record with JSONB image_url
         const { error: updateError } = await supabaseAdmin
           .from("artists")
-          .update({ artist_image: publicUrl })
+          .update({ image_url: imageUrls })
           .eq("id", artist.id);
 
         if (updateError) {
           console.error(`Update error for ${artist.name}:`, updateError);
-
-          // Cleanup: Delete uploaded image if database update fails
-          await supabaseAdmin.storage
-            .from("artist_profile_images")
-            .remove([storagePath]);
-
           results.push({
             artistId: artist.id,
             artistName: artist.name || artist.stage_name,
@@ -123,7 +101,7 @@ export async function POST(request) {
           artistId: artist.id,
           artistName: artist.name || artist.stage_name,
           status: "success",
-          imageUrl: publicUrl,
+          imageUrls,
           sourceFile: imageInfo.filename,
         });
         successCount++;
@@ -151,7 +129,7 @@ export async function POST(request) {
     console.error("Automation error:", error);
     return NextResponse.json(
       { error: "Internal server error", details: error.message },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
@@ -161,14 +139,14 @@ export async function GET(request) {
   try {
     const { data: artists, error: artistsError } = await supabaseAdmin
       .from("artists")
-      .select("id, name, stage_name, artist_image")
+      .select("id, name, stage_name, image_url")
       .eq("status", "pending")
-      .is("artist_image", null);
+      .is("image_url", null);
 
     if (artistsError) {
       return NextResponse.json(
         { error: artistsError.message },
-        { status: 500 }
+        { status: 500 },
       );
     }
 
@@ -191,7 +169,7 @@ export async function GET(request) {
   } catch (error) {
     return NextResponse.json(
       { error: "Internal server error", details: error.message },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

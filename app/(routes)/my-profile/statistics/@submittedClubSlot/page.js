@@ -9,7 +9,7 @@ export default async function SubmittedClubsSlot() {
         data={submittedClub}
         title="My Club Profile"
         description="Your club profile"
-        imageField="club_image"
+        imageField="image_url"
         getDisplayName={(item) => item.name}
         getHref={(item) => `/clubs/${item.club_slug || item.id}`}
         submitHref="/add-product/club"

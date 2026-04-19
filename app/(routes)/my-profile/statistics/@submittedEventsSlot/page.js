@@ -16,7 +16,7 @@ export default async function SubmittedEventsSlot() {
         emptyTitle="No submitted events yet"
         emptyDescription="Submit events to see your statistics!"
         getHref={(e) => `/events/${e.id}`}
-        imageField="event_image"
+        imageField="image_url"
         primaryNameField="event_name"
         secondaryNameField="promoter"
         dateField="created_at"

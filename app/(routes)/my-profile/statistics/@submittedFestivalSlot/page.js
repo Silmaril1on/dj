@@ -9,7 +9,7 @@ export default async function SubmittedFestivalSlot() {
         data={submittedFestival}
         title="My Festival Profile"
         description="Your festival profile"
-        imageField="poster"
+        imageField="image_url"
         getDisplayName={(item) => item.name}
         getHref={(item) => `/festivals/${item.festival_slug}`}
         submitHref="/add-product/festival"

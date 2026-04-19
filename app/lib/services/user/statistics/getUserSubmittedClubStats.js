@@ -9,7 +9,7 @@ const getCachedSubmittedClub = unstable_cache(
     const { data, error } = await supabaseAdmin
       .from("clubs")
       .select(
-        "id, name, country, city, capacity, club_image, status, created_at, description",
+        "id, name, country, city, capacity, image_url, status, created_at, description",
       )
       .eq("id", submittedClubId);
 

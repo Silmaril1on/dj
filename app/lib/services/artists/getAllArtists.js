@@ -46,7 +46,7 @@ export async function fetchArtists({
   let query = supabaseAdmin
     .from("artists")
     .select(
-      `id, name, stage_name, artist_image, artist_slug, country, rating_stats, birth, sex, genres, created_at`,
+      `id, name, stage_name, image_url, artist_slug, country, rating_stats, birth, sex, genres, created_at`,
       { count: "exact" },
     )
     .eq("status", "approved");

@@ -5,11 +5,13 @@ import { getServerUser, supabaseAdmin } from "@/app/lib/config/supabaseServer";
 import {
   ServiceError,
   validateImageFile,
-  sanitizeFileExtension,
-  extractPublicObjectPath,
   getAuthenticatedContext,
   getSupabaseServerClient,
 } from "@/app/lib/services/shared";
+import {
+  processAndUploadImage,
+  deleteImageVariants,
+} from "@/app/lib/services/imageProcessing";
 
 const normalizeArtistName = (name) =>
   name
@@ -20,14 +22,14 @@ const normalizeArtistName = (name) =>
     : "";
 
 const EVENT_SELECT_LIMITED =
-  "id, event_image, event_name, date, country, city, artists, event_type";
+  "id, image_url, event_name, date, country, city, artists, event_type";
 
 export async function getNearYouEvents(country, city, { limit = 10 } = {}) {
   if (!country) throw new ServiceError("Country is required", 400);
   const todayStr = getTodayDateOnlyString();
 
   const EVENT_NEAR_YOU_FIELDS =
-    "id, event_name, event_image, date, city, country, artists, venue_name, address, location_url, promoter, doors_open, links";
+    "id, event_name, image_url, date, city, country, artists, venue_name, address, location_url, promoter, doors_open, links";
 
   let data = null;
   let usedCity = false;
@@ -345,23 +347,33 @@ export async function createEvent(formData, cookieStore) {
     throw new ServiceError("At least one artist is required", 400);
 
   const event_image = formData.get("event_image");
-  let eventImageUrl = null;
+  let eventImageUrls = null;
   if (event_image instanceof File) {
-    validateImageFile({ file: event_image, maxSize: 1 * 1024 * 1024 });
-    const ext = sanitizeFileExtension(event_image.name);
-    const fileName = `${fields.event_name
+    validateImageFile({ file: event_image, maxSize: 10 * 1024 * 1024 });
+    const baseName = `${fields.event_name
       .toLowerCase()
       .replace(/\s+/g, "_")
-      .replace(/[^a-z0-9_]/g, "")}_${Date.now()}.${ext}`;
-    const { error: uploadError } = await supabase.storage
-      .from("event_images")
-      .upload(fileName, event_image, { cacheControl: "3600", upsert: false });
-    if (uploadError) throw new ServiceError("Failed to upload image", 500);
-    const { data } = supabase.storage
-      .from("event_images")
-      .getPublicUrl(fileName);
-    eventImageUrl = data.publicUrl;
+      .replace(/[^a-z0-9_]/g, "")}_${Date.now()}`;
+    console.log("[createEvent] Starting image upload. baseName:", baseName);
+    try {
+      eventImageUrls = await processAndUploadImage(
+        event_image,
+        supabase,
+        "event_images",
+        baseName,
+      );
+      console.log("[createEvent] Image upload complete. URLs:", eventImageUrls);
+    } catch (err) {
+      console.error("[createEvent] Image upload failed:", err.message);
+      throw new ServiceError(err.message || "Failed to upload image", 500);
+    }
   }
+
+  console.log("[createEvent] Inserting event into DB:", {
+    event_name: fields.event_name,
+    status: "pending",
+    user_id: user.id,
+  });
 
   const { data: event, error: insertError } = await supabase
     .from("events")
@@ -369,12 +381,26 @@ export async function createEvent(formData, cookieStore) {
       user_id: user.id,
       ...fields,
       artists,
-      event_image: eventImageUrl,
+      image_url: eventImageUrls,
       created_at: new Date().toISOString(),
     })
     .select()
     .single();
-  if (insertError) throw new ServiceError("Failed to create event", 500);
+  if (insertError) {
+    console.error(
+      "[createEvent] DB insert failed:",
+      insertError.message,
+      insertError,
+    );
+    throw new ServiceError("Failed to create event", 500);
+  }
+
+  console.log(
+    "[createEvent] Event created successfully. id:",
+    event.id,
+    "image_url:",
+    event.image_url,
+  );
 
   // Attempt to link artist_schedule entries (best-effort)
   if (artists.length) {
@@ -434,7 +460,7 @@ export async function updateEvent(formData, cookieStore) {
 
   const { data: existing, error: checkError } = await supabase
     .from("events")
-    .select("id, event_name, user_id, event_image")
+    .select("id, event_name, user_id, image_url")
     .eq("id", eventId)
     .maybeSingle();
 
@@ -460,26 +486,23 @@ export async function updateEvent(formData, cookieStore) {
   if (event_image instanceof File && event_image.size > 0) {
     validateImageFile({
       file: event_image,
-      maxSize: 1 * 1024 * 1024,
+      maxSize: 10 * 1024 * 1024,
       required: false,
     });
-    const oldPath = extractPublicObjectPath(
-      existing.event_image,
-      "event_images",
-    );
-    if (oldPath) await supabase.storage.from("event_images").remove([oldPath]);
-    const ext = sanitizeFileExtension(event_image.name);
-    const fileName = `event_${eventId}_${Date.now()}.${ext}`;
-    const { error: uploadError } = await supabase.storage
-      .from("event_images")
-      .upload(fileName, event_image, { cacheControl: "3600", upsert: true });
-    if (uploadError) throw new ServiceError("Failed to upload image", 500);
-    const { data } = supabase.storage
-      .from("event_images")
-      .getPublicUrl(fileName);
-    updateFields.event_image = data.publicUrl;
+    await deleteImageVariants(existing.image_url, supabase, "event_images");
+    const baseName = `event_${eventId}_${Date.now()}`;
+    try {
+      updateFields.image_url = await processAndUploadImage(
+        event_image,
+        supabase,
+        "event_images",
+        baseName,
+      );
+    } catch (err) {
+      throw new ServiceError(err.message || "Failed to upload image", 500);
+    }
   } else if (typeof event_image === "string" && event_image.trim()) {
-    updateFields.event_image = event_image;
+    updateFields.image_url = event_image;
   }
 
   const { data: updated, error: updateError } = await supabase
@@ -508,7 +531,7 @@ export async function deleteEvent(eventId, cookieStore) {
 
   const { data: existing, error: checkError } = await supabase
     .from("events")
-    .select("id, user_id, event_image")
+    .select("id, user_id, image_url")
     .eq("id", eventId)
     .maybeSingle();
 
@@ -525,12 +548,7 @@ export async function deleteEvent(eventId, cookieStore) {
     throw new ServiceError("Unauthorized", 403);
   }
 
-  const imagePath = extractPublicObjectPath(
-    existing.event_image,
-    "event_images",
-  );
-  if (imagePath)
-    await supabase.storage.from("event_images").remove([imagePath]);
+  await deleteImageVariants(existing.image_url, supabase, "event_images");
 
   const { error: deleteError } = await supabase
     .from("events")

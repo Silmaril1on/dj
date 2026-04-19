@@ -19,7 +19,7 @@ export async function getUserReviews({ page = 1, limit = 20 } = {}) {
           id,
           name,
           stage_name,
-          artist_image
+          image_url
         )
       `,
       )
@@ -46,7 +46,7 @@ export async function getUserReviews({ page = 1, limit = 20 } = {}) {
         id: review.artists.id,
         name: review.artists.name,
         stage_name: review.artists.stage_name,
-        artist_image: review.artists.artist_image,
+        image_url: review.artists.image_url,
       },
     })) || [];
 

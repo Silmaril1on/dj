@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { revalidateTag } from "next/cache";
 import { createSupabaseServerClient } from "@/app/lib/config/supabaseServer";
 import { cookies } from "next/headers";
-import sharp from "sharp";
+import { processAndUploadRemoteImage } from "@/app/lib/services/imageProcessing";
 
 export async function POST(req) {
   try {
@@ -36,9 +36,9 @@ export async function POST(req) {
 
     for (const event of events) {
       try {
-        let eventImageUrl = null;
+        let eventImageUrls = null;
 
-        // Download, resize, and upload image if exists
+        // Download, process into sm/md/lg, and upload all 3 variants
         if (
           event.images &&
           event.images.length > 0 &&
@@ -46,35 +46,14 @@ export async function POST(req) {
         ) {
           try {
             console.log(`📥 Downloading image: ${event.images[0].filename}`);
-            const imageResponse = await fetch(event.images[0].filename);
-            const imageBuffer = await imageResponse.arrayBuffer();
-
-            // Generate unique filename
-            const filename = `event_${event.id}_${Date.now()}.jpg`;
-            const filePath = `${filename}`;
-
-            // Upload to Supabase Storage
-            console.log(`📤 Uploading to Supabase: ${filePath}`);
-            const { data: uploadData, error: uploadError } =
-              await supabase.storage
-                .from("event_images")
-                .upload(filePath, imageBuffer, {
-                  contentType: "image/jpeg",
-                  upsert: false,
-                });
-
-            if (uploadError) {
-              console.error("Upload error:", uploadError);
-              throw uploadError;
-            }
-
-            // Get public URL
-            const {
-              data: { publicUrl },
-            } = supabase.storage.from("event_images").getPublicUrl(filePath);
-
-            eventImageUrl = publicUrl;
-            console.log(`✅ Image uploaded: ${publicUrl}`);
+            const baseName = `event_${event.id}_${Date.now()}`;
+            eventImageUrls = await processAndUploadRemoteImage(
+              event.images[0].filename,
+              supabase,
+              "event_images",
+              baseName,
+            );
+            console.log(`✅ Image variants uploaded for event ${event.id}`);
           } catch (imageError) {
             console.error("Image processing error:", imageError);
             // Continue without image if processing fails
@@ -151,7 +130,7 @@ export async function POST(req) {
           promoter: event.promoters?.[0]?.name || null,
           date: event.date ? event.date.split("T")[0] : null,
           doors_open: doorsOpen,
-          event_image: eventImageUrl,
+          image_url: eventImageUrls,
           description: cleanDescription,
           links: event.contentUrl ? `https://ra.co${event.contentUrl}` : null,
           event_name: eventTitle,

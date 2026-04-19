@@ -4,6 +4,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { motion } from "framer-motion";
 import Image from "next/image";
 import { selectUser } from "@/app/features/userSlice";
+import { resolveImage } from "@/app/helpers/utils";
 import { openAddAlbumModal } from "@/app/features/modalSlice";
 import { FaEdit, FaTrash } from "react-icons/fa";
 import SectionContainer from "@/app/components/containers/SectionContainer";
@@ -173,13 +174,21 @@ const Albums = ({ artistId }) => {
                 }`}
               >
                 <div className="absolute inset-0 z-0">
-                  <Image
-                    src={album.album_image}
-                    alt={album.name}
-                    fill
-                    sizes="(max-width: 768px) 50vw, (max-width: 1024px) 33vw, 10vw"
-                    className="object-cover"
-                  />
+                  {resolveImage(album.album_image, "md") ? (
+                    <img
+                      src={resolveImage(album.album_image, "md")}
+                      alt={album.name}
+                      loading="lazy"
+                      className="object-cover w-full h-full"
+                    />
+                  ) : (
+                    <Image
+                      src="/assets/elivagar-logo.png"
+                      alt={album.name}
+                      fill
+                      className="object-cover"
+                    />
+                  )}
                 </div>
                 {canEditAlbums && (
                   <div className="absolute top-1 right-1 z-10 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity duration-200">

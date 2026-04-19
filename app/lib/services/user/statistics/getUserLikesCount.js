@@ -21,7 +21,7 @@ const getCachedLikesStats = unstable_cache(
             id,
             name,
             stage_name,
-            artist_image,
+            image_url,
             artist_slug
           )
         `,
@@ -40,7 +40,7 @@ const getCachedLikesStats = unstable_cache(
         id: like.artists.id,
         name: like.artists.name,
         stage_name: like.artists.stage_name,
-        artist_image: like.artists.artist_image,
+        image_url: like.artists.image_url,
         artist_slug: like.artists.artist_slug,
         liked_at: like.created_at,
       })) || [];

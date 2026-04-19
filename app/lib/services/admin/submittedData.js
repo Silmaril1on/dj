@@ -1,12 +1,22 @@
 import { supabaseAdmin } from "@/app/lib/config/supabaseServer";
 
+/** Resolve JSONB {sm,md,lg} or legacy string URL → single string for display */
+function _resolveImageUrl(imageUrl) {
+  if (!imageUrl) return null;
+  if (typeof imageUrl === "string") return imageUrl;
+  if (typeof imageUrl === "object") {
+    return imageUrl.lg || imageUrl.md || imageUrl.sm || null;
+  }
+  return null;
+}
+
 // Central config for each submittable data type.
 // Adding a new type only requires a new entry here.
 const TYPE_CONFIGS = {
   artist: {
     table: "artists",
     select: `
-      id, name, stage_name, status, created_at, artist_image,
+      id, name, stage_name, status, created_at, image_url,
       country, city, user_id,
       users:user_id(id, userName, email, user_avatar)
     `,
@@ -14,7 +24,7 @@ const TYPE_CONFIGS = {
       id: item.id,
       name: item.name,
       stage_name: item.stage_name,
-      artist_image: item.artist_image,
+      artist_image: _resolveImageUrl(item.image_url),
       country: item.country,
       city: item.city,
       created_at: item.created_at,
@@ -32,14 +42,14 @@ const TYPE_CONFIGS = {
   club: {
     table: "clubs",
     select: `
-      id, name, country, city, capacity, status, created_at, club_image,
+      id, name, country, city, capacity, status, created_at, image_url,
       description, address, location_url, social_links, user_id,
       users:user_id(id, userName, email, user_avatar)
     `,
     mapItem: (item) => ({
       id: item.id,
       name: item.name,
-      artist_image: item.club_image,
+      artist_image: _resolveImageUrl(item.image_url),
       country: item.country,
       city: item.city,
       capacity: item.capacity,
@@ -62,7 +72,7 @@ const TYPE_CONFIGS = {
   event: {
     table: "events",
     select: `
-      id, event_name, promoter, event_image, country, city, status,
+      id, event_name, promoter, image_url, country, city, status,
       created_at, description, user_id,
       users:user_id(id, userName, email, user_avatar)
     `,
@@ -70,7 +80,7 @@ const TYPE_CONFIGS = {
       id: item.id,
       name: item.event_name,
       stage_name: item.promoter,
-      artist_image: item.event_image,
+      artist_image: _resolveImageUrl(item.image_url),
       country: item.country,
       city: item.city,
       description: item.description,
@@ -90,7 +100,7 @@ const TYPE_CONFIGS = {
     table: "festivals",
     select: `
       id, name, country, city, location_url, address, start_date, end_date,
-      capacity_total, status, created_at, poster, description, social_links, user_id,
+      capacity_total, status, created_at, image_url, description, social_links, user_id,
       users:user_id(id, userName, email, user_avatar)
     `,
     mapItem: (item) => ({
@@ -101,7 +111,7 @@ const TYPE_CONFIGS = {
       start_date: item.start_date,
       end_date: item.end_date,
       capacity_total: item.capacity_total,
-      artist_image: item.poster,
+      artist_image: _resolveImageUrl(item.image_url),
       country: item.country,
       city: item.city,
       social_links: item.social_links,

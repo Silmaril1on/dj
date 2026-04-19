@@ -31,7 +31,7 @@ export async function GET(request) {
     const { data: artists, error: artistsError } = await supabase
       .from("artists")
       .select(
-        "id, name, stage_name, artist_image, country, city, genres, musicbrainz_artist_id"
+        "id, name, stage_name, image_url, country, city, genres, musicbrainz_artist_id",
       )
       .or(`name.ilike.%${query}%,stage_name.ilike.%${query}%`)
       .limit(20);
@@ -40,7 +40,7 @@ export async function GET(request) {
       console.error("❌ Artist search error:", artistsError);
       return NextResponse.json(
         { error: "Search failed", details: artistsError.message },
-        { status: 500 }
+        { status: 500 },
       );
     }
 
@@ -54,7 +54,7 @@ export async function GET(request) {
       id: artist.id,
       name: artist.name,
       stage_name: artist.stage_name,
-      artist_image: artist.artist_image,
+      image_url: artist.image_url,
       country: artist.country,
       city: artist.city,
       genres: artist.genres,
@@ -78,7 +78,7 @@ export async function GET(request) {
     console.error("Error stack:", err.stack);
     return NextResponse.json(
       { error: "Search failed", message: err.message },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

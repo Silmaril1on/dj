@@ -22,7 +22,7 @@ const getCachedReminders = unstable_cache(
 
     const { data: events, error: eventsError } = await supabaseAdmin
       .from("events")
-      .select("id, country, city, artists, date, event_image, venue_name")
+      .select("id, country, city, artists, date, image_url, venue_name")
       .in("id", eventIds)
       .gte("date", todayStr);
 

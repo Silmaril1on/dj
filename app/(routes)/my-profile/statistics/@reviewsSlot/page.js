@@ -14,7 +14,7 @@ export default async function ReviewsStatsSlot() {
         itemsKey="recentArtists"
         paragraphText="See how many reviews you've dropped and revisit your most recent ones."
         getHref={(a) => `/artists/${a.artist_slug}`}
-        imageField="artist_image"
+        imageField="image_url"
         primaryNameField="stage_name"
         secondaryNameField="name"
         dateField="reviewed_at"

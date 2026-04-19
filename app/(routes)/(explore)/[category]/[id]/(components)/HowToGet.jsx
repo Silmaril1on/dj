@@ -18,7 +18,11 @@ import {
 import { MdOutlineLocalParking, MdLocalHotel } from "react-icons/md";
 import Button from "@/app/components/buttons/Button";
 import SectionContainer from "@/app/components/containers/SectionContainer";
-import { formatBirthdate, geocodeAddress } from "@/app/helpers/utils";
+import {
+  formatBirthdate,
+  geocodeAddress,
+  resolveImage,
+} from "@/app/helpers/utils";
 import ArtistCountry from "@/app/components/materials/ArtistCountry";
 import Close from "@/app/components/buttons/Close";
 import Motion from "@/app/components/containers/Motion";
@@ -182,25 +186,19 @@ const HowToGet = ({ data, type }) => {
       .catch(() => setVenueCoords(null));
   }, [isLoaded, address]);
 
-  // Auto-populate user location once map + venue are ready
+  // Restore user pin position from localStorage — no auto-route
   useEffect(() => {
     if (!isLoaded || !venueCoords) return;
-    let coords = null;
     try {
       const raw = localStorage.getItem("userLocation");
       if (raw) {
         const parsed = JSON.parse(raw);
         if (parsed?.lat && parsed?.lng)
-          coords = { lat: parsed.lat, lng: parsed.lng };
+          setUserCoords({ lat: parsed.lat, lng: parsed.lng });
       }
     } catch {
       // unavailable
     }
-    if (coords) {
-      setUserCoords(coords);
-      fetchDistanceAndRoute(coords);
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isLoaded, venueCoords]);
 
   const onMapLoad = useCallback(
@@ -237,6 +235,13 @@ const HowToGet = ({ data, type }) => {
         (result, status) => {
           if (status === "OK") {
             setDirections(result);
+            const leg = result.routes[0]?.legs?.[0];
+            if (leg) {
+              setDistanceInfo({
+                distance: leg.distance.text,
+                duration: leg.duration.text,
+              });
+            }
             if (mapRef.current && result.routes[0]?.bounds) {
               mapRef.current.fitBounds(result.routes[0].bounds, {
                 top: 80,
@@ -246,6 +251,7 @@ const HowToGet = ({ data, type }) => {
               });
             }
           }
+          setLoadingDistance(false);
         },
       );
     },
@@ -253,24 +259,14 @@ const HowToGet = ({ data, type }) => {
   );
 
   const fetchDistanceAndRoute = useCallback(
-    async (coords) => {
+    (coords) => {
       setLoadingDistance(true);
       setGeoError(null);
       setDistanceInfo(null);
       setDirections(null);
-      try {
-        const res = await fetch(
-          `/api/distance?origin=${encodeURIComponent(`${coords.lat},${coords.lng}`)}&destination=${encodeURIComponent(address)}`,
-        );
-        if (res.ok) setDistanceInfo(await res.json());
-        computeRoute(coords);
-      } catch {
-        // silent
-      } finally {
-        setLoadingDistance(false);
-      }
+      computeRoute(coords);
     },
-    [address, computeRoute],
+    [computeRoute],
   );
 
   const handleGetDistance = () => {
@@ -368,11 +364,11 @@ const HowToGet = ({ data, type }) => {
       title="How to Get There"
       description="Venue location, directions and distance from your current position"
     >
-      <div className="flex flex-col gap-3 w-[70%]">
+      <div className="flex flex-col gap-3 w-full lg:w-[70%]">
         {geoError && <p className="text-red-400 text-xs mb-3">{geoError}</p>}
 
         {/* Map container */}
-        <div className="relative w-full h-150 rounded overflow-hidden border border-cream/30">
+        <div className="relative w-full h-120 lg:h-150 overflow-hidden border border-cream/30">
           {loadError && (
             <div className="w-full h-full flex items-center justify-center text-stone-500 text-sm">
               Map failed to load.
@@ -419,14 +415,15 @@ const HowToGet = ({ data, type }) => {
                   ))}
 
                 {/* Bottom action bar */}
-                <div className="absolute bottom-3 left-3 right-3 z-10 flex items-center justify-end">
-                  <div className="flex gap-2 overflow-hidden">
+                <div className="absolute top-1 -right-7 lg:bottom-3 lg:right-3 z-10 flex items-end justify-end">
+                  <div className="flex gap-2 overflow-hidden scale-75 lg:scale-100">
                     <Motion animation="top" delay={0.2}>
                       <Button
                         onClick={() => setShowLocationModal(true)}
                         size="small"
                         icon={<FiMapPin size={13} />}
                         text="Change Location"
+                        className="backdrop-blur-md"
                       />
                     </Motion>
                     {locationUrl && (
@@ -437,6 +434,7 @@ const HowToGet = ({ data, type }) => {
                           size="small"
                           icon={<FiExternalLink size={13} />}
                           text="Open in Map"
+                          className="backdrop-blur-md"
                         />
                       </Motion>
                     )}
@@ -447,6 +445,7 @@ const HowToGet = ({ data, type }) => {
                         disabled={loadingDistance}
                         icon={<FiNavigation size={13} />}
                         text={loadingDistance ? "Locating…" : "Get Distance"}
+                        className="backdrop-blur-md"
                       />
                     </Motion>
                   </div>
@@ -477,7 +476,7 @@ const HowToGet = ({ data, type }) => {
                 )}
 
                 {/* Nearby category toggles */}
-                <div className="absolute overflow-hidden right-3 bottom-20 z-10 flex flex-col items-end gap-1">
+                <div className="absolute overflow-hidden right-3 bottom-3 lg:bottom-20 z-10 flex flex-col items-end gap-1">
                   {[
                     {
                       key: "parking",
@@ -571,7 +570,7 @@ const HowToGet = ({ data, type }) => {
                   >
                     <LocationPin
                       type="venue"
-                      image={data?.image}
+                      image={resolveImage(data?.image, "sm")}
                       name={data?.name}
                       venueName={type === "events" ? data?.venue_name : null}
                     />
@@ -651,7 +650,9 @@ const MapInfoOverlay = ({ data, type }) => {
   return (
     <div className="absolute bg-linear-to-t from-black from-20% to-transparent left-0 bottom-0 w-full h-[20%] pointer-events-none z-5 flex justify-between items-end gap-2 pb-2 px-3">
       <div className="*:leading-none">
-        <h4 className="font-bold text-xl">{data.name}</h4>
+        <h4 className="font-bold uppercase text-xs lg:text-xl pr-5 lg:pr-0">
+          {data.name}
+        </h4>
         {(data.country || data.city) && (
           <ArtistCountry
             artistCountry={data}
@@ -659,22 +660,24 @@ const MapInfoOverlay = ({ data, type }) => {
             className="text-cream/80 text-xs"
           />
         )}
-        <div className="leading-none">
-          {dateText && (
-            <p className="text-cream text-sm font-bold">{dateText}</p>
-          )}
-          {isEvent && data.doors_open && (
-            <p className="text-cream/80 text-[10px] font-light secondary">
-              <span>Doors Open: </span>
-              <b className="font-bold">{data.doors_open}</b>
-            </p>
-          )}
-          {isEvent && data.promoter && (
-            <p className="text-cream/80 text-[10px] font-light secondary">
-              <span>Promoter: </span>
-              <b className="font-bold">{data.promoter}</b>
-            </p>
-          )}
+        <div className="">
+          <div className="flex items-center space-x-3 *:text-[10px] secondary">
+            {dateText && (
+              <p className="text-cream lg:text-sm font-bold ">{dateText}</p>
+            )}
+            {isEvent && data.doors_open && (
+              <p className="text-cream/80  font-light  mb-0.5">
+                <span>Doors Open: </span>
+                <b className="font-bold">{data.doors_open}</b>
+              </p>
+            )}
+            {isEvent && data.promoter && (
+              <p className="text-cream/80  font-light ">
+                <span>Promoter: </span>
+                <b className="font-bold capitalize">{data.promoter}</b>
+              </p>
+            )}
+          </div>
         </div>
       </div>
     </div>

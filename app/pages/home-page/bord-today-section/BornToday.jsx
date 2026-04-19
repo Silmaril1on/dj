@@ -9,6 +9,7 @@ import ArtistName from "@/app/components/materials/ArtistName";
 import SectionContainer from "@/app/components/containers/SectionContainer";
 import SliderContainer from "@/app/components/containers/SliderContainer";
 import { fakeBornData } from "@/app/lib/localDB/fakeBornData";
+import { resolveImage } from "@/app/helpers/utils";
 
 const BornToday = () => {
   const [artists, setArtists] = useState([]);
@@ -75,7 +76,10 @@ const BornToday = () => {
               <div className="bg-stone-900 bordered p-2 transition-colors duration-300">
                 <div className="relative w-full h-52 mb-3 overflow-hidden">
                   <Image
-                    src={artist.artist_image}
+                    src={
+                      resolveImage(artist.image_url, "sm") ||
+                      "/assets/elivagar-logo.png"
+                    }
                     alt={artist.stage_name || artist.name}
                     width={300}
                     height={300}

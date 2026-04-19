@@ -8,13 +8,13 @@ const TYPE_QUERIES = {
   artist: (supabase, ids) =>
     supabase
       .from("artists")
-      .select("id, name, stage_name, artist_image, artist_slug")
+      .select("id, name, stage_name, image_url, artist_slug")
       .in("id", ids)
       .then(({ data }) =>
         (data || []).map((item) => ({
           id: item.id,
           name: item.stage_name || item.name,
-          image: item.artist_image,
+          image: item.image_url,
           href: `/artists/${item.artist_slug}`,
           type: "artist",
         })),
@@ -23,13 +23,13 @@ const TYPE_QUERIES = {
   club: (supabase, ids) =>
     supabase
       .from("clubs")
-      .select("id, name, club_slug, club_image")
+      .select("id, name, club_slug, image_url")
       .in("id", ids)
       .then(({ data }) =>
         (data || []).map((item) => ({
           id: item.id,
           name: item.name,
-          image: item.club_image,
+          image: item.image_url,
           href: `/clubs/${item.club_slug || item.id}`,
           type: "club",
         })),
@@ -38,13 +38,13 @@ const TYPE_QUERIES = {
   event: (supabase, ids) =>
     supabase
       .from("events")
-      .select("id, event_name, event_image")
+      .select("id, event_name, image_url")
       .in("id", ids)
       .then(({ data }) =>
         (data || []).map((item) => ({
           id: item.id,
           name: item.event_name,
-          image: item.event_image,
+          image: item.image_url,
           href: `/events/${item.id}`,
           type: "event",
         })),
@@ -53,13 +53,13 @@ const TYPE_QUERIES = {
   festival: (supabase, ids) =>
     supabase
       .from("festivals")
-      .select("id, name, festival_slug, poster")
+      .select("id, name, festival_slug, image_url")
       .in("id", ids)
       .then(({ data }) =>
         (data || []).map((item) => ({
           id: item.id,
           name: item.name,
-          image: item.poster,
+          image: item.image_url,
           href: `/festivals/${item.festival_slug || item.id}`,
           type: "festival",
         })),

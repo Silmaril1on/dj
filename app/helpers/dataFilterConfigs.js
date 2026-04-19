@@ -213,7 +213,7 @@ export const mapCardProps = (item, type, idx) => {
       return {
         ...baseProps,
         type: "club",
-        image: item.club_image,
+        image: item.image_url,
         city: item.city,
         capacity: item.capacity,
         isLiked: item.userLiked || false,
@@ -223,14 +223,14 @@ export const mapCardProps = (item, type, idx) => {
       return {
         ...baseProps,
         name: item.stage_name || item.name,
-        image: item.artist_image,
+        image: item.image_url,
         href: `/artists/${item.artist_slug}`,
         score: item.rating_stats?.average_score,
       };
     case "events":
       return {
         ...baseProps,
-        image: item.event_image,
+        image: item.image_url,
         date: formatBirthdate(item.date),
         city: item.city,
         artists: item.artists,
@@ -240,7 +240,7 @@ export const mapCardProps = (item, type, idx) => {
       return {
         ...baseProps,
         type: "festival",
-        image: item.poster,
+        image: item.image_url,
         isLiked: item.userLiked || false,
         href: `/festivals/${item.festival_slug || item.id}`,
       };

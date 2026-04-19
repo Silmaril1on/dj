@@ -1,23 +1,27 @@
 "use client";
 import { motion } from "framer-motion";
-import Image from 'next/image';
-import Link from 'next/link';
+import Link from "next/link";
+import { resolveImage } from "@/app/helpers/utils";
 
 const RecentActivityCard = ({
   item,
   index = 0,
   href,
-  imageField = 'artist_image',
-  primaryNameField = 'stage_name',
-  secondaryNameField = 'name',
-  dateField = 'created_at',
-  imageAlt = 'Activity item',
+  imageField = "artist_image",
+  primaryNameField = "stage_name",
+  secondaryNameField = "name",
+  dateField = "created_at",
+  imageAlt = "Activity item",
   className = "",
-  animationDelay = 0.1
+  animationDelay = 0.1,
 }) => {
   const primaryName = item[primaryNameField] || item[secondaryNameField];
-  const secondaryName = item[primaryNameField] && item[secondaryNameField] ? item[secondaryNameField] : null;
-  const imageUrl = item[imageField] || '/placeholder-artist.jpg';
+  const secondaryName =
+    item[primaryNameField] && item[secondaryNameField]
+      ? item[secondaryNameField]
+      : null;
+  const imageUrl =
+    resolveImage(item[imageField], "sm") || "/placeholder-artist.jpg";
   const date = new Date(item[dateField]).toLocaleDateString();
 
   const cardContent = (
@@ -29,28 +33,23 @@ const RecentActivityCard = ({
         className={`flex items-center my-1 gap-3 p-2 bg-stone-800/40 rounded-lg hover:bg-stone-800/80 transition-colors ${className}`}
       >
         <div className="relative w-10 h-10 rounded-full overflow-hidden flex-shrink-0">
-          <Image
+          <img
             src={imageUrl}
             alt={imageAlt}
-            width={100}
-            height={100}
+            loading="lazy"
             className="object-cover w-full h-full"
           />
         </div>
         <div className="flex-1 min-w-0">
-          <p className="text-sm capitalize font-bold">
-            {primaryName}
-          </p>
+          <p className="text-sm capitalize font-bold">{primaryName}</p>
           {secondaryName && (
             <p className="text-chino/60 text-xs truncate">{secondaryName}</p>
           )}
         </div>
-        <div className="text-chino/40 text-xs">
-          {date}
-        </div>
-      </motion.div></Link>
+        <div className="text-chino/40 text-xs">{date}</div>
+      </motion.div>
+    </Link>
   );
-
 
   return cardContent;
 };
