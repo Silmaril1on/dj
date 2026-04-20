@@ -38,8 +38,6 @@ const ProductCard = ({
   const hasLikesCount = parsedLikesCount > 0;
   const isLikeable = type === "club" || type === "festival";
 
-  console.log(image, "iimg");
-
   const resolvedImage = resolveImage(image, "md");
 
   return (

@@ -12,6 +12,11 @@ const compat = new FlatCompat({
 const eslintConfig = [
   ...compat.extends("next/core-web-vitals"),
   {
+    rules: {
+      "@next/next/no-html-link-for-pages": ["error", "./app/"],
+    },
+  },
+  {
     ignores: [
       "node_modules/**",
       ".next/**",
