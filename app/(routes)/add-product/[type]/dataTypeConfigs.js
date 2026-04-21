@@ -223,6 +223,7 @@ export const DATA_TYPE_CONFIGS = {
       description: data.description || "",
       bio: data.bio || "",
       poster: resolveImageUrl(data.image_url, "sm"),
+      map_image_url: resolveImageUrl(data.map_image_url, "md"),
       start_date: data.start_date || "",
       end_date: data.end_date || "",
       location_url: data.location_url || "",
@@ -231,6 +232,8 @@ export const DATA_TYPE_CONFIGS = {
       capacity_per_day: data.capacity_per_day || "",
       country: data.country || "",
       city: data.city || "",
+      minimum_age: data.minimum_age != null ? String(data.minimum_age) : "",
+      festival_genre: data.festival_genre?.length ? data.festival_genre : [""],
       social_links: data.social_links || [""],
     }),
     mapSuccessPayload: (result) => ({

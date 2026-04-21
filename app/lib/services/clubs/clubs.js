@@ -14,7 +14,7 @@ import {
 } from "@/app/lib/services/imageProcessing";
 
 const CLUB_SELECT_LIMITED =
-  "id, name, club_slug, country, city, image_url, capacity, address";
+  "id, name, club_slug, country, city, image_url, capacity, address, rating_stats";
 
 const validateClubContactFields = ({ location_url, venue_email }) => {
   if (venue_email && String(venue_email).trim() !== "") {
@@ -36,15 +36,25 @@ const validateClubContactFields = ({ location_url, venue_email }) => {
 export async function getAllClubs({
   limit = 20,
   offset = 0,
+  country = null,
+  city = null,
   userId = null,
 } = {}) {
   const admin = getSupabaseAdminClient();
-  const { data, error } = await admin
+
+  let query = admin
     .from("clubs")
     .select(CLUB_SELECT_LIMITED)
-    .eq("status", "approved")
+    .eq("status", "approved");
+
+  if (country) query = query.eq("country", country);
+  if (city) query = query.ilike("city", city);
+
+  query = query
     .order("name", { ascending: true })
     .range(offset, offset + limit - 1);
+
+  const { data, error } = await query;
   if (error) throw new ServiceError(error.message, 500);
 
   const clubs = data || [];
@@ -52,17 +62,28 @@ export async function getAllClubs({
 
   let likesMap = {};
   let userLikedSet = new Set();
+  let userRatingsMap = {};
 
   if (clubIds.length > 0) {
-    const likesQuery = admin
+    const { data: likesData } = await admin
       .from("club_likes")
       .select("club_id, user_id")
       .in("club_id", clubIds);
-    const { data: likesData } = await likesQuery;
     (likesData || []).forEach((l) => {
       likesMap[l.club_id] = (likesMap[l.club_id] || 0) + 1;
       if (userId && l.user_id === userId) userLikedSet.add(l.club_id);
     });
+
+    if (userId) {
+      const { data: ratingsData } = await admin
+        .from("club_ratings")
+        .select("club_id, rating")
+        .in("club_id", clubIds)
+        .eq("user_id", userId);
+      (ratingsData || []).forEach((r) => {
+        userRatingsMap[r.club_id] = r.rating;
+      });
+    }
   }
 
   return {
@@ -70,6 +91,7 @@ export async function getAllClubs({
       ...c,
       likesCount: likesMap[c.id] || 0,
       userLiked: userLikedSet.has(c.id),
+      userRating: userRatingsMap[c.id] || null,
     })),
     limit,
     offset,

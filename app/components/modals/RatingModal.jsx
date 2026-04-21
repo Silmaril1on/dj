@@ -45,7 +45,8 @@ const RatingModal = () => {
   const handleSubmit = async () => {
     if (ratingModal.currentRating === 0 || !ratingModal.artistId) return;
 
-    if (ratingModal.currentRating < 6) {
+    // Only trigger review modal for artist low ratings
+    if (ratingModal.entityType === "artist" && ratingModal.currentRating < 6) {
       dispatch(
         openReviewModal({
           artistId: ratingModal.artistId,
@@ -65,17 +66,33 @@ const RatingModal = () => {
     if (ratingModal.currentRating === 0 || !ratingModal.artistId) return;
     setIsSubmitting(true);
     try {
-      const response = await fetch("/api/artists/rating", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          artistId: ratingModal.artistId,
+      const entityType = ratingModal.entityType;
+      const endpointMap = {
+        festival: "/api/festivals/rating",
+        club: "/api/clubs/rating",
+      };
+      const endpoint = endpointMap[entityType] || "/api/artists/rating";
+      const bodyMap = {
+        festival: {
+          festivalId: ratingModal.artistId,
           rating: ratingModal.currentRating,
-          userId: user.id,
-          username: user.userName || user.email,
-        }),
+        },
+        club: {
+          clubId: ratingModal.artistId,
+          rating: ratingModal.currentRating,
+        },
+      };
+      const body = bodyMap[entityType] || {
+        artistId: ratingModal.artistId,
+        rating: ratingModal.currentRating,
+        userId: user.id,
+        username: user.userName || user.email,
+      };
+
+      const response = await fetch(endpoint, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body),
       });
       if (!response.ok) {
         throw new Error("Failed to submit rating");

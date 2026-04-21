@@ -14,6 +14,7 @@ const RatingButton = ({
   className,
   size = 18,
   showValue = true,
+  entityType = "artist",
 }) => {
   const dispatch = useDispatch();
   const user = useSelector(selectUser);
@@ -30,9 +31,10 @@ const RatingButton = ({
   const handleClick = () => {
     dispatch(
       openRatingModal({
+        entityType,
         artistId: artist.id,
         name: artist.name,
-        stage_name: artist.stage_name,
+        stage_name: artist.stage_name || "",
         currentRating,
         userRating: currentRating,
         averageScore: ratingStats?.average_score || 0,

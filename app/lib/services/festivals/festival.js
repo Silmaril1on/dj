@@ -10,6 +10,7 @@ import {
 import { getServerUser } from "@/app/lib/config/supabaseServer";
 import {
   processAndUploadImage,
+  processAndUploadMapImage,
   deleteImageVariants,
 } from "@/app/lib/services/imageProcessing";
 
@@ -44,7 +45,7 @@ export async function getAllFestivals({
   let query = admin
     .from("festivals")
     .select(
-      "id, name, festival_slug, image_url, country, city, location_url, start_date, end_date, description, created_at",
+      "id, name, festival_slug, image_url, country, city, location_url, start_date, end_date, description, created_at, rating_stats",
       { count: "exact" },
     )
     .eq("status", "approved");
@@ -76,6 +77,7 @@ export async function getAllFestivals({
 
   let likesCount = {};
   let userLikedSet = new Set();
+  let userRatingsMap = {};
 
   if (festivalIds.length > 0) {
     const { data: likesData } = await admin
@@ -86,12 +88,24 @@ export async function getAllFestivals({
       likesCount[l.festival_id] = (likesCount[l.festival_id] || 0) + 1;
       if (userId && l.user_id === userId) userLikedSet.add(l.festival_id);
     });
+
+    if (userId) {
+      const { data: ratingsData } = await admin
+        .from("festival_ratings")
+        .select("festival_id, rating")
+        .in("festival_id", festivalIds)
+        .eq("user_id", userId);
+      (ratingsData || []).forEach((r) => {
+        userRatingsMap[r.festival_id] = r.rating;
+      });
+    }
   }
 
   let festivalsWithLikes = festivals.map((festival) => ({
     ...festival,
     likesCount: likesCount[festival.id] || 0,
     userLiked: userLikedSet.has(festival.id),
+    userRating: userRatingsMap[festival.id] || null,
   }));
 
   if (sort === "most_liked") {
@@ -243,6 +257,27 @@ export async function createFestival(formData, cookieStore) {
     user_id: user.id,
   });
 
+  // Handle optional map image upload
+  const mapImage = formData.get("map_image_url");
+  let mapImageUrls = null;
+  if (mapImage instanceof File && mapImage.size > 0) {
+    validateImageFile({ file: mapImage, maxSize: 10 * 1024 * 1024 });
+    const mapBaseName = `festivals/maps/${user.id}_${Date.now()}_map`;
+    try {
+      mapImageUrls = await processAndUploadMapImage(
+        mapImage,
+        admin,
+        "festival_map_images",
+        mapBaseName,
+      );
+    } catch (err) {
+      throw new ServiceError(err.message || "Failed to upload map image", 500);
+    }
+  }
+
+  const festival_genre = parseArrayField(formData, "festival_genre");
+  const minimum_age = formData.get("minimum_age")?.trim() || null;
+
   const { data, error } = await supabase
     .from("festivals")
     .insert({
@@ -253,6 +288,7 @@ export async function createFestival(formData, cookieStore) {
       description: formData.get("description")?.trim() || null,
       bio: formData.get("bio")?.trim() || null,
       image_url: posterUrls,
+      map_image_url: mapImageUrls ? JSON.stringify(mapImageUrls) : null,
       start_date: start_date || null,
       end_date: end_date || null,
       location_url: formData.get("location_url")?.trim() || null,
@@ -261,6 +297,8 @@ export async function createFestival(formData, cookieStore) {
       capacity_per_day: formData.get("capacity_per_day")?.trim() || null,
       country: formData.get("country")?.trim() || null,
       city: formData.get("city")?.trim() || null,
+      minimum_age: minimum_age ? Number(minimum_age) : null,
+      festival_genre: festival_genre.length ? festival_genre : null,
       user_id: user.id,
       social_links: social_links.length ? social_links : null,
       status: "pending",
@@ -346,7 +384,9 @@ export async function updateFestival(formData, cookieStore) {
   validateFestivalDates(start_date, end_date);
 
   const social_links = parseArrayField(formData, "social_links");
+  const festival_genre = parseArrayField(formData, "festival_genre");
   const rawFestivalSlug = formData.get("festival_slug");
+  const minimum_age = formData.get("minimum_age")?.trim() || null;
   const updateData = {
     name: String(name).trim(),
     festival_slug: rawFestivalSlug
@@ -362,6 +402,8 @@ export async function updateFestival(formData, cookieStore) {
     capacity_per_day: formData.get("capacity_per_day")?.trim() || null,
     country: formData.get("country")?.trim() || null,
     city: formData.get("city")?.trim() || null,
+    minimum_age: minimum_age ? Number(minimum_age) : null,
+    festival_genre: festival_genre.length ? festival_genre : null,
     social_links: social_links.length ? social_links : null,
     updated_at: new Date().toISOString(),
   };
@@ -393,6 +435,35 @@ export async function updateFestival(formData, cookieStore) {
         err.message || "Failed to upload poster image",
         500,
       );
+    }
+  }
+
+  // Handle optional map image update
+  const mapImage = formData.get("map_image_url");
+  if (mapImage instanceof File && mapImage.size > 0) {
+    validateImageFile({
+      file: mapImage,
+      required: false,
+      maxSize: 10 * 1024 * 1024,
+    });
+    if (existingFestival.map_image_url) {
+      await deleteImageVariants(
+        existingFestival.map_image_url,
+        admin,
+        "festival_map_images",
+      ).catch(() => {});
+    }
+    const mapBaseName = `festivals/maps/${user.id}_${Date.now()}_map`;
+    try {
+      const mapUrls = await processAndUploadMapImage(
+        mapImage,
+        admin,
+        "festival_map_images",
+        mapBaseName,
+      );
+      updateData.map_image_url = JSON.stringify(mapUrls);
+    } catch (err) {
+      throw new ServiceError(err.message || "Failed to upload map image", 500);
     }
   }
 

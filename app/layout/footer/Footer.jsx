@@ -9,6 +9,7 @@ import Paragraph from "@/app/components/ui/Paragraph";
 import Logo from "@/app/components/ui/Logo";
 import { selectUser } from "@/app/features/userSlice";
 import UserRegion from "@/app/components/materials/UserRegion";
+import Link from "next/link";
 
 const Footer = () => {
   const user = useSelector(selectUser);
@@ -50,9 +51,8 @@ const Footer = () => {
         <h1 onClick={() => dispatch(openPrivacyTermsModal("general"))}>
           Terms & Conditions
         </h1>
-        <h1 onClick={() => dispatch(openPrivacyTermsModal("privacy"))}>
-          Privacy Policy
-        </h1>
+        <Link href="/showcase">Explore</Link>
+        <h1></h1>
       </section>
       <UserRegion />
       <p className="secondary text-[9px] text-chino">

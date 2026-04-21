@@ -3,6 +3,7 @@ import { createSlice } from "@reduxjs/toolkit";
 const initialState = {
   ratingModal: {
     isOpen: false,
+    entityType: "artist", // "artist" | "festival"
     artistId: null,
     name: "",
     stage_name: "",
@@ -24,6 +25,7 @@ const ratingSlice = createSlice({
     openRatingModal: (state, action) => {
       const {
         artistId,
+        entityType = "artist",
         name,
         stage_name,
         currentRating,
@@ -33,6 +35,7 @@ const ratingSlice = createSlice({
       } = action.payload;
       state.ratingModal = {
         isOpen: true,
+        entityType,
         artistId,
         name,
         stage_name,
@@ -71,6 +74,7 @@ const ratingSlice = createSlice({
       state.ratingStats = {};
       state.ratingModal = {
         isOpen: false,
+        entityType: "artist",
         artistId: null,
         name: "",
         stage_name: "",

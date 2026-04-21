@@ -217,6 +217,9 @@ export const mapCardProps = (item, type, idx) => {
         city: item.city,
         capacity: item.capacity,
         isLiked: item.userLiked || false,
+        score: item.rating_stats?.average_score || null,
+        ratingStats: item.rating_stats || null,
+        userRating: item.userRating || null,
         href: `/clubs/${item.club_slug || item.id}`,
       };
     case "artists":
@@ -242,6 +245,9 @@ export const mapCardProps = (item, type, idx) => {
         type: "festival",
         image: item.image_url,
         isLiked: item.userLiked || false,
+        score: item.rating_stats?.average_score || null,
+        ratingStats: item.rating_stats || null,
+        userRating: item.userRating || null,
         href: `/festivals/${item.festival_slug || item.id}`,
       };
     default:

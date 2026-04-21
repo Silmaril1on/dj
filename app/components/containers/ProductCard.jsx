@@ -10,6 +10,7 @@ import Dot from "@/app/components/ui/Dot";
 import { FaStar, FaUsers } from "react-icons/fa";
 import { resolveImage, truncateString } from "@/app/helpers/utils";
 import LikeButton from "@/app/components/buttons/artist-buttons/LikeButton";
+import RatingButton from "@/app/components/buttons/artist-buttons/RatingButton";
 
 const ProductCard = ({
   id,
@@ -27,6 +28,8 @@ const ProductCard = ({
   score,
   type,
   isLiked: initialIsLiked = false,
+  ratingStats = null,
+  userRating = null,
 }) => {
   const parsedScore = Number(score);
   const hasScore = Number.isFinite(parsedScore) && parsedScore > 0;
@@ -81,7 +84,28 @@ const ProductCard = ({
           <div>
             <ArtistCountry artistCountry={{ country, city }} />
           </div>
-          {/* Add capacity display here */}
+          {(hasLikesCount || hasScore) && (
+            <div className="flex flex-row items-center justify-end gap-4 mt-1 pr-1">
+              {hasLikesCount && (
+                <SpanText
+                  icon={<FaUsers />}
+                  size="xs"
+                  text={`${parsedLikesCount} ${
+                    artists.length > 0 ? "Interested" : "Followers"
+                  }`}
+                  className="secondary pointer-events-none"
+                />
+              )}
+              {(type === "festival" || type === "club") && hasScore && (
+                <SpanText
+                  icon={<FaStar />}
+                  size="xs"
+                  text={`${parsedScore}`}
+                  className="secondary pointer-events-none"
+                />
+              )}
+            </div>
+          )}
           {capacity && (
             <p className="text-chino text-sm">
               Capacity: {capacity.toLocaleString()}
@@ -102,53 +126,37 @@ const ProductCard = ({
             </div>
           )}
         </div>
-        {hasScore && (
-          <div className="absolute z-10 top-4 left-4">
-            <SpanText
-              icon={<FaStar />}
-              size="xs"
-              text={`${parsedScore}`}
-              className="secondary pointer-events-none "
-            />
-          </div>
-        )}
-        {isLikeable ? (
-          <div className="absolute z-10 top-2 pl-1 pr-4 flex items-center justify-between w-full">
-            <LikeButton
-              type={type}
-              size={13}
-              artist={{
-                id,
-                isLiked: localIsLiked,
-                likesCount: parsedLikesCount,
-              }}
-              onLikeChange={(liked, count) => {
-                setLocalIsLiked(liked);
-                setLocalLikesCount(count);
-              }}
-            />
-            {hasLikesCount && (
-              <SpanText
-                icon={<FaUsers />}
-                size="xs"
-                text={`${parsedLikesCount} Followers`}
-                className="secondary pointer-events-none"
-              />
-            )}
-          </div>
-        ) : (
-          hasLikesCount && (
-            <div className="absolute center space-x-2 top-4 right-4">
-              <SpanText
-                icon={<FaUsers />}
-                size="xs"
-                text={`${parsedLikesCount} ${
-                  artists.length > 0 ? "Interested" : "Followers"
-                }`}
-                className="ml-2 secondary pointer-events-none"
+        {isLikeable && (
+          <div className="absolute z-10 top-0 w-full pl-1 pr-4 pt-2 flex flex-col gap-1">
+            <div className="flex items-center w-full">
+              <LikeButton
+                type={type}
+                size={13}
+                artist={{
+                  id,
+                  isLiked: localIsLiked,
+                  likesCount: parsedLikesCount,
+                }}
+                onLikeChange={(liked, count) => {
+                  setLocalIsLiked(liked);
+                  setLocalLikesCount(count);
+                }}
               />
             </div>
-          )
+            {(type === "festival" || type === "club") && (
+              <div className="flex items-center w-full">
+                <RatingButton
+                  entityType={type}
+                  artist={{ id, name }}
+                  ratingStats={ratingStats}
+                  userRating={userRating}
+                  size={13}
+                  showValue={false}
+                  className="pointer-events-auto"
+                />
+              </div>
+            )}
+          </div>
         )}
       </Link>
     </motion.div>

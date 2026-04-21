@@ -811,10 +811,12 @@ export const formConfigs = {
       capacity_per_day: "",
       country: "",
       city: "",
+      minimum_age: "",
+      festival_genre: [""],
       social_links: [""],
     },
     imageField: "poster",
-    arrayFields: ["social_links"],
+    arrayFields: ["social_links", "festival_genre"],
     fields: {
       poster: {
         type: "image",
@@ -896,6 +898,24 @@ export const formConfigs = {
         label: "City",
         placeholder: "Enter city name",
       },
+      map_image_url: {
+        type: "image",
+        required: false,
+        label: "Venue Map",
+        helpText: "Upload venue map image (max 5MB). MD and LG sizes only.",
+      },
+      minimum_age: {
+        type: "text",
+        required: false,
+        label: "Minimum Age",
+        placeholder: "e.g. 18",
+      },
+      festival_genre: {
+        type: "additional",
+        required: false,
+        label: "Festival Genres",
+        placeholder: "e.g. Techno, House, Trance",
+      },
       social_links: {
         type: "additional",
         required: false,
@@ -906,9 +926,9 @@ export const formConfigs = {
     },
     sections: [
       {
-        title: "Festival Poster",
-        fields: ["poster"],
-        gridClass: "space-y-4",
+        title: "Images",
+        fields: ["poster", "map_image_url"],
+        gridClass: "grid grid-cols-1 md:grid-cols-2 gap-4",
       },
       {
         title: "Basic Information",
@@ -922,8 +942,8 @@ export const formConfigs = {
       },
       {
         title: "Event Details",
-        fields: ["start_date", "end_date", "location_url"],
-        gridClass: "grid grid-cols-1 md:grid-cols-3 gap-4",
+        fields: ["start_date", "end_date", "location_url", "minimum_age"],
+        gridClass: "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4",
       },
       {
         title: "Capacity",
@@ -941,9 +961,9 @@ export const formConfigs = {
         gridClass: "space-y-4",
       },
       {
-        title: "Social Media",
-        fields: ["social_links"],
-        gridClass: "space-y-4",
+        title: "Social Media & Genres",
+        fields: ["social_links", "festival_genre"],
+        gridClass: "grid grid-cols-1 md:grid-cols-2 gap-4",
       },
     ],
   },

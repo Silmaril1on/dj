@@ -24,11 +24,15 @@ export async function GET(request) {
     const { searchParams } = new URL(request.url);
     const limit = parseInt(searchParams.get("limit") || "20", 10);
     const offset = parseInt(searchParams.get("offset") || "0", 10);
+    const country = searchParams.get("country") || null;
+    const city = searchParams.get("city") || null;
     const cookieStore = await cookies();
     const { user } = await getServerUser(cookieStore);
     const result = await getAllClubs({
       limit,
       offset,
+      country,
+      city,
       userId: user?.id ?? null,
     });
     return NextResponse.json({ data: result.clubs || [] });

@@ -174,3 +174,10 @@ html {
 .user-ring-2 {
   animation: userRing 2.2s ease-out 0.8s infinite;
 }
+
+.soundfolio-gradient {
+  background: linear-gradient(135deg, #fcb913 0%, #e6a503 55%, #ff8000 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}

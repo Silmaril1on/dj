@@ -87,18 +87,30 @@ export async function getNearYouEvents(country, city, { limit = 10 } = {}) {
   }));
 }
 
-export async function getLimitedEvents({ limit = 15, offset = 0 } = {}) {
+export async function getLimitedEvents({
+  limit = 15,
+  offset = 0,
+  country = null,
+  city = null,
+} = {}) {
   const todayStr = getTodayDateOnlyString();
 
+  let eventsQuery = supabaseAdmin
+    .from("events")
+    .select(EVENT_SELECT_LIMITED)
+    .eq("status", "approved")
+    .gte("date", todayStr);
+
+  if (country) eventsQuery = eventsQuery.eq("country", country);
+  if (city) eventsQuery = eventsQuery.ilike("city", city);
+
+  eventsQuery = eventsQuery
+    .order("date", { ascending: true })
+    .order("id", { ascending: true })
+    .range(offset, offset + limit - 1);
+
   const [eventsResult, likesResult] = await Promise.all([
-    supabaseAdmin
-      .from("events")
-      .select(EVENT_SELECT_LIMITED)
-      .eq("event_status", "upcoming")
-      .gte("date", todayStr)
-      .order("date", { ascending: true })
-      .order("id", { ascending: true })
-      .range(offset, offset + limit - 1),
+    eventsQuery,
 
     supabaseAdmin.from("event_likes").select("event_id"),
   ]);

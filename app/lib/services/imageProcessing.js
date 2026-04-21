@@ -101,6 +101,78 @@ export async function processAndUploadImage(
  * @param {string} baseName
  * @returns {Promise<{sm: string, md: string, lg: string}>}
  */
+/**
+ * Upload a map image with only md and lg variants (no sm).
+ * Used for festival map images stored in the festival_map_images bucket.
+ *
+ * @returns {Promise<{md: string, lg: string}>}
+ */
+export async function processAndUploadMapImage(
+  source,
+  adminClient,
+  bucket,
+  baseName,
+) {
+  let inputBuffer;
+  let originalContentType = "image/jpeg";
+  let originalExt = "jpg";
+
+  if (source instanceof File) {
+    inputBuffer = Buffer.from(await source.arrayBuffer());
+    originalContentType = source.type || "image/jpeg";
+    const nameParts = source.name?.split(".");
+    if (nameParts?.length > 1) {
+      originalExt = nameParts[nameParts.length - 1]
+        .toLowerCase()
+        .replace("jpeg", "jpg");
+    }
+  } else if (source instanceof ArrayBuffer) {
+    inputBuffer = Buffer.from(source);
+  } else {
+    inputBuffer = source;
+  }
+
+  const urls = {};
+
+  // md variant
+  const mdResized = await sharp(inputBuffer)
+    .rotate()
+    .resize(500, null, { withoutEnlargement: true, fit: "inside" })
+    .jpeg({ quality: 85, progressive: true })
+    .toBuffer();
+
+  const mdPath = `${baseName}_md.jpg`;
+  const { error: mdError } = await adminClient.storage
+    .from(bucket)
+    .upload(mdPath, mdResized, {
+      contentType: "image/jpeg",
+      cacheControl: "31536000",
+      upsert: false,
+    });
+  if (mdError)
+    throw new Error(`Failed to upload map md variant: ${mdError.message}`);
+  urls.md = adminClient.storage
+    .from(bucket)
+    .getPublicUrl(mdPath).data.publicUrl;
+
+  // lg variant — original file unchanged
+  const lgPath = `${baseName}_lg.${originalExt}`;
+  const { error: lgError } = await adminClient.storage
+    .from(bucket)
+    .upload(lgPath, inputBuffer, {
+      contentType: originalContentType,
+      cacheControl: "31536000",
+      upsert: false,
+    });
+  if (lgError)
+    throw new Error(`Failed to upload map lg variant: ${lgError.message}`);
+  urls.lg = adminClient.storage
+    .from(bucket)
+    .getPublicUrl(lgPath).data.publicUrl;
+
+  return urls; // { md: "https://...", lg: "https://..." }
+}
+
 export async function processAndUploadRemoteImage(
   remoteUrl,
   adminClient,

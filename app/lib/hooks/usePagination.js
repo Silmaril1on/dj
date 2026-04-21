@@ -65,14 +65,10 @@ const usePagination = ({
     async (newInitialData = []) => {
       setData(newInitialData);
       setOffset(newInitialData.length);
-      setHasMore(
-        typeof initialHasMore === "boolean"
-          ? initialHasMore
-          : newInitialData.length === limit,
-      );
+      setHasMore(newInitialData.length === limit);
       setLoading(false);
     },
-    [limit, initialHasMore],
+    [limit],
   );
 
   return {
