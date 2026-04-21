@@ -19,7 +19,8 @@ const Footer = () => {
       dispatch(
         setError({
           message: "Please login to send feedback or report",
-          type: "error",
+          type: "basic",
+          action: "login",
         }),
       );
       return;

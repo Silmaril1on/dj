@@ -80,7 +80,7 @@ const LikeButton = ({
       onClick={handleToggle}
       loading={isLoading}
       active={isLiked}
-      authMessage={`Please login to like this ${type}`}
+      authMessage={`Please login to perform action`}
       className={className}
     />
   );

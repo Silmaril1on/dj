@@ -2,6 +2,7 @@
 import { useState, useEffect } from "react";
 import { useDispatch } from "react-redux";
 import { openReviewModal } from "@/app/features/reviewsSlice";
+import { resolveImage } from "@/app/helpers/utils";
 
 import { FaArrowLeft } from "react-icons/fa";
 import Title from "@/app/components/ui/Title";
@@ -85,13 +86,16 @@ const ReviewHeader = ({ artist, data }) => {
     <div className="flex relative overflow-hidden">
       <div className="absolute inset-0 -z-[1] blur-lg">
         <img
-          src={artist.artist_image}
+          src={resolveImage(artist.image_url, "lg")}
           alt={artist.name}
           className="w-full h-full object-cover"
         />
       </div>
       <div className="flex flex-col md:flex-row gap-5 bg-black/30 w-full h-full py-10 pl-5">
-        <ProfilePicture avatar_url={artist.artist_image} type="avatar" />
+        <ProfilePicture
+          avatar_url={resolveImage(artist.image_url, "md")}
+          type="avatar"
+        />
         <div className="lg:space-y-2">
           <MyLink
             href={`/artists/${artist.artist_slug}`}

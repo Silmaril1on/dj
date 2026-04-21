@@ -16,7 +16,7 @@ function buildPagination(page, limit, total) {
 export async function getArtistByIdentifier(artistSlug, artistId) {
   let query = supabaseAdmin
     .from("artists")
-    .select("id, name, stage_name, artist_image, genres, artist_slug");
+    .select("id, name, stage_name, image_url, genres, artist_slug");
 
   query = artistSlug
     ? query.eq("artist_slug", artistSlug)

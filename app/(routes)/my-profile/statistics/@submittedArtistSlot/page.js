@@ -4,6 +4,7 @@ import { getUserSubmittedArtistStats } from "@/app/lib/services/user/statistics/
 export default async function SubmittedArtistsSlot() {
   try {
     const submittedArtist = await getUserSubmittedArtistStats();
+    if (!submittedArtist || submittedArtist.length === 0) return null;
     return (
       <SubmittedProfileCard
         data={submittedArtist}

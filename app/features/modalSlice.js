@@ -4,6 +4,7 @@ const initialState = {
   isDarkMode: true,
   error: "",
   errorType: "error",
+  errorAction: null,
   addEventModal: {
     isOpen: false,
     artist: null,
@@ -37,12 +38,16 @@ const modalSlice = createSlice({
       localStorage.setItem("theme", state.isDarkMode ? "dark" : "light");
     },
     setError: (state, action) => {
-      const { message, type } =
-        typeof action.payload === "string"
-          ? { message: action.payload, type: "error" }
-          : action.payload;
+      const {
+        message,
+        type,
+        action: errorAction,
+      } = typeof action.payload === "string"
+        ? { message: action.payload, type: "error", action: null }
+        : action.payload;
       state.error = message;
       state.errorType = type || "error";
+      state.errorAction = errorAction || null;
     },
     openAddEventModal: (state, action) => {
       state.addEventModal = {
@@ -115,6 +120,7 @@ export const modalReducer = modalSlice.reducer;
 export const selectIsDarkMode = (state) => state.modal.isDarkMode;
 export const selectError = (state) => state.modal.error;
 export const selectErrorType = (state) => state.modal.errorType;
+export const selectErrorAction = (state) => state.modal.errorAction;
 export const selectAddEventModal = (state) => state.modal.addEventModal;
 export const selectAddAlbumModal = (state) => state.modal.addAlbumModal;
 export const selectAddClubDateModal = (state) => state.modal.addClubDateModal;

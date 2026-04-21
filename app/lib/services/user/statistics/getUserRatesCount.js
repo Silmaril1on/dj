@@ -14,7 +14,7 @@ const getCachedRatingsStats = unstable_cache(
           id,
           name,
           stage_name,
-          artist_image,
+          image_url,
           artist_slug
         )
       `,
@@ -23,7 +23,8 @@ const getCachedRatingsStats = unstable_cache(
       .order("created_at", { ascending: false });
 
     if (error) {
-      throw new Error("Failed to fetch ratings statistics");
+      console.error("Failed to fetch ratings statistics:", error.message);
+      return { totalRatings: 0, ratingData: [], ratedArtists: [] };
     }
 
     const totalRatings = ratings?.length || 0;
@@ -51,7 +52,7 @@ const getCachedRatingsStats = unstable_cache(
           id: item.artists.id,
           name: item.artists.name,
           stage_name: item.artists.stage_name,
-          artist_image: item.artists.artist_image,
+          image_url: item.artists.image_url,
           artist_slug: item.artists.artist_slug,
         },
       })) || [];

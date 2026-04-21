@@ -5,7 +5,7 @@ import ProfilePicture from "@/app/components/materials/ProfilePicture";
 import ErrorCode from "@/app/components/ui/ErrorCode";
 import StatusIndicator from "@/app/components/ui/StatusIndicator";
 import Title from "@/app/components/ui/Title";
-import Link from "next/link";
+import SubmitLink from "@/app/(routes)/my-profile/statistics/(components)/SubmitLink";
 import { formatTime, resolveImage } from "@/app/helpers/utils";
 import { MdVisibility } from "react-icons/md";
 
@@ -45,14 +45,7 @@ const SubmittedProfileCard = ({
         <ErrorCode
           title={emptyTitle}
           description={emptyDescription}
-          action={
-            <Link
-              className="text-blue hover:text-blue-600 transition-colors duration-200"
-              href={submitHref}
-            >
-              {submitLabel}
-            </Link>
-          }
+          action={<SubmitLink href={submitHref} label={submitLabel} />}
         />
       </SectionContainer>
     );

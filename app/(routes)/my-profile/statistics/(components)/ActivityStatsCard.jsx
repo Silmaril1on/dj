@@ -3,6 +3,7 @@ import SectionContainer from "@/app/components/containers/SectionContainer";
 import RecentActivityCard from "@/app/components/materials/RecentActivityCard";
 import Paragraph from "@/app/components/ui/Paragraph";
 import ErrorCode from "@/app/components/ui/ErrorCode";
+import SubmitLink from "@/app/(routes)/my-profile/statistics/(components)/SubmitLink";
 
 const ActivityStatsCard = ({
   data,
@@ -15,6 +16,8 @@ const ActivityStatsCard = ({
   paragraphText = "",
   emptyTitle,
   emptyDescription,
+  submitHref,
+  submitLabel,
   getHref = () => "#",
   imageField,
   primaryNameField,
@@ -45,7 +48,15 @@ const ActivityStatsCard = ({
         description={description}
         className="bg-stone-900"
       >
-        <ErrorCode title={emptyTitle} description={emptyDescription} />
+        <ErrorCode
+          title={emptyTitle}
+          description={emptyDescription}
+          action={
+            submitHref && submitLabel ? (
+              <SubmitLink href={submitHref} label={submitLabel} />
+            ) : null
+          }
+        />
       </SectionContainer>
     );
   }

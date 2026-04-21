@@ -1,4 +1,6 @@
 import React from "react";
+import StatisticsEmptyState from "@/app/(routes)/my-profile/statistics/(components)/StatisticsEmptyState";
+import { getUserHasAnyStats } from "@/app/lib/services/user/statistics/getUserHasAnyStats";
 
 export const dynamic = "force-dynamic";
 
@@ -7,7 +9,7 @@ export const metadata = {
   description: "Statistics",
 };
 
-const StatisticsLayout = ({
+const StatisticsLayout = async ({
   ratingsSlot,
   reviewsSlot,
   likesSlot,
@@ -17,6 +19,12 @@ const StatisticsLayout = ({
   bookingSlot,
   submittedFestivalSlot,
 }) => {
+  const hasStats = await getUserHasAnyStats();
+
+  if (!hasStats) {
+    return <StatisticsEmptyState />;
+  }
+
   return (
     <div className="grid gap-4 p-3 lg:p-4">
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">

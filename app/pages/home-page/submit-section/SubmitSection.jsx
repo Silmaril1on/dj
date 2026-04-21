@@ -20,7 +20,11 @@ const SubmitSection = () => {
     // Check if user is logged in
     if (!user) {
       dispatch(
-        setError({ message: "Please login to continue", type: "error" }),
+        setError({
+          message: "Please login to continue",
+          type: "basic",
+          action: "login",
+        }),
       );
       return;
     }

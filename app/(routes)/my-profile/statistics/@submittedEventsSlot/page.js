@@ -4,6 +4,8 @@ import { getUserSubmittedEventsStats } from "@/app/lib/services/user/statistics/
 export default async function SubmittedEventsSlot() {
   try {
     const submittedEvents = await getUserSubmittedEventsStats();
+    if (!submittedEvents || submittedEvents.totalSubmittedEvents === 0)
+      return null;
     return (
       <ActivityStatsCard
         data={submittedEvents}
@@ -15,6 +17,8 @@ export default async function SubmittedEventsSlot() {
         paragraphText="Your total submitted events and the latest ones you added."
         emptyTitle="No submitted events yet"
         emptyDescription="Submit events to see your statistics!"
+        submitHref="/add-product/event"
+        submitLabel="Submit Event"
         getHref={(e) => `/events/${e.id}`}
         imageField="image_url"
         primaryNameField="event_name"

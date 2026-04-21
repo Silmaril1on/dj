@@ -4,6 +4,7 @@ import { getUserSubmittedFestivalStats } from "@/app/lib/services/user/statistic
 export default async function SubmittedFestivalSlot() {
   try {
     const submittedFestival = await getUserSubmittedFestivalStats();
+    if (!submittedFestival || submittedFestival.length === 0) return null;
     return (
       <SubmittedProfileCard
         data={submittedFestival}

@@ -27,12 +27,20 @@ const ActionButton = ({
     e.stopPropagation();
 
     if (requireAuth && !user) {
-      dispatch(setError({ message: authMessage, type: "error" }));
+      dispatch(
+        setError({ message: authMessage, type: "basic", action: "login" }),
+      );
       return;
     }
 
     if (requirePermission && !requirePermission(user)) {
-      dispatch(setError({ message: permissionMessage, type: "error" }));
+      dispatch(
+        setError({
+          message: permissionMessage,
+          type: "basic",
+          action: "login",
+        }),
+      );
       return;
     }
 

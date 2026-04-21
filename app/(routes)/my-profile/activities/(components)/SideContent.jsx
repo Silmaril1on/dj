@@ -1,4 +1,4 @@
-"use client"
+"use client";
 import { FaArrowUp, FaArrowDown, FaMinus } from "react-icons/fa";
 import SectionContainer from "@/app/components/containers/SectionContainer";
 import ArtistName from "@/app/components/materials/ArtistName";
@@ -6,19 +6,17 @@ import ProfilePicture from "@/app/components/materials/ProfilePicture";
 import SpanText from "@/app/components/ui/SpanText";
 import Motion from "@/app/components/containers/Motion";
 import Title from "@/app/components/ui/Title";
+import { resolveImage } from "@/app/helpers/utils";
 
 const getChangeIcon = (changeType) => {
-  if (changeType === "up")
-    return <FaArrowUp className="text-green-400 ml-1" />;
+  if (changeType === "up") return <FaArrowUp className="text-green-400 ml-1" />;
   if (changeType === "down")
     return <FaArrowDown className="text-red-400 ml-1" />;
-  if (changeType === "new")
-    return <FaMinus className="text-yellow-400 ml-1" />;
+  if (changeType === "new") return <FaMinus className="text-yellow-400 ml-1" />;
   return null;
 };
 
 const SideContent = ({ thisWeek = [], previousWeek = [] }) => {
-
   return (
     <SectionContainer
       size="sm"
@@ -36,8 +34,10 @@ const SideContent = ({ thisWeek = [], previousWeek = [] }) => {
               key={artist.id}
               className="flex items-center gap-2 px-2 py-1 bg-stone-950/40"
             >
-              <ProfilePicture avatar_url={artist.artist_image} />
-              <div className="grid grid-cols-3 w-full">
+              <ProfilePicture
+                avatar_url={resolveImage(artist.image_url, "sm")}
+              />
+              <div className="grid grid-cols-3 w-full items-center">
                 <ArtistName artistName={artist} size="xs" />
                 <div className="flex items-center gap-2 mt-1">
                   <span className="ml-2 text-xs text-gold">
@@ -86,10 +86,12 @@ const SideContent = ({ thisWeek = [], previousWeek = [] }) => {
                 key={artist.id}
                 className="flex items-center gap-2 bg-stone-950/40 px-2 py-1"
               >
-                <ProfilePicture avatar_url={artist.artist_image} />
+                <ProfilePicture
+                  avatar_url={resolveImage(artist.image_url, "sm")}
+                />
                 <div className="flex-1 grid grid-cols-3">
                   <ArtistName artistName={artist} size="xs" />
-                 <SpanText text={artist.weeklyAverage} size="xs" />
+                  <SpanText text={artist.weeklyAverage} size="xs" />
                   <span className="ml-2 text-xs text-stone-400">
                     ({artist.weeklyRatingCount} ratings)
                   </span>

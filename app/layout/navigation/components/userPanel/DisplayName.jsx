@@ -49,7 +49,7 @@ const DisplayName = ({ user, type }) => {
   return (
     <div className="relative" ref={settingsRef}>
       <div className="flex items-center gap-2">
-        <MessageIcon />
+        {/* <MessageIcon /> */}
         {type === "mobile" && <div className="h-4 w-[1.5px] bg-gold/40" />}
         <NotificationIcon />
         {type === "mobile" && <div className="h-4 w-[1.5px] bg-gold/40" />}

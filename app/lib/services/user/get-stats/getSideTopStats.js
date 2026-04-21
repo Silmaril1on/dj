@@ -25,7 +25,7 @@ async function fetchTopArtists(start, end) {
         id,
         name,
         stage_name,
-        artist_image,
+        image_url,
         rating_stats
       )
     `,

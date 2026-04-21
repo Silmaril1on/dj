@@ -10,8 +10,8 @@ import { getActivityReminders } from "@/app/lib/services/user/activities/getActi
 import MyEvents from "@/app/(routes)/my-profile/activities/(components)/MyEvents";
 import Reminders from "@/app/(routes)/my-profile/activities/(components)/Reminders";
 import ErrorCode from "@/app/components/ui/ErrorCode";
-import UsersReviewPage from "../(components)/UsersReviewPage";
 import UserRatingsPage from "../(components)/UserRatingsPage";
+import ReviewList from "../(components)/ReviewList";
 
 export const dynamic = "force-dynamic";
 
@@ -41,7 +41,7 @@ export default async function ActivityTabPage({ params, searchParams }) {
 
       case "reviews": {
         const data = await getActivityReviews(page);
-        return <UsersReviewPage reviewsData={data} />;
+        return <ReviewList reviewsData={data} />;
       }
 
       case "my-events": {

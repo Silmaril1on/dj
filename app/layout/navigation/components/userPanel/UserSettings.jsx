@@ -58,14 +58,19 @@ const SettingsHeader = ({ avatar_url, isVerified }) => {
       className="gap-2 items-center border-b border-gold/30 relative"
     >
       <ProfilePicture avatar_url={avatar_url} />
-      <FlexBox type="column-start" className="flex-1 leading-none">
+      <FlexBox type="column-start" className="flex-1 *:leading-none">
         <SpanText
           text="User Settings"
           font="primary"
           color="default"
-          className="text-sm"
+          className="text-sm font-bold"
         />
-        <SpanText text="Manage your account" size="xs" />
+        <SpanText text="Manage your account" size="xs" className="secondary" />
+        {isVerified && (
+          <h1 className="text-[12px] text-green-600 secondary">
+            Verified Account
+          </h1>
+        )}
       </FlexBox>
     </FlexBox>
   );

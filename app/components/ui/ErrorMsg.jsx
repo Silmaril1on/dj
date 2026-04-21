@@ -2,12 +2,14 @@
 import {
   selectError,
   selectErrorType,
+  selectErrorAction,
   setError,
 } from "@/app/features/modalSlice";
 import { capitalizeFirst } from "@/app/helpers/utils";
 import { AnimatePresence, motion } from "framer-motion";
 import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
+import { useRouter } from "next/navigation";
 import { IoMdClose } from "react-icons/io";
 import Button from "@/app/components/buttons/Button";
 import UserVerificationModal from "@/app/components/modals/UserVerificationModal";
@@ -15,8 +17,10 @@ import Close from "../buttons/Close";
 
 const ErrorMsg = () => {
   const dispatch = useDispatch();
+  const router = useRouter();
   const error = useSelector(selectError);
   const errorType = useSelector(selectErrorType);
+  const errorAction = useSelector(selectErrorAction);
   const [isVisible, setIsVisible] = useState(true);
   const [verifyModalOpen, setVerifyModalOpen] = useState(false);
 
@@ -32,6 +36,11 @@ const ErrorMsg = () => {
     setVerifyModalOpen(true);
   };
 
+  const handleLoginClick = () => {
+    handleClose();
+    router.push("/sign-in");
+  };
+
   useEffect(() => {
     if (error) {
       setIsVisible(true);
@@ -40,7 +49,7 @@ const ErrorMsg = () => {
         setTimeout(() => {
           dispatch(setError(""));
         }, 300);
-      }, 40000);
+      }, 4000);
     }
   }, [error, dispatch]);
 
@@ -66,19 +75,25 @@ const ErrorMsg = () => {
             >
               {/* Close button */}
               <Close className="absolute top-1 right-1" onClick={handleClose} />
-
               <p className="text-sm text-center pr-3 pointer-events-none">
                 {capitalizeFirst(error)}
               </p>
-
-              {/* Verify Account CTA for basic type */}
+              {/* CTA for basic type */}
               {errorType === "basic" && (
                 <div className="mt-3 center">
-                  <Button
-                    text="Verify Account?"
-                    size="small"
-                    onClick={handleVerifyClick}
-                  />
+                  {errorAction === "login" ? (
+                    <Button
+                      text="Login PLease"
+                      size="small"
+                      onClick={handleLoginClick}
+                    />
+                  ) : (
+                    <Button
+                      text="Verify Account?"
+                      size="small"
+                      onClick={handleVerifyClick}
+                    />
+                  )}
                 </div>
               )}
             </motion.div>

@@ -4,6 +4,7 @@ import { getUserSubmittedClubStats } from "@/app/lib/services/user/statistics/ge
 export default async function SubmittedClubsSlot() {
   try {
     const submittedClub = await getUserSubmittedClubStats();
+    if (!submittedClub || submittedClub.length === 0) return null;
     return (
       <SubmittedProfileCard
         data={submittedClub}

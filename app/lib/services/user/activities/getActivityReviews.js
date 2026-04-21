@@ -23,7 +23,7 @@ const getCachedReviews = unstable_cache(
               id,
               name,
               stage_name,
-              artist_image
+              image_url
             )
           `,
           )
@@ -53,7 +53,7 @@ const getCachedReviews = unstable_cache(
             id: r.artists.id,
             name: r.artists.name,
             stage_name: r.artists.stage_name,
-            artist_image: r.artists.artist_image,
+            image_url: r.artists.image_url,
           },
         })) || [],
       pagination: {

@@ -22,11 +22,7 @@ const UserProfile = ({ profile, onUpdateClick, isEditing }) => {
           </div>
           <div className="flex-1 text-center md:text-left">
             <div className="space-y-2 flex items-center lg:items-start flex-col *:font-bold *:leading-none">
-              <SpanText
-                color="gold"
-                icon={<MdPerson />}
-                text={`${profile?.userName}`}
-              />
+              <h1 className="text-lg lg:text-4xl">{profile?.userName}</h1>
               <SpanText icon={<MdEmail />} text={profile?.email} color="gold" />
               <SpanText
                 icon={<MdAccessTime />}
