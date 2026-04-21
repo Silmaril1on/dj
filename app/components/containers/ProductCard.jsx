@@ -84,6 +84,11 @@ const ProductCard = ({
           <div>
             <ArtistCountry artistCountry={{ country, city }} />
           </div>
+          {capacity && (
+            <p className="text-chino text-sm">
+              Capacity: {capacity.toLocaleString()}
+            </p>
+          )}
           {(hasLikesCount || hasScore) && (
             <div className="flex flex-row items-center justify-end gap-4 mt-1 pr-1">
               {hasLikesCount && (
@@ -105,11 +110,6 @@ const ProductCard = ({
                 />
               )}
             </div>
-          )}
-          {capacity && (
-            <p className="text-chino text-sm">
-              Capacity: {capacity.toLocaleString()}
-            </p>
           )}
           {artists.length > 0 && (
             <div className="flex flex-wrap">
