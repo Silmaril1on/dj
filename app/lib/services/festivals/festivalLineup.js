@@ -16,7 +16,7 @@ const normalizeArtistName = (name) => {
 async function buildArtistMap(supabase) {
   const { data: allArtistsData } = await supabase
     .from("artists")
-    .select("id, name, stage_name, artist_slug");
+    .select("id, name, stage_name, artist_slug, image_url");
 
   const artistMap = new Map();
   if (allArtistsData) {
@@ -105,6 +105,7 @@ export async function getLineup(festivalId, cookieStore) {
           phase: artist.phase || null,
           id: found?.id || null,
           artist_slug: found?.artist_slug || null,
+          image_url: found?.image_url || null,
         };
       }),
   }));

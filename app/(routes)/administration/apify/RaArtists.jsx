@@ -81,6 +81,7 @@ const RaArtists = () => {
   // Related artists: selectable pool + selection state
   const [relatedPool, setRelatedPool] = useState([]); // { artistId, artistName, url, followerCount }[]
   const [selectedRelated, setSelectedRelated] = useState(new Set());
+  const [existingRelatedSet, setExistingRelatedSet] = useState(new Set()); // names already in DB
 
   // Related fetch / check / insert pipeline
   const [relatedFetching, setRelatedFetching] = useState(false);
@@ -122,6 +123,7 @@ const RaArtists = () => {
     setInsertResults(null);
     setRelatedPool([]);
     setSelectedRelated(new Set());
+    setExistingRelatedSet(new Set());
     setRelatedFetchData(null);
     setRelatedInsertResults(null);
 
@@ -153,6 +155,26 @@ const RaArtists = () => {
         `?? Related artists pool (${pool.length}):`,
         pool.map((r) => `${r.artistName} (${r.followerCount ?? 0} followers)`),
       );
+
+      // Check which related artists already exist in DB
+      if (pool.length > 0) {
+        try {
+          const checkRes = await fetch(
+            "/api/automation/artist-album/check-existing-artists",
+            {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                names: pool.map((r) => r.artistName).filter(Boolean),
+              }),
+            },
+          );
+          const checkJson = await checkRes.json();
+          setExistingRelatedSet(new Set(checkJson.alreadyExist || []));
+        } catch {
+          setExistingRelatedSet(new Set());
+        }
+      }
     } catch (err) {
       console.error("? Fetch error:", err);
       setFetchError(err.message);
@@ -297,6 +319,24 @@ const RaArtists = () => {
         setSelectedRelated(new Set());
         setRelatedFetchData(null);
         setRelatedInsertResults(null);
+
+        // Re-check DB for the new pool
+        try {
+          const checkRes = await fetch(
+            "/api/automation/artist-album/check-existing-artists",
+            {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                names: nextPool.map((r) => r.artistName).filter(Boolean),
+              }),
+            },
+          );
+          const checkJson = await checkRes.json();
+          setExistingRelatedSet(new Set(checkJson.alreadyExist || []));
+        } catch {
+          setExistingRelatedSet(new Set());
+        }
       }
     } catch (err) {
       console.error("? Related insert error:", err);
@@ -331,12 +371,23 @@ const RaArtists = () => {
             value={searchTerms}
             onChange={(e) => setSearchTerms(e.target.value)}
             placeholder={
-              "https://ra.co/dj/arminvanbuuren\nhttps://ra.co/dj/taleofus"
+              "One artist per line — URL or slug name:\nhttps://ra.co/dj/arminvanbuuren\ntaleofus\nboris brejcha"
             }
             rows={4}
             className="w-full px-4 py-2 bg-black border border-gold/30 text-cream focus:outline-none focus:border-gold resize-y font-mono text-sm"
             disabled={loading}
           />
+          {(() => {
+            const count = searchTerms
+              .split("\n")
+              .map((l) => l.trim())
+              .filter(Boolean).length;
+            return count > 0 ? (
+              <p className="text-xs text-chino/50">
+                {count} artist{count > 1 ? "s" : ""} to fetch
+              </p>
+            ) : null;
+          })()}
           <div className="flex justify-end">
             <Button
               text={loading ? "Fetching..." : "Fetch Artists"}
@@ -543,6 +594,7 @@ const RaArtists = () => {
               <div className="grid grid-cols-8 gap-2">
                 {relatedPool.map((rel, i) => {
                   const isSelected = selectedRelated.has(rel.artistName);
+                  const isExisting = existingRelatedSet.has(rel.artistName);
                   return (
                     <button
                       key={i}
@@ -550,16 +602,24 @@ const RaArtists = () => {
                       className={`flex flex-col items-center px-3 py-2 rounded border text-xs transition-all ${
                         isSelected
                           ? "bg-gold text-black border-gold font-semibold"
-                          : "bg-neutral-800 text-chino border-neutral-700 hover:border-gold/50"
+                          : isExisting
+                            ? "bg-green-800 border-green-500 text-green-100"
+                            : "bg-neutral-800 text-chino border-neutral-700 hover:border-gold/50"
                       }`}
                     >
                       <span>{rel.artistName}</span>
                       <span
                         className={`mt-0.5 text-[10px] ${
-                          isSelected ? "text-black/60" : "text-chino/50"
+                          isSelected
+                            ? "text-black/60"
+                            : isExisting
+                              ? "text-green-300/70"
+                              : "text-chino/50"
                         }`}
                       >
-                        {(rel.followerCount ?? 0).toLocaleString()} followers
+                        {isExisting
+                          ? "✓ in database"
+                          : `${(rel.followerCount ?? 0).toLocaleString()} followers`}
                       </span>
                     </button>
                   );

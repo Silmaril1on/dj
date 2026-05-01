@@ -32,7 +32,7 @@ const ImageUploadAutomation = () => {
   const handleUpload = async () => {
     if (
       !confirm(
-        "Are you sure you want to upload images for all pending artists?"
+        "Are you sure you want to upload images for all pending artists?",
       )
     ) {
       return;
@@ -156,14 +156,31 @@ const ImageUploadAutomation = () => {
 
           {result.results && result.results.length > 0 && (
             <div className="max-h-64 overflow-y-auto space-y-2">
-              {result.results.map((item, index) => (
+              {result.results.map((item) => (
                 <div
-                  key={index}
+                  key={item.artistId}
                   className={`text-xs p-2 rounded ${item.status === "success" ? "bg-green-900/30 text-green-300" : "bg-red-900/30 text-red-300"}`}
                 >
                   <div className="font-semibold">{item.artistName}</div>
                   {item.status === "success" ? (
-                    <div className="text-green-400">✓ {item.sourceFile}</div>
+                    <div className="space-y-0.5">
+                      <div className="text-green-400">✓ {item.sourceFile}</div>
+                      {item.imageUrls && (
+                        <div className="text-green-500/70 flex gap-2 flex-wrap">
+                          {Object.entries(item.imageUrls).map(([size, url]) => (
+                            <a
+                              key={size}
+                              href={url}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="underline"
+                            >
+                              [{size}]
+                            </a>
+                          ))}
+                        </div>
+                      )}
+                    </div>
                   ) : (
                     <div className="text-red-400">✗ {item.reason}</div>
                   )}

@@ -10,7 +10,7 @@ export async function GET(req) {
     if (!name) {
       return NextResponse.json(
         { error: "Artist name is required" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -20,7 +20,7 @@ export async function GET(req) {
     // Search artists by name or stage_name
     const { data: artists, error } = await supabase
       .from("artists")
-      .select("id, name, stage_name, artist_image")
+      .select("id, name, stage_name, image_url")
       .or(`name.ilike.%${name}%,stage_name.ilike.%${name}%`)
       .limit(10);
 
@@ -28,16 +28,25 @@ export async function GET(req) {
       console.error("Error searching artists:", error);
       return NextResponse.json(
         { error: "Failed to search artists" },
-        { status: 500 }
+        { status: 500 },
       );
     }
 
-    return NextResponse.json({ artists });
+    // Resolve image_url JSONB → flat string for UI consumers
+    const mapped = (artists || []).map(({ image_url, ...rest }) => ({
+      ...rest,
+      artist_image:
+        typeof image_url === "object" && image_url !== null
+          ? (image_url.md ?? image_url.lg ?? image_url.sm ?? null)
+          : (image_url ?? null),
+    }));
+
+    return NextResponse.json({ artists: mapped });
   } catch (error) {
     console.error("Error in artist search:", error);
     return NextResponse.json(
       { error: "Internal server error" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

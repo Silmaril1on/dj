@@ -21,7 +21,9 @@ export const generateMetadata = async ({ params }) => {
       artist?.bio?.substring(0, 160) ||
       `Check out ${artistName} on Soundfolio - DJ profile, music, events, and more.`;
     const artistImage =
-      artist?.artist_image ||
+      (typeof artist?.image_url === "object"
+        ? artist.image_url?.lg || artist.image_url?.md || artist.image_url?.sm
+        : artist?.image_url || artist?.artist_image) ||
       `${process.env.PROJECT_URL}/assets/default-artist.jpg`;
 
     return {

@@ -1,10 +1,13 @@
 "use client";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import Link from "next/link";
+import { motion, useMotionValue, useSpring } from "framer-motion";
 import Spinner from "@/app/components/ui/Spinner";
 import Motion from "@/app/components/containers/Motion";
 import Dot from "@/app/components/ui/Dot";
 import LayoutButtons from "@/app/components/buttons/LayoutButtons";
+import { resolveImage } from "@/app/helpers/utils";
 
 const normalizeArtist = (artist) => {
   if (!artist) return null;
@@ -20,6 +23,7 @@ const normalizeArtist = (artist) => {
     name,
     slug: artist.artist_slug || null,
     day: artist.artist_day || artist.day || null,
+    image_url: artist.image_url || null,
   };
 };
 
@@ -28,17 +32,57 @@ const sortArtistsByName = (artists) =>
 
 const ArtistRowItem = ({ artist, index, total }) => {
   const hasSlug = Boolean(artist.slug);
+  const imgSrc = hasSlug ? resolveImage(artist.image_url, "md") : null;
+
+  const [isHovered, setIsHovered] = useState(false);
+  const mouseX = useMotionValue(-9999);
+  const mouseY = useMotionValue(-9999);
+  const springX = useSpring(mouseX, { stiffness: 500, damping: 32, mass: 0.4 });
+  const springY = useSpring(mouseY, { stiffness: 500, damping: 32, mass: 0.4 });
+
+  const handleMouseMove = (e) => {
+    // Center image horizontally on cursor; float it 10px above cursor
+    mouseX.set(e.clientX - 56);
+    mouseY.set(e.clientY - 128 - 10);
+  };
 
   return (
     <div className="flex leading-none items-center text-cream gap-1 lg:gap-2 uppercase font-bold text-lg lg:text-2xl">
       {hasSlug ? (
-        <Link href={`/artists/${artist.slug}`}>
-          <h1 className=" hover:text-gold duration-300">{artist.name}</h1>
+        <Link
+          href={`/artists/${artist.slug}`}
+          className="relative z-10"
+          onMouseEnter={() => setIsHovered(true)}
+          onMouseLeave={() => setIsHovered(false)}
+          onMouseMove={handleMouseMove}
+        >
+          <h1 className="hover:text-gold duration-300">{artist.name}</h1>
         </Link>
       ) : (
         <h1 className="brightness-70">{artist.name}</h1>
       )}
       {index < total - 1 && <Dot />}
+
+      {/* Mouse-following artist image — rendered in a portal so it overlays everything */}
+      {isHovered &&
+        imgSrc &&
+        createPortal(
+          <motion.div
+            className="fixed top-0 left-0 w-28 h-28 overflow-hidden pointer-events-none z-[9999] border border-gold/40 shadow-lg shadow-black/60"
+            style={{ x: springX, y: springY }}
+            initial={{ opacity: 0, scale: 0.8 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.8 }}
+            transition={{ duration: 0.15 }}
+          >
+            <img
+              src={imgSrc}
+              alt={artist.name}
+              className="w-full h-full object-cover"
+            />
+          </motion.div>,
+          document.body,
+        )}
     </div>
   );
 };

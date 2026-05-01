@@ -33,7 +33,7 @@ function buildInsertPayload(ra) {
       : [],
     country: ra.artistAreas?.[0]?.countryUrl || null,
     city: ra.artistAreas?.[0]?.areaName || null,
-    artist_image: ra.image || null,
+    image_url: ra.image ? { sm: ra.image, md: ra.image, lg: ra.image } : null,
   };
 }
 

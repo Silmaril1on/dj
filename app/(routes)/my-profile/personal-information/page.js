@@ -5,8 +5,9 @@ import MyProfile from "./(components/MyProfile";
 export const dynamic = "force-dynamic";
 
 export const metadata = {
-  title: "My Profile | Personal Information",
-  description: "Personal Information",
+  title: "Soundfolio | Personal Information",
+  description:
+    "Manage your Soundfolio profile — update your name, avatar, bio, and personal details.",
 };
 
 const ProfilePageSlot = async () => {

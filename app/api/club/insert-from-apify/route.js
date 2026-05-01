@@ -148,7 +148,7 @@ export async function POST(req) {
           description: null,
           social_links: null,
           status: "pending",
-          club_image: null,
+          image_url: null,
           address,
           residents: null,
           location_url: locationUrl,

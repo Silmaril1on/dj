@@ -8,7 +8,7 @@ export const dynamic = "force-dynamic";
 export const metadata = {
   title: "Soundfolio | Home",
   description:
-    "Discover and share events with Soundfolio's vibrant community. Explore upcoming events, connect with like-minded individuals, and stay updated on the latest happenings in your area.",
+    "Soundfolio — the music production community. Discover DJs, artists, clubs, festivals, and upcoming events. Connect with the best talent in the electronic music world.",
 };
 
 export default async function Home() {

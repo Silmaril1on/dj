@@ -29,8 +29,9 @@ export const CATEGORY_CONFIGS = {
           "Discover and explore various clubs on Soundfolio. Join communities that share your musical interests and connect with like-minded individuals.",
       },
       profile: {
-        title: "Soundfolio | Club Details",
-        description: "Club details page",
+        title: "Soundfolio | Club Profile",
+        description:
+          "Explore this club on Soundfolio — lineup, events, location, and everything you need to know before you go.",
       },
     },
   },
@@ -63,11 +64,13 @@ export const CATEGORY_CONFIGS = {
     metadata: {
       list: {
         title: "Soundfolio | Upcoming Events",
-        description: "Soundfolio events page",
+        description:
+          "Browse upcoming electronic music events on Soundfolio. Find concerts, club nights, and festivals near you.",
       },
       profile: {
-        title: "Soundfolio | Event Profile",
-        description: "Event profile page",
+        title: "Soundfolio | Event",
+        description:
+          "View event details on Soundfolio — lineup, venue, date, and tickets.",
       },
     },
   },
@@ -102,8 +105,9 @@ export const CATEGORY_CONFIGS = {
         description: "Discover music festivals on Soundfolio.",
       },
       profile: {
-        title: "Soundfolio | Festival Details",
-        description: "Festival details page",
+        title: "Soundfolio | Festival",
+        description:
+          "Explore this festival on Soundfolio — artists, stages, dates, and everything you need to plan your experience.",
       },
     },
   },

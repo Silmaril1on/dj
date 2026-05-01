@@ -65,4 +65,8 @@ export const administrationLinks = [
     href: "/administration/reports",
     text: "Reports and Feedbacks",
   },
+  {
+    href: "/administration/audit",
+    text: "Audit",
+  },
 ];

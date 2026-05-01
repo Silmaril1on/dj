@@ -26,6 +26,7 @@ import {
 import ArtistCountry from "@/app/components/materials/ArtistCountry";
 import Close from "@/app/components/buttons/Close";
 import Motion from "@/app/components/containers/Motion";
+import { AnimatePresence, motion } from "framer-motion";
 
 // Custom dark/gold map style to match the app theme
 const MAP_STYLES = [
@@ -147,8 +148,8 @@ const ALT_ROUTE_OPTIONS = {
   },
 };
 
-// ── Main component ──────────────────────────────────────────────────────────
-const HowToGet = ({ data, type }) => {
+// ── Map section (mounts only after user reveals it) ────────────────────────
+const MapSection = ({ data, type }) => {
   const user = useSelector(selectUser);
   const address = data?.address;
   const locationUrl = data?.location_url;
@@ -357,6 +358,279 @@ const HowToGet = ({ data, type }) => {
     [venueCoords, activeNearby],
   );
 
+  return (
+    <div className="flex flex-col gap-3 w-full lg:w-[70%]">
+      {geoError && <p className="text-red-400 text-xs mb-3">{geoError}</p>}
+
+      {/* Map container */}
+      <div className="relative w-full h-120 lg:h-150 overflow-hidden  border border-cream/30">
+        {loadError && (
+          <div className="w-full h-full flex items-center justify-center text-stone-500 text-sm">
+            Map failed to load.
+          </div>
+        )}
+
+        {!isLoaded && !loadError && (
+          <div className="w-full h-full flex items-center justify-center bg-stone-900 text-stone-500 text-sm animate-pulse">
+            Loading map…
+          </div>
+        )}
+
+        {isLoaded && !loadError && (
+          <>
+            <GoogleMap
+              mapContainerStyle={MAP_CONTAINER_STYLE}
+              center={venueCoords || { lat: 48.8566, lng: 2.3522 }}
+              zoom={venueCoords ? 15 : 4}
+              onLoad={onMapLoad}
+              options={{
+                styles: MAP_STYLES,
+                disableDefaultUI: true,
+                zoomControl: false,
+                fullscreenControl: false,
+                mapTypeControl: false,
+                streetViewControl: false,
+                rotateControl: false,
+                scaleControl: false,
+                clickableIcons: false,
+                gestureHandling: "greedy",
+              }}
+            >
+              {/* Route polylines — primary + alternatives */}
+              {directions &&
+                directions.routes.map((_, i) => (
+                  <DirectionsRenderer
+                    key={i}
+                    directions={directions}
+                    routeIndex={i}
+                    options={
+                      i === 0 ? PRIMARY_ROUTE_OPTIONS : ALT_ROUTE_OPTIONS
+                    }
+                  />
+                ))}
+
+              {/* Bottom action bar */}
+              <div className="absolute top-1 -right-7 lg:bottom-3 lg:right-3 z-10 flex items-end justify-end">
+                <div className="flex gap-2 overflow-hidden scale-75 lg:scale-100">
+                  <Motion animation="top" delay={0.2}>
+                    <Button
+                      onClick={() => setShowLocationModal(true)}
+                      size="small"
+                      icon={<FiMapPin size={13} />}
+                      text="Change Location"
+                      className="backdrop-blur-md"
+                    />
+                  </Motion>
+                  {locationUrl && (
+                    <Motion animation="top" delay={0.4}>
+                      <Button
+                        href={locationUrl}
+                        target="_blank"
+                        size="small"
+                        icon={<FiExternalLink size={13} />}
+                        text="Open in Map"
+                        className="backdrop-blur-md"
+                      />
+                    </Motion>
+                  )}
+                  <Motion animation="top" delay={0.6}>
+                    <Button
+                      onClick={handleGetDistance}
+                      size="small"
+                      disabled={loadingDistance}
+                      icon={<FiNavigation size={13} />}
+                      text={loadingDistance ? "Locating…" : "Get Distance"}
+                      className="backdrop-blur-md"
+                    />
+                  </Motion>
+                </div>
+              </div>
+
+              {/* Distance result */}
+              {distanceInfo && (
+                <div className="flex gap-3 text-sm absolute bottom-12 right-3 z-10">
+                  <div className="flex items-center gap-1 text-stone-200">
+                    <FiNavigation className="text-yellow-500" />
+                    <span>
+                      <span className="text-yellow-400 font-bold">
+                        {distanceInfo.distance}
+                      </span>{" "}
+                      away
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-1 text-stone-200">
+                    <FiClock size={13} className="text-yellow-500" />
+                    <span>
+                      <span className="text-yellow-400 font-bold">
+                        {distanceInfo.duration}
+                      </span>{" "}
+                      by car
+                    </span>
+                  </div>
+                </div>
+              )}
+
+              {/* Nearby category toggles */}
+              <div className="absolute overflow-hidden right-3 bottom-3 lg:bottom-20 z-10 flex flex-col items-end gap-1">
+                {[
+                  {
+                    key: "parking",
+                    label: "Parkings",
+                    Icon: MdOutlineLocalParking,
+                    delay: 0.8,
+                  },
+                  {
+                    key: "lodging",
+                    label: "Hotels",
+                    Icon: MdLocalHotel,
+                    delay: 1,
+                  },
+                  {
+                    key: "transit",
+                    label: "Stations",
+                    Icon: FiRadio,
+                    delay: 1.2,
+                  },
+                ].map(({ key, label, Icon, delay }) => {
+                  const isActive = activeNearby.has(key);
+                  const isLoading = loadingNearby[key];
+                  return (
+                    <Motion key={key} animation="fade" delay={delay}>
+                      <button
+                        onClick={() => fetchNearby(key)}
+                        disabled={isLoading || !venueCoords}
+                        title={`${isActive ? "Hide" : "Show"} ${label}`}
+                        className={`w-9 h-9 flex items-center justify-center rounded-full cursor-pointer backdrop-blur-xs border transition-colors ${
+                          isActive
+                            ? "bg-gold border-gold text-black"
+                            : "bg-gold/20 border-gold/30 text-gold hover:bg-gold/40"
+                        } disabled:opacity-40 disabled:cursor-not-allowed`}
+                      >
+                        <Icon size={15} />
+                      </button>
+                    </Motion>
+                  );
+                })}
+              </div>
+
+              {/* Nearby radius notice */}
+              {activeNearby.size > 0 && (
+                <div className="absolute top-3 right-3 z-10 flex flex-col items-end gap-0.5">
+                  {[...activeNearby].map((category) => {
+                    const labels = {
+                      parking: "parking spots",
+                      lodging: "hotels",
+                      transit: "transit stations",
+                    };
+                    const count = nearbyPlaces[category]?.length ?? 0;
+                    return (
+                      <p
+                        key={category}
+                        className="bg-black/70 secondary backdrop-blur-sm text-cream/80 text-[10px] px-2 py-1 rounded leading-none"
+                      >
+                        Showing{" "}
+                        <span className="text-gold font-semibold">
+                          {count} {labels[category]}
+                        </span>{" "}
+                        within a 5 km radius of this venue
+                      </p>
+                    );
+                  })}
+                </div>
+              )}
+
+              {/* Nearby place pins */}
+              {Object.entries(nearbyPlaces).map(([category, places]) =>
+                activeNearby.has(category)
+                  ? places.map((place, i) => (
+                      <OverlayView
+                        key={`${category}-${i}`}
+                        position={place.geometry.location}
+                        mapPaneName="overlayMouseTarget"
+                        getPixelPositionOffset={() => ({ x: -32, y: -32 })}
+                      >
+                        <Motion animation="fade" delay={i * 0.1}>
+                          <NearbyPin category={category} name={place.name} />
+                        </Motion>
+                      </OverlayView>
+                    ))
+                  : null,
+              )}
+
+              {venueCoords && (
+                <OverlayView
+                  position={venueCoords}
+                  mapPaneName="overlayMouseTarget"
+                  getPixelPositionOffset={() => ({ x: -55, y: -55 })}
+                >
+                  <LocationPin
+                    type="venue"
+                    image={resolveImage(data?.image, "sm")}
+                    name={data?.name}
+                    venueName={type === "events" ? data?.venue_name : null}
+                  />
+                </OverlayView>
+              )}
+
+              {userCoords && (
+                <OverlayView
+                  position={userCoords}
+                  mapPaneName="overlayMouseTarget"
+                  getPixelPositionOffset={() => ({ x: -45, y: -45 })}
+                >
+                  <LocationPin
+                    type="user"
+                    image={user?.user_avatar}
+                    name={user?.userName}
+                  />
+                </OverlayView>
+              )}
+
+              {/* Location override modal */}
+              {showLocationModal && (
+                <div className="absolute inset-0 z-20 flex items-center justify-center bg-black/40 backdrop-blur-[2px]">
+                  <div className="bg-stone-950 border border-cream/20 p-3 w-72 flex flex-col gap-3">
+                    <div className="flex items-center justify-between mb-1">
+                      <h3 className="text-cream font-bold text-sm tracking-wide">
+                        Change Origin
+                      </h3>
+                      <Close onClick={() => setShowLocationModal(false)} />
+                    </div>
+                    <input
+                      type="text"
+                      value={locationInput}
+                      onChange={(e) => setLocationInput(e.target.value)}
+                      onKeyDown={(e) => e.key === "Enter" && handleCalculate()}
+                      placeholder="e.g. Berlin, Freiburg…"
+                      autoFocus
+                    />
+                    <Button
+                      onClick={handleCalculate}
+                      size="small"
+                      className="w-fit"
+                      disabled={loadingLocation || !locationInput.trim()}
+                      icon={<FiNavigation size={13} />}
+                      text={loadingLocation ? "Calculating…" : "Calculate"}
+                    />
+                  </div>
+                </div>
+              )}
+            </GoogleMap>
+            {/* Info overlay (bottom gradient panel) */}
+            <MapInfoOverlay data={data} type={type} />
+          </>
+        )}
+      </div>
+    </div>
+  );
+};
+
+// ── Public wrapper — shows a reveal button, then lazily mounts MapSection ───
+const HowToGet = ({ data, type }) => {
+  const [mapRevealed, setMapRevealed] = useState(false);
+  const address = data?.address;
+  const locationUrl = data?.location_url;
+
   if (!address && !locationUrl) return null;
 
   return (
@@ -364,271 +638,40 @@ const HowToGet = ({ data, type }) => {
       title="How to Get There"
       description="Venue location, directions and distance from your current position"
     >
-      <div className="flex flex-col gap-3 w-full lg:w-[70%]">
-        {geoError && <p className="text-red-400 text-xs mb-3">{geoError}</p>}
-
-        {/* Map container */}
-        <div className="relative w-full h-120 lg:h-150 overflow-hidden border border-cream/30">
-          {loadError && (
-            <div className="w-full h-full flex items-center justify-center text-stone-500 text-sm">
-              Map failed to load.
-            </div>
-          )}
-
-          {!isLoaded && !loadError && (
-            <div className="w-full h-full flex items-center justify-center bg-stone-900 text-stone-500 text-sm animate-pulse">
-              Loading map…
-            </div>
-          )}
-
-          {isLoaded && !loadError && (
-            <>
-              <GoogleMap
-                mapContainerStyle={MAP_CONTAINER_STYLE}
-                center={venueCoords || { lat: 48.8566, lng: 2.3522 }}
-                zoom={venueCoords ? 15 : 4}
-                onLoad={onMapLoad}
-                options={{
-                  styles: MAP_STYLES,
-                  disableDefaultUI: true,
-                  zoomControl: false,
-                  fullscreenControl: false,
-                  mapTypeControl: false,
-                  streetViewControl: false,
-                  rotateControl: false,
-                  scaleControl: false,
-                  clickableIcons: false,
-                  gestureHandling: "greedy",
-                }}
-              >
-                {/* Route polylines — primary + alternatives */}
-                {directions &&
-                  directions.routes.map((_, i) => (
-                    <DirectionsRenderer
-                      key={i}
-                      directions={directions}
-                      routeIndex={i}
-                      options={
-                        i === 0 ? PRIMARY_ROUTE_OPTIONS : ALT_ROUTE_OPTIONS
-                      }
-                    />
-                  ))}
-
-                {/* Bottom action bar */}
-                <div className="absolute top-1 -right-7 lg:bottom-3 lg:right-3 z-10 flex items-end justify-end">
-                  <div className="flex gap-2 overflow-hidden scale-75 lg:scale-100">
-                    <Motion animation="top" delay={0.2}>
-                      <Button
-                        onClick={() => setShowLocationModal(true)}
-                        size="small"
-                        icon={<FiMapPin size={13} />}
-                        text="Change Location"
-                        className="backdrop-blur-md"
-                      />
-                    </Motion>
-                    {locationUrl && (
-                      <Motion animation="top" delay={0.4}>
-                        <Button
-                          href={locationUrl}
-                          target="_blank"
-                          size="small"
-                          icon={<FiExternalLink size={13} />}
-                          text="Open in Map"
-                          className="backdrop-blur-md"
-                        />
-                      </Motion>
-                    )}
-                    <Motion animation="top" delay={0.6}>
-                      <Button
-                        onClick={handleGetDistance}
-                        size="small"
-                        disabled={loadingDistance}
-                        icon={<FiNavigation size={13} />}
-                        text={loadingDistance ? "Locating…" : "Get Distance"}
-                        className="backdrop-blur-md"
-                      />
-                    </Motion>
-                  </div>
-                </div>
-
-                {/* Distance result */}
-                {distanceInfo && (
-                  <div className="flex gap-3 text-sm absolute bottom-12 right-3 z-10">
-                    <div className="flex items-center gap-1 text-stone-200">
-                      <FiNavigation className="text-yellow-500" />
-                      <span>
-                        <span className="text-yellow-400 font-bold">
-                          {distanceInfo.distance}
-                        </span>{" "}
-                        away
-                      </span>
-                    </div>
-                    <div className="flex items-center gap-1 text-stone-200">
-                      <FiClock size={13} className="text-yellow-500" />
-                      <span>
-                        <span className="text-yellow-400 font-bold">
-                          {distanceInfo.duration}
-                        </span>{" "}
-                        by car
-                      </span>
-                    </div>
-                  </div>
-                )}
-
-                {/* Nearby category toggles */}
-                <div className="absolute overflow-hidden right-3 bottom-3 lg:bottom-20 z-10 flex flex-col items-end gap-1">
-                  {[
-                    {
-                      key: "parking",
-                      label: "Parkings",
-                      Icon: MdOutlineLocalParking,
-                      delay: 0.8,
-                    },
-                    {
-                      key: "lodging",
-                      label: "Hotels",
-                      Icon: MdLocalHotel,
-                      delay: 1,
-                    },
-                    {
-                      key: "transit",
-                      label: "Stations",
-                      Icon: FiRadio,
-                      delay: 1.2,
-                    },
-                  ].map(({ key, label, Icon, delay }) => {
-                    const isActive = activeNearby.has(key);
-                    const isLoading = loadingNearby[key];
-                    return (
-                      <Motion key={key} animation="fade" delay={delay}>
-                        <button
-                          onClick={() => fetchNearby(key)}
-                          disabled={isLoading || !venueCoords}
-                          title={`${isActive ? "Hide" : "Show"} ${label}`}
-                          className={`w-9 h-9 flex items-center justify-center rounded-full cursor-pointer backdrop-blur-xs border transition-colors ${
-                            isActive
-                              ? "bg-gold border-gold text-black"
-                              : "bg-gold/20 border-gold/30 text-gold hover:bg-gold/40"
-                          } disabled:opacity-40 disabled:cursor-not-allowed`}
-                        >
-                          <Icon size={15} />
-                        </button>
-                      </Motion>
-                    );
-                  })}
-                </div>
-
-                {/* Nearby radius notice */}
-                {activeNearby.size > 0 && (
-                  <div className="absolute top-3 right-3 z-10 flex flex-col items-end gap-0.5">
-                    {[...activeNearby].map((category) => {
-                      const labels = {
-                        parking: "parking spots",
-                        lodging: "hotels",
-                        transit: "transit stations",
-                      };
-                      const count = nearbyPlaces[category]?.length ?? 0;
-                      return (
-                        <p
-                          key={category}
-                          className="bg-black/70 secondary backdrop-blur-sm text-cream/80 text-[10px] px-2 py-1 rounded leading-none"
-                        >
-                          Showing{" "}
-                          <span className="text-gold font-semibold">
-                            {count} {labels[category]}
-                          </span>{" "}
-                          within a 5 km radius of this venue
-                        </p>
-                      );
-                    })}
-                  </div>
-                )}
-
-                {/* Nearby place pins */}
-                {Object.entries(nearbyPlaces).map(([category, places]) =>
-                  activeNearby.has(category)
-                    ? places.map((place, i) => (
-                        <OverlayView
-                          key={`${category}-${i}`}
-                          position={place.geometry.location}
-                          mapPaneName="overlayMouseTarget"
-                          getPixelPositionOffset={() => ({ x: -32, y: -32 })}
-                        >
-                          <Motion animation="fade" delay={i * 0.1}>
-                            <NearbyPin category={category} name={place.name} />
-                          </Motion>
-                        </OverlayView>
-                      ))
-                    : null,
-                )}
-
-                {venueCoords && (
-                  <OverlayView
-                    position={venueCoords}
-                    mapPaneName="overlayMouseTarget"
-                    getPixelPositionOffset={() => ({ x: -55, y: -55 })}
-                  >
-                    <LocationPin
-                      type="venue"
-                      image={resolveImage(data?.image, "sm")}
-                      name={data?.name}
-                      venueName={type === "events" ? data?.venue_name : null}
-                    />
-                  </OverlayView>
-                )}
-
-                {userCoords && (
-                  <OverlayView
-                    position={userCoords}
-                    mapPaneName="overlayMouseTarget"
-                    getPixelPositionOffset={() => ({ x: -45, y: -45 })}
-                  >
-                    <LocationPin
-                      type="user"
-                      image={user?.user_avatar}
-                      name={user?.userName}
-                    />
-                  </OverlayView>
-                )}
-
-                {/* Location override modal */}
-                {showLocationModal && (
-                  <div className="absolute inset-0 z-20 flex items-center justify-center bg-black/40 backdrop-blur-[2px]">
-                    <div className="bg-stone-950 border border-cream/20 p-3 w-72 flex flex-col gap-3">
-                      <div className="flex items-center justify-between mb-1">
-                        <h3 className="text-cream font-bold text-sm tracking-wide">
-                          Change Origin
-                        </h3>
-                        <Close onClick={() => setShowLocationModal(false)} />
-                      </div>
-                      <input
-                        type="text"
-                        value={locationInput}
-                        onChange={(e) => setLocationInput(e.target.value)}
-                        onKeyDown={(e) =>
-                          e.key === "Enter" && handleCalculate()
-                        }
-                        placeholder="e.g. Berlin, Freiburg…"
-                        autoFocus
-                      />
-                      <Button
-                        onClick={handleCalculate}
-                        size="small"
-                        className="w-fit"
-                        disabled={loadingLocation || !locationInput.trim()}
-                        icon={<FiNavigation size={13} />}
-                        text={loadingLocation ? "Calculating…" : "Calculate"}
-                      />
-                    </div>
-                  </div>
-                )}
-              </GoogleMap>
-              {/* Info overlay (bottom gradient panel) */}
-              <MapInfoOverlay data={data} type={type} />
-            </>
-          )}
-        </div>
-      </div>
+      <AnimatePresence mode="wait">
+        {!mapRevealed ? (
+          <motion.div
+            key="reveal-btn"
+            initial={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0 }}
+            transition={{ duration: 0.25, ease: "easeIn" }}
+            className="w-full lg:w-[70%] h-44 flex items-center justify-start pl-2 lg:pl-4"
+          >
+            <button
+              onClick={() => setMapRevealed(true)}
+              className="group relative overflow-hidden border border-gold/50 bg-black/40 hover:bg-gold/10 transition-all duration-300 flex items-center gap-3 uppercase tracking-widest text-gold font-bold text-sm px-8 py-5"
+            >
+              <FiMapPin
+                size={18}
+                className="shrink-0 group-hover:scale-110 transition-transform duration-300"
+              />
+              <span>How to Get There</span>
+              {/* shimmer sweep */}
+              <span className="absolute inset-0 -translate-x-full group-hover:translate-x-full bg-gradient-to-r from-transparent via-gold/10 to-transparent transition-transform duration-700 ease-in-out pointer-events-none" />
+            </button>
+          </motion.div>
+        ) : (
+          <motion.div
+            className="w-full center"
+            key="map-content"
+            initial={{ opacity: 0, scale: 0 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.4, ease: "easeOut" }}
+          >
+            <MapSection data={data} type={type} />
+          </motion.div>
+        )}
+      </AnimatePresence>
     </SectionContainer>
   );
 };

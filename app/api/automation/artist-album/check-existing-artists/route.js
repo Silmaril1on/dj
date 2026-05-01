@@ -37,12 +37,14 @@ export async function POST(request) {
 
     const uniqueNames = [...new Set(names.filter(Boolean))];
 
-    // Fetch all artists whose stage_name OR name is in the list
+    // Case-insensitive ilike check for each name against stage_name and name columns
     const { data: existingArtists, error } = await supabaseAdmin
       .from("artists")
       .select("id, stage_name, name")
       .or(
-        uniqueNames.map((n) => `stage_name.eq."${n}",name.eq."${n}"`).join(","),
+        uniqueNames
+          .map((n) => `stage_name.ilike."${n}",name.ilike."${n}"`)
+          .join(","),
       );
 
     if (error) {
@@ -53,14 +55,20 @@ export async function POST(request) {
       );
     }
 
-    const existingNames = new Set(
+    // Build a lowercase set for comparison
+    const existingNamesLower = new Set(
       (existingArtists || []).flatMap((a) =>
-        [a.stage_name, a.name].filter(Boolean),
+        [a.stage_name, a.name].filter(Boolean).map((s) => s.toLowerCase()),
       ),
     );
 
-    const alreadyExist = uniqueNames.filter((n) => existingNames.has(n));
-    const newArtists = uniqueNames.filter((n) => !existingNames.has(n));
+    // Return original-cased names that matched (case-insensitively)
+    const alreadyExist = uniqueNames.filter((n) =>
+      existingNamesLower.has(n.toLowerCase()),
+    );
+    const newArtists = uniqueNames.filter(
+      (n) => !existingNamesLower.has(n.toLowerCase()),
+    );
 
     return NextResponse.json({
       success: true,

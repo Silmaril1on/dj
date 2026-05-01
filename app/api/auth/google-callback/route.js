@@ -50,6 +50,8 @@ export async function POST(request) {
         userName:
           userName || display_name || full_name || name || email.split("@")[0],
         user_avatar: avatar_url || picture || "",
+        email_verified: true,
+        email_verified_at: new Date().toISOString(),
       };
 
       const { data: insertedUser, error: insertError } = await supabaseAdmin
@@ -87,6 +89,19 @@ export async function POST(request) {
         message: "User profile created successfully",
         isNewUser: true,
       });
+    }
+
+    // User already exists — backfill email_verified if still false (e.g. old record)
+    if (!existingUser.email_verified) {
+      await supabaseAdmin
+        .from("users")
+        .update({
+          email_verified: true,
+          email_verified_at: new Date().toISOString(),
+        })
+        .eq("id", existingUser.id);
+      existingUser.email_verified = true;
+      existingUser.email_verified_at = new Date().toISOString();
     }
 
     // User already exists, return existing profile
