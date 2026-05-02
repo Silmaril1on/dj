@@ -5,8 +5,18 @@ import {
   createSupabaseServerClient,
   supabaseAdmin,
 } from "@/app/lib/config/supabaseServer";
+import {
+  checkRateLimit,
+  getClientIp,
+  rateLimitResponse,
+} from "@/app/lib/rateLimit";
 
 export async function POST(request) {
+  // Rate limit: 5 sign-up attempts per IP per minute
+  const ip = getClientIp(request);
+  const { allowed, resetAt } = checkRateLimit(`signup:${ip}`, 5, 60_000);
+  if (!allowed) return rateLimitResponse(resetAt);
+
   try {
     const cookieStore = await cookies();
     const supabase = await createSupabaseServerClient(cookieStore);

@@ -17,6 +17,8 @@
     "@supabase/supabase-js": "^2.55.0",
     "@tsparticles/react": "^3.0.0",
     "@tsparticles/slim": "^3.9.1",
+    "@upstash/ratelimit": "^2.0.8",
+    "@upstash/redis": "^1.37.0",
     "apify-client": "^2.21.0",
     "cheerio": "^1.1.2",
     "framer-motion": "^12.23.12",

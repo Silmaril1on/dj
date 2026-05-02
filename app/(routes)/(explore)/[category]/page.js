@@ -1,9 +1,9 @@
 import { notFound } from "next/navigation";
-import { cookies } from "next/headers";
 import ProductsPage from "@/app/components/containers/ProductsPage";
 import { CATEGORY_CONFIGS, VALID_CATEGORIES } from "../categoryConfigs";
 
-export const dynamic = "force-dynamic";
+// ISR: regenerate each category listing page at most every 10 minutes.
+export const revalidate = 600;
 
 export function generateStaticParams() {
   return VALID_CATEGORIES.map((category) => ({ category }));
@@ -11,7 +11,12 @@ export function generateStaticParams() {
 
 export async function generateMetadata({ params }) {
   const { category } = await params;
-  return CATEGORY_CONFIGS[category]?.metadata.list || {};
+
+  if (!VALID_CATEGORIES.includes(category)) {
+    return {};
+  }
+
+  return CATEGORY_CONFIGS[category]?.metadata?.list || {};
 }
 
 const CategoryListingPage = async ({ params }) => {
@@ -22,17 +27,12 @@ const CategoryListingPage = async ({ params }) => {
   }
 
   const config = CATEGORY_CONFIGS[category].listing;
-  const cookieStore = await cookies();
-  const cookieHeader = cookieStore.toString();
 
   try {
-    const response = await fetch(config.apiEndpoint(process.env.PROJECT_URL), {
-      ...config.fetchOptions,
-      headers: {
-        ...config.fetchOptions?.headers,
-        Cookie: cookieHeader,
-      },
-    });
+    const response = await fetch(
+      config.apiEndpoint(process.env.PROJECT_URL),
+      config.fetchOptions,
+    );
 
     if (!response.ok) {
       const err = await response.json().catch(() => ({}));

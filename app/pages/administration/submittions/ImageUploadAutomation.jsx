@@ -1,5 +1,6 @@
 "use client";
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import FlexBox from "@/app/components/containers/FlexBox";
 
 const ImageUploadAutomation = () => {
@@ -7,6 +8,7 @@ const ImageUploadAutomation = () => {
   const [preview, setPreview] = useState(null);
   const [result, setResult] = useState(null);
   const [showPreview, setShowPreview] = useState(false);
+  const router = useRouter();
 
   const handlePreview = async () => {
     setLoading(true);
@@ -51,7 +53,7 @@ const ImageUploadAutomation = () => {
       // Reload page after successful upload to show updated submissions
       if (data.successCount > 0) {
         setTimeout(() => {
-          window.location.reload();
+          router.refresh();
         }, 3000);
       }
     } catch (error) {

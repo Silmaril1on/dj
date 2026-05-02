@@ -28,7 +28,9 @@ export const parseArrayField = (formData, field) => {
 
   const rawValues = jsonEntry
     ? JSON.parse(jsonEntry)
-    : entries.flatMap((entry) => (entry.includes(",") ? entry.split(",") : [entry]));
+    : entries.flatMap((entry) =>
+        entry.includes(",") ? entry.split(",") : [entry],
+      );
 
   return Array.isArray(rawValues)
     ? rawValues
@@ -101,6 +103,6 @@ export const getAuthenticatedContext = async (cookieStore) => {
 };
 
 export const getSupabaseServerClient = async (cookieStore) =>
-  createSupabaseServerClient(cookieStore);
+  cookieStore ? createSupabaseServerClient(cookieStore) : supabaseAdmin; // fallback for ISR / non-auth contexts
 
 export const getSupabaseAdminClient = () => supabaseAdmin;

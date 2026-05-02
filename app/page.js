@@ -1,9 +1,11 @@
 import HomePage from "./pages/home-page/HomePage";
-import { cookies } from "next/headers";
-import { getServerUser } from "@/app/lib/config/supabaseServer";
 import { getUpcomingEvents } from "@/app/lib/services/events/event";
 
-export const dynamic = "force-dynamic";
+// ISR: regenerate the home page every 5 minutes.
+// The 7 upcoming events are the same for every visitor — no user personalisation
+// needed at SSR time. User-specific data (liked status, reminders) is already
+// loaded client-side via useEffect inside HomePage.
+export const revalidate = 300;
 
 export const metadata = {
   title: "Soundfolio | Home",
@@ -14,12 +16,9 @@ export const metadata = {
 export default async function Home() {
   let events = [];
   try {
-    const cookieStore = await cookies();
-    const { user } = await getServerUser(cookieStore);
-    events = await getUpcomingEvents(cookieStore, {
-      limit: 7,
-      userId: user?.id ?? null,
-    });
+    // Pass null as cookieStore → getSupabaseServerClient falls back to
+    // supabaseAdmin, giving us public event data without user personalisation.
+    events = await getUpcomingEvents(null, { limit: 7, userId: null });
   } catch (error) {
     console.error("Error fetching events:", error);
   }

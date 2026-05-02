@@ -2,8 +2,22 @@
 import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import { createSupabaseServerClient } from "@/app/lib/config/supabaseServer";
+import {
+  checkRateLimit,
+  getClientIp,
+  rateLimitResponse,
+} from "@/app/lib/rateLimit";
 
 export async function POST(request) {
+  // Rate limit: 10 sign-in attempts per IP per minute
+  const ip = getClientIp(request);
+  const { allowed, remaining, resetAt } = checkRateLimit(
+    `signin:${ip}`,
+    10,
+    60_000,
+  );
+  if (!allowed) return rateLimitResponse(resetAt);
+
   try {
     const cookieStore = await cookies();
     const supabase = await createSupabaseServerClient(cookieStore);
@@ -13,7 +27,7 @@ export async function POST(request) {
     if (!email || !password) {
       return NextResponse.json(
         { error: "Email and password are required" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -32,7 +46,7 @@ export async function POST(request) {
     if (!authData.user) {
       return NextResponse.json(
         { error: "Authentication failed" },
-        { status: 401 }
+        { status: 401 },
       );
     }
 
@@ -47,7 +61,7 @@ export async function POST(request) {
       console.error("User fetch error:", userError);
       return NextResponse.json(
         { error: "Failed to fetch user profile" },
-        { status: 500 }
+        { status: 500 },
       );
     }
 
@@ -59,7 +73,7 @@ export async function POST(request) {
     console.error("Signin error:", error);
     return NextResponse.json(
       { error: "Internal server error" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
