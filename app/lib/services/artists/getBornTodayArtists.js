@@ -19,7 +19,7 @@ export async function getBornTodayArtists(cookieStore) {
 
   const { data: artists, error } = await supabase
     .from("artists")
-    .select("id, name, stage_name, artist_image, artist_slug, birth")
+    .select("id, name, stage_name, image_url, artist_slug, birth")
     .eq("status", "approved")
     .not("birth", "is", null);
 
@@ -55,7 +55,7 @@ export async function getBornTodayArtists(cookieStore) {
       id: artist.id,
       name: artist.name,
       stage_name: artist.stage_name,
-      artist_image: artist.artist_image,
+      image_url: artist.image_url,
       artist_slug: artist.artist_slug,
       age: currentYear - birthYear,
     };

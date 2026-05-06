@@ -26,7 +26,7 @@ const formatPrice = (value) => {
   }).format(price);
 };
 
-const FestivalTicketsDisplay = ({ festivalId }) => {
+const TicketsDisplay = ({ entityType, entityId }) => {
   const [loading, setLoading] = useState(true);
   const [groups, setGroups] = useState([]);
   const [ticketLink, setTicketLink] = useState("");
@@ -42,10 +42,11 @@ const FestivalTicketsDisplay = ({ festivalId }) => {
   useEffect(() => {
     const fetchTickets = async () => {
       try {
-        const response = await fetch(
-          `/api/festivals/tickets?festival_id=${festivalId}`,
-          { cache: "no-store" },
-        );
+        const apiUrl =
+          entityType === "festivals"
+            ? `/api/festivals/tickets?festival_id=${entityId}`
+            : `/api/events/tickets?event_id=${entityId}`;
+        const response = await fetch(apiUrl, { cache: "no-store" });
 
         if (!response.ok) {
           setGroups([]);
@@ -63,10 +64,10 @@ const FestivalTicketsDisplay = ({ festivalId }) => {
       }
     };
 
-    if (festivalId) {
+    if (entityId) {
       fetchTickets();
     }
-  }, [festivalId]);
+  }, [entityType, entityId]);
 
   if (loading) {
     return (
@@ -83,7 +84,7 @@ const FestivalTicketsDisplay = ({ festivalId }) => {
   return (
     <SectionContainer
       title="Tickets"
-      description="Explore the available ticket options for this festival."
+      description={`Explore the available ticket options for this ${entityType === "festivals" ? "festival" : "event"}.`}
       className="my-7"
     >
       <div className="flex flex-col w-full space-y-5">
@@ -116,10 +117,14 @@ const FestivalTicketsDisplay = ({ festivalId }) => {
               {!isCollapsed && (
                 <div className="space-y-3 ">
                   {(group.tickets || []).map((ticket, ticketIndex) => {
-                    const currentStatus =
-                      ticket?.status === "sold_out" ? "sold_out" : "in_stock";
                     const purchaseLink =
                       ticket?.ticket_link || ticketLink || "";
+                    const allSoldOut =
+                      (ticket?.priceTiers || []).length > 0 &&
+                      (ticket?.priceTiers || []).every(
+                        (t) => t.stock === false,
+                      );
+                    const currentStatus = allSoldOut ? "sold_out" : "in_stock";
 
                     return (
                       <article
@@ -134,18 +139,14 @@ const FestivalTicketsDisplay = ({ festivalId }) => {
                               </h4>
 
                               {!!ticket?.ticket_info && (
-                                <p className="text-sm text-cream/80 mt-1">
-                                  {ticket.ticket_info}
+                                <p className=" text-cream/90 mt-1 text-sm">
+                                  {capitalizeFirst(ticket.ticket_info)}
                                 </p>
                               )}
 
                               {!!ticket?.extraInfo?.length && (
                                 <ul
-                                  className={`text-xs text-chino secondary ${
-                                    ticket.extraInfo.length > 1
-                                      ? "list-disc pl-5"
-                                      : "list-none pl-0"
-                                  }`}
+                                  className={`text-xs text-chino secondary font-light mt-2 list-disc ml-5`}
                                 >
                                   {ticket.extraInfo.map((item, infoIndex) => (
                                     <li key={`${item}-${infoIndex}`}>
@@ -167,7 +168,7 @@ const FestivalTicketsDisplay = ({ festivalId }) => {
                                         className={`min-w-24 px-3 py-2 border relative ${
                                           isInStock
                                             ? "border-green-500 bg-green-500/20"
-                                            : "border-gold/30 bg-gold/20 opacity-70"
+                                            : "border-red-800 bg-red-800/30 opacity-50"
                                         }`}
                                       >
                                         <p className="text-[11px] uppercase text-cream/70">
@@ -177,7 +178,7 @@ const FestivalTicketsDisplay = ({ festivalId }) => {
                                           {formatPrice(tier.price)}
                                         </p>
                                         {!isInStock && (
-                                          <p className="text-[10px] text-red-600 absolute right-0.5 top-0.5 font-bold">
+                                          <p className="text-[8px] text-red-500 absolute right-1 bottom-0.5 font-bold">
                                             SOLD OUT
                                           </p>
                                         )}
@@ -214,9 +215,9 @@ const FestivalTicketsDisplay = ({ festivalId }) => {
                               href={purchaseLink || undefined}
                               target="_blank"
                               size="small"
-                              text="Buy Now"
+                              text={allSoldOut ? "Sold Out" : "Buy Now"}
                               className="w-fit"
-                              disabled={!purchaseLink}
+                              disabled={allSoldOut}
                             />
 
                             <div className="text-right text-xs text-cream/70">
@@ -237,4 +238,4 @@ const FestivalTicketsDisplay = ({ festivalId }) => {
   );
 };
 
-export default FestivalTicketsDisplay;
+export default TicketsDisplay;

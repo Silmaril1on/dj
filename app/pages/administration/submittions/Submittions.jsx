@@ -1,5 +1,4 @@
 "use client";
-import { useState } from "react";
 import SectionContainer from "@/app/components/containers/SectionContainer";
 import FlexBox from "@/app/components/containers/FlexBox";
 import SubmittionCard from "./card/SubmittionCard";

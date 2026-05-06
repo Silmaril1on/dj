@@ -87,7 +87,6 @@ export const extractProfileData = (data, type) => {
     end_date: type === "festivals" ? data.end_date : null,
     website: type === "festivals" ? data.website : null,
     capacity_total: type === "festivals" ? data.capacity_total : null,
-    capacity_per_day: type === "festivals" ? data.capacity_per_day : null,
   };
 };
 

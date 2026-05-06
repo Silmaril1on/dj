@@ -40,6 +40,14 @@ const ArtistRowItem = ({ artist, index, total }) => {
   const springX = useSpring(mouseX, { stiffness: 500, damping: 32, mass: 0.4 });
   const springY = useSpring(mouseY, { stiffness: 500, damping: 32, mass: 0.4 });
 
+  const handleMouseEnter = (e) => {
+    // Jump springs to current cursor position instantly so the image
+    // appears right at the cursor instead of animating from far away.
+    springX.jump(e.clientX - 56);
+    springY.jump(e.clientY - 128 - 10);
+    setIsHovered(true);
+  };
+
   const handleMouseMove = (e) => {
     // Center image horizontally on cursor; float it 10px above cursor
     mouseX.set(e.clientX - 56);
@@ -52,7 +60,7 @@ const ArtistRowItem = ({ artist, index, total }) => {
         <Link
           href={`/artists/${artist.slug}`}
           className="relative z-10"
-          onMouseEnter={() => setIsHovered(true)}
+          onMouseEnter={handleMouseEnter}
           onMouseLeave={() => setIsHovered(false)}
           onMouseMove={handleMouseMove}
         >

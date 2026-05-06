@@ -1,5 +1,7 @@
 "use client";
 import { useState, useMemo, useEffect, useRef } from "react";
+import { useSelector } from "react-redux";
+import { selectUser } from "@/app/features/userSlice";
 import ErrorCode from "@/app/components/ui/ErrorCode";
 import ProductCard from "@/app/components/containers/ProductCard";
 import FilterBar from "@/app/components/forms/FilterBar";
@@ -71,6 +73,8 @@ const ProductsPage = ({
   const [filters, setFilters] = useState({});
   const [fetchingFiltered, setFetchingFiltered] = useState(false);
   const prevServerFiltersRef = useRef("");
+  const userHydratedRef = useRef(false);
+  const user = useSelector(selectUser);
 
   // Build query params from filters (server-side only)
   const buildQueryParams = (currentFilters, limit, offset) => {
@@ -93,7 +97,7 @@ const ProductsPage = ({
     return params.toString();
   };
 
-  const { data, loading, hasMore, loadMore, reset } = usePagination({
+  const { data, setData, loading, hasMore, loadMore, reset } = usePagination({
     initialData: normalizeCountriesInData(initialData),
     limit: config.limit,
     initialHasMore: initialData.length === config.limit,
@@ -159,6 +163,44 @@ const ProductsPage = ({
       setFilters((prev) => ({ ...prev, [name]: value }));
     }
   };
+
+  // When the user loads, hydrate user-specific like/rating states via a
+  // lightweight endpoint — avoids re-fetching the full 30+ item list.
+  useEffect(() => {
+    if (!user?.id) return;
+    if (userHydratedRef.current) return;
+    if (type !== "clubs" && type !== "festivals" && type !== "artists") return;
+    if (prevServerFiltersRef.current !== "") return;
+
+    userHydratedRef.current = true;
+
+    const hydrateUserData = async () => {
+      try {
+        const res = await fetch(`/api/user/interaction-states?type=${type}`, {
+          cache: "no-store",
+        });
+        const { liked = [], ratings = {} } = await res.json();
+        const likedSet = new Set(liked);
+
+        // Merge user states into existing data without a full re-fetch
+        setData((prev) =>
+          prev.map((item) => {
+            const isLiked = likedSet.has(item.id);
+            const userRating = ratings[item.id] ?? item.userRating ?? null;
+            // clubs/festivals use userLiked; artists use isLiked
+            if (type === "artists") {
+              return { ...item, isLiked, userRating };
+            }
+            return { ...item, userLiked: isLiked, userRating };
+          }),
+        );
+      } catch (err) {
+        console.error("User hydration fetch failed:", err);
+      }
+    };
+
+    hydrateUserData();
+  }, [user?.id]);
 
   // Fetch filtered data from server when server-side filters change
   useEffect(() => {

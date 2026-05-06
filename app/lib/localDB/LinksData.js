@@ -62,6 +62,10 @@ export const administrationLinks = [
     ],
   },
   {
+    href: "/administration/artist-data-fill",
+    text: "Artist Data Fill",
+  },
+  {
     href: "/administration/reports",
     text: "Reports and Feedbacks",
   },

@@ -6,8 +6,9 @@ import ProfileActions from "./(components)/ProfileActions";
 import ProfileBasicInfo from "./(components)/ProfileBasicInfo";
 import ProfilePoster from "./(components)/ProfilePoster";
 import FestivalLineupDisplay from "./(components)/FestivalLineupDisplay";
-import FestivalTicketsDisplay from "./(components)/FestivalTicketsDisplay";
+import TicketsDisplay from "./(components)/FestivalTicketsDisplay";
 import HowToGet from "./(components)/HowToGet";
+import RelatedItems from "./(components)/RelatedItems";
 import CountDown from "./(components)/CountDown";
 import { PROFILE_TYPE_CONFIG, extractProfileData } from "./profileConfigs";
 
@@ -55,8 +56,8 @@ const SingleDataProfile = ({ data, type = "events", currentUserId = null }) => {
         <FestivalLineupDisplay festivalId={profileData.id} />
       )}
 
-      {type === "festivals" && (
-        <FestivalTicketsDisplay festivalId={profileData.id} />
+      {(type === "festivals" || type === "events") && (
+        <TicketsDisplay entityType={type} entityId={profileData.id} />
       )}
 
       {/* Countdown — festivals only */}
@@ -68,6 +69,16 @@ const SingleDataProfile = ({ data, type = "events", currentUserId = null }) => {
       {["clubs", "events", "festivals"].includes(type) && (
         <HowToGet data={profileData} type={type} />
       )}
+
+      {/* Related items by country — clubs, events, festivals */}
+      {["clubs", "events", "festivals"].includes(type) &&
+        profileData.country && (
+          <RelatedItems
+            entityId={profileData.id}
+            entityType={type}
+            country={profileData.country}
+          />
+        )}
     </div>
   );
 };

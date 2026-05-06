@@ -48,11 +48,11 @@ const ProfileBasicInfo = ({ data, type }) => {
     const rows = [];
 
     if (data.capacity_total) {
-      rows.push({ label: "Capacity Total", value: data.capacity_total });
-    }
-
-    if (data.capacity_per_day) {
-      rows.push({ label: "Capacity Per Day", value: data.capacity_per_day });
+      rows.push({
+        label: "Capacity",
+        value: `over ${formatCapacityValue(data.capacity_total)}+ guests every year`,
+        raw: true,
+      });
     }
 
     if (!rows.length && data.capacity) {
@@ -141,7 +141,7 @@ const ProfileBasicInfo = ({ data, type }) => {
             <div key={row.label}>
               {row.label}:{" "}
               <span className="text-gold">
-                {formatCapacityValue(row.value)}
+                {row.raw ? row.value : formatCapacityValue(row.value)}
               </span>
             </div>
           ))}

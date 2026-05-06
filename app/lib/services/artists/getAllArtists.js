@@ -42,6 +42,7 @@ export async function fetchArtists({
   birthDecade = null,
   ratingRange = null,
   sort = null,
+  userId = null,
 } = {}) {
   let query = supabaseAdmin
     .from("artists")
@@ -98,16 +99,30 @@ export async function fetchArtists({
   const returned = artistsPage || [];
   const artistIds = returned.map((a) => a.id);
   let likesCount = {};
+  let userLikedSet = new Set();
+  let userRatingsMap = {};
 
   if (artistIds.length > 0) {
     const { data: likesData, error: likesError } = await supabaseAdmin
       .from("artist_likes")
-      .select("artist_id")
+      .select("artist_id, user_id")
       .in("artist_id", artistIds);
 
     if (!likesError) {
       likesData.forEach((l) => {
         likesCount[l.artist_id] = (likesCount[l.artist_id] || 0) + 1;
+        if (userId && l.user_id === userId) userLikedSet.add(l.artist_id);
+      });
+    }
+
+    if (userId) {
+      const { data: ratingsData } = await supabaseAdmin
+        .from("artist_ratings")
+        .select("artist_id, score")
+        .in("artist_id", artistIds)
+        .eq("user_id", userId);
+      (ratingsData || []).forEach((r) => {
+        userRatingsMap[r.artist_id] = r.score;
       });
     }
   }
@@ -115,6 +130,8 @@ export async function fetchArtists({
   let artists = returned.map((artist) => ({
     ...artist,
     likesCount: likesCount[artist.id] || 0,
+    isLiked: userId ? userLikedSet.has(artist.id) : false,
+    userRating: userId ? userRatingsMap[artist.id] || null : null,
     rating: Number(artist.rating_stats?.average_score ?? 0),
   }));
 

@@ -229,7 +229,6 @@ export const DATA_TYPE_CONFIGS = {
       location_url: data.location_url || "",
       address: data.address || "",
       capacity_total: data.capacity_total || "",
-      capacity_per_day: data.capacity_per_day || "",
       country: data.country || "",
       city: data.city || "",
       minimum_age: data.minimum_age != null ? String(data.minimum_age) : "",

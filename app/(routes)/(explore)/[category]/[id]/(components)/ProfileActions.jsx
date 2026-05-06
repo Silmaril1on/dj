@@ -12,7 +12,6 @@ import { MdEdit, MdAdd, MdPlaylistAdd } from "react-icons/md";
 import { MdConfirmationNumber } from "react-icons/md";
 import LikeButton from "@/app/components/buttons/artist-buttons/LikeButton";
 import ReminderButton from "@/app/components/buttons/artist-buttons/ReminderButton";
-import FestivalTicketsModal from "./FestivalTicketsModal";
 
 const OWNER_BUTTONS = {
   events: [
@@ -66,7 +65,6 @@ const ProfileActions = ({ data, type, config, currentUserId = null }) => {
   const [reminderOffsetDays, setReminderOffsetDays] = useState(
     data.userReminderOffsetDays || 3,
   );
-  const [isTicketsModalOpen, setIsTicketsModalOpen] = useState(false);
 
   if (!config?.hasActions) return null;
 
@@ -98,6 +96,13 @@ const ProfileActions = ({ data, type, config, currentUserId = null }) => {
     setLikesCount(newLikesCount);
   };
 
+  // Navigate to the dedicated create-tickets page
+  const handleTicketsClick = () => {
+    const slug = data.slug || data.id;
+    const category = entityType; // "festivals" or "events"
+    router.push(`/${category}/${slug}/create-tickets`);
+  };
+
   return (
     <Motion
       animation="pop"
@@ -118,7 +123,8 @@ const ProfileActions = ({ data, type, config, currentUserId = null }) => {
         </div>
       ))}
 
-      {canManage && entityType === "festivals" && (
+      {/* Ticket info button — festivals and events */}
+      {canManage && (entityType === "festivals" || entityType === "events") && (
         <div className="center space-x-2">
           <SpanText
             text="Ticket info"
@@ -127,7 +133,7 @@ const ProfileActions = ({ data, type, config, currentUserId = null }) => {
           />
           <ActionButton
             icon={<MdConfirmationNumber size={16} />}
-            onClick={() => setIsTicketsModalOpen(true)}
+            onClick={handleTicketsClick}
           />
         </div>
       )}
@@ -165,15 +171,6 @@ const ProfileActions = ({ data, type, config, currentUserId = null }) => {
             }}
           />
         </div>
-      )}
-
-      {entityType === "festivals" && (
-        <FestivalTicketsModal
-          isOpen={isTicketsModalOpen}
-          onClose={() => setIsTicketsModalOpen(false)}
-          festivalId={data.id}
-          onSaved={() => window.location.reload()}
-        />
       )}
     </Motion>
   );

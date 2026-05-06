@@ -22,10 +22,20 @@ const SubmittionCard = ({ submissions, type = "artist" }) => {
   const [loadingStates, setLoadingStates] = useState({});
   const [submissionsList, setSubmissionsList] = useState(submissions);
   const [isBulkApproving, setIsBulkApproving] = useState(false);
+  const [isApproving, setIsApproving] = useState(false);
+  const [selectedIds, setSelectedIds] = useState(new Set());
   const isClub = type === "club";
   const isEvent = type === "event";
   const isFestival = type === "festival";
   const apiEndpoint = `/api/admin/submitted-data/${type}`;
+
+  const toggleSelect = (id) => {
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      next.has(id) ? next.delete(id) : next.add(id);
+      return next;
+    });
+  };
 
   const getEditHref = (submissionId) => {
     const idParamByType = {
@@ -78,6 +88,40 @@ const SubmittionCard = ({ submissions, type = "artist" }) => {
     }
   };
 
+  const handleApproveSelected = async () => {
+    if (selectedIds.size === 0) return;
+    setIsApproving(true);
+    const selected = submissionsList.filter((s) => selectedIds.has(s.id));
+    try {
+      await Promise.all(
+        selected.map((submission) =>
+          fetch(apiEndpoint, {
+            method: "PATCH",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ id: submission.id, action: "approve" }),
+          }),
+        ),
+      );
+      setSubmissionsList((prev) => prev.filter((s) => !selectedIds.has(s.id)));
+      setSelectedIds(new Set());
+      dispatch(
+        setError({
+          message: `${selected.length} submission${selected.length !== 1 ? "s" : ""} approved successfully`,
+          type: "success",
+        }),
+      );
+    } catch {
+      dispatch(
+        setError({
+          message: "Failed to approve selected submissions",
+          type: "error",
+        }),
+      );
+    } finally {
+      setIsApproving(false);
+    }
+  };
+
   if (submissionsList.length === 0) {
     return (
       <FlexBox type="center-col" className="py-14">
@@ -92,16 +136,33 @@ const SubmittionCard = ({ submissions, type = "artist" }) => {
         <p className="text-gold/80 text-sm">
           {submissionsList.length} pending submission
           {submissionsList.length !== 1 ? "s" : ""}
+          {selectedIds.size > 0 && (
+            <span className="ml-2 text-cream/60">
+              · {selectedIds.size} selected
+            </span>
+          )}
         </p>
-        <Button
-          text="Approve All"
-          icon={<MdCheck />}
-          size="small"
-          type="success"
-          onClick={handleApproveAll}
-          loading={isBulkApproving}
-          disabled={submissionsList.length === 0}
-        />
+        <div className="flex items-center gap-2">
+          {selectedIds.size > 0 && (
+            <Button
+              text={`Approve Selected (${selectedIds.size})`}
+              icon={<MdCheck />}
+              size="small"
+              type="success"
+              onClick={handleApproveSelected}
+              loading={isApproving}
+            />
+          )}
+          <Button
+            text="Approve All"
+            icon={<MdCheck />}
+            size="small"
+            type="success"
+            onClick={handleApproveAll}
+            loading={isBulkApproving}
+            disabled={submissionsList.length === 0}
+          />
+        </div>
       </div>
 
       <div className="gap-5 grid grid-cols-1 md:grid-cols-2 xl:grid-cols-5 overflow-hidden">
@@ -112,8 +173,22 @@ const SubmittionCard = ({ submissions, type = "artist" }) => {
             initial="hidden"
             animate="visible"
             transition={{ delay: index * 0.1 }}
-            className="relative bg-stone-900 bordered p-2 group space-y-3"
+            className={`relative bg-stone-900 bordered p-2 group space-y-3 ${
+              selectedIds.has(submission.id) ? "ring-1 ring-gold/60" : ""
+            }`}
           >
+            <button
+              type="button"
+              onClick={() => toggleSelect(submission.id)}
+              className={`absolute top-2 left-2 z-20 w-5 h-5 border flex items-center justify-center transition-colors ${
+                selectedIds.has(submission.id)
+                  ? "bg-gold border-gold text-black"
+                  : "bg-black/60 border-gold/40 text-transparent"
+              }`}
+              aria-label="Select submission"
+            >
+              <MdCheck className="text-xs" />
+            </button>
             <Link
               href={getEditHref(submission.id)}
               className="absolute top-2 right-2 z-20 text-xs uppercase tracking-wide bg-black/80 border border-gold/50 text-gold hover:text-black hover:bg-gold px-2 py-1 duration-200"

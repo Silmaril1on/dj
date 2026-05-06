@@ -3,6 +3,7 @@ import { useState, useRef, useEffect } from "react";
 import { useDispatch } from "react-redux";
 import { clearUser } from "@/app/features/userSlice";
 import { clearAllRatings } from "@/app/features/ratingSlice";
+import { resetNotifications } from "@/app/features/notificationsSlice";
 import { removeUserCookie } from "@/app/helpers/cookieUtils";
 import { supabaseClient } from "@/app/lib/config/supabaseClient";
 import { useRouter } from "next/navigation";
@@ -34,6 +35,7 @@ const DisplayName = ({ user, type }) => {
       await supabaseClient.auth.signOut();
       dispatch(clearUser());
       dispatch(clearAllRatings());
+      dispatch(resetNotifications());
       setIsSettingsOpen(false);
       removeUserCookie();
       router.push("/");

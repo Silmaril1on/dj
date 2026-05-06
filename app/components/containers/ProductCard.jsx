@@ -1,5 +1,7 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useSelector } from "react-redux";
+import { selectArtistRatingStats } from "@/app/features/ratingSlice";
 import { motion } from "framer-motion";
 import Image from "next/image";
 import Link from "next/link";
@@ -31,15 +33,30 @@ const ProductCard = ({
   ratingStats = null,
   userRating = null,
 }) => {
-  const parsedScore = Number(score);
+  // Check Redux for live-updated rating stats (e.g. after user rates without refreshing)
+  const reduxRatingStats = useSelector(selectArtistRatingStats(id));
+  const effectiveScore = reduxRatingStats?.average_score ?? score;
+  const parsedScore = Number(effectiveScore);
   const hasScore = Number.isFinite(parsedScore) && parsedScore > 0;
+
   const [localLikesCount, setLocalLikesCount] = useState(
     Number(likesCount) || 0,
   );
   const [localIsLiked, setLocalIsLiked] = useState(initialIsLiked);
   const parsedLikesCount = localLikesCount;
   const hasLikesCount = parsedLikesCount > 0;
-  const isLikeable = type === "club" || type === "festival";
+  const isLikeable =
+    type === "club" || type === "festival" || type === "artist";
+
+  // Sync like state when prop changes (e.g. after user-context hydration re-fetch)
+  useEffect(() => {
+    setLocalIsLiked(initialIsLiked);
+  }, [initialIsLiked]);
+
+  // Sync likes count when prop changes
+  useEffect(() => {
+    setLocalLikesCount(Number(likesCount) || 0);
+  }, [likesCount]);
 
   const resolvedImage = resolveImage(image, "md");
 
@@ -101,14 +118,15 @@ const ProductCard = ({
                   className="secondary pointer-events-none"
                 />
               )}
-              {(type === "festival" || type === "club") && hasScore && (
-                <SpanText
-                  icon={<FaStar />}
-                  size="xs"
-                  text={`${parsedScore}`}
-                  className="secondary pointer-events-none"
-                />
-              )}
+              {(type === "festival" || type === "club" || type === "artist") &&
+                hasScore && (
+                  <SpanText
+                    icon={<FaStar />}
+                    size="xs"
+                    text={`${parsedScore}`}
+                    className="secondary pointer-events-none"
+                  />
+                )}
             </div>
           )}
           {artists.length > 0 && (

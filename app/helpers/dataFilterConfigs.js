@@ -225,10 +225,14 @@ export const mapCardProps = (item, type, idx) => {
     case "artists":
       return {
         ...baseProps,
+        type: "artist",
         name: item.stage_name || item.name,
         image: item.image_url,
         href: `/artists/${item.artist_slug}`,
         score: item.rating_stats?.average_score,
+        ratingStats: item.rating_stats || null,
+        isLiked: item.isLiked || false,
+        userRating: item.userRating || null,
       };
     case "events":
       return {

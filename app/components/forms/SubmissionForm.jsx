@@ -122,59 +122,31 @@ const SubmissionForm = ({
   };
 
   const handleArrayFieldChange = (field, index, value) => {
-    setFormData((prev) => {
-      const currentValues = getAdditionalFieldValues(prev[field]);
-      const nextValues = currentValues.map((item, i) =>
-        i === index ? value : item,
-      );
-      const nextData = {
-        ...prev,
-        [field]: nextValues,
-      };
-
-      if (onDataChange) {
-        onDataChange(nextData);
-      }
-
-      return nextData;
-    });
+    const currentValues = getAdditionalFieldValues(formData[field]);
+    const nextValues = currentValues.map((item, i) =>
+      i === index ? value : item,
+    );
+    const nextData = { ...formData, [field]: nextValues };
+    setFormData(nextData);
+    if (onDataChange) onDataChange(nextData);
   };
 
   const addArrayField = (field) => {
-    setFormData((prev) => {
-      const currentValues = getAdditionalFieldValues(prev[field]);
-      const nextData = {
-        ...prev,
-        [field]: [...currentValues, ""],
-      };
-
-      if (onDataChange) {
-        onDataChange(nextData);
-      }
-
-      return nextData;
-    });
+    const currentValues = getAdditionalFieldValues(formData[field]);
+    const nextData = { ...formData, [field]: [...currentValues, ""] };
+    setFormData(nextData);
+    if (onDataChange) onDataChange(nextData);
   };
 
   const removeArrayField = (field, index) => {
-    setFormData((prev) => {
-      const currentValues = getAdditionalFieldValues(prev[field]);
-
-      if (currentValues.length <= 1) {
-        return prev;
-      }
-
-      const nextData = {
-        ...prev,
-        [field]: currentValues.filter((_, i) => i !== index),
-      };
-
-      if (onDataChange) {
-        onDataChange(nextData);
-      }
-
-      return nextData;
-    });
+    const currentValues = getAdditionalFieldValues(formData[field]);
+    if (currentValues.length <= 1) return;
+    const nextData = {
+      ...formData,
+      [field]: currentValues.filter((_, i) => i !== index),
+    };
+    setFormData(nextData);
+    if (onDataChange) onDataChange(nextData);
   };
 
   const handleImageChange = (e) => {
@@ -363,21 +335,27 @@ const SubmissionForm = ({
         const iconSize = isAvatar ? "text-4xl" : "w-8 h-8";
         const editButtonClass =
           "absolute -bottom-2 -right-2 bg-gold hover:bg-gold/80 text-black p-2 rounded-full shadow-lg transition-colors";
+        // For secondary image fields (not the main imageField), use the field's
+        // own value from formData so we don't accidentally show the poster image.
+        const isMainImageField = fieldName === formConfig.imageField;
+        const existingImageForField = isMainImageField
+          ? existingImage
+          : fieldValue || null;
         return (
           <div id={fieldName} className="flex items-center space-x-6 ">
             <div className="relative">
               <div
                 className={`${containerClass} overflow-hidden bg-stone-700 border-2 border-gold/30`}
               >
-                {imagePreview ? (
+                {imagePreview && isMainImageField ? (
                   <img
                     src={imagePreview}
                     alt="Preview"
                     className="w-full h-full object-cover"
                   />
-                ) : existingImage ? (
+                ) : existingImageForField ? (
                   <img
-                    src={existingImage}
+                    src={existingImageForField}
                     alt="Current"
                     className="w-full h-full object-cover"
                   />

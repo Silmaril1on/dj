@@ -808,7 +808,6 @@ export const formConfigs = {
       location_url: "",
       address: "",
       capacity_total: "",
-      capacity_per_day: "",
       country: "",
       city: "",
       minimum_age: "",
@@ -878,12 +877,6 @@ export const formConfigs = {
         label: "Total Capacity",
         placeholder: "e.g., 50000, 100000+",
       },
-      capacity_per_day: {
-        type: "text",
-        required: false,
-        label: "Capacity Per Day",
-        placeholder: "e.g., 20000, 30000",
-      },
       country: {
         type: "select",
         required: false,
@@ -946,14 +939,9 @@ export const formConfigs = {
         gridClass: "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4",
       },
       {
-        title: "Capacity",
-        fields: ["capacity_total", "capacity_per_day"],
-        gridClass: "grid grid-cols-1 md:grid-cols-2 gap-4",
-      },
-      {
         title: "Location",
-        fields: ["country", "city", "address"],
-        gridClass: "grid grid-cols-1 md:grid-cols-3 gap-4",
+        fields: ["country", "city", "address", "capacity_total"],
+        gridClass: "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4",
       },
       {
         title: "Bio",

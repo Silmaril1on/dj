@@ -14,7 +14,6 @@ const toNumber = (value) => {
 
 const sanitizePriceTiers = (tiers = []) => {
   if (!Array.isArray(tiers)) return [];
-
   return tiers
     .map((tier) => ({
       label: normalizeText(tier?.label),
@@ -33,7 +32,6 @@ const sanitizeExtraInfo = (rows = []) => {
 const sanitizeTicket = (ticket = {}) => {
   const title = normalizeText(ticket?.title);
   if (!title) return null;
-
   return {
     title,
     ticket_info: normalizeText(ticket?.ticket_info),
@@ -44,103 +42,98 @@ const sanitizeTicket = (ticket = {}) => {
 
 const sanitizeGroups = (groups = []) => {
   if (!Array.isArray(groups)) return [];
-
   return groups
     .map((group) => {
       const title = normalizeText(group?.title);
       if (!title) return null;
-
       const tickets = Array.isArray(group?.tickets)
         ? group.tickets.map((ticket) => sanitizeTicket(ticket)).filter(Boolean)
         : [];
-
-      return {
-        title,
-        tickets,
-      };
+      return { title, tickets };
     })
     .filter(Boolean);
 };
 
-async function assertFestivalOwnerOrAdmin(supabase, user, festivalId) {
-  const { data: festival, error } = await supabase
-    .from("festivals")
+async function assertEventOwnerOrAdmin(supabase, user, eventId) {
+  if (user.is_admin) return;
+
+  const { data: event, error } = await supabase
+    .from("events")
     .select("id, user_id")
-    .eq("id", festivalId)
+    .eq("id", eventId)
     .single();
 
-  if (error || !festival) {
-    throw new ServiceError("Festival not found", 404);
+  if (error || !event) {
+    throw new ServiceError("Event not found", 404);
   }
 
-  const canManage = festival.user_id === user.id || user.is_admin;
-  if (!canManage) {
-    throw new ServiceError("Unauthorized to modify this festival", 403);
+  if (event.user_id !== user.id) {
+    throw new ServiceError("Unauthorized to modify this event's tickets", 403);
   }
 }
 
-export async function getFestivalTickets(festivalId, cookieStore) {
-  if (!festivalId) {
-    throw new ServiceError("Festival ID is required", 400);
+export async function getEventTickets(eventId, cookieStore) {
+  if (!eventId) {
+    throw new ServiceError("Event ID is required", 400);
   }
 
   const supabase = await getSupabaseServerClient(cookieStore);
 
   const { data, error } = await supabase
-    .from("festival_tickets")
-    .select("festival_id, ticket_link, ticket_groups, updated_at")
-    .eq("festival_id", festivalId)
+    .from("event_tickets")
+    .select("event_id, ticket_link, ticket_groups, updated_at")
+    .eq("event_id", eventId)
     .maybeSingle();
 
   if (error) {
-    throw new ServiceError("Failed to fetch festival tickets", 500);
+    throw new ServiceError("Failed to fetch event tickets", 500);
   }
 
   return {
     success: true,
-    festival_id: festivalId,
+    event_id: eventId,
     ticket_link: data?.ticket_link || "",
     ticket_groups: Array.isArray(data?.ticket_groups) ? data.ticket_groups : [],
     updated_at: data?.updated_at || null,
   };
 }
 
-export async function upsertFestivalTickets(
-  { festival_id, ticket_link, ticket_groups },
+export async function upsertEventTickets(
+  { event_id, ticket_link, ticket_groups },
   cookieStore,
 ) {
-  if (!festival_id) {
-    throw new ServiceError("Festival ID is required", 400);
+  if (!event_id) {
+    throw new ServiceError("Event ID is required", 400);
   }
 
   const { user, supabase } = await getAuthenticatedContext(cookieStore);
-  await assertFestivalOwnerOrAdmin(supabase, user, festival_id);
+  await assertEventOwnerOrAdmin(supabase, user, event_id);
 
   const sanitizedGroups = sanitizeGroups(ticket_groups);
 
   const { data, error } = await supabase
-    .from("festival_tickets")
+    .from("event_tickets")
     .upsert(
       {
-        festival_id,
+        event_id,
         ticket_link: normalizeText(ticket_link),
         ticket_groups: sanitizedGroups,
         updated_by: user.id,
         updated_at: new Date().toISOString(),
       },
-      { onConflict: "festival_id" },
+      { onConflict: "event_id" },
     )
-    .select("festival_id, ticket_link, ticket_groups, updated_at")
+    .select("event_id, ticket_link, ticket_groups, updated_at")
     .single();
 
   if (error) {
-    throw new ServiceError("Failed to save festival tickets", 500);
+    throw new ServiceError("Failed to save event tickets", 500);
   }
 
   return {
     success: true,
-    message: "Festival tickets saved successfully",
-    festival_id: data.festival_id,
+    message: "Event tickets saved successfully",
+    event_id: data.event_id,
     ticket_link: data.ticket_link || "",
     ticket_groups: data.ticket_groups || [],
     updated_at: data.updated_at,

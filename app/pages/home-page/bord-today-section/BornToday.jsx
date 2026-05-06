@@ -77,7 +77,7 @@ const BornToday = () => {
                 <div className="relative w-full h-52 mb-3 overflow-hidden">
                   <Image
                     src={
-                      resolveImage(artist.image_url, "sm") ||
+                      resolveImage(artist.image_url, "md") ||
                       "/assets/elivagar-logo.png"
                     }
                     alt={artist.stage_name || artist.name}
