@@ -8,16 +8,9 @@ const Spinner = ({ className = "", size, type }) => {
   if (type === "logo") {
     return (
       <div
-        className={`flex w-20 h-20 bg-stone-900 p-2 animate-spin relative items-center justify-center rounded-full ${sizeClass} ${className}`}
-        >
-        <div className="absolute inset-0 bg-black rounded-full scale-15 z-[2]"></div>
-        <Image
-          width={80}
-          height={80}
-          alt="Elivagar Logo"
-          src="/assets/elivagar-logo.png"
-          className="w-full h-full object-cover relative"
-        />
+        className={`flex w-20 h-20 bg-black animate-spin relative items-center justify-center rounded-full ${sizeClass} ${className}`}
+      >
+        <img src="/assets/vynil.png" alt="logo" className="w-full h-full" />
       </div>
     );
   }

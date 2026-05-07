@@ -37,11 +37,19 @@ const AddLineupPage = async ({ params }) => {
       redirect(`/festivals/${id}`);
     }
 
-    // Fetch existing lineup if any
+    // Use the real UUID from the fetched festival (id in URL is a slug)
+    const festivalUUID = result.festival.id;
+
+    // Fetch existing lineup + stages in one call
     let existingLineup = null;
+    let existingStandardArtists = [];
+    let existingStages = [];
+    let lineupType = "none";
+    let currentLineupStatus = null;
+
     try {
       const lineupResponse = await fetch(
-        `${process.env.PROJECT_URL}/api/festivals/lineup?festival_id=${id}`,
+        `${process.env.PROJECT_URL}/api/festivals/lineup?festival_id=${festivalUUID}`,
         {
           cache: "no-store",
           headers: {
@@ -53,7 +61,17 @@ const AddLineupPage = async ({ params }) => {
 
       if (lineupResponse.ok) {
         const lineupData = await lineupResponse.json();
-        existingLineup = lineupData.lineup;
+        existingLineup =
+          lineupData.lineup?.length > 0 ? lineupData.lineup : null;
+        existingStandardArtists = lineupData.standardArtists || [];
+        existingStages = lineupData.stages || [];
+        lineupType = lineupData.lineupType || "none";
+        // Infer current lineup status from first artist with a phase
+        const firstPhase =
+          lineupData.lineup?.[0]?.artists?.[0]?.phase ||
+          lineupData.standardArtists?.[0]?.phase ||
+          null;
+        currentLineupStatus = firstPhase;
       }
     } catch {
       console.log("No existing lineup found");
@@ -61,9 +79,13 @@ const AddLineupPage = async ({ params }) => {
 
     return (
       <AddFestivalLineupForm
-        festivalId={id}
+        festivalId={festivalUUID}
         festivalName={result.festival.name}
         existingLineup={existingLineup}
+        existingStandardArtists={existingStandardArtists}
+        existingStages={existingStages}
+        lineupType={lineupType}
+        currentLineupStatus={currentLineupStatus}
       />
     );
   } catch (error) {

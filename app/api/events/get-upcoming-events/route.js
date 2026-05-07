@@ -1,7 +1,16 @@
 import { NextResponse } from "next/server";
 import { getLimitedEvents } from "@/app/lib/services/events/event";
+import {
+  checkRateLimit,
+  getClientIp,
+  rateLimitResponse,
+} from "@/app/lib/rateLimit";
 
 export async function GET(request) {
+  const ip = getClientIp(request);
+  const rl = checkRateLimit(`events-list:${ip}`, 60, 60_000);
+  if (!rl.allowed) return rateLimitResponse(rl.resetAt);
+
   try {
     const { searchParams } = new URL(request.url);
     const limit = parseInt(searchParams.get("limit") || "15", 10);

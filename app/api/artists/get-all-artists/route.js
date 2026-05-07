@@ -2,8 +2,17 @@ import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import { getServerUser } from "@/app/lib/config/supabaseServer";
 import { fetchArtists } from "@/app/lib/services/artists/getAllArtists";
+import {
+  checkRateLimit,
+  getClientIp,
+  rateLimitResponse,
+} from "@/app/lib/rateLimit";
 
 export async function GET(request) {
+  const ip = getClientIp(request);
+  const rl = checkRateLimit(`artists-list:${ip}`, 60, 60_000);
+  if (!rl.allowed) return rateLimitResponse(rl.resetAt);
+
   try {
     const qp = new URL(request.url).searchParams;
     const cookieStore = await cookies();

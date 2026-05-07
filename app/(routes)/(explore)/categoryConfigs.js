@@ -50,7 +50,7 @@ export const CATEGORY_CONFIGS = {
     },
     profile: {
       apiEndpoint: (baseUrl, id) =>
-        `${baseUrl}/api/events/single-event?id=${id}`,
+        `${baseUrl}/api/events/single-event?slug=${id}`,
       fetchOptions: (id) => ({
         next: { revalidate: 1200, tags: ["events", `event-${id}`] },
         headers: { "Content-Type": "application/json" },

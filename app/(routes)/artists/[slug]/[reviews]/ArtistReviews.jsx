@@ -85,7 +85,7 @@ const ReviewHeader = ({ artist, data }) => {
   return (
     <div className="flex relative overflow-hidden">
       <div className="absolute inset-0 -z-[1] blur-lg">
-        <img
+        <img loading="lazy"
           src={resolveImage(artist.image_url, "lg")}
           alt={artist.name}
           className="w-full h-full object-cover"

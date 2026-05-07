@@ -8,6 +8,11 @@ import {
 } from "@/app/lib/services/festivals/festival";
 import { ServiceError } from "@/app/lib/services/shared";
 import { getServerUser } from "@/app/lib/config/supabaseServer";
+import {
+  checkRateLimit,
+  getClientIp,
+  rateLimitResponse,
+} from "@/app/lib/rateLimit";
 
 const handleError = (error) => {
   if (error instanceof ServiceError) {
@@ -20,6 +25,14 @@ const handleError = (error) => {
 };
 
 export async function GET(request) {
+  const ip = getClientIp(request);
+  const id = new URL(request.url).searchParams.get("id");
+  // Only rate-limit the listing endpoint, not single fetches
+  if (!id) {
+    const rl = checkRateLimit(`festivals-list:${ip}`, 60, 60_000);
+    if (!rl.allowed) return rateLimitResponse(rl.resetAt);
+  }
+
   try {
     const { searchParams } = new URL(request.url);
     const cookieStore = await cookies();

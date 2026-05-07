@@ -7,6 +7,7 @@ import { getArtistProfile } from "@/app/lib/services/artists/artistProfile";
 import { getArtistLikesCount } from "@/app/lib/services/artists/artistLikes";
 import { getArtistScheduleCount } from "@/app/lib/services/artists/artistSchedule";
 import { getArtistUserData } from "@/app/lib/services/artists/getArtistUserData";
+import JsonLd from "@/app/components/ui/JsonLd";
 
 const getProfile = cache(getArtistProfile);
 
@@ -74,7 +75,27 @@ const ArtistProfilePage = async ({ params }) => {
       userSubmittedArtistId: user?.submitted_artist_id ?? null,
     };
 
-    return <ArtistProfile data={enrichedArtist} artistId={artist.id} />;
+    return (
+      <>
+        <JsonLd
+          data={{
+            "@context": "https://schema.org",
+            "@type": "MusicGroup",
+            name: enrichedArtist.stage_name || enrichedArtist.name,
+            url: `${process.env.PROJECT_URL}/artists/${slug}`,
+            image:
+              typeof enrichedArtist.image_url === "object"
+                ? enrichedArtist.image_url?.lg || enrichedArtist.image_url?.md
+                : enrichedArtist.image_url || undefined,
+            description: enrichedArtist.bio?.substring(0, 200) || undefined,
+            sameAs: enrichedArtist.social_links
+              ? Object.values(enrichedArtist.social_links).filter(Boolean)
+              : undefined,
+          }}
+        />
+        <ArtistProfile data={enrichedArtist} artistId={artist.id} />
+      </>
+    );
   } catch (error) {
     console.error("Artist page error:", error);
     return (

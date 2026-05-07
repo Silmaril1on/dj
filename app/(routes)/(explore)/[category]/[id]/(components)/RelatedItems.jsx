@@ -2,11 +2,22 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import SectionContainer from "@/app/components/containers/SectionContainer";
-import { resolveImage } from "@/app/helpers/utils";
+import { resolveImage, truncateString } from "@/app/helpers/utils";
 import ArtistCountry from "@/app/components/materials/ArtistCountry";
 import Motion from "@/app/components/containers/Motion";
 
 const TYPE_CONFIG = {
+  artists: {
+    title: "Related Artists",
+    description: "Artists with similar genres you might enjoy",
+    apiParam: "artistId",
+    apiEndpoint: "/api/artists/get-related-artists",
+    responseKey: "artists",
+    getHref: (item) => `/artists/${item.artist_slug}`,
+    getName: (item) => item.stage_name || item.name,
+    extraParamKey: "genres",
+    extraParamTransform: (v) => v?.join(","),
+  },
   clubs: {
     title: "Related Clubs",
     description: "Clubs in the same country",
@@ -31,34 +42,41 @@ const TYPE_CONFIG = {
     apiParam: "eventId",
     apiEndpoint: "/api/events/get-related-events",
     responseKey: "events",
-    getHref: (item) => `/events/${item.id}`,
-    getName: (item) => item.event_name || item.name,
+    getHref: (item) => `/events/${item.event_slug || item.id}`,
+    getName: (item) => item.venue_name || item.name,
   },
 };
 
-const RelatedItems = ({ entityId, entityType, country }) => {
+const RelatedItems = ({ entityId, entityType, country, extraParams }) => {
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
 
   const config = TYPE_CONFIG[entityType];
 
   useEffect(() => {
-    if (!entityId || !country || !config) {
+    const needsCountry = entityType !== "artists";
+    if (!entityId || (needsCountry && !country) || !config) {
       setLoading(false);
       return;
     }
 
-    const params = new URLSearchParams({
-      [config.apiParam]: entityId,
-      country,
-    });
+    const params = new URLSearchParams({ [config.apiParam]: entityId });
+    if (country) params.set("country", country);
+    if (config.extraParamKey && extraParams?.[config.extraParamKey]) {
+      params.set(
+        config.extraParamKey,
+        config.extraParamTransform
+          ? config.extraParamTransform(extraParams[config.extraParamKey])
+          : extraParams[config.extraParamKey],
+      );
+    }
 
     fetch(`${config.apiEndpoint}?${params}`)
       .then((r) => r.json())
       .then((data) => setItems(data[config.responseKey] || []))
       .catch(() => setItems([]))
       .finally(() => setLoading(false));
-  }, [entityId, country, entityType]);
+  }, [entityId, country, entityType]); // eslint-disable-line react-hooks/exhaustive-deps
 
   if (loading) {
     return (
@@ -89,14 +107,18 @@ const RelatedItems = ({ entityId, entityType, country }) => {
             >
               <div className="relative aspect-square overflow-hidden rounded-full">
                 <img
+                  loading="lazy"
                   src={resolveImage(item.image_url, "md")}
                   alt={config.getName(item)}
                   className="object-cover w-full h-full transition-transform duration-300"
                 />
               </div>
               <div className="center flex-col">
-                <p className="text-cream font-bold text-xs lg:text-lg uppercase leading-none truncate">
-                  {config.getName(item)}
+                <p
+                  className="text-cream font-bold text-xs lg:text-lg uppercase leading-none truncate"
+                  title={config.getName(item)}
+                >
+                  {truncateString(config.getName(item) || "", 20)}
                 </p>
                 <ArtistCountry
                   artistCountry={{ country: item.country }}

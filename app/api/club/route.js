@@ -8,6 +8,11 @@ import {
 } from "@/app/lib/services/clubs/clubs";
 import { ServiceError } from "@/app/lib/services/shared";
 import { getServerUser } from "@/app/lib/config/supabaseServer";
+import {
+  checkRateLimit,
+  getClientIp,
+  rateLimitResponse,
+} from "@/app/lib/rateLimit";
 
 const handleError = (error) => {
   if (error instanceof ServiceError) {
@@ -20,6 +25,10 @@ const handleError = (error) => {
 };
 
 export async function GET(request) {
+  const ip = getClientIp(request);
+  const rl = checkRateLimit(`clubs-list:${ip}`, 60, 60_000);
+  if (!rl.allowed) return rateLimitResponse(rl.resetAt);
+
   try {
     const { searchParams } = new URL(request.url);
     const limit = parseInt(searchParams.get("limit") || "20", 10);

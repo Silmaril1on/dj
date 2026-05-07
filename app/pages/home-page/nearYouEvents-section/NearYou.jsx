@@ -36,12 +36,15 @@ const FeaturedCard = ({ event }) => {
         {/* action buttons — outside Link so clicks don't navigate */}
         <div className="absolute w-full justify-between top-3 items-center px-2 flex z-10">
           <ShareButton
-            url={`/events/${event.id}`}
+            url={`/events/${event.event_slug || event.id}`}
             artistName={event.event_name || "this event"}
           />
           <ReminderButton size={20} event={event} />
         </div>
-        <Link href={`/events/${event.id}`} className="group block h-full">
+        <Link
+          href={`/events/${event.event_slug || event.id}`}
+          className="group block h-full"
+        >
           <div className="relative w-full h-full overflow-hidden bg-stone-900 border border-gold/20">
             {resolveImage(event.image_url, "lg") ? (
               <img

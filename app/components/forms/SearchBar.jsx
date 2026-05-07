@@ -20,7 +20,7 @@ const getItemName = (item) => {
 const getItemHref = (item) => {
   if (item.type === "artist") return `/artists/${item.artist_slug}`;
   if (item.type === "club") return `/clubs/${item.club_slug || item.id}`;
-  if (item.type === "event") return `/events/${item.id}`;
+  if (item.type === "event") return `/events/${item.event_slug || item.id}`;
   if (item.type === "festival")
     return `/festivals/${item.festival_slug || item.id}`;
   return "/";

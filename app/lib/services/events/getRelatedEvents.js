@@ -13,7 +13,9 @@ export async function getRelatedEvents(eventId, country) {
     async () => {
       const { data, error } = await supabaseAdmin
         .from("events")
-        .select("id, event_name, image_url, country, city, date")
+        .select(
+          "id, event_name, image_url, country, city, date, event_slug, venue_name",
+        )
         .eq("status", "approved")
         .eq("country", country)
         .neq("id", eventId)

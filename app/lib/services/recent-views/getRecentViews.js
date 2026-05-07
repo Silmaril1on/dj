@@ -38,14 +38,14 @@ const TYPE_QUERIES = {
   event: (supabase, ids) =>
     supabase
       .from("events")
-      .select("id, event_name, image_url")
+      .select("id, event_name, image_url, event_slug")
       .in("id", ids)
       .then(({ data }) =>
         (data || []).map((item) => ({
           id: item.id,
           name: item.event_name,
           image: item.image_url,
-          href: `/events/${item.id}`,
+          href: `/events/${item.event_slug || item.id}`,
           type: "event",
         })),
       ),

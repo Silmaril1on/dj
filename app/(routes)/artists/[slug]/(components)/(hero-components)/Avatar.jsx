@@ -65,7 +65,7 @@ const Avatar = ({ data, onLikeChange }) => {
           transition={{ duration: 0.6, ease: "easeInOut" }}
         >
           {resolveImage(data.image_url, "lg") ? (
-            <img
+            <img loading="eager"
               src={resolveImage(data.image_url, "lg")}
               alt={data.name}
               className="object-cover w-full h-full transition-transform duration-700"

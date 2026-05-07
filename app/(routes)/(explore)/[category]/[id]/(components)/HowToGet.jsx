@@ -645,19 +645,47 @@ const HowToGet = ({ data, type }) => {
             initial={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0 }}
             transition={{ duration: 0.25, ease: "easeIn" }}
-            className="w-full lg:w-[70%] h-44 flex items-center justify-start pl-2 lg:pl-4"
+            className="flex items-start pl-2 lg:pl-4 py-4"
           >
             <button
               onClick={() => setMapRevealed(true)}
-              className="group relative overflow-hidden border border-gold/50 bg-black/40 hover:bg-gold/10 transition-all duration-300 flex items-center gap-3 uppercase tracking-widest text-gold font-bold text-sm px-8 py-5"
+              className="group relative w-64 h-64 bg-stone-900 border border-gold/20 flex flex-col items-center justify-center gap-4 overflow-hidden transition-all duration-300 hover:border-gold/50 hover:bg-stone-900/80"
             >
-              <FiMapPin
-                size={18}
-                className="shrink-0 group-hover:scale-110 transition-transform duration-300"
-              />
-              <span>How to Get There</span>
-              {/* shimmer sweep */}
-              <span className="absolute inset-0 -translate-x-full group-hover:translate-x-full bg-gradient-to-r from-transparent via-gold/10 to-transparent transition-transform duration-700 ease-in-out pointer-events-none" />
+              {/* Corner decorations */}
+              <span className="absolute top-2 left-2 w-4 h-4 border-t-2 border-l-2 border-gold/60" />
+              <span className="absolute top-2 right-2 w-4 h-4 border-t-2 border-r-2 border-gold/60" />
+              <span className="absolute bottom-2 left-2 w-4 h-4 border-b-2 border-l-2 border-gold/60" />
+              <span className="absolute bottom-2 right-2 w-4 h-4 border-b-2 border-r-2 border-gold/60" />
+
+              {/* Glass shimmer on hover */}
+              <span className="absolute inset-0 -translate-x-full group-hover:translate-x-full bg-gradient-to-r from-transparent via-gold/6 to-transparent transition-transform duration-700 ease-in-out pointer-events-none" />
+
+              {/* Pulsing map pin */}
+              <div
+                className="relative flex items-center justify-center"
+                style={{ width: 96, height: 96 }}
+              >
+                <div className="venue-ring-1 absolute w-12 h-12 rounded-full border-2 border-yellow-500/70" />
+                <div className="venue-ring-2 absolute w-12 h-12 rounded-full border border-yellow-400/40" />
+                <div className="venue-pulse relative z-10 flex items-center justify-center w-14 h-14 rounded-full bg-gold/10 border-2 border-gold/60">
+                  <FiMapPin
+                    size={26}
+                    className="text-gold"
+                    style={{
+                      filter: "drop-shadow(0 0 8px rgba(252,185,19,0.7))",
+                    }}
+                  />
+                </div>
+              </div>
+
+              <div className="flex flex-col items-center gap-1 pointer-events-none">
+                <span className="text-gold font-bold text-xs uppercase tracking-widest primary">
+                  How to Get There
+                </span>
+                <span className="text-gold/50 text-[11px] secondary">
+                  View on map
+                </span>
+              </div>
             </button>
           </motion.div>
         ) : (

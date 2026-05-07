@@ -130,7 +130,7 @@ const ProductCard = ({
             </div>
           )}
           {artists.length > 0 && (
-            <div className="flex flex-wrap">
+            <div className="flex flex-wrap mt-2">
               {artists.slice(0, 5).map((artist, idx) => (
                 <div className="flex mr-2 space-x-1 items-center" key={idx}>
                   <Title

@@ -1,5 +1,5 @@
 "use client";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useDispatch, useSelector } from "react-redux";
 import { selectUser } from "@/app/features/userSlice";
@@ -57,6 +57,8 @@ const ProfileActions = ({ data, type, config, currentUserId = null }) => {
   const dispatch = useDispatch();
   const user = useSelector(selectUser);
 
+  const [isMounted, setIsMounted] = useState(false);
+
   const [likesCount, setLikesCount] = useState(data.likesCount || 0);
   const [isLiked, setIsLiked] = useState(data.userLiked || false);
   const [isReminderSet, setIsReminderSet] = useState(
@@ -66,7 +68,12 @@ const ProfileActions = ({ data, type, config, currentUserId = null }) => {
     data.userReminderOffsetDays || 3,
   );
 
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
+
   if (!config?.hasActions) return null;
+  if (!isMounted) return null;
 
   // Resolve owner buttons
   const entityType =

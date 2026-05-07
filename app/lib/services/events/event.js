@@ -22,7 +22,7 @@ const normalizeArtistName = (name) =>
     : "";
 
 const EVENT_SELECT_LIMITED =
-  "id, image_url, event_name, date, country, city, artists, event_type";
+  "id, image_url, event_name, date, country, city, artists, event_type, event_slug";
 
 export async function getNearYouEvents(country, city, { limit = 10 } = {}) {
   if (!country) throw new ServiceError("Country is required", 400);
@@ -209,27 +209,40 @@ export async function getEventById(cookieStore, id) {
     /* unauthenticated */
   }
 
-  const [eventResult, likesResult, reminderResult] = await Promise.all([
-    supabase.from("events").select("*").eq("id", id).single(),
-    supabase.from("event_likes").select("user_id").eq("event_id", id),
+  const isUUID =
+    /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(
+      id,
+    );
+  const eventField = isUUID ? "id" : "event_slug";
+
+  const { data: eventData, error: eventError } = await supabase
+    .from("events")
+    .select("*")
+    .eq(eventField, id)
+    .single();
+
+  if (eventError || !eventData) {
+    throw new ServiceError(eventError?.message || "Event not found", 404);
+  }
+  const eventId = eventData.id;
+
+  const [likesResult, reminderResult] = await Promise.all([
+    supabase.from("event_likes").select("user_id").eq("event_id", eventId),
     user
       ? supabase
           .from("event_reminders")
           .select("id, reminder_offset_days")
-          .eq("event_id", id)
+          .eq("event_id", eventId)
           .eq("user_id", user.id)
           .maybeSingle()
       : Promise.resolve({ data: null, error: null }),
   ]);
 
-  if (eventResult.error || !eventResult.data) {
-    throw new ServiceError(
-      eventResult.error?.message || "Event not found",
-      404,
-    );
+  if (!eventData) {
+    throw new ServiceError("Event not found", 404);
   }
 
-  const event = eventResult.data;
+  const event = eventData;
   const likesData = likesResult.data || [];
   const likesCount = likesData.length;
   const userLiked = user ? likesData.some((l) => l.user_id === user.id) : false;

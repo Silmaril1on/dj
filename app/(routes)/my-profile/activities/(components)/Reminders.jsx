@@ -34,7 +34,7 @@ const Reminders = ({ reminders = [], error = null }) => {
           city={event.city}
           artists={Array.isArray(event.artists) ? event.artists : []}
           date={event.date ? formatBirthdate(event.date) : ""}
-          href={`/events/${event.id}`}
+          href={`/events/${event.event_slug || event.id}`}
           delay={idx}
           className="p-2"
         />

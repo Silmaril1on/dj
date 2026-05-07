@@ -1,5 +1,6 @@
-import { Ratelimit } from "@upstash/ratelimit";
-import { Redis } from "@upstash/redis";
+import { NextResponse } from "next/server";
+
+const store = new Map();
 
 export function checkRateLimit(key, limit = 10, windowMs = 60_000) {
   const now = Date.now();
@@ -42,7 +43,6 @@ export function getClientIp(request) {
  * Build a 429 Too Many Requests response with standard headers.
  */
 export function rateLimitResponse(resetAt) {
-  const { NextResponse } = require("next/server");
   const retryAfter = Math.ceil((resetAt - Date.now()) / 1000);
   return NextResponse.json(
     { error: "Too many requests. Please slow down and try again shortly." },

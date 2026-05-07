@@ -7,6 +7,8 @@ import {
   updateArtist,
 } from "@/app/lib/services/artists/artistProfile";
 
+export const runtime = "nodejs";
+
 export async function GET(request) {
   try {
     const { searchParams } = new URL(request.url);

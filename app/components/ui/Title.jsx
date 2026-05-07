@@ -46,9 +46,9 @@ const Title = ({
   const hasB2B = b2bParts.length > 1;
 
   return (
-    <div className="flex gap-1 flex-wrap">
+    <div>
       {b2bParts.map((part, i) => (
-        <div key={i} className="flex gap-1">
+        <div key={i} className="flex gap-1 ">
           <h1
             onClick={onClick}
             onMouseEnter={onMouseEnter}

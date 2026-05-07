@@ -98,7 +98,7 @@ const Panel = ({ open, setOpen, event }) => {
           onClick={() => setOpen(event.id)}
         >
           {resolveImage(event.image_url, "md") && (
-            <img
+            <img loading="lazy"
               src={resolveImage(event.image_url, "md")}
               alt={event.event_name}
               className="absolute inset-0 w-full h-full object-cover z-0"
@@ -131,7 +131,7 @@ const Panel = ({ open, setOpen, event }) => {
             className="w-full h-full overflow-hidden relative flex items-end lg:mx-1 border border-gold/30"
           >
             {resolveImage(event.image_url, "lg") && (
-              <img
+              <img loading="lazy"
                 src={resolveImage(event.image_url, "lg")}
                 alt={event.event_name}
                 className="absolute right-0 h-full w-auto object-cover"

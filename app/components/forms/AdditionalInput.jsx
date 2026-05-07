@@ -17,13 +17,13 @@ const AdditionalInput = ({
   const canRemove = fields.length > minFields;
 
   return (
-    <div className="space-y-3">
+    <div className={`gap-3 ${className}`}>
       {fields.map((field, index) => {
         const inputId = `${id || name}-${index}`;
         const inputName = `${name || id}[${index}]`;
 
         return (
-          <div key={index} className="flex items-center gap-2">
+          <div key={index} className="flex items-center gap-2 my-3">
             <label htmlFor={inputId} className="sr-only">
               {placeholder} {index + 1}
             </label>
@@ -34,7 +34,6 @@ const AdditionalInput = ({
               value={field || ""}
               onChange={(e) => onChange(index, e.target.value)}
               placeholder={placeholder}
-              className={className}
             />
 
             {canRemove && (

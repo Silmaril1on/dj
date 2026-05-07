@@ -165,7 +165,7 @@ const ImageSide = ({ currentNews }) => {
       animate="animate"
       exit="exit"
     >
-      <img
+      <img loading="lazy"
         src={currentNews.news_image}
         alt="news"
         className="w-full h-full object-cover"

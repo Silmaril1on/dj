@@ -87,7 +87,7 @@ const ProfileBasicInfo = ({ data, type }) => {
       )}
 
       <Motion animation="fade" delay={0.3} className="space-y-1 w-full">
-        <Title size="xl" text={title} className="text-start leading-6" />
+        <Title size="xl" text={title} className="text-start leading-8" />
       </Motion>
 
       <Motion animation="left" delay={0.5} className="w-full py-3">

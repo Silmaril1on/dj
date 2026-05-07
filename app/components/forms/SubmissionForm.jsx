@@ -348,13 +348,13 @@ const SubmissionForm = ({
                 className={`${containerClass} overflow-hidden bg-stone-700 border-2 border-gold/30`}
               >
                 {imagePreview && isMainImageField ? (
-                  <img
+                  <img loading="lazy"
                     src={imagePreview}
                     alt="Preview"
                     className="w-full h-full object-cover"
                   />
                 ) : existingImageForField ? (
-                  <img
+                  <img loading="lazy"
                     src={existingImageForField}
                     alt="Current"
                     className="w-full h-full object-cover"

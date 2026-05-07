@@ -5,7 +5,7 @@ const LayoutButtons = ({
   options = [],
   activeOption,
   onOptionChange,
-  color, 
+  color,
   className = "",
   buttonClassName = "",
   layoutId = "activeLayout", // Make layoutId configurable with a default
@@ -19,11 +19,10 @@ const LayoutButtons = ({
           return (
             <button
               key={option.value}
+              type="button"
               onClick={() => onOptionChange(option.value)}
               className={`relative px-4 py-1 uppercase rounded-full text-xs font-medium cursor-pointer z-10 ${
-                isActive
-                  ? "text-cream"
-                  : "text-stone-900"
+                isActive ? "text-cream" : "text-stone-900"
               } ${buttonClassName}`}
             >
               {isActive && (

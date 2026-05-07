@@ -241,7 +241,7 @@ export const mapCardProps = (item, type, idx) => {
         date: formatBirthdate(item.date),
         city: item.city,
         artists: item.artists,
-        href: `/events/${item.id}`,
+        href: `/events/${item.event_slug || item.id}`,
       };
     case "festivals":
       return {

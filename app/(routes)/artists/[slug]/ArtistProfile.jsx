@@ -7,7 +7,7 @@ import Bio from "@/app/(routes)/artists/[slug]/(components)/Bio";
 import Avatar from "@/app/(routes)/artists/[slug]/(components)/(hero-components)/Avatar";
 import BasicInfo from "@/app/(routes)/artists/[slug]/(components)/(hero-components)/BasicInfo";
 import ArtistSchedule from "@/app/(routes)/artists/[slug]/(components)/ArtistSchedule";
-import RelatedArtists from "./(components)/RelatedArtists";
+import RelatedItems from "@/app/(routes)/(explore)/[category]/[id]/(components)/RelatedItems";
 
 const ArtistProfile = ({ data, artistId }) => {
   const id = artistId || data?.id;
@@ -34,7 +34,11 @@ const ArtistProfile = ({ data, artistId }) => {
       <ArtistSchedule artistId={id} artistData={data} />
       <Albums artistId={id} />
       <ArtistInsight artistId={id} slug={data?.artist_slug} />
-      <RelatedArtists artistId={id} genres={data?.genres} />
+      <RelatedItems
+        entityId={id}
+        entityType="artists"
+        extraParams={{ genres: data?.genres }}
+      />
     </div>
   );
 };

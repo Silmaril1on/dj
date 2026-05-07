@@ -29,7 +29,7 @@ const SingleNews = ({ news }) => {
       <Title text={news.title} size="xl" />
       <Paragraph text={news.description} className="mt-2" />
       <div className=" px-[20%]">
-        <img
+        <img loading="lazy"
           src={news.news_image}
           alt={news.title}
           className="w-full h-full rounded my-4"

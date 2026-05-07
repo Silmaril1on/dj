@@ -1,18 +1,311 @@
 "use client";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useDispatch } from "react-redux";
 import { setError } from "@/app/features/modalSlice";
-import { showSuccess } from "@/app/features/successSlice";
 import SectionContainer from "../containers/SectionContainer";
 import Title from "@/app/components/ui/Title";
 import Button from "@/app/components/buttons/Button";
+import AdditionalInput from "@/app/components/forms/AdditionalInput";
+import LayoutButtons from "@/app/components/buttons/LayoutButtons";
 import { FaPlus, FaTrash } from "react-icons/fa";
+
+const FESTIVAL_DAYS = ["Friday", "Saturday", "Sunday"];
+
+/** Given existing stages from DB and optional pre-fill artists, build form state */
+const buildEnhancedInitialStages = (
+  existingLineup,
+  existingStages,
+  prefillArtists,
+  lineupStatus,
+) => {
+  // Case 1: existing enhanced lineup → use it as-is
+  if (existingLineup && existingLineup.length > 0) {
+    return existingLineup.map((stage) => ({
+      stage_name: stage.stage_name || "",
+      locked_name: true, // came from DB stages
+      artists: stage.artists.map((a) => ({
+        name: a.name || "",
+        day: a.day || "",
+        phase: a.phase || null,
+      })),
+    }));
+  }
+
+  // Case 2: festival has DB stages configured
+  if (existingStages && existingStages.length > 0) {
+    return existingStages.map((s, i) => ({
+      stage_name: s.stage_name,
+      locked_name: true,
+      artists:
+        i === 0 && prefillArtists && prefillArtists.length > 0
+          ? prefillArtists.map((a) => ({
+              name: a.name,
+              day: "",
+              phase: lineupStatus,
+            }))
+          : [{ name: "", day: "", phase: lineupStatus }],
+    }));
+  }
+
+  // Case 3: no stages — fresh form, optionally prefill artists into stage 1
+  const artists =
+    prefillArtists && prefillArtists.length > 0
+      ? prefillArtists.map((a) => ({
+          name: a.name,
+          day: "",
+          phase: lineupStatus,
+        }))
+      : [{ name: "", day: "", phase: lineupStatus }];
+
+  return [{ stage_name: "", locked_name: false, artists }];
+};
+
+// ─── Phase style helper ──────────────────────────────────────────────────────
+
+const phaseStyle = (phase) => {
+  if (phase === "first phase")
+    return "bg-emerald-500/20 border-emerald-500/40 text-emerald-400";
+  if (phase === "second phase")
+    return "bg-blue-500/20 border-blue-500/40 text-blue-400";
+  if (phase === "third phase")
+    return "bg-orange-500/20 border-orange-500/40 text-orange-400";
+  return "bg-gold/20 border-gold/40 text-gold";
+};
+
+// ─── Standard Lineup Section ─────────────────────────────────────────────────
+
+const StandardLineupSection = ({
+  existingArtists,
+  newArtists,
+  onNewArtistsChange,
+}) => {
+  const handleChange = (index, value) => {
+    const next = [...newArtists];
+    next[index] = value;
+    onNewArtistsChange(next);
+  };
+
+  const handleAdd = () => onNewArtistsChange([...newArtists, ""]);
+
+  const handleRemove = (index) => {
+    if (newArtists.length === 1) return;
+    onNewArtistsChange(newArtists.filter((_, i) => i !== index));
+  };
+
+  return (
+    <div className="space-y-4">
+      {/* Existing artists — read-only display grid */}
+      {existingArtists.length > 0 && (
+        <div>
+          <p className="text-xs text-chino mb-2 uppercase secondary">
+            {existingArtists.length} artist
+            {existingArtists.length !== 1 ? "s" : ""} already in lineup
+          </p>
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-2">
+            {existingArtists.map((artist, i) => (
+              <div
+                key={i}
+                className="bg-stone-900 border border-stone-700/60 p-2 flex flex-col gap-1"
+              >
+                {artist.phase && (
+                  <span
+                    className={`text-[8px] px-1.5 py-0.5 border font-bold secondary uppercase self-start ${phaseStyle(
+                      artist.phase,
+                    )}`}
+                  >
+                    {artist.phase}
+                  </span>
+                )}
+                <span className="text-cream/90 pl-1 text-xs font-bold uppercase leading-tight">
+                  {artist.name}
+                </span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* New artists input */}
+      <div className="space-y-2">
+        <label className="text-xs text-chino block secondary uppercase">
+          {existingArtists.length > 0 ? "Add More Artists" : "Artist Names"}{" "}
+          {existingArtists.length === 0 && (
+            <span className="text-red-500">*</span>
+          )}
+        </label>
+        <AdditionalInput
+          className="grid grid-cols-5"
+          fields={newArtists}
+          onChange={handleChange}
+          onAdd={handleAdd}
+          onRemove={handleRemove}
+          placeholder="Artist name"
+          id="standard-artist"
+          name="standard-artist"
+          minFields={1}
+        />
+      </div>
+    </div>
+  );
+};
+
+// ─── Enhanced Stage Card ──────────────────────────────────────────────────────
+
+const StageCard = ({
+  stage,
+  stageIndex,
+  canRemove,
+  lineupStatus,
+  onRemove,
+  onNameChange,
+  onArtistChange,
+  onAddArtist,
+  onRemoveArtist,
+}) => (
+  <div className="bg-stone-800/50 p-4 border border-gold/20 space-y-3">
+    {/* Stage Header */}
+    <div className="space-y-2">
+      <div className="flex items-center justify-between">
+        <Title
+          text={
+            stage.locked_name
+              ? stage.stage_name.toUpperCase()
+              : `Stage ${stageIndex + 1}`
+          }
+          size="sm"
+          color="gold"
+        />
+        {canRemove && (
+          <button
+            type="button"
+            onClick={() => onRemove(stageIndex)}
+            className="p-2 bg-red-500/20 hover:bg-red-500/30 text-red-500 transition-colors"
+            title="Remove Stage"
+          >
+            <FaTrash size={14} />
+          </button>
+        )}
+      </div>
+
+      {!stage.locked_name && (
+        <div>
+          <label
+            htmlFor={`stage-name-${stageIndex}`}
+            className="text-xs text-chino block"
+          >
+            Stage Name <span className="text-red-500">*</span>
+          </label>
+          <input
+            id={`stage-name-${stageIndex}`}
+            type="text"
+            placeholder="e.g., Main Stage, Techno Stage"
+            className="py-1"
+            value={stage.stage_name}
+            onChange={(e) => onNameChange(stageIndex, e.target.value)}
+            required
+          />
+        </div>
+      )}
+    </div>
+
+    {/* Artists List */}
+    <div className="space-y-2">
+      <label className="text-xs text-chino block">
+        Artists <span className="text-red-500">*</span>
+      </label>
+      {stage.artists.map((artist, artistIndex) => (
+        <div
+          key={artistIndex}
+          className="bg-stone-900/50 p-3 border border-chino/15 "
+        >
+          {artist.phase && (
+            <div className="flex justify-end">
+              <span
+                className={`text-[9px] px-2 py-0.5 rounded-full secondary font-semibold uppercase border ${
+                  artist.phase === "first phase"
+                    ? "bg-emerald-500/20 border-emerald-500/40 text-emerald-400"
+                    : artist.phase === "second phase"
+                      ? "bg-blue-500/20 border-blue-500/40 text-blue-400"
+                      : artist.phase === "third phase"
+                        ? "bg-orange-500/20 border-orange-500/40 text-orange-400"
+                        : "bg-gold/20 border-gold/40 text-gold"
+                }`}
+              >
+                {artist.phase}
+              </span>
+            </div>
+          )}
+          <div className="grid grid-cols-[4fr_3fr_0.5fr] items-end gap-2 ">
+            <div>
+              <label className="text-xs text-stone-400">Artist Name</label>
+              <input
+                type="text"
+                placeholder="Artist Name"
+                className="py-1 text-sm w-full"
+                value={artist.name}
+                onChange={(e) =>
+                  onArtistChange(
+                    stageIndex,
+                    artistIndex,
+                    "name",
+                    e.target.value,
+                  )
+                }
+                required
+              />
+            </div>
+            <div>
+              <label className="text-xs text-stone-400">Day</label>
+              <select
+                className="py-1 text-sm w-full"
+                value={artist.day}
+                onChange={(e) =>
+                  onArtistChange(stageIndex, artistIndex, "day", e.target.value)
+                }
+              >
+                <option value="">Day</option>
+                {FESTIVAL_DAYS.map((day) => (
+                  <option key={day} value={day}>
+                    {day}
+                  </option>
+                ))}
+              </select>
+            </div>
+            {stage.artists.length > 1 && (
+              <button
+                type="button"
+                onClick={() => onRemoveArtist(stageIndex, artistIndex)}
+                className="w-fit p-2 bg-red-500/20 hover:bg-red-500/30 text-red-500 text-xs"
+              >
+                <FaTrash size={10} />
+              </button>
+            )}
+          </div>
+        </div>
+      ))}
+
+      <button
+        type="button"
+        onClick={() => onAddArtist(stageIndex)}
+        className="w-full py-2 bg-gold/10 hover:bg-gold/20 text-gold text-xs font-semibold transition-colors flex items-center justify-center gap-1"
+      >
+        <FaPlus size={10} />
+        Add Artist
+      </button>
+    </div>
+  </div>
+);
+
+// ─── Main Form ────────────────────────────────────────────────────────────────
 
 const AddFestivalLineupForm = ({
   festivalId,
   festivalName,
   existingLineup = null,
+  existingStandardArtists = [],
+  existingStages = [],
+  lineupType = "none",
   currentLineupStatus = null,
 }) => {
   const dispatch = useDispatch();
@@ -20,142 +313,183 @@ const AddFestivalLineupForm = ({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [lineupStatus, setLineupStatus] = useState(currentLineupStatus || null);
 
-  // Festival days options
-  const festivalDays = ["Friday", "Saturday", "Sunday"];
-
-  // Initialize stages - each artist has their own phase
-  const [stages, setStages] = useState(
-    existingLineup && existingLineup.length > 0
-      ? existingLineup
-      : [{ stage_name: "", artists: [{ name: "", day: "", phase: null }] }],
+  const [lineupMode, setLineupMode] = useState(
+    lineupType === "standard" ? "standard" : "enhanced",
   );
 
-  // Add a new stage (new artists in new stages get the currently selected phase)
+  // Standard mode state — only NEW artists being added (existing ones shown read-only)
+  const [standardArtists, setStandardArtists] = useState([""]);
+
+  // Enhanced mode state
+  const [stages, setStages] = useState(() =>
+    buildEnhancedInitialStages(
+      existingLineup,
+      existingStages,
+      null,
+      lineupStatus,
+    ),
+  );
+
+  // ── Mode switching ──────────────────────────────────────────────────────────
+
+  const switchToStandard = () => {
+    setLineupMode("standard");
+  };
+
+  const switchToEnhanced = () => {
+    // When upgrading from standard, prefill all standard artists into stage 1
+    const prefill =
+      lineupMode === "standard" && standardArtists.some((n) => n.trim())
+        ? standardArtists.filter((n) => n.trim()).map((name) => ({ name }))
+        : null;
+
+    setStages(
+      buildEnhancedInitialStages(
+        existingLineup,
+        existingStages,
+        prefill,
+        lineupStatus,
+      ),
+    );
+    setLineupMode("enhanced");
+  };
+
   const handleAddStage = () => {
     setStages([
       ...stages,
       {
         stage_name: "",
+        locked_name: false,
         artists: [{ name: "", day: "", phase: lineupStatus }],
       },
     ]);
   };
 
-  // Remove a stage
   const handleRemoveStage = (stageIndex) => {
-    if (stages.length === 1) return; // Keep at least one stage
-    const newStages = stages.filter((_, index) => index !== stageIndex);
-    setStages(newStages);
+    if (stages.length === 1) return;
+    setStages(stages.filter((_, i) => i !== stageIndex));
   };
 
-  // Update stage name
   const handleStageNameChange = (stageIndex, value) => {
-    const newStages = [...stages];
-    newStages[stageIndex].stage_name = value;
-    setStages(newStages);
+    const next = [...stages];
+    next[stageIndex] = { ...next[stageIndex], stage_name: value };
+    setStages(next);
   };
 
-  // Update artist name
   const handleArtistChange = (stageIndex, artistIndex, field, value) => {
-    const newStages = [...stages];
-    newStages[stageIndex].artists[artistIndex][field] = value;
-    setStages(newStages);
+    const next = stages.map((stage, si) => {
+      if (si !== stageIndex) return stage;
+      const artists = stage.artists.map((artist, ai) =>
+        ai === artistIndex ? { ...artist, [field]: value } : artist,
+      );
+      return { ...stage, artists };
+    });
+    setStages(next);
   };
 
   const handleAddArtist = (stageIndex) => {
-    const newStages = [...stages];
-    // New artists get the currently selected phase
-    newStages[stageIndex].artists.push({
-      name: "",
-      day: "",
-      phase: lineupStatus,
+    const next = stages.map((stage, si) => {
+      if (si !== stageIndex) return stage;
+      return {
+        ...stage,
+        artists: [...stage.artists, { name: "", day: "", phase: lineupStatus }],
+      };
     });
-    setStages(newStages);
+    setStages(next);
   };
 
   const handleRemoveArtist = (stageIndex, artistIndex) => {
-    const newStages = [...stages];
-    newStages[stageIndex].artists = newStages[stageIndex].artists.filter(
-      (_, index) => index !== artistIndex,
-    );
-    setStages(newStages);
+    const next = stages.map((stage, si) => {
+      if (si !== stageIndex) return stage;
+      return {
+        ...stage,
+        artists: stage.artists.filter((_, ai) => ai !== artistIndex),
+      };
+    });
+    setStages(next);
   };
 
-  // Calculate phase summary (count artists by phase)
-  const phaseSummary = () => {
-    const summary = {};
-    stages.forEach((stage) => {
-      stage.artists.forEach((artist) => {
-        const phase = artist.phase || "No phase";
-        summary[phase] = (summary[phase] || 0) + 1;
-      });
-    });
-    return summary;
-  };
+  // ── Submit ──────────────────────────────────────────────────────────────────
+
+  const hasExistingData =
+    (existingLineup && existingLineup.length > 0) ||
+    existingStandardArtists.length > 0;
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsSubmitting(true);
     dispatch(setError(""));
 
-    // Validate
-    const hasEmptyStage = stages.some((stage) => !stage.stage_name.trim());
-    if (hasEmptyStage) {
-      dispatch(
-        setError({ message: "All stages must have a name", type: "error" }),
+    let body;
+
+    if (lineupMode === "standard") {
+      // Combine already-saved artists with newly entered ones
+      const existingNames = existingStandardArtists.map((a) => a.name);
+      const newNames = standardArtists.map((n) => n.trim()).filter(Boolean);
+      const allArtists = [...existingNames, ...newNames];
+      if (allArtists.length === 0) {
+        dispatch(
+          setError({ message: "Add at least one artist name", type: "error" }),
+        );
+        setIsSubmitting(false);
+        return;
+      }
+      body = {
+        festival_id: festivalId,
+        lineup_type: "standard",
+        artists: allArtists,
+        lineup_status: lineupStatus || null,
+      };
+    } else {
+      // Validate stage names for non-locked stages
+      const hasEmptyName = stages.some(
+        (s) => !s.locked_name && !s.stage_name.trim(),
       );
-      setIsSubmitting(false);
-      return;
+      if (hasEmptyName) {
+        dispatch(
+          setError({ message: "All stages must have a name", type: "error" }),
+        );
+        setIsSubmitting(false);
+        return;
+      }
+
+      const cleanedStages = stages.map((stage) => ({
+        stage_name: stage.stage_name,
+        artists: stage.artists
+          .filter((a) => a.name.trim() !== "")
+          .map((a) => ({
+            ...a,
+            phase:
+              a.phase !== null && a.phase !== undefined
+                ? a.phase
+                : lineupStatus,
+          })),
+      }));
+
+      if (cleanedStages.some((s) => s.artists.length === 0)) {
+        dispatch(
+          setError({
+            message: "Each stage must have at least one artist",
+            type: "error",
+          }),
+        );
+        setIsSubmitting(false);
+        return;
+      }
+
+      body = {
+        festival_id: festivalId,
+        lineup_type: "enhanced",
+        stages: cleanedStages,
+        lineup_status: lineupStatus || null,
+      };
     }
-
-    // Filter out empty artists (artists without names)
-    const cleanedStages = stages.map((stage) => ({
-      ...stage,
-      artists: stage.artists
-        .filter((artist) => artist.name.trim() !== "")
-        .map((artist) => ({
-          ...artist,
-          // Ensure phase is set: existing artist phase OR currently selected phase
-          phase:
-            artist.phase !== null && artist.phase !== undefined
-              ? artist.phase
-              : lineupStatus,
-        })),
-    }));
-
-    const hasStageWithoutArtists = cleanedStages.some(
-      (stage) => stage.artists.length === 0,
-    );
-    if (hasStageWithoutArtists) {
-      dispatch(
-        setError({
-          message: "Each stage must have at least one artist",
-          type: "error",
-        }),
-      );
-      setIsSubmitting(false);
-      return;
-    }
-
-    // Debug: Log what we're sending
-    console.log("Submitting lineup:", {
-      lineup_status: lineupStatus,
-      stages: cleanedStages,
-      sample_artists: cleanedStages[0]?.artists.slice(0, 2),
-    });
 
     try {
       const response = await fetch("/api/festivals/lineup", {
-        method: existingLineup ? "PATCH" : "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          festival_id: festivalId,
-          festival_name: festivalName,
-          stages: cleanedStages,
-          lineup_status: lineupStatus || null,
-        }),
+        method: hasExistingData ? "PATCH" : "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body),
       });
 
       if (!response.ok) {
@@ -163,24 +497,7 @@ const AddFestivalLineupForm = ({
         throw new Error(errorData.error || "Failed to save lineup");
       }
 
-      const result = await response.json();
-
-      const phaseMessage = lineupStatus
-        ? ` New stages marked as "${lineupStatus}".`
-        : "";
-
-      dispatch(
-        showSuccess({
-          type: "festival_lineup",
-          name: festivalName,
-          description: `Lineup ${existingLineup ? "updated" : "added"} successfully!${phaseMessage}`,
-        }),
-      );
-
-      // Redirect to festival page
-      setTimeout(() => {
-        router.push(`/festivals/${festivalId}`);
-      }, 2000);
+      router.push(`/festivals/${festivalId}`);
     } catch (err) {
       dispatch(setError({ message: err.message, type: "error" }));
     } finally {
@@ -188,46 +505,94 @@ const AddFestivalLineupForm = ({
     }
   };
 
+  // ── Render ──────────────────────────────────────────────────────────────────
+
   return (
     <SectionContainer
-      title={`${existingLineup ? "Edit" : "Add"} Lineup for ${festivalName}`}
-      description="Organize your festival lineup by stages. Add multiple stages and artists for each stage."
+      title={`${hasExistingData ? "Edit" : "Add"} Lineup for ${festivalName}`}
+      description={
+        lineupMode === "standard"
+          ? "Add artist names quickly. You can assign stages and days later."
+          : "Organize your festival lineup by stages. Add multiple stages and artists for each stage."
+      }
     >
-      <form onSubmit={handleSubmit} className="w-full space-y-6 ">
-        {/* Lineup Status Selection */}
-        <div className="bg-stone-900/50 p-4 border border-gold/20 space-y-2">
+      <form onSubmit={handleSubmit} className="w-full space-y-6">
+        {/* ── Announcement Phase + Mode Toggle ── */}
+        <div className="bg-stone-900/50 space-y-4">
+          {/* Mode toggle row */}
+          <div className="flex items-start flex-col gap-1">
+            <LayoutButtons
+              layoutId="lineupModeToggle"
+              color="bg-stone-900"
+              activeOption={lineupMode}
+              onOptionChange={(val) =>
+                val === "standard" ? switchToStandard() : switchToEnhanced()
+              }
+              options={[
+                { value: "standard", label: "Simple Lineup Upload" },
+                { value: "enhanced", label: "Enhanced Lineup Upload" },
+              ]}
+            />
+            {lineupMode === "standard" && (
+              <span className="text-xs text-chino secondary">
+                Best for quick uploads or when you only have artist names. You
+                can assign stages and days later using Enhanced mode
+              </span>
+            )}
+          </div>
+
+          {/* Phase selection — shown for both modes */}
           <div>
-            <label className="text-sm font-semibold text-gold block mb-2">
-              Announcement Phase (for new artists)
+            <label className="text-lg font-bold text-gold block leading-none">
+              Announcement Phase
             </label>
-            <p className="text-xs text-stone-400 mb-3">
-              Select a phase to apply to all new artists you add. Existing
-              artists will keep their original phase.
+            <p className="text-xs text-chino mb-3 secondary">
+              {lineupMode === "enhanced"
+                ? "Select a phase to apply to all new artists you add. Existing artists keep their original phase."
+                : "Select a phase to assign to this set of artists."}
             </p>
             <div className="flex gap-2 flex-wrap">
-              {[
-                { value: "first phase", label: "First Phase" },
-                { value: "second phase", label: "Second Phase" },
-                { value: "last phase", label: "Last Phase" },
-              ].map((option) => (
-                <button
-                  key={option.value}
-                  type="button"
-                  onClick={() => setLineupStatus(option.value)}
-                  className={`px-3 font-semibold duration-300  pt-1 ${
-                    lineupStatus === option.value
-                      ? "bg-gold text-black"
-                      : "bg-stone-800 text-chino hover:bg-stone-700"
-                  }`}
-                >
-                  {option.label}
-                </button>
-              ))}
+              {/* First Phase — green */}
+              <button
+                type="button"
+                onClick={() => setLineupStatus("first phase")}
+                className={`px-3 py-1 font-semibold text-sm duration-300 border ${
+                  lineupStatus === "first phase"
+                    ? "bg-emerald-500/30 border-emerald-400 text-emerald-300"
+                    : "bg-stone-800 border-emerald-500/30 text-emerald-500/70 hover:bg-emerald-500/10 hover:border-emerald-400/60"
+                }`}
+              >
+                First Phase
+              </button>
+              {/* Second Phase — blue */}
+              <button
+                type="button"
+                onClick={() => setLineupStatus("second phase")}
+                className={`px-3 py-1 font-semibold text-sm duration-300 border ${
+                  lineupStatus === "second phase"
+                    ? "bg-blue-500/30 border-blue-400 text-blue-300"
+                    : "bg-stone-800 border-blue-500/30 text-blue-500/70 hover:bg-blue-500/10 hover:border-blue-400/60"
+                }`}
+              >
+                Second Phase
+              </button>
+              {/* Third Phase — orange */}
+              <button
+                type="button"
+                onClick={() => setLineupStatus("third phase")}
+                className={`px-3 py-1 font-semibold text-sm duration-300 border ${
+                  lineupStatus === "third phase"
+                    ? "bg-orange-500/30 border-orange-400 text-orange-300"
+                    : "bg-stone-800 border-orange-500/30 text-orange-500/70 hover:bg-orange-500/10 hover:border-orange-400/60"
+                }`}
+              >
+                Third Phase
+              </button>
               {lineupStatus && (
                 <button
                   type="button"
                   onClick={() => setLineupStatus(null)}
-                  className="px-3 font-semibold bg-red-500/20 text-red-500 hover:bg-red-500/30 transition-all"
+                  className="px-3 py-1 font-semibold text-sm bg-red-500/20 border border-red-500/30 text-red-400 hover:bg-red-500/30 transition-all"
                 >
                   Clear
                 </button>
@@ -236,165 +601,58 @@ const AddFestivalLineupForm = ({
           </div>
         </div>
 
-        {/* Stages Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-          {stages.map((stage, stageIndex) => (
-            <div
-              key={stageIndex}
-              className="bg-stone-800/50 p-4 border border-gold/20 space-y-3"
-            >
-              {/* Stage Header */}
-              <div className="space-y-2">
-                <div className="flex items-center justify-between">
-                  <Title
-                    text={`Stage ${stageIndex + 1}`}
-                    size="sm"
-                    color="gold"
-                  />
-                  {stages.length > 1 && (
-                    <button
-                      type="button"
-                      onClick={() => handleRemoveStage(stageIndex)}
-                      className="p-2 bg-red-500/20 hover:bg-red-500/30 text-red-500 rounded transition-colors"
-                      title="Remove Stage"
-                    >
-                      <FaTrash size={14} />
-                    </button>
-                  )}
-                </div>
+        {/* ── Standard mode ── */}
+        {lineupMode === "standard" && (
+          <div className="bg-stone-800/50 p-4 border border-gold/20">
+            <StandardLineupSection
+              existingArtists={existingStandardArtists}
+              newArtists={standardArtists}
+              onNewArtistsChange={setStandardArtists}
+            />
+          </div>
+        )}
 
-                <div>
-                  <label
-                    htmlFor={`stage-name-${stageIndex}`}
-                    className="text-xs text-chino block"
-                  >
-                    Stage Name <span className="text-red-500">*</span>
-                  </label>
-                  <input
-                    id={`stage-name-${stageIndex}`}
-                    type="text"
-                    placeholder="e.g., Main Stage, Techno Stage"
-                    className="py-1"
-                    value={stage.stage_name}
-                    onChange={(e) =>
-                      handleStageNameChange(stageIndex, e.target.value)
-                    }
-                    required
-                  />
-                </div>
-              </div>
+        {/* ── Enhanced mode ── */}
+        {lineupMode === "enhanced" && (
+          <>
+            {existingStages.length > 0 && !existingLineup && (
+              <p className="text-xs text-stone-400 italic px-1">
+                Stages loaded from your festival setup. Add artists to each
+                stage below.
+              </p>
+            )}
 
-              {/* Artists List */}
-              <div className="space-y-2">
-                <label className="text-xs text-chino block">
-                  Artists <span className="text-red-500">*</span>
-                </label>
-                {stage.artists.map((artist, artistIndex) => (
-                  <div
-                    key={artistIndex}
-                    className="bg-stone-900/50 p-3 border border-stone-700/50 space-y-2"
-                  >
-                    {/* Artist phase badge */}
-                    {artist.phase && (
-                      <div className="flex justify-end">
-                        <span className="text-[9px] px-2 py-0.5 bg-gold/20 text-gold rounded-full font-semibold uppercase">
-                          {artist.phase}
-                        </span>
-                      </div>
-                    )}
-
-                    {/* Artist Name and Day on same line */}
-                    <div className="grid grid-cols-[2fr_1fr] gap-2">
-                      <div>
-                        <label className="text-xs text-stone-400 block mb-1">
-                          Artist Name
-                        </label>
-                        <input
-                          type="text"
-                          placeholder="Artist Name"
-                          className="py-1 text-sm w-full"
-                          value={artist.name}
-                          onChange={(e) =>
-                            handleArtistChange(
-                              stageIndex,
-                              artistIndex,
-                              "name",
-                              e.target.value,
-                            )
-                          }
-                          required
-                        />
-                      </div>
-
-                      <div>
-                        <label className="text-xs text-stone-400 block mb-1">
-                          Day
-                        </label>
-                        <select
-                          className="py-1 text-sm w-full"
-                          value={artist.day}
-                          onChange={(e) =>
-                            handleArtistChange(
-                              stageIndex,
-                              artistIndex,
-                              "day",
-                              e.target.value,
-                            )
-                          }
-                        >
-                          <option value="">Day</option>
-                          {festivalDays.map((day) => (
-                            <option key={day} value={day}>
-                              {day}
-                            </option>
-                          ))}
-                        </select>
-                      </div>
-                    </div>
-
-                    {/* Remove Artist Button */}
-                    {stage.artists.length > 1 && (
-                      <button
-                        type="button"
-                        onClick={() =>
-                          handleRemoveArtist(stageIndex, artistIndex)
-                        }
-                        className="w-full py-1 px-2 bg-red-500/20 hover:bg-red-500/30 text-red-500 text-xs rounded transition-colors flex items-center justify-center gap-1"
-                      >
-                        <FaTrash size={10} />
-                        Remove Artist
-                      </button>
-                    )}
-                  </div>
-                ))}
-
-                {/* Add Artist Button */}
-                <button
-                  type="button"
-                  onClick={() => handleAddArtist(stageIndex)}
-                  className="w-full py-2 bg-gold/10 hover:bg-gold/20 text-gold text-xs font-semibold rounded transition-colors flex items-center justify-center gap-1"
-                >
-                  <FaPlus size={10} />
-                  Add Artist
-                </button>
-              </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+              {stages.map((stage, stageIndex) => (
+                <StageCard
+                  key={stageIndex}
+                  stage={stage}
+                  stageIndex={stageIndex}
+                  canRemove={stages.length > 1}
+                  lineupStatus={lineupStatus}
+                  onRemove={handleRemoveStage}
+                  onNameChange={handleStageNameChange}
+                  onArtistChange={handleArtistChange}
+                  onAddArtist={handleAddArtist}
+                  onRemoveArtist={handleRemoveArtist}
+                />
+              ))}
             </div>
-          ))}
-        </div>
 
-        {/* Add Stage Button */}
-        <div className="flex justify-center pt-4">
-          <button
-            type="button"
-            onClick={handleAddStage}
-            className="py-3 px-6 bg-gold/20 hover:bg-gold/30 text-gold font-bold cursor-pointer rounded transition-colors flex items-center gap-2"
-          >
-            <FaPlus />
-            <span>Add Another Stage</span>
-          </button>
-        </div>
+            <div className="flex justify-center pt-4">
+              <button
+                type="button"
+                onClick={handleAddStage}
+                className="py-3 px-6 bg-gold/20 hover:bg-gold/30 text-gold font-bold cursor-pointer rounded transition-colors flex items-center gap-2"
+              >
+                <FaPlus />
+                <span>Add Another Stage</span>
+              </button>
+            </div>
+          </>
+        )}
 
-        {/* Submit Button */}
+        {/* ── Actions ── */}
         <div className="flex justify-end gap-4 pt-6 border-t border-stone-700">
           <Button
             text="Cancel"
@@ -406,7 +664,7 @@ const AddFestivalLineupForm = ({
             text={
               isSubmitting
                 ? "Saving..."
-                : existingLineup
+                : hasExistingData
                   ? "Update Lineup"
                   : "Save Lineup"
             }

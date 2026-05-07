@@ -73,13 +73,18 @@ const MyEvents = ({ events: initialEvents = [] }) => {
   return (
     <div className="grid grid-cols-1">
       {events.map((event) => (
-        <Link key={event.id} href={`/events/${event.id}`} className="block">
+        <Link
+          key={event.id}
+          href={`/events/${event.event_slug || event.id}`}
+          className="block"
+        >
           <Motion
             animation="fade"
             className="bg-stone-900 bordered flex p-3 gap-3 relative hover:bg-stone-800 transition-colors"
           >
             <div className="w-64 h-44 ">
               <img
+                loading="lazy"
                 src={event.event_image}
                 alt={event.event_name}
                 className="w-full h-full object-cover"

@@ -2,7 +2,11 @@ import React from "react";
 
 const Dot = ({ className }) => {
   return (
-    <span className={`text-gold text-xs lg:text-xl w-fit ${className}`}>•</span>
+    <span
+      className={`text-gold text-xs lg:text-xl center w-fit h-3 ${className}`}
+    >
+      •
+    </span>
   );
 };
 

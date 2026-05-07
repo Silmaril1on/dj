@@ -19,7 +19,7 @@ export default async function SubmittedEventsSlot() {
         emptyDescription="Submit events to see your statistics!"
         submitHref="/add-product/event"
         submitLabel="Submit Event"
-        getHref={(e) => `/events/${e.id}`}
+        getHref={(e) => `/events/${e.event_slug || e.id}`}
         imageField="image_url"
         primaryNameField="event_name"
         secondaryNameField="promoter"

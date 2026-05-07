@@ -16,7 +16,7 @@ const getCachedSubmittedEvents = unstable_cache(
     const { data, error } = await supabaseAdmin
       .from("events")
       .select(
-        "id, event_name, promoter, image_url, created_at, city, country, date",
+        "id, event_name, promoter, image_url, created_at, city, country, date, event_slug",
       )
       .in("id", submittedIds)
       .order("created_at", { ascending: false })
