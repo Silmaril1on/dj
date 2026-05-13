@@ -502,10 +502,16 @@ export const formConfigs = {
         placeholder: "Enter Venue name",
       },
       event_type: {
-        type: "text",
+        type: "select",
         required: true,
         label: "Event Type",
-        placeholder: "e.g., Concert, Festival, Club Night",
+        placeholder: "Select event type",
+        options: [
+          { value: "club", label: "Club" },
+          { value: "festival", label: "Festival" },
+          { value: "concert", label: "Concert" },
+          { value: "event", label: "Event" },
+        ],
       },
       event_image: {
         type: "image",
@@ -587,18 +593,23 @@ export const formConfigs = {
         gridClass: "grid grid-cols-1 md:grid-cols-3 gap-4",
       },
       {
-        title: "Location Information",
-        fields: ["country", "city", "address", "location_url"],
-        gridClass: "grid grid-cols-1 md:grid-cols-2 gap-4",
+        title: "Event Details",
+        fields: ["promoter", "date", "doors_open"],
+        gridClass: "grid grid-cols-1 md:grid-cols-3 gap-4",
       },
       {
-        title: "Event Details",
-        fields: ["artists", "promoter", "date", "doors_open"],
-        gridClass: "grid grid-cols-1 md:grid-cols-2 gap-4",
+        title: "Location Information",
+        fields: ["country", "city", "location_url", "address"],
+        gridClass: "grid grid-cols-1 md:grid-cols-4 gap-4",
       },
       {
         title: "Additional Information",
         fields: ["description", "links"],
+        gridClass: "grid grid-cols-1 gap-4",
+      },
+      {
+        title: "Event Lineup",
+        fields: ["artists"],
         gridClass: "grid grid-cols-1 gap-4",
       },
     ],

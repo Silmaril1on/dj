@@ -46,6 +46,15 @@ export const isOnOrAfterToday = (value) => {
   return dateOnly >= todayDateOnly;
 };
 
+// Returns true only when event date is more than 3 days from now
+export const isReminderEligible = (dateValue) => {
+  if (!dateValue) return false;
+  const eventDate = new Date(toDateOnlyString(dateValue));
+  const today = new Date(getTodayDateOnlyString());
+  const diffDays = (eventDate - today) / (1000 * 60 * 60 * 24);
+  return diffDays > 3;
+};
+
 export const capitalizeFirst = (str) => {
   if (!str) return "";
   return str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();

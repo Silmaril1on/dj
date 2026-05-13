@@ -1,4 +1,4 @@
-import { revalidateTag } from "next/cache";
+import { revalidateTag, unstable_cache } from "next/cache";
 import {
   ServiceError,
   validateImageFile,
@@ -27,27 +27,32 @@ const ensureNewsOwnership = async (supabase, userId, ownerId) => {
 };
 
 export async function getLimitedNews({ limit = 20, offset = 0 } = {}) {
-  const admin = getSupabaseAdminClient();
+  return unstable_cache(
+    async (l, o) => {
+      const admin = getSupabaseAdminClient();
 
-  const { data, count, error } = await admin
-    .from("news")
-    .select(NEWS_LIST_SELECT, { count: "exact" })
-    .order("created_at", { ascending: false })
-    .range(offset, offset + limit - 1);
+      const { data, count, error } = await admin
+        .from("news")
+        .select(NEWS_LIST_SELECT, { count: "exact" })
+        .order("created_at", { ascending: false })
+        .range(o, o + l - 1);
 
-  if (error) throw new ServiceError("Failed to fetch news", 500);
+      if (error) throw new ServiceError("Failed to fetch news", 500);
 
-  const total = typeof count === "number" ? count : null;
-  const items = data || [];
+      const total = typeof count === "number" ? count : null;
+      const items = data || [];
 
-  return {
-    data: items,
-    total,
-    limit,
-    offset,
-    hasMore:
-      total !== null ? offset + items.length < total : items.length === limit,
-  };
+      return {
+        data: items,
+        total,
+        limit: l,
+        offset: o,
+        hasMore: total !== null ? o + items.length < total : items.length === l,
+      };
+    },
+    [`news-list-${limit}-${offset}`],
+    { revalidate: 15 * 60, tags: ["news-list"] },
+  )(limit, offset);
 }
 
 export async function getNewsById(id) {
@@ -156,6 +161,7 @@ export async function createNews(formData, cookieStore) {
   }
 
   revalidateTag("news");
+  revalidateTag("news-list");
 
   return {
     success: true,
@@ -247,6 +253,7 @@ export async function updateNews(formData, cookieStore) {
   }
 
   revalidateTag("news");
+  revalidateTag("news-list");
 
   return {
     success: true,
@@ -284,6 +291,7 @@ export async function deleteNews(newsId, cookieStore) {
   if (deleteError) throw new ServiceError("Failed to delete news", 500);
 
   revalidateTag("news");
+  revalidateTag("news-list");
 
   return {
     success: true,

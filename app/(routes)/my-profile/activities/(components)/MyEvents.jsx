@@ -15,7 +15,11 @@ import ErrorCode from "@/app/components/ui/ErrorCode";
 import Paragraph from "@/app/components/ui/Paragraph";
 import SpanText from "@/app/components/ui/SpanText";
 import Title from "@/app/components/ui/Title";
-import { formatBirthdate, truncateString } from "@/app/helpers/utils";
+import {
+  formatBirthdate,
+  resolveImage,
+  truncateString,
+} from "@/app/helpers/utils";
 
 const MyEvents = ({ events: initialEvents = [] }) => {
   const user = useSelector(selectUser);
@@ -83,12 +87,16 @@ const MyEvents = ({ events: initialEvents = [] }) => {
             className="bg-stone-900 bordered flex p-3 gap-3 relative hover:bg-stone-800 transition-colors"
           >
             <div className="w-64 h-44 ">
-              <img
-                loading="lazy"
-                src={event.event_image}
-                alt={event.event_name}
-                className="w-full h-full object-cover"
-              />
+              {resolveImage(event.image_url, "md") ? (
+                <img
+                  loading="lazy"
+                  src={resolveImage(event.image_url, "md")}
+                  alt={event.event_name}
+                  className="w-full h-full object-cover"
+                />
+              ) : (
+                <div className="w-full h-full bg-stone-800" />
+              )}
             </div>
             <article className=" w-full items-start flex flex-col">
               <div className="flex justify-between w-full">
@@ -112,7 +120,7 @@ const MyEvents = ({ events: initialEvents = [] }) => {
               <Paragraph text={truncateString(event.description || "", 400)} />
               <FlexBox
                 type="row-start"
-                className="flex-wrap gap-1 items-center"
+                className="flex-wrap gap-1 items-center mt-2"
               >
                 {(event.artists || []).map((artist, index) => (
                   <div

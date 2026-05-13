@@ -116,20 +116,38 @@ export async function getClubById(id, cookieStore) {
     .eq("club_id", data.id);
 
   let userLiked = false;
+  let userRating = null;
   try {
     const { user: authUser } = await getAuthenticatedContext(cookieStore);
-    const { data: userLike } = await admin
-      .from("club_likes")
-      .select("id")
-      .eq("club_id", data.id)
-      .eq("user_id", authUser.id)
-      .single();
+    const [{ data: userLike }, { data: userRatingRow }] = await Promise.all([
+      admin
+        .from("club_likes")
+        .select("id")
+        .eq("club_id", data.id)
+        .eq("user_id", authUser.id)
+        .single(),
+      admin
+        .from("club_ratings")
+        .select("rating")
+        .eq("club_id", data.id)
+        .eq("user_id", authUser.id)
+        .single(),
+    ]);
     userLiked = !!userLike;
+    userRating = userRatingRow?.rating ?? null;
   } catch {
-    // unauthenticated — userLiked stays false
+    // unauthenticated — userLiked stays false, userRating stays null
   }
 
-  return { club: { ...data, likesCount: likesCount || 0, userLiked } };
+  return {
+    club: {
+      ...data,
+      likesCount: likesCount || 0,
+      userLiked,
+      ratingStats: data.rating_stats || null,
+      userRating,
+    },
+  };
 }
 
 export async function createClub(formData, cookieStore) {

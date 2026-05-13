@@ -10,6 +10,7 @@ import {
   capitalizeFirst,
   formatBirthdate,
   resolveImage,
+  isReminderEligible,
 } from "@/app/helpers/utils";
 import { FaUsers, FaCalendarAlt } from "react-icons/fa";
 
@@ -39,7 +40,9 @@ const FeaturedCard = ({ event }) => {
             url={`/events/${event.event_slug || event.id}`}
             artistName={event.event_name || "this event"}
           />
-          <ReminderButton size={20} event={event} />
+          {isReminderEligible(event.date) && (
+            <ReminderButton size={20} event={event} />
+          )}
         </div>
         <Link
           href={`/events/${event.event_slug || event.id}`}

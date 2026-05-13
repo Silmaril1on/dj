@@ -1,11 +1,12 @@
 "use server";
 
+import { unstable_cache } from "next/cache";
 import {
   ServiceError,
   getSupabaseServerClient,
 } from "@/app/lib/services/shared";
 
-export async function getBornTodayArtists(cookieStore) {
+async function _getBornTodayArtists(cookieStore) {
   const today = new Date();
   const currentMonth = today.getMonth() + 1;
   const currentDay = today.getDate();
@@ -61,3 +62,11 @@ export async function getBornTodayArtists(cookieStore) {
     };
   });
 }
+
+// Cache per calendar day — invalidates automatically at midnight
+const todayKey = new Date().toISOString().split("T")[0];
+export const getBornTodayArtists = unstable_cache(
+  _getBornTodayArtists,
+  [`born-today-${todayKey}`],
+  { revalidate: 24 * 60 * 60, tags: ["born-today"] },
+);

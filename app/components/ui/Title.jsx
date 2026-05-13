@@ -32,7 +32,7 @@ const Title = ({
 
   const Badge = ({ label }) => (
     <div
-      className={`text-[7px] md:text-[10px] uppercase ${titleColor} self-start `}
+      className={`text-[7px] mr-1 md:text-[10px] uppercase ${titleColor} self-start `}
     >
       <span>{label}</span>
     </div>
@@ -46,7 +46,7 @@ const Title = ({
   const hasB2B = b2bParts.length > 1;
 
   return (
-    <div>
+    <div className="flex">
       {b2bParts.map((part, i) => (
         <div key={i} className="flex gap-1 ">
           <h1

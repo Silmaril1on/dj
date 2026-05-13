@@ -1,5 +1,4 @@
 "use client";
-import { useState, useEffect } from "react";
 import { useSelector } from "react-redux";
 import { selectArtistRatingStats } from "@/app/features/ratingSlice";
 import { motion } from "framer-motion";
@@ -11,8 +10,6 @@ import ArtistCountry from "@/app/components/materials/ArtistCountry";
 import Dot from "@/app/components/ui/Dot";
 import { FaStar, FaUsers } from "react-icons/fa";
 import { resolveImage, truncateString } from "@/app/helpers/utils";
-import LikeButton from "@/app/components/buttons/artist-buttons/LikeButton";
-import RatingButton from "@/app/components/buttons/artist-buttons/RatingButton";
 
 const ProductCard = ({
   id,
@@ -29,9 +26,6 @@ const ProductCard = ({
   className = "",
   score,
   type,
-  isLiked: initialIsLiked = false,
-  ratingStats = null,
-  userRating = null,
 }) => {
   // Check Redux for live-updated rating stats (e.g. after user rates without refreshing)
   const reduxRatingStats = useSelector(selectArtistRatingStats(id));
@@ -39,24 +33,8 @@ const ProductCard = ({
   const parsedScore = Number(effectiveScore);
   const hasScore = Number.isFinite(parsedScore) && parsedScore > 0;
 
-  const [localLikesCount, setLocalLikesCount] = useState(
-    Number(likesCount) || 0,
-  );
-  const [localIsLiked, setLocalIsLiked] = useState(initialIsLiked);
-  const parsedLikesCount = localLikesCount;
+  const parsedLikesCount = Number(likesCount) || 0;
   const hasLikesCount = parsedLikesCount > 0;
-  const isLikeable =
-    type === "club" || type === "festival" || type === "artist";
-
-  // Sync like state when prop changes (e.g. after user-context hydration re-fetch)
-  useEffect(() => {
-    setLocalIsLiked(initialIsLiked);
-  }, [initialIsLiked]);
-
-  // Sync likes count when prop changes
-  useEffect(() => {
-    setLocalLikesCount(Number(likesCount) || 0);
-  }, [likesCount]);
 
   const resolvedImage = resolveImage(image, "md");
 
@@ -144,38 +122,6 @@ const ProductCard = ({
             </div>
           )}
         </div>
-        {isLikeable && (
-          <div className="absolute z-10 top-0 w-full pl-1 pr-4 pt-2 flex flex-col gap-1">
-            <div className="flex items-center w-full">
-              <LikeButton
-                type={type}
-                size={13}
-                artist={{
-                  id,
-                  isLiked: localIsLiked,
-                  likesCount: parsedLikesCount,
-                }}
-                onLikeChange={(liked, count) => {
-                  setLocalIsLiked(liked);
-                  setLocalLikesCount(count);
-                }}
-              />
-            </div>
-            {(type === "festival" || type === "club") && (
-              <div className="flex items-center w-full">
-                <RatingButton
-                  entityType={type}
-                  artist={{ id, name }}
-                  ratingStats={ratingStats}
-                  userRating={userRating}
-                  size={13}
-                  showValue={false}
-                  className="pointer-events-auto"
-                />
-              </div>
-            )}
-          </div>
-        )}
       </Link>
     </motion.div>
   );

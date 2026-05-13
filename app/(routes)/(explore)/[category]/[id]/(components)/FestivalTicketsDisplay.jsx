@@ -139,14 +139,14 @@ const TicketsDisplay = ({ entityType, entityId }) => {
                               </h4>
 
                               {!!ticket?.ticket_info && (
-                                <p className=" text-cream/90 mt-1 text-sm">
+                                <p className=" text-chino secondary mt-1 text-xs">
                                   {capitalizeFirst(ticket.ticket_info)}
                                 </p>
                               )}
 
                               {!!ticket?.extraInfo?.length && (
                                 <ul
-                                  className={`text-xs text-chino secondary font-light mt-2 list-disc ml-5`}
+                                  className={`text-xs text-cream  secondary font-medium mt-2 list-disc ml-5`}
                                 >
                                   {ticket.extraInfo.map((item, infoIndex) => (
                                     <li key={`${item}-${infoIndex}`}>

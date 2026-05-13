@@ -175,17 +175,27 @@ export async function getFestivalById(slug, cookieStore) {
     .eq("festival_id", festival.id);
 
   let userLiked = false;
+  let userRating = null;
   try {
     const { user: authUser } = await getAuthenticatedContext(cookieStore);
-    const { data: userLike } = await admin
-      .from("festival_likes")
-      .select("id")
-      .eq("festival_id", festival.id)
-      .eq("user_id", authUser.id)
-      .single();
+    const [{ data: userLike }, { data: userRatingRow }] = await Promise.all([
+      admin
+        .from("festival_likes")
+        .select("id")
+        .eq("festival_id", festival.id)
+        .eq("user_id", authUser.id)
+        .single(),
+      admin
+        .from("festival_ratings")
+        .select("rating")
+        .eq("festival_id", festival.id)
+        .eq("user_id", authUser.id)
+        .single(),
+    ]);
     userLiked = !!userLike;
+    userRating = userRatingRow?.rating ?? null;
   } catch {
-    // unauthenticated — userLiked stays false
+    // unauthenticated — userLiked stays false, userRating stays null
   }
 
   return {
@@ -194,6 +204,8 @@ export async function getFestivalById(slug, cookieStore) {
       lineup: lineupWithIds.length > 0 ? lineupWithIds : festival.lineup,
       likesCount: likesCount || 0,
       userLiked,
+      ratingStats: festival.rating_stats || null,
+      userRating,
     },
   };
 }

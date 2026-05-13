@@ -16,7 +16,7 @@ const Reminders = ({ reminders = [], error = null }) => {
       <div className="bg-stone-900 center w-full h-full p-8 text-center">
         <ErrorCode
           title="No Tracked Events"
-          description="Like events to track them and get quick access here."
+          description="Set reminders to track events and get quick access here."
         />
       </div>
     );

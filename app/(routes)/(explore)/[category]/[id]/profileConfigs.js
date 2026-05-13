@@ -73,6 +73,8 @@ export const extractProfileData = (data, type) => {
     userLiked: data.userLiked || false,
     userReminderSet: data.userReminderSet || false,
     userReminderOffsetDays: data.userReminderOffsetDays || null,
+    ratingStats: data.ratingStats || data.rating_stats || null,
+    userRating: data.userRating || null,
     user_id: data.user_id,
     // Event-specific
     date: type === "events" ? data.date : null,

@@ -9,7 +9,7 @@ const getCachedSubmittedFestival = unstable_cache(
     const { data, error } = await supabaseAdmin
       .from("festivals")
       .select(
-        "id, name, festival_slug, poster, country, city, capacity_total, status, created_at",
+        "id, name, festival_slug, image_url, country, city, capacity_total, status, created_at",
       )
       .eq("id", submittedFestivalId);
 

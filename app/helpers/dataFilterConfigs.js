@@ -48,6 +48,15 @@ export const sortClubs = (clubs, sortType) => {
     if (sortType === "most_liked") {
       return (b.likesCount || 0) - (a.likesCount || 0);
     }
+    if (sortType === "most_rated") {
+      const ratingA = Number(
+        a.ratingStats?.average_score ?? a.rating_stats?.average_score ?? 0,
+      );
+      const ratingB = Number(
+        b.ratingStats?.average_score ?? b.rating_stats?.average_score ?? 0,
+      );
+      return ratingB - ratingA;
+    }
     return 0;
   });
 };
@@ -133,6 +142,27 @@ export const sortFestivals = (festivals, sortType) => {
     }
     if (sortType === "most_liked") {
       return (b.likesCount || 0) - (a.likesCount || 0);
+    }
+    if (sortType === "most_rated") {
+      const ratingA = Number(
+        a.ratingStats?.average_score ?? a.rating_stats?.average_score ?? 0,
+      );
+      const ratingB = Number(
+        b.ratingStats?.average_score ?? b.rating_stats?.average_score ?? 0,
+      );
+      return ratingB - ratingA;
+    }
+    if (sortType === "date_asc") {
+      return (
+        new Date(a.start_date || a.date || 0) -
+        new Date(b.start_date || b.date || 0)
+      );
+    }
+    if (sortType === "date_desc") {
+      return (
+        new Date(b.start_date || b.date || 0) -
+        new Date(a.start_date || a.date || 0)
+      );
     }
     return 0;
   });

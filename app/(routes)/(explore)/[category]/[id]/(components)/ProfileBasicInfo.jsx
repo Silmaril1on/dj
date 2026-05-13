@@ -6,13 +6,19 @@ import Paragraph from "@/app/components/ui/Paragraph";
 import SpanText from "@/app/components/ui/SpanText";
 import Title from "@/app/components/ui/Title";
 import { capitalizeFirst, formatBirthdate } from "@/app/helpers/utils";
-import { FaCalendar, FaLink } from "react-icons/fa";
+import { FaCalendar, FaLink, FaStar } from "react-icons/fa";
 import EmailTag from "@/app/components/ui/EmailTag";
 import SocialLinks from "@/app/components/materials/SocialLinks";
 
 const ProfileBasicInfo = ({ data, type }) => {
-  const isEvent = type === "events";
+  const isClub = type === "clubs";
   const isFestival = type === "festivals";
+  const isEvent = type === "events";
+  const isRatable = isClub || isFestival;
+  const ratingStats = data.ratingStats || data.rating_stats || null;
+  const avgScore = ratingStats?.average_score ?? null;
+  const totalRatings =
+    ratingStats?.total_ratings ?? ratingStats?.total_rating ?? null;
 
   const safeFormatDate = (dateValue) => {
     if (!dateValue) return null;
@@ -155,6 +161,27 @@ const ProfileBasicInfo = ({ data, type }) => {
             animationDelay={1}
             social_links={socialLinks}
           />
+        </Motion>
+      )}
+
+      {isRatable && avgScore !== null && (
+        <Motion
+          animation="fade"
+          delay={1.0}
+          className="mt-3 flex items-center gap-3"
+        >
+          <div className="flex items-center gap-1.5">
+            <FaStar className="text-gold" size={13} />
+            <span className="text-gold font-semibold text-sm">
+              {Number(avgScore).toFixed(1)}
+            </span>
+            <span className="text-stone-400 text-xs">avg score</span>
+          </div>
+          {totalRatings !== null && (
+            <span className="text-stone-500 text-xs">
+              {totalRatings} {totalRatings === 1 ? "rating" : "ratings"}
+            </span>
+          )}
         </Motion>
       )}
     </div>

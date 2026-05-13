@@ -50,37 +50,77 @@ const TYPE_CONFIG = {
 const RelatedItems = ({ entityId, entityType, country, extraParams }) => {
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [overrideConfig, setOverrideConfig] = useState(null);
 
   const config = TYPE_CONFIG[entityType];
+  const displayConfig = overrideConfig || config;
 
   useEffect(() => {
+    let cancelled = false;
     const needsCountry = entityType !== "artists";
     if (!entityId || (needsCountry && !country) || !config) {
       setLoading(false);
       return;
     }
 
-    const params = new URLSearchParams({ [config.apiParam]: entityId });
-    if (country) params.set("country", country);
-    if (config.extraParamKey && extraParams?.[config.extraParamKey]) {
-      params.set(
-        config.extraParamKey,
-        config.extraParamTransform
-          ? config.extraParamTransform(extraParams[config.extraParamKey])
-          : extraParams[config.extraParamKey],
-      );
-    }
+    const fetchRelated = async () => {
+      setLoading(true);
+      try {
+        const params = new URLSearchParams({ [config.apiParam]: entityId });
+        if (country) params.set("country", country);
+        if (config.extraParamKey && extraParams?.[config.extraParamKey]) {
+          params.set(
+            config.extraParamKey,
+            config.extraParamTransform
+              ? config.extraParamTransform(extraParams[config.extraParamKey])
+              : extraParams[config.extraParamKey],
+          );
+        }
 
-    fetch(`${config.apiEndpoint}?${params}`)
-      .then((r) => r.json())
-      .then((data) => setItems(data[config.responseKey] || []))
-      .catch(() => setItems([]))
-      .finally(() => setLoading(false));
+        const response = await fetch(`${config.apiEndpoint}?${params}`);
+        const data = await response.json();
+        let nextItems = data?.[config.responseKey] || [];
+
+        if (entityType === "festivals" && nextItems.length === 0) {
+          const fallbackRes = await fetch(
+            "/api/festivals?sort=most_liked&limit=8",
+          );
+          const fallbackData = await fallbackRes.json();
+          const fallbackItems = Array.isArray(fallbackData?.data)
+            ? fallbackData.data
+            : [];
+          nextItems = fallbackItems.filter((item) => item.id !== entityId);
+          setOverrideConfig({
+            title: "Most Followed Festivals",
+            description: "Top festivals people are following right now",
+          });
+        } else {
+          setOverrideConfig(null);
+        }
+
+        if (!cancelled) setItems(nextItems);
+      } catch {
+        if (!cancelled) {
+          setItems([]);
+          setOverrideConfig(null);
+        }
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    };
+
+    fetchRelated();
+    return () => {
+      cancelled = true;
+    };
   }, [entityId, country, entityType]); // eslint-disable-line react-hooks/exhaustive-deps
 
   if (loading) {
     return (
-      <SectionContainer title={config?.title} description={config?.description}>
+      <SectionContainer
+        title={displayConfig?.title}
+        description={displayConfig?.description}
+      >
         <div className="grid grid-cols-4 lg:grid-cols-8 gap-2 px-2 lg:px-4 pb-4">
           {Array.from({ length: 8 }).map((_, i) => (
             <div key={i} className="flex flex-col gap-1">
@@ -97,7 +137,10 @@ const RelatedItems = ({ entityId, entityType, country, extraParams }) => {
   if (!items.length) return null;
 
   return (
-    <SectionContainer title={config.title} description={config.description}>
+    <SectionContainer
+      title={displayConfig.title}
+      description={displayConfig.description}
+    >
       <div className="grid grid-cols-4 lg:w-[60%] gap-4 lg:gap-8 px-2 lg:px-4 my-8">
         {items.map((item, i) => (
           <Motion key={item.id} animation="top" delay={i * 0.05}>

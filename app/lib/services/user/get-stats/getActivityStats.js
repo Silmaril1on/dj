@@ -24,7 +24,7 @@ const getCachedActivityStats = unstable_cache(
         .select("*", { count: "exact", head: true })
         .eq("user_id", userId),
       supabaseAdmin
-        .from("event_likes")
+        .from("event_reminders")
         .select("*", { count: "exact", head: true })
         .eq("user_id", userId),
       supabaseAdmin
@@ -44,7 +44,7 @@ const getCachedActivityStats = unstable_cache(
   },
   ["user-activity-stats"],
   {
-    revalidate: 10 * 60,
+    revalidate: 30 * 60,
     tags: ["user-activity-stats"],
   },
 );

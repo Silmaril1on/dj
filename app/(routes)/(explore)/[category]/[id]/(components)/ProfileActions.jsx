@@ -12,6 +12,8 @@ import { MdEdit, MdAdd, MdPlaylistAdd } from "react-icons/md";
 import { MdConfirmationNumber } from "react-icons/md";
 import LikeButton from "@/app/components/buttons/artist-buttons/LikeButton";
 import ReminderButton from "@/app/components/buttons/artist-buttons/ReminderButton";
+import RatingButton from "@/app/components/buttons/artist-buttons/RatingButton";
+import { isReminderEligible } from "@/app/helpers/utils";
 
 const OWNER_BUTTONS = {
   events: [
@@ -67,6 +69,8 @@ const ProfileActions = ({ data, type, config, currentUserId = null }) => {
   const [reminderOffsetDays, setReminderOffsetDays] = useState(
     data.userReminderOffsetDays || 3,
   );
+  const ratingStats = data.ratingStats || null;
+  const userRating = data.userRating || null;
 
   useEffect(() => {
     setIsMounted(true);
@@ -161,8 +165,22 @@ const ProfileActions = ({ data, type, config, currentUserId = null }) => {
         />
       </div>
 
-      {/* Reminder (events only) */}
-      {type === "event" && (
+      {/* Rating (clubs and festivals only) */}
+      {(type === "club" || type === "festival") && (
+        <div className="center space-x-2">
+          <RatingButton
+            entityType={type}
+            artist={{ id: data.id, name: data.name }}
+            ratingStats={ratingStats}
+            userRating={userRating}
+            size={16}
+            showValue={true}
+          />
+        </div>
+      )}
+
+      {/* Reminder (events only, and only if 3+ days away) */}
+      {type === "event" && isReminderEligible(data.date) && (
         <div className="flex justify-end space-x-2">
           <SpanText
             text="Set reminder"

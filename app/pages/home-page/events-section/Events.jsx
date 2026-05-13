@@ -1,6 +1,7 @@
 "use client";
 import { AnimatePresence, motion } from "framer-motion";
 import { useState, useEffect } from "react";
+import { useSelector } from "react-redux";
 import { FaLink, FaUsers } from "react-icons/fa6";
 import Title from "@/app/components/ui/Title";
 import ArtistCountry from "@/app/components/materials/ArtistCountry";
@@ -13,18 +14,65 @@ import { FaArrowRight } from "react-icons/fa";
 import SectionContainer from "@/app/components/containers/SectionContainer";
 import LikeButton from "@/app/components/buttons/artist-buttons/LikeButton";
 import ReminderButton from "@/app/components/buttons/artist-buttons/ReminderButton";
+import { selectUser } from "@/app/features/userSlice";
 import {
   formatBirthdate,
   isOnOrAfterToday,
+  isReminderEligible,
+  normalizeLineup,
   truncateString,
   resolveImage,
 } from "@/app/helpers/utils";
 
 const Events = ({ events = [] }) => {
+  const user = useSelector(selectUser);
   const [open, setOpen] = useState(null);
-  const upcomingEvents = events.filter((event) =>
+  const [eventItems, setEventItems] = useState(events);
+  const upcomingEvents = eventItems.filter((event) =>
     isOnOrAfterToday(event?.date),
   );
+
+  useEffect(() => {
+    setEventItems(events);
+  }, [events]);
+
+  useEffect(() => {
+    if (!user || events.length === 0) return;
+    let cancelled = false;
+
+    const loadStatuses = async () => {
+      const ids = events.map((e) => e.id).join(",");
+      const res = await fetch(`/api/events/user-states?eventIds=${ids}`);
+      if (!res.ok || cancelled) return;
+      const { states = {} } = await res.json();
+
+      setEventItems((prev) =>
+        prev.map((event) =>
+          states[event.id]
+            ? {
+                ...event,
+                likesCount:
+                  states[event.id].likesCount ?? event.likesCount ?? 0,
+                isLiked: states[event.id].isLiked ?? event.isLiked ?? false,
+                isReminderSet:
+                  states[event.id].isReminderSet ??
+                  event.isReminderSet ??
+                  false,
+                reminderOffsetDays:
+                  states[event.id].reminderOffsetDays ??
+                  event.reminderOffsetDays ??
+                  3,
+              }
+            : event,
+        ),
+      );
+    };
+
+    loadStatuses();
+    return () => {
+      cancelled = true;
+    };
+  }, [events, user]);
 
   useEffect(() => {
     if (upcomingEvents.length > 0 && open === null) {
@@ -60,6 +108,13 @@ const Events = ({ events = [] }) => {
                 open={open}
                 setOpen={setOpen}
                 event={event}
+                onEventUpdate={(eventId, patch) =>
+                  setEventItems((prev) =>
+                    prev.map((item) =>
+                      item.id === eventId ? { ...item, ...patch } : item,
+                    ),
+                  )
+                }
               />
             );
           })}
@@ -69,7 +124,7 @@ const Events = ({ events = [] }) => {
   );
 };
 
-const Panel = ({ open, setOpen, event }) => {
+const Panel = ({ open, setOpen, event, onEventUpdate }) => {
   const { width } = useWindowSize();
   const isOpen = open === event.id;
 
@@ -82,10 +137,29 @@ const Panel = ({ open, setOpen, event }) => {
     event.reminderOffsetDays || 3,
   );
 
+  useEffect(() => {
+    setLikesCount(event.likesCount || 0);
+    setIsLiked(event.isLiked || false);
+    setIsReminderSet(event.isReminderSet || false);
+    setReminderOffsetDays(event.reminderOffsetDays || 3);
+  }, [
+    event.likesCount,
+    event.isLiked,
+    event.isReminderSet,
+    event.reminderOffsetDays,
+  ]);
+
   const handleLikeChange = (liked, newLikesCount) => {
     setIsLiked(liked);
     setLikesCount(newLikesCount);
+    onEventUpdate?.(event.id, {
+      isLiked: liked,
+      likesCount: newLikesCount,
+    });
   };
+
+  const lineup = normalizeLineup(event.artists);
+  const canSetReminder = isReminderEligible(event.date);
 
   return (
     <>
@@ -98,7 +172,8 @@ const Panel = ({ open, setOpen, event }) => {
           onClick={() => setOpen(event.id)}
         >
           {resolveImage(event.image_url, "md") && (
-            <img loading="lazy"
+            <img
+              loading="lazy"
               src={resolveImage(event.image_url, "md")}
               alt={event.event_name}
               className="absolute inset-0 w-full h-full object-cover z-0"
@@ -131,7 +206,8 @@ const Panel = ({ open, setOpen, event }) => {
             className="w-full h-full overflow-hidden relative flex items-end lg:mx-1 border border-gold/30"
           >
             {resolveImage(event.image_url, "lg") && (
-              <img loading="lazy"
+              <img
+                loading="lazy"
                 src={resolveImage(event.image_url, "lg")}
                 alt={event.event_name}
                 className="absolute right-0 h-full w-auto object-cover"
@@ -176,25 +252,33 @@ const Panel = ({ open, setOpen, event }) => {
                     onLikeChange={handleLikeChange}
                   />
                 </div>
-                <div className="flex justify-end gap-2 py-1.5 absolute top-2 lg:top-17 right-2 lg:right-4 bg-black/50 shadow-lg rounded-md backdrop-blur-lg w-32 px-2">
-                  <SpanText
-                    text="Set Reminder"
-                    size="xs"
-                    className="secondary pointer-events-none"
-                  />
-                  <ReminderButton
-                    size={16}
-                    event={{
-                      id: event.id,
-                      isReminderSet,
-                      reminderOffsetDays,
-                    }}
-                    onReminderChange={(nextState, nextOffset) => {
-                      setIsReminderSet(nextState);
-                      if (nextOffset) setReminderOffsetDays(nextOffset);
-                    }}
-                  />
-                </div>
+                {canSetReminder && (
+                  <div className="flex justify-end gap-2 py-1.5 absolute top-2 lg:top-17 right-2 lg:right-4 bg-black/50 shadow-lg rounded-md backdrop-blur-lg w-32 px-2">
+                    <SpanText
+                      text="Set Reminder"
+                      size="xs"
+                      className="secondary pointer-events-none"
+                    />
+                    <ReminderButton
+                      size={16}
+                      event={{
+                        id: event.id,
+                        isReminderSet,
+                        reminderOffsetDays,
+                      }}
+                      onReminderChange={(nextState, nextOffset) => {
+                        const resolvedOffset =
+                          nextOffset ?? reminderOffsetDays ?? 3;
+                        setIsReminderSet(nextState);
+                        if (nextOffset) setReminderOffsetDays(nextOffset);
+                        onEventUpdate?.(event.id, {
+                          isReminderSet: nextState,
+                          reminderOffsetDays: resolvedOffset,
+                        });
+                      }}
+                    />
+                  </div>
+                )}
                 <Title
                   className="uppercase text-start leading-4"
                   text={event.event_name}
@@ -214,30 +298,34 @@ const Panel = ({ open, setOpen, event }) => {
                     {formatBirthdate(event.date)}
                   </p>
                 </FlexBox>
-                <Title
-                  color="cream"
-                  size="xs"
-                  className="uppercase font-medium"
-                  text="lineup"
-                />
-                <FlexBox
-                  type="row-start"
-                  className="flex-wrap items-center pt-1"
-                >
-                  {event.artists.slice(0, 10).map((artist, index) => (
-                    <div
-                      key={index}
-                      className="flex items-center space-x-0.5 lg:space-x-2"
+                {lineup.length > 0 && (
+                  <>
+                    <Title
+                      color="cream"
+                      size="xs"
+                      className="uppercase font-medium"
+                      text="Lineup"
+                    />
+                    <FlexBox
+                      type="row-start"
+                      className="flex-wrap items-center pt-1"
                     >
-                      <Title
-                        color="cream"
-                        className="uppercase text-sm lg:text-4xl leading-4"
-                        text={artist}
-                      />
-                      {index < event.artists.length - 1 && <Dot />}
-                    </div>
-                  ))}
-                </FlexBox>
+                      {lineup.slice(0, 10).map((artist, index) => (
+                        <div
+                          key={index}
+                          className="flex items-center space-x-0.5 lg:space-x-2"
+                        >
+                          <Title
+                            color="cream"
+                            className="uppercase text-sm lg:text-4xl leading-4"
+                            text={artist}
+                          />
+                          {index < lineup.length - 1 && <Dot />}
+                        </div>
+                      ))}
+                    </FlexBox>
+                  </>
+                )}
                 {event?.description && (
                   <div className="w-[80%] mt-2">
                     <Paragraph text={truncateString(event?.description, 300)} />

@@ -32,7 +32,7 @@ const ArtistProfile = ({ data, artistId }) => {
       </div>
       <Bio data={data} />
       <ArtistSchedule artistId={id} artistData={data} />
-      <Albums artistId={id} />
+      <Albums artistId={id} artistData={data} />
       <ArtistInsight artistId={id} slug={data?.artist_slug} />
       <RelatedItems
         entityId={id}

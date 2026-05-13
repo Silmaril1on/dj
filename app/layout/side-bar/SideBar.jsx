@@ -28,10 +28,10 @@ const SideBar = ({ isOpen, onClose }) => {
           </div>
           <Logo
             size="lg"
-            className="absolute top-30 sepia blur-[3px] opacity-70 rotate-[45deg] scale-200"
+            className="absolute top-30 z-0 sepia blur-[3px] opacity-70 rotate-[45deg] scale-200"
           />
           <div
-            className="flex flex-col items-center"
+            className="flex flex-col items-center relative z-2"
             onClick={(e) => e.stopPropagation()}
           >
             <NavLinks type="sidebar" onClose={onClose} />

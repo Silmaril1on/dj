@@ -57,6 +57,9 @@ export async function setEventReminder(
     revalidateTag("events");
     revalidateTag("event-reminders");
     revalidateTag(`event-${eventId}`);
+    revalidateTag("user-activity-reminders");
+    revalidateTag("user-activity-stat-counts");
+    revalidateTag("user-activity-stats");
 
     return { isReminderSet: false, reminderOffsetDays: null };
   }
@@ -83,6 +86,9 @@ export async function setEventReminder(
   revalidateTag("events");
   revalidateTag("event-reminders");
   revalidateTag(`event-${eventId}`);
+  revalidateTag("user-activity-reminders");
+  revalidateTag("user-activity-stat-counts");
+  revalidateTag("user-activity-stats");
 
   return { isReminderSet: true, reminderOffsetDays: normalizedOffset };
 }

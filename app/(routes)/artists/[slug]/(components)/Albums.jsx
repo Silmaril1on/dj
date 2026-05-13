@@ -13,7 +13,7 @@ import Paragraph from "@/app/components/ui/Paragraph";
 import SpanText from "@/app/components/ui/SpanText";
 import { truncateString } from "@/app/helpers/utils";
 
-const Albums = ({ artistId }) => {
+const Albums = ({ artistId, artistData: initialArtistData = null }) => {
   const dispatch = useDispatch();
   const user = useSelector(selectUser);
   const [data, setData] = useState([]);
@@ -21,14 +21,15 @@ const Albums = ({ artistId }) => {
   const [error, setError] = useState(null);
   const [selectedAlbum, setSelectedAlbum] = useState(null);
   const [hasMore, setHasMore] = useState(false);
-  const [artistData, setArtistData] = useState(null);
+  // Use SSR-passed data; avoids a redundant API call
+  const [artistData, setArtistData] = useState(initialArtistData);
 
   useEffect(() => {
     const fetchData = async () => {
       try {
         setLoading(true);
 
-        // Fetch albums
+        // Fetch albums only — artist data already available from SSR
         const albumsResponse = await fetch(
           `/api/artists/albums?artistId=${artistId}&limit=15`,
         );
@@ -44,15 +45,15 @@ const Albums = ({ artistId }) => {
           setError(albumsResult.error);
         }
 
-        // Fetch artist data for permission checking
-        const artistResponse = await fetch(
-          `/api/artists/artist-profile?id=${artistId}`,
-        );
-        const artistResult = await artistResponse.json();
-        if (!artistResponse.ok) {
-          console.error("Failed to fetch artist data");
-        } else {
-          setArtistData(artistResult.artist);
+        // Only fetch artist data if it wasn't passed from SSR
+        if (!initialArtistData) {
+          const artistResponse = await fetch(
+            `/api/artists/artist-profile?id=${artistId}`,
+          );
+          const artistResult = await artistResponse.json();
+          if (artistResponse.ok) {
+            setArtistData(artistResult.artist);
+          }
         }
       } catch (err) {
         console.error("Error fetching data:", err);

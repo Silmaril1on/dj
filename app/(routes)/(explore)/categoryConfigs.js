@@ -14,7 +14,10 @@ export const CATEGORY_CONFIGS = {
     // Single profile page
     profile: {
       apiEndpoint: (baseUrl, id) => `${baseUrl}/api/club/single-club?id=${id}`,
-      fetchOptions: { cache: "no-store" },
+      fetchOptions: {
+        next: { revalidate: 600, tags: ["clubs"] },
+        headers: { "Content-Type": "application/json" },
+      },
       extractData: (json) => ({
         data: json.club,
         currentUserId: json.currentUserId ?? null,
@@ -89,7 +92,7 @@ export const CATEGORY_CONFIGS = {
     profile: {
       apiEndpoint: (baseUrl, id) => `${baseUrl}/api/festivals?id=${id}`,
       fetchOptions: {
-        cache: "no-store",
+        next: { revalidate: 600, tags: ["festivals"] },
         headers: { "Content-Type": "application/json" },
       },
       extractData: (json) => {

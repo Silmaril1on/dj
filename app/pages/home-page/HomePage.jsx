@@ -14,7 +14,7 @@ const HomePage = ({ events = [] }) => {
       <News />
       <ArtistsSection />
       <SubmitSection />
-      <BornToday />
+      {/* <BornToday /> */}
       <NearYou />
       <AppDataStats />
       <MyRecentlyViews />

@@ -76,9 +76,11 @@ export const popup = {
 export const slideTop = {
   hidden: {
     y: "100%",
+    opacity: 0,
   },
   visible: {
     y: 0,
+    opacity: 1,
     transition: {
       duration: 0.3,
       staggerChildren: 0.1,
@@ -87,6 +89,7 @@ export const slideTop = {
   },
   exit: {
     y: -100,
+    opacity: 0,
     transition: {
       duration: 0.3,
       staggerChildren: 0.2,

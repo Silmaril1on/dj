@@ -1,7 +1,5 @@
 "use client";
 import { useEffect, useState, useRef } from "react";
-import { useSelector } from "react-redux";
-import { selectUser } from "@/app/features/userSlice";
 import SectionContainer from "@/app/components/containers/SectionContainer";
 import Spinner from "@/app/components/ui/Spinner";
 import SliderContainer from "@/app/components/containers/SliderContainer";
@@ -12,7 +10,6 @@ const ArtistsSection = () => {
   const [artists, setArtists] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const user = useSelector(selectUser);
   const hasFetched = useRef(false);
   const hasAnimated = useRef(false);
 
@@ -23,10 +20,7 @@ const ArtistsSection = () => {
       setLoading(true);
       setError(null);
       try {
-        const query = user?.id ? `?userId=${encodeURIComponent(user.id)}` : "";
-        const response = await fetch(`/api/artists${query}`, {
-          cache: "no-store", 
-        });
+        const response = await fetch(`/api/artists`);
         if (!response.ok) {
           throw new Error("Failed to fetch artists");
         }
@@ -40,12 +34,11 @@ const ArtistsSection = () => {
     };
 
     fetchArtists();
-  }, []); 
+  }, []);
 
   if (error) {
     return <h1>Error: {error}</h1>;
   }
-
 
   return (
     <SectionContainer
