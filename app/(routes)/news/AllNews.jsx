@@ -1,5 +1,5 @@
-import React from 'react'
-import ProductCard from '@/app/components/containers/ProductCard'
+import React from "react";
+import ProductCard from "@/app/components/containers/ProductCard";
 
 const AllNews = ({ news = [] }) => {
   return (
@@ -10,12 +10,12 @@ const AllNews = ({ news = [] }) => {
           id={item.id}
           image={item.news_image}
           name={item.title}
-          href={`/news/${item.id}`}
+          href={`/news/${item.news_slug || item.id}`}
           delay={idx}
         />
       ))}
     </div>
-  )
-}
+  );
+};
 
-export default AllNews
+export default AllNews;

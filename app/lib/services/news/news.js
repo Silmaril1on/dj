@@ -10,7 +10,17 @@ import {
 } from "../shared";
 
 const NEWS_LIST_SELECT =
-  "id, title, description, news_image, link, user_id, created_at";
+  "id, title, news_slug, description, news_image, link, user_id, created_at";
+
+/** Converts a title string into a URL-safe slug. */
+const toSlug = (text) =>
+  text
+    .toLowerCase()
+    .trim()
+    .replace(/[^\w\s-]/g, "")
+    .replace(/[\s_]+/g, "-")
+    .replace(/-+/g, "-")
+    .replace(/^-+|-+$/g, "");
 
 const ensureNewsOwnership = async (supabase, userId, ownerId) => {
   if (ownerId === userId) return;
@@ -55,51 +65,63 @@ export async function getLimitedNews({ limit = 20, offset = 0 } = {}) {
   )(limit, offset);
 }
 
-export async function getNewsById(id) {
-  if (!id) throw new ServiceError("News ID is required", 400);
+const NEWS_FULL_SELECT = `
+  id,
+  title,
+  news_slug,
+  content,
+  description,
+  news_image,
+  link,
+  user_id,
+  created_at,
+  users:user_id (
+    id,
+    userName,
+    email,
+    user_avatar
+  )
+`;
 
-  const admin = getSupabaseAdminClient();
-  const { data, error } = await admin
-    .from("news")
-    .select(
-      `
-			id,
-			title,
-			content,
-			description,
-			news_image,
-			link,
-			user_id,
-			created_at,
-			users:user_id (
-				id,
-				userName,
-				email,
-				user_avatar
-			)
-		`,
-    )
-    .eq("id", id)
-    .single();
-
-  if (error || !data) throw new ServiceError("News not found", 404);
-
+const shapeNewsRecord = (data) => {
   const submitter = data.users || {
     id: null,
     userName: "Unknown",
     email: "",
     user_avatar: null,
   };
-
   const { users, ...newsData } = data;
+  return { ...newsData, submitter };
+};
 
-  return {
-    success: true,
-    news: {
-      ...newsData,
-      submitter,
-    },
-  };
+export async function getNewsById(id) {
+  if (!id) throw new ServiceError("News ID is required", 400);
+
+  const admin = getSupabaseAdminClient();
+  const { data, error } = await admin
+    .from("news")
+    .select(NEWS_FULL_SELECT)
+    .eq("id", id)
+    .single();
+
+  if (error || !data) throw new ServiceError("News not found", 404);
+
+  return { success: true, news: shapeNewsRecord(data) };
+}
+
+export async function getNewsBySlug(slug) {
+  if (!slug) throw new ServiceError("News slug is required", 400);
+
+  const admin = getSupabaseAdminClient();
+  const { data, error } = await admin
+    .from("news")
+    .select(NEWS_FULL_SELECT)
+    .eq("news_slug", slug)
+    .single();
+
+  if (error || !data) throw new ServiceError("News not found", 404);
+
+  return { success: true, news: shapeNewsRecord(data) };
 }
 
 export async function createNews(formData, cookieStore) {
@@ -142,10 +164,15 @@ export async function createNews(formData, cookieStore) {
     .from("news_images")
     .getPublicUrl(imagePath);
 
+  const baseSlug = toSlug(title);
+  // Append a short timestamp suffix to guarantee uniqueness.
+  const news_slug = `${baseSlug}-${Date.now().toString(36).slice(-5)}`;
+
   const { data, error } = await supabase
     .from("news")
     .insert({
       title,
+      news_slug,
       content,
       description,
       link: link || null,
@@ -187,13 +214,19 @@ export async function updateNews(formData, cookieStore) {
 
   await ensureNewsOwnership(supabase, user.id, existing.user_id);
 
+  const newTitle = String(formData.get("title") || "").trim();
   const updateData = {
-    title: String(formData.get("title") || "").trim() || existing.title,
+    title: newTitle || existing.title,
     content: String(formData.get("content") || "").trim() || existing.content,
     description:
       String(formData.get("description") || "").trim() || existing.description,
     link: String(formData.get("link") || "").trim() || existing.link || null,
   };
+
+  // Re-generate slug only when the title actually changes.
+  if (newTitle && newTitle !== existing.title) {
+    updateData.news_slug = `${toSlug(newTitle)}-${Date.now().toString(36).slice(-5)}`;
+  }
 
   if (!updateData.title || !updateData.content || !updateData.description) {
     throw new ServiceError(

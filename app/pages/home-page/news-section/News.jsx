@@ -124,7 +124,7 @@ const ContentSide = ({ currentNews }) => {
             {truncateString(currentNews.description, 300)}
           </p>
           <MyLink
-            href={`/news/${currentNews.id}`}
+            href={`/news/${currentNews.news_slug || currentNews.id}`}
             text="Read more"
             ariaLabel={`Read more about ${currentNews.title}`}
             icon={<FaLink size={12} />}

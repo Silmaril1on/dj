@@ -12,13 +12,15 @@ import ModalRoot from "./components/modals/ModalRoot";
 const jost = Jost({
   variable: "--font-jost",
   subsets: ["latin"],
-  weight: ["100", "200", "300", "400", "500", "600", "700", "800", "900"],
+  weight: ["400", "500", "900"],
+  display: "swap",
 });
 
 const teko = Teko({
   variable: "--font-teko",
   subsets: ["latin"],
-  weight: ["300", "400", "500", "600", "700"],
+  weight: ["400", "700"],
+  display: "swap",
 });
 
 const siteUrl = process.env.PROJECT_URL || "https://soundfolio.net";

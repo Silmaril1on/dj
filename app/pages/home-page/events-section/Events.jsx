@@ -1,5 +1,5 @@
 "use client";
-import { AnimatePresence, motion } from "framer-motion";
+import { motion } from "framer-motion";
 import { useState, useEffect } from "react";
 import { useSelector } from "react-redux";
 import { FaLink, FaUsers } from "react-icons/fa6";
@@ -26,10 +26,15 @@ import {
 
 const Events = ({ events = [] }) => {
   const user = useSelector(selectUser);
-  const [open, setOpen] = useState(null);
   const [eventItems, setEventItems] = useState(events);
   const upcomingEvents = eventItems.filter((event) =>
     isOnOrAfterToday(event?.date),
+  );
+
+  // Initialise synchronously so SSR & first paint agree — avoids post-mount
+  // layout shift that would otherwise be counted as CLS.
+  const [open, setOpen] = useState(
+    () => events.filter((e) => isOnOrAfterToday(e?.date))[0]?.id ?? null,
   );
 
   useEffect(() => {
@@ -74,12 +79,7 @@ const Events = ({ events = [] }) => {
     };
   }, [events, user]);
 
-  useEffect(() => {
-    if (upcomingEvents.length > 0 && open === null) {
-      setOpen(upcomingEvents[0].id);
-    }
-  }, [upcomingEvents, open]);
-
+  // If the currently-open event leaves the list, fall back to the first one.
   useEffect(() => {
     if (open && !upcomingEvents.some((event) => event.id === open)) {
       setOpen(upcomingEvents[0]?.id ?? null);
@@ -126,7 +126,6 @@ const Events = ({ events = [] }) => {
 };
 
 const Panel = ({ open, setOpen, event, onEventUpdate, isFirst = false }) => {
-  const { width } = useWindowSize();
   const isOpen = open === event.id;
 
   const [likesCount, setLikesCount] = useState(event.likesCount || 0);
@@ -153,221 +152,179 @@ const Panel = ({ open, setOpen, event, onEventUpdate, isFirst = false }) => {
   const handleLikeChange = (liked, newLikesCount) => {
     setIsLiked(liked);
     setLikesCount(newLikesCount);
-    onEventUpdate?.(event.id, {
-      isLiked: liked,
-      likesCount: newLikesCount,
-    });
+    onEventUpdate?.(event.id, { isLiked: liked, likesCount: newLikesCount });
   };
 
   const lineup = normalizeLineup(event.artists);
   const canSetReminder = isReminderEligible(event.date);
+  const imageUrl = resolveImage(event.image_url, "md");
 
   return (
-    <>
-      {!isOpen && (
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 0.5 }}
-          className="bg-stone-900 lg:mx-1 hover:bg-gold/50 cursor-pointer border border-gold/30 hover:border-gold/50 duration-300 flex flex-row-reverse lg:flex-col justify-end items-center gap-4 relative group "
-          onClick={() => setOpen(event.id)}
-        >
-          {resolveImage(event.image_url, "md") && (
-            <img
-              loading="lazy"
-              src={resolveImage(event.image_url, "md")}
-              alt={event.event_name}
-              className="absolute inset-0 w-full h-full object-cover z-0"
-              fetchpriority="low"
-            />
-          )}
-          <div className="bg-black/60 relative z-[2] w-full h-full p-2 lg:p-5 backdrop-blur-xs flex justify-start">
-            <span
-              style={{
-                writingMode: "vertical-lr",
-              }}
-              className="hidden lg:block text-2xl font-bold duration-300 text-chino rotate-180 uppercase "
-            >
-              {truncateString(event.event_name, 40)}
-            </span>
-            <span className="block lg:hidden text-lg font-medium text-chino truncate w-full">
-              {event.event_name}
-            </span>
-          </div>
-        </motion.div>
+    // Always kept in the DOM — open/close is driven purely by CSS so the
+    // browser never sees a mount-driven layout shift. Shifts caused by usercenter gap-1 duration-300 center w-fit text-xs lg:text-base text-gold/80
+    // clicks are within 500 ms of interaction and are excluded from CLS.
+    <div
+      className={`relative overflow-hidden border border-gold/30 transition-all duration-500 ease-in-out lg:mx-1
+        ${
+          isOpen
+            ? "flex-none h-[400px] lg:flex-1 lg:h-full"
+            : "flex-none h-[60px] lg:h-full lg:w-[60px] bg-stone-900 cursor-pointer hover:bg-gold/50 hover:border-gold/50"
+        }`}
+      onClick={!isOpen ? () => setOpen(event.id) : undefined}
+      role={!isOpen ? "button" : undefined}
+      tabIndex={!isOpen ? 0 : undefined}
+      onKeyDown={
+        !isOpen
+          ? (e) => (e.key === "Enter" || e.key === " ") && setOpen(event.id)
+          : undefined
+      }
+      aria-label={!isOpen ? `Open ${event.event_name}` : undefined}
+      aria-expanded={isOpen}
+    >
+      {/* Background image — single element, always present for both states */}
+      {imageUrl && (
+        <img
+          src={imageUrl}
+          alt={event.event_name}
+          className="absolute inset-0 w-full h-full object-cover z-0"
+          {...(isFirst
+            ? { fetchPriority: "high" }
+            : { loading: "lazy", fetchPriority: "low" })}
+        />
       )}
 
-      <AnimatePresence>
-        {isOpen && (
-          <motion.div
-            key={`panel-${event.id}`}
-            variants={width && width > 1024 ? panelVariants : panelVariantsSm}
-            initial="closed"
-            animate="open"
-            exit="closed"
-            className="w-full h-full overflow-hidden relative flex items-end lg:mx-1 border border-gold/30"
-          >
-            {resolveImage(event.image_url, "md") && (
-              <img
-                {...(isFirst
-                  ? { fetchPriority: "high" }
-                  : { loading: "lazy", fetchPriority: "low" })}
-                src={resolveImage(event.image_url, "md")}
-                alt={event.event_name}
-                className="absolute right-0 h-full w-auto object-cover"
+      {/* Closed-state label — fades out (opacity only, no layout impact) */}
+      <div
+        className={`absolute inset-0 z-[2] bg-black/60 backdrop-blur-[2px] flex flex-row-reverse lg:flex-col justify-end items-center gap-4 p-2 lg:p-5 pointer-events-none transition-opacity duration-300 ${
+          isOpen ? "opacity-0" : "opacity-100"
+        }`}
+      >
+        <span
+          style={{ writingMode: "vertical-lr" }}
+          className="hidden lg:block text-2xl font-bold text-chino rotate-180 uppercase"
+        >
+          {truncateString(event.event_name, 40)}
+        </span>
+        <span className="block lg:hidden text-lg font-medium text-chino truncate w-full">
+          {event.event_name}
+        </span>
+      </div>
+
+      {/* Open-state content — fades in (opacity only, no layout impact) */}
+      <motion.div
+        variants={descriptionVariants}
+        initial="closed"
+        animate={isOpen ? "open" : "closed"}
+        className="absolute inset-0 z-[3] flex flex-col justify-between items-start bg-gradient-to-r from-black via-black/80 to-black/0 p-2 lg:p-4 overflow-y-auto"
+      >
+        <div className="lg:space-y-1 flex flex-col">
+          <MyLink
+            href={event.links}
+            target="_blank"
+            text="Check Event"
+            icon={<FaLink />}
+          />
+          <MyLink
+            href={`events/${event.id}`}
+            text="View Details"
+            icon={<FaArrowRight />}
+          />
+        </div>
+        <div>
+          <div className="absolute flex justify-end gap-2 py-1.5 bg-black/50 shadow-lg rounded-md backdrop-blur-lg top-2 lg:top-4 right-2 lg:right-4 w-32 px-2">
+            <SpanText
+              icon={<FaUsers />}
+              size="xs"
+              text={`${likesCount} Interested`}
+              className="secondary pointer-events-none"
+            />
+            <LikeButton
+              size={14}
+              type="event"
+              artist={{ id: event.id, isLiked, likesCount }}
+              onLikeChange={handleLikeChange}
+            />
+          </div>
+          {canSetReminder && (
+            <div className="flex justify-end gap-2 py-1.5 absolute top-2 lg:top-17 right-2 lg:right-4 bg-black/50 shadow-lg rounded-md backdrop-blur-lg w-32 px-2">
+              <SpanText
+                text="Set Reminder"
+                size="xs"
+                className="secondary pointer-events-none"
               />
-            )}
-            <motion.div
-              variants={descriptionVariants}
-              initial="closed"
-              animate="open"
-              exit="closed"
-              className="relative w-full h-full flex flex-col justify-between items-start bg-gradient-to-r from-black via-black/80 to-black/0 p-2 lg:p-4"
-            >
-              <div className="lg:space-y-1">
-                <MyLink
-                  href={event.links}
-                  target="_blank"
-                  text="Check Event"
-                  icon={<FaLink />}
-                />
-                <MyLink
-                  href={`events/${event.id}`}
-                  text="View Details"
-                  icon={<FaArrowRight />}
-                />
-              </div>
-              <div>
-                <div className="absolute flex justify-end gap-2 py-1.5 bg-black/50 shadow-lg rounded-md backdrop-blur-lg  top-2 lg:top-4 right-2 lg:right-4 w-32 px-2">
-                  <SpanText
-                    icon={<FaUsers />}
-                    size="xs"
-                    text={`${likesCount} Interested`}
-                    className="secondary pointer-events-none"
-                  />
-                  <LikeButton
-                    size={14}
-                    type="event"
-                    artist={{
-                      id: event.id,
-                      isLiked: isLiked,
-                      likesCount: likesCount,
-                    }}
-                    onLikeChange={handleLikeChange}
-                  />
-                </div>
-                {canSetReminder && (
-                  <div className="flex justify-end gap-2 py-1.5 absolute top-2 lg:top-17 right-2 lg:right-4 bg-black/50 shadow-lg rounded-md backdrop-blur-lg w-32 px-2">
-                    <SpanText
-                      text="Set Reminder"
-                      size="xs"
-                      className="secondary pointer-events-none"
-                    />
-                    <ReminderButton
-                      size={16}
-                      event={{
-                        id: event.id,
-                        isReminderSet,
-                        reminderOffsetDays,
-                      }}
-                      onReminderChange={(nextState, nextOffset) => {
-                        const resolvedOffset =
-                          nextOffset ?? reminderOffsetDays ?? 3;
-                        setIsReminderSet(nextState);
-                        if (nextOffset) setReminderOffsetDays(nextOffset);
-                        onEventUpdate?.(event.id, {
-                          isReminderSet: nextState,
-                          reminderOffsetDays: resolvedOffset,
-                        });
-                      }}
-                    />
-                  </div>
-                )}
-                <Title
-                  className="uppercase text-start leading-4"
-                  text={event.event_name}
-                />
-                <FlexBox type="column-start" className="my-2 lg:my-4">
-                  <ArtistCountry
-                    artistCountry={{ country: event.country, city: event.city }}
-                  />
-                  <Paragraph text={event.address} />
-                </FlexBox>
-                <FlexBox type="row-start" className="gap-2">
-                  <p className="text-chino text-[10px] lg:text-base">
-                    Doors Open: {event.doors_open}
-                  </p>
-                  <Dot />
-                  <p className="text-gold text-[10px] lg:text-base uppercase">
-                    {formatBirthdate(event.date)}
-                  </p>
-                </FlexBox>
-                {lineup.length > 0 && (
-                  <>
+              <ReminderButton
+                size={16}
+                event={{ id: event.id, isReminderSet, reminderOffsetDays }}
+                onReminderChange={(nextState, nextOffset) => {
+                  const resolvedOffset = nextOffset ?? reminderOffsetDays ?? 3;
+                  setIsReminderSet(nextState);
+                  if (nextOffset) setReminderOffsetDays(nextOffset);
+                  onEventUpdate?.(event.id, {
+                    isReminderSet: nextState,
+                    reminderOffsetDays: resolvedOffset,
+                  });
+                }}
+              />
+            </div>
+          )}
+          <Title
+            className="uppercase text-start leading-4"
+            text={event.event_name}
+          />
+          <FlexBox type="column-start" className="my-2 lg:my-4">
+            <ArtistCountry
+              artistCountry={{ country: event.country, city: event.city }}
+            />
+            <Paragraph text={event.address} />
+          </FlexBox>
+          <FlexBox type="row-start" className="gap-2">
+            <p className="text-chino text-[10px] lg:text-base">
+              Doors Open: {event.doors_open}
+            </p>
+            <Dot />
+            <p className="text-gold text-[10px] lg:text-base uppercase">
+              {formatBirthdate(event.date)}
+            </p>
+          </FlexBox>
+          {lineup.length > 0 && (
+            <>
+              <Title
+                color="cream"
+                size="xs"
+                className="uppercase font-medium"
+                text="Lineup"
+              />
+              <FlexBox type="row-start" className="flex-wrap items-center pt-1">
+                {lineup.slice(0, 10).map((artist, index) => (
+                  <div
+                    key={index}
+                    className="flex items-center space-x-0.5 lg:space-x-2"
+                  >
                     <Title
                       color="cream"
-                      size="xs"
-                      className="uppercase font-medium"
-                      text="Lineup"
+                      className="uppercase text-sm lg:text-4xl leading-7"
+                      text={artist}
                     />
-                    <FlexBox
-                      type="row-start"
-                      className="flex-wrap items-center pt-1"
-                    >
-                      {lineup.slice(0, 10).map((artist, index) => (
-                        <div
-                          key={index}
-                          className="flex items-center space-x-0.5 lg:space-x-2"
-                        >
-                          <Title
-                            color="cream"
-                            className="uppercase text-sm lg:text-4xl leading-7"
-                            text={artist}
-                          />
-                          {index < lineup.length - 1 && <Dot />}
-                        </div>
-                      ))}
-                    </FlexBox>
-                  </>
-                )}
-                {event?.description && (
-                  <div className="w-[80%] mt-2">
-                    <Paragraph text={truncateString(event?.description, 300)} />
+                    {index < lineup.length - 1 && <Dot />}
                   </div>
-                )}
-              </div>
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-    </>
+                ))}
+              </FlexBox>
+            </>
+          )}
+          {event?.description && (
+            <div className="w-[80%] mt-2">
+              <Paragraph text={truncateString(event?.description, 300)} />
+            </div>
+          )}
+        </div>
+      </motion.div>
+    </div>
   );
 };
 
 export default Events;
 
-const panelVariants = {
-  open: {
-    width: "100%",
-    height: "100%",
-  },
-  closed: {
-    width: "0%",
-    height: "100%",
-  },
-};
-
-const panelVariantsSm = {
-  open: {
-    width: "100%",
-    height: "400px",
-  },
-  closed: {
-    width: "100%",
-    height: "0px",
-  },
-};
-
+// Only opacity is animated — no layout-affecting properties, zero CLS.
 const descriptionVariants = {
   open: {
     opacity: 1,
@@ -376,27 +333,4 @@ const descriptionVariants = {
     },
   },
   closed: { opacity: 0 },
-};
-
-const useWindowSize = () => {
-  const [windowSize, setWindowSize] = useState({
-    width: undefined,
-    height: undefined,
-  });
-
-  useEffect(() => {
-    function handleResize() {
-      setWindowSize({
-        width: window.innerWidth,
-        height: window.innerHeight,
-      });
-    }
-
-    window.addEventListener("resize", handleResize);
-
-    handleResize();
-    return () => window.removeEventListener("resize", handleResize);
-  }, []);
-
-  return windowSize;
 };

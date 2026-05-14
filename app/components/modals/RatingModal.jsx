@@ -14,7 +14,6 @@ import {
 import { setError } from "@/app/features/modalSlice";
 import { openReviewModal } from "@/app/features/reviewsSlice";
 import ArtistName from "../materials/ArtistName";
-import FlexBox from "../containers/FlexBox";
 import GlobalModal from "./GlobalModal";
 import { revalidateUserStatistics } from "@/app/lib/hooks/useUserStatistics";
 
@@ -147,7 +146,7 @@ const RatingModal = () => {
           <span className="text-gold text-5xl font-bold">
             {ratingModal.currentRating || 0}
           </span>
-          <span className="text-emperor dark:text-white text-lg">/ 10</span>
+          <span className=" text-lg text-chino">/ 10</span>
         </div>
 
         {/* Current Stats */}

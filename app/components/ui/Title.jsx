@@ -20,7 +20,6 @@ const Title = ({
   const colorClasses = {
     gold: "text-gold",
     chino: "text-chino",
-    emperor: "text-emperor",
     crimson: "text-crimson",
     violet: "text-violet",
     black: "text-black",

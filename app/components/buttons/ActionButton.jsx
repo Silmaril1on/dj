@@ -1,4 +1,5 @@
 "use client";
+
 import { useSelector, useDispatch } from "react-redux";
 import { selectUser } from "@/app/features/userSlice";
 import { setError } from "@/app/features/modalSlice";
@@ -17,6 +18,8 @@ const ActionButton = ({
   loading = false,
   active = false,
   children,
+  type = "button",
+  title,
   "aria-label": ariaLabel,
   ...props
 }) => {
@@ -26,6 +29,8 @@ const ActionButton = ({
   const handleClick = (e) => {
     e.preventDefault();
     e.stopPropagation();
+
+    if (disabled || loading) return;
 
     if (requireAuth && !user) {
       dispatch(
@@ -51,6 +56,13 @@ const ActionButton = ({
   const isIconOnly = icon && !text && !children;
   const isDisabled = disabled || loading;
 
+  const accessibleName =
+    ariaLabel ||
+    title ||
+    (typeof text === "string" ? text : undefined) ||
+    (typeof children === "string" ? children : undefined) ||
+    "Action button";
+
   const baseStyles =
     "cursor-pointer duration-300 text-sm font-bold text-gold secondary center gap-1";
   const labeledStyles = "bg-gold/20 hover:bg-gold/40 p-1 px-2 rounded-xs";
@@ -60,12 +72,14 @@ const ActionButton = ({
   const variantStyles = isIconOnly ? iconOnlyStyles : labeledStyles;
 
   return (
-    <div
-      onClick={isDisabled ? undefined : handleClick}
+    <button
+      type={type}
+      onClick={handleClick}
+      disabled={isDisabled}
       className={`${baseStyles} ${variantStyles} ${disabledStyles} ${className}`}
-      role="button"
-      tabIndex={isDisabled ? -1 : 0}
-      aria-label={ariaLabel}
+      aria-label={accessibleName}
+      title={title || accessibleName}
+      aria-pressed={active ? true : undefined}
       {...props}
     >
       {loading ? (
@@ -77,7 +91,7 @@ const ActionButton = ({
           {children}
         </>
       )}
-    </div>
+    </button>
   );
 };
 

@@ -1,5 +1,6 @@
 import HomePage from "./pages/home-page/HomePage";
 import { getUpcomingEvents } from "@/app/lib/services/events/event";
+import { resolveImage, isOnOrAfterToday } from "@/app/helpers/utils";
 
 export const revalidate = 300;
 
@@ -17,5 +18,22 @@ export default async function Home() {
     console.error("Error fetching events:", error);
   }
 
-  return <HomePage events={events} />;
+  // Emit a server-side preload hint so the browser fetches the LCP image
+  // before any JavaScript runs — significantly reduces LCP time.
+  const lcpEvent = events.find((e) => isOnOrAfterToday(e?.date));
+  const lcpImageUrl = lcpEvent ? resolveImage(lcpEvent.image_url, "md") : null;
+
+  return (
+    <>
+      {lcpImageUrl && (
+        <link
+          rel="preload"
+          as="image"
+          href={lcpImageUrl}
+          fetchPriority="high"
+        />
+      )}
+      <HomePage events={events} />
+    </>
+  );
 }

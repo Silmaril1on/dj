@@ -1,5 +1,5 @@
-import SingleNews from "@/app/(routes)/news/[id]/SingleNews";
-import { getNewsById } from "@/app/lib/services/news/news";
+import SingleNews from "@/app/(routes)/news/[slug]/SingleNews";
+import { getNewsBySlug } from "@/app/lib/services/news/news";
 
 export const dynamic = "force-dynamic";
 
@@ -14,7 +14,7 @@ const SingleNewsPage = async (props) => {
   let news = null;
 
   try {
-    const result = await getNewsById(params.id);
+    const result = await getNewsBySlug(params.slug);
     news = result.news || null;
   } catch (err) {
     console.error("Error fetching news:", err.message);
