@@ -95,7 +95,7 @@ const Events = ({ events = [] }) => {
   }
 
   return (
-    <section className="w-full h-screen">
+    <section className="w-full ">
       <SectionContainer
         title="Upcomming Events"
         description="Stay tuned for the hottest upcoming events. Don't miss out!"
@@ -159,27 +159,27 @@ const Panel = ({ open, setOpen, event, onEventUpdate, isFirst = false }) => {
   const canSetReminder = isReminderEligible(event.date);
   const imageUrl = resolveImage(event.image_url, "md");
 
+  const handleKeyDown = (e) => {
+    if (e.key === "Enter" || e.key === " ") {
+      e.preventDefault();
+      setOpen(event.id);
+    }
+  };
+
   return (
-    // Always kept in the DOM — open/close is driven purely by CSS so the
-    // browser never sees a mount-driven layout shift. Shifts caused by usercenter gap-1 duration-300 center w-fit text-xs lg:text-base text-gold/80
-    // clicks are within 500 ms of interaction and are excluded from CLS.
     <div
       className={`relative overflow-hidden border border-gold/30 transition-all duration-500 ease-in-out lg:mx-1
-        ${
-          isOpen
-            ? "flex-none h-[400px] lg:flex-1 lg:h-full"
-            : "flex-none h-[60px] lg:h-full lg:w-[60px] bg-stone-900 cursor-pointer hover:bg-gold/50 hover:border-gold/50"
-        }`}
+    ${
+      isOpen
+        ? "flex-none h-[400px] lg:flex-1 lg:h-full"
+        : "flex-none h-[60px] lg:h-full lg:w-[60px] bg-stone-900 cursor-pointer hover:bg-gold/50 hover:border-gold/50"
+    }`}
       onClick={!isOpen ? () => setOpen(event.id) : undefined}
       role={!isOpen ? "button" : undefined}
       tabIndex={!isOpen ? 0 : undefined}
-      onKeyDown={
-        !isOpen
-          ? (e) => (e.key === "Enter" || e.key === " ") && setOpen(event.id)
-          : undefined
-      }
-      aria-label={!isOpen ? `Open ${event.event_name}` : undefined}
-      aria-expanded={isOpen}
+      onKeyDown={!isOpen ? handleKeyDown : undefined}
+      aria-label={!isOpen ? `Open event: ${event.event_name}` : undefined}
+      aria-expanded={!isOpen ? false : undefined}
     >
       {/* Background image — single element, always present for both states */}
       {imageUrl && (
@@ -222,10 +222,12 @@ const Panel = ({ open, setOpen, event, onEventUpdate, isFirst = false }) => {
             href={event.links}
             target="_blank"
             text="Check Event"
+            ariaLabel={`Check event on external website: ${event.event_name}`}
             icon={<FaLink />}
           />
           <MyLink
             href={`events/${event.id}`}
+            ariaLabel={`View details for ${event.event_name}`}
             text="View Details"
             icon={<FaArrowRight />}
           />
@@ -234,6 +236,7 @@ const Panel = ({ open, setOpen, event, onEventUpdate, isFirst = false }) => {
           <div className="absolute flex justify-end gap-2 py-1.5 bg-black/50 shadow-lg rounded-md backdrop-blur-lg top-2 lg:top-4 right-2 lg:right-4 w-32 px-2">
             <SpanText
               icon={<FaUsers />}
+              as="span"
               size="xs"
               text={`${likesCount} Interested`}
               className="secondary pointer-events-none"

@@ -200,10 +200,13 @@ const UserRegion = () => {
             className="fixed z-50 bottom-5 right-5 max-w-72 bg-black/70 border border-gold/30 rounded-md px-4 py-3 flex flex-col gap-2 backdrop-blur-sm"
           >
             <button
+              type="button"
               onClick={() => setPromptState(null)}
-              className="absolute top-1.5 right-1.5 text-cream/40 hover:text-cream transition-colors"
+              aria-label="Close prompt"
+              title="Close prompt"
+              className="absolute top-1.5 right-1.5 min-h-9 min-w-9 flex items-center justify-center rounded-full text-cream/40 hover:text-cream hover:bg-white/5 transition-colors"
             >
-              <FiX size={14} />
+              <FiX size={14} aria-hidden="true" />
             </button>
 
             {(promptState === "ask" || promptState === "requesting") && (

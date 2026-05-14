@@ -12,8 +12,8 @@ const MyLink = ({
   ariaLabel,
 }) => {
   const sizeClasses = {
-    sm: "text-sm min-h-10 px-3 py-2",
-    md: "text-sm lg:text-base min-h-11 px-3 py-2",
+    sm: "text-sm  ",
+    md: "text-sm lg:text-base ",
   };
 
   const colorClasses = {
@@ -31,7 +31,7 @@ const MyLink = ({
       target={target}
       onClick={onClick}
       aria-label={ariaLabel || text}
-      className={`inline-flex items-center justify-center gap-2 rounded-sm duration-300 ${sizeClasses[size]} ${colorClasses[color]} ${className}`}
+      className={`inline-flex items-center justify-center gap-2 p-1 duration-300 ${sizeClasses[size]} ${colorClasses[color]} ${className}`}
       {...externalProps}
     >
       {icon && (

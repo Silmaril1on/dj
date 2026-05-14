@@ -53,7 +53,14 @@ export async function POST(req) {
               "event_images",
               baseName,
             );
-            console.log(`✅ Image variants uploaded for event ${event.id}`);
+            console.log(
+              `✅ Image variants uploaded for event ${event.id}:`,
+              eventImageUrls
+                ? Object.fromEntries(
+                    Object.entries(eventImageUrls).map(([k, v]) => [k, v]),
+                  )
+                : null,
+            );
           } catch (imageError) {
             console.error("Image processing error:", imageError);
             // Continue without image if processing fails
@@ -89,16 +96,17 @@ export async function POST(req) {
             ? event.title.replace(/\s+/g, " ").trim()
             : null;
         const eventDate = event.date ? event.date.split("T")[0] : null;
+        const venueNameRaw = event.venue?.name || null;
 
-        // Check if event already exists (title, plus date when available)
+        // Check duplicates by venue_name + event_name + date (all 3 must match)
         let duplicateQuery = supabase
           .from("events")
           .select("id, event_name, date")
           .ilike("event_name", eventTitle || "");
 
-        if (eventDate) {
-          duplicateQuery = duplicateQuery.eq("date", eventDate);
-        }
+        if (eventDate) duplicateQuery = duplicateQuery.eq("date", eventDate);
+        if (venueNameRaw)
+          duplicateQuery = duplicateQuery.ilike("venue_name", venueNameRaw);
 
         const { data: existingEvent, error: checkError } =
           await duplicateQuery.maybeSingle();
@@ -136,7 +144,7 @@ export async function POST(req) {
           event_name: eventTitle,
           event_type: event.isFestival ? "festival" : "event",
           status: "approved",
-          venue_name: event.venue?.name || null,
+          venue_name: venueNameRaw,
           minimum_age: event.minimumAge ? parseInt(event.minimumAge) : null,
         };
 
@@ -158,7 +166,79 @@ export async function POST(req) {
           insertedEvents.push(insertedData);
           console.log(`✅ Inserted event: ${event.title}`);
 
-          // Check if venue_name matches any club in clubs table
+          // --- Artist schedule insertion ---
+          // For each lineup artist, check if they exist in our artists table
+          // (matching on name or stage_name) and create a schedule row so their
+          // profile page shows this event automatically.
+          const eventPageLink = insertedData.event_slug
+            ? `https://soundfolio.net/events/${insertedData.event_slug}`
+            : eventData.links;
+
+          for (const artistEntry of event.artists || []) {
+            const artistName = artistEntry.name?.trim();
+            if (!artistName) continue;
+
+            try {
+              // Two-step lookup: name first, then stage_name — avoids
+              // OR-filter edge cases with special characters in names.
+              let artistId = null;
+
+              const { data: nameMatches } = await supabase
+                .from("artists")
+                .select("id")
+                .ilike("name", artistName)
+                .limit(1);
+              artistId = nameMatches?.[0]?.id ?? null;
+
+              if (!artistId) {
+                const { data: stageMatches } = await supabase
+                  .from("artists")
+                  .select("id")
+                  .ilike("stage_name", artistName)
+                  .limit(1);
+                artistId = stageMatches?.[0]?.id ?? null;
+              }
+
+              if (!artistId) continue;
+
+              // Skip if a schedule already exists for this artist on this date.
+              const { data: existingSched } = await supabase
+                .from("artist_schedule")
+                .select("id")
+                .eq("artist_id", artistId)
+                .eq("date", eventData.date)
+                .maybeSingle();
+
+              if (existingSched) {
+                console.log(
+                  `⏭️ Schedule already exists for ${artistName} on ${eventData.date}`,
+                );
+                continue;
+              }
+
+              await supabase.from("artist_schedule").insert({
+                artist_id: artistId,
+                date: eventData.date,
+                time: eventData.doors_open || "TBA",
+                country: eventData.country || "Not specified",
+                city: eventData.city || "Not specified",
+                club_name: eventData.venue_name || "Not specified",
+                event_link: eventPageLink,
+                event_title: eventData.event_name,
+                event_location: eventData.location_url,
+                event_status: "upcoming",
+                event_type: eventData.event_type,
+              });
+
+              console.log(`✅ Added schedule for artist: ${artistName}`);
+            } catch (schedErr) {
+              // Schedule insertion is non-critical — log but don't fail the event.
+              console.error(
+                `Error inserting schedule for ${artistName}:`,
+                schedErr,
+              );
+            }
+          }
           if (eventData.venue_name) {
             try {
               const normalizedVenueName = eventData.venue_name
@@ -183,39 +263,43 @@ export async function POST(req) {
                 );
 
                 // Insert into club_dates table
-                const clubDateData = {
-                  club_id: matchingClub.id,
-                  date: eventData.date,
-                  time: eventData.doors_open,
-                  event_link: eventData.links,
-                  event_title: eventData.event_name,
-                  lineup: artistsArray,
-                  status: "approved",
-                  minimum_age: eventData.minimum_age,
-                };
+                // Pre-check for duplicate club date before inserting
+                const { data: existingClubDate } = await supabase
+                  .from("club_dates")
+                  .select("id")
+                  .eq("club_id", matchingClub.id)
+                  .eq("date", eventData.date)
+                  .maybeSingle();
 
-                console.log("💾 Inserting to club_dates:", clubDateData);
-
-                const { data: clubDateInserted, error: clubDateError } =
-                  await supabase
-                    .from("club_dates")
-                    .insert(clubDateData)
-                    .select()
-                    .single();
-
-                if (clubDateError) {
-                  // Check if it's a duplicate entry error
-                  if (clubDateError.code === "23505") {
-                    console.log(
-                      `⏭️ Club date already exists for ${matchingClub.name} on ${eventData.date}`,
-                    );
-                  } else {
-                    console.error("Error inserting club date:", clubDateError);
-                  }
-                } else {
+                if (existingClubDate) {
                   console.log(
-                    `✅ Added to club_dates for ${matchingClub.name}`,
+                    `⏭️ Club date already exists for ${matchingClub.name} on ${eventData.date}`,
                   );
+                } else {
+                  const clubDateData = {
+                    club_id: matchingClub.id,
+                    date: eventData.date,
+                    time: eventData.doors_open,
+                    event_link: eventData.links,
+                    event_title: eventData.event_name,
+                    lineup: artistsArray,
+                    status: "approved",
+                    minimum_age: eventData.minimum_age,
+                  };
+
+                  console.log("💾 Inserting to club_dates:", clubDateData);
+
+                  const { error: clubDateError } = await supabase
+                    .from("club_dates")
+                    .insert(clubDateData);
+
+                  if (clubDateError) {
+                    console.error("Error inserting club date:", clubDateError);
+                  } else {
+                    console.log(
+                      `✅ Added to club_dates for ${matchingClub.name}`,
+                    );
+                  }
                 }
               } else {
                 console.log(

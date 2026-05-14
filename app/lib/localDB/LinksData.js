@@ -44,12 +44,14 @@ export const userProfileLinks = [
 
 export const administrationLinks = [
   {
-    href: "/administration/task-manager",
-    text: "Task Manager",
-  },
-  {
-    href: "/administration/apify",
-    text: "Apify",
+    text: "Tools",
+    hasDropdown: true,
+    dropdownItems: [
+      { href: "/administration/task-manager", text: "Task Manager" },
+      { href: "/administration/apify", text: "APIFY" },
+      { href: "/administration/artist-data-fill", text: "Artist Data Fill" },
+      { href: "/administration/generate-assets", text: "Seedream" },
+    ],
   },
   {
     text: "Submitted Items",
@@ -62,19 +64,11 @@ export const administrationLinks = [
     ],
   },
   {
-    href: "/administration/artist-data-fill",
-    text: "Artist Data Fill",
-  },
-  {
     href: "/administration/reports",
     text: "Reports and Feedbacks",
   },
   {
     href: "/administration/audit",
     text: "Audit",
-  },
-  {
-    href: "/administration/generate-assets",
-    text: "Generate Assets",
   },
 ];

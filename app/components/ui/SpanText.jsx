@@ -1,6 +1,7 @@
 import React from "react";
 
 const SpanText = ({
+  as: Component = "span",
   text,
   icon,
   children,
@@ -33,13 +34,13 @@ const SpanText = ({
   const colorClass = colorClasses[color] || colorClasses.default;
 
   return (
-    <h6
+    <Component
       className={`${baseClasses} ${sizeClasses[size]} ${fontClass} ${colorClass} ${className} flex items-center gap-1 `}
     >
       {icon && <span>{icon}</span>}
       {text}
       {children}
-    </h6>
+    </Component>
   );
 };
 

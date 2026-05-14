@@ -78,7 +78,7 @@ const SettingsHeader = ({ avatar_url, isVerified }) => {
 
 const SettingsOption = ({ toggleSettings, user, onVerifyClick }) => {
   return (
-    <div>
+    <div className="flex flex-col items-start">
       <MyLink
         href="/my-profile/personal-information"
         text="My Profile"

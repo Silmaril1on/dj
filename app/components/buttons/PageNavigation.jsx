@@ -30,7 +30,7 @@ const PageNavigation = ({ linksData, className = " " }) => {
           {linksData.map((item, index) => (
             <div
               key={item.href || item.text}
-              className="relative"
+              className="relative "
               onMouseEnter={() => handleMouseEnter(index)}
               onMouseLeave={handleMouseLeave}
             >

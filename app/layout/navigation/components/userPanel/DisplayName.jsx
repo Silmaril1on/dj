@@ -9,7 +9,6 @@ import { supabaseClient } from "@/app/lib/config/supabaseClient";
 import { useRouter } from "next/navigation";
 import { FaChevronDown } from "react-icons/fa";
 import ProfilePicture from "@/app/components/materials/ProfilePicture";
-import MessageIcon from "../MessageIcon";
 import NotificationIcon from "../NotificationIcon";
 import UserSettings from "./UserSettings";
 

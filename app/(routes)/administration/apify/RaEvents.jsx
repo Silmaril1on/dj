@@ -113,6 +113,7 @@ export default function RaEvents() {
   const [insertingSchedule, setInsertingSchedule] = useState(false);
   const [insertingData, setInsertingData] = useState(false);
   const [insertSuccess, setInsertSuccess] = useState(null);
+  const [insertClubs, setInsertClubs] = useState(true);
 
   const handleStart = async () => {
     if (!url.trim()) {
@@ -224,54 +225,65 @@ export default function RaEvents() {
     setInsertSuccess(null);
     try {
       const eventsToInsert = selectedEvents.map((index) => results[index]);
-      const [eventsResponse, clubsResponse] = await Promise.all([
-        fetch("/api/events/insert", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            events: eventsToInsert,
+
+      if (insertClubs) {
+        // Insert events + clubs in parallel
+        const [eventsResponse, clubsResponse] = await Promise.all([
+          fetch("/api/events/insert", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ events: eventsToInsert }),
           }),
-        }),
-        fetch("/api/club/insert-from-apify", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            events: eventsToInsert,
+          fetch("/api/club/insert-from-apify", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ events: eventsToInsert }),
           }),
-        }),
-      ]);
-      const [eventsData, clubsData] = await Promise.all([
-        eventsResponse.json(),
-        clubsResponse.json(),
-      ]);
-      if (!eventsResponse.ok) {
-        throw new Error(eventsData.error || "Failed to insert events");
+        ]);
+        const [eventsData, clubsData] = await Promise.all([
+          eventsResponse.json(),
+          clubsResponse.json(),
+        ]);
+        if (!eventsResponse.ok)
+          throw new Error(eventsData.error || "Failed to insert events");
+        if (!clubsResponse.ok)
+          throw new Error(clubsData.error || "Failed to insert clubs");
+        console.log("✅ Insert success (events):", eventsData);
+        console.log("✅ Insert success (clubs):", clubsData);
+        const combinedErrors = [
+          ...(eventsData.errors || []).map((err) => ({
+            ...err,
+            source: "events",
+          })),
+          ...(clubsData.errors || []).map((err) => ({
+            ...err,
+            source: "clubs",
+          })),
+        ];
+        setInsertSuccess({
+          target: "events+clubs",
+          events: eventsData,
+          clubs: clubsData,
+          errors: combinedErrors.length > 0 ? combinedErrors : undefined,
+        });
+      } else {
+        // Events only — clubs insertion skipped
+        const eventsResponse = await fetch("/api/events/insert", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ events: eventsToInsert }),
+        });
+        const eventsData = await eventsResponse.json();
+        if (!eventsResponse.ok)
+          throw new Error(eventsData.error || "Failed to insert events");
+        console.log("✅ Insert success (events only):", eventsData);
+        setInsertSuccess({
+          target: "events",
+          ...eventsData,
+          errors: eventsData.errors,
+        });
       }
-      if (!clubsResponse.ok) {
-        throw new Error(clubsData.error || "Failed to insert clubs");
-      }
-      console.log("✅ Insert success (events):", eventsData);
-      console.log("✅ Insert success (clubs):", clubsData);
-      const combinedErrors = [
-        ...(eventsData.errors || []).map((err) => ({
-          ...err,
-          source: "events",
-        })),
-        ...(clubsData.errors || []).map((err) => ({
-          ...err,
-          source: "clubs",
-        })),
-      ];
-      setInsertSuccess({
-        target: "events+clubs",
-        events: eventsData,
-        clubs: clubsData,
-        errors: combinedErrors.length > 0 ? combinedErrors : undefined,
-      });
+
       setSelectedEvents([]);
     } catch (err) {
       console.error("❌ Insert error:", err);
@@ -290,6 +302,36 @@ export default function RaEvents() {
       {/* URL Input Section */}
       <div className="bg-neutral-900 border border-gold/30 p-6 mb-6">
         <div className="">
+          {/* Club insertion toggle */}
+          <div className="flex items-center gap-3 mb-5">
+            <button
+              role="switch"
+              aria-checked={insertClubs}
+              onClick={() => setInsertClubs((v) => !v)}
+              className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 focus:outline-none ${
+                insertClubs ? "bg-gold" : "bg-neutral-600"
+              }`}
+            >
+              <span
+                className={`pointer-events-none inline-block h-5 w-5 rounded-full bg-white shadow transform transition-transform duration-200 ${
+                  insertClubs ? "translate-x-5" : "translate-x-0"
+                }`}
+              />
+            </button>
+            <span className="text-sm font-medium text-cream">
+              Club data insertion
+            </span>
+            <span
+              className={`text-xs px-2 py-0.5 rounded-full font-mono ${
+                insertClubs
+                  ? "bg-gold/20 text-gold"
+                  : "bg-neutral-700 text-neutral-400"
+              }`}
+            >
+              {insertClubs ? "ON" : "OFF"}
+            </span>
+          </div>
+
           <label className="block text-sm font-bold uppercase text-cream ">
             RA Events URLS
           </label>
