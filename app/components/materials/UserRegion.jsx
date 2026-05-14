@@ -50,11 +50,11 @@ const reverseGeocode = async (lat, lng) => {
 
 // IP fallback — no permission needed
 const fromIP = async () => {
-  const res = await fetch("https://ipwho.is/");
+  const res = await fetch("https://ipapi.co/json/");
   if (!res.ok) throw new Error("ip lookup failed");
   const d = await res.json();
-  if (!d.success) throw new Error("ip lookup unsuccessful");
-  return { country: d.country, city: d.city, countryCode: d.country_code };
+  if (!d.country_name) throw new Error("ip lookup unsuccessful");
+  return { country: d.country_name, city: d.city, countryCode: d.country_code };
 };
 
 const resolve = () =>

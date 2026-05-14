@@ -13,6 +13,20 @@ import { SiApplemusic, SiBeatport } from "react-icons/si";
 import { motion } from "framer-motion";
 import Icon from "@/app/components/ui/Icon";
 
+const getSocialPlatform = (url) => {
+  if (url.includes("facebook")) return "Facebook";
+  if (url.includes("instagram")) return "Instagram";
+  if (url.includes("youtube")) return "YouTube";
+  if (url.includes("spotify")) return "Spotify";
+  if (url.includes("soundcloud")) return "SoundCloud";
+  if (url.includes("twitter") || url.includes("x.com")) return "Twitter";
+  if (url.includes("beatport")) return "Beatport";
+  if (url.includes("deezer")) return "Deezer";
+  if (url.includes("apple") || url.includes("music.apple"))
+    return "Apple Music";
+  return "Website";
+};
+
 const SocialLink = ({ link, index, animation, animationDelay, iconSize }) => {
   const getSocialIcon = (url) => {
     if (url.includes("facebook")) return <FaFacebook className={iconSize} />;
@@ -30,8 +44,16 @@ const SocialLink = ({ link, index, animation, animationDelay, iconSize }) => {
     return <FaGlobe className={iconSize} />;
   };
 
+  const platform = getSocialPlatform(link);
+
   const linkElement = (
-    <a href={link} target="_blank" rel="noopener noreferrer" className="group">
+    <a
+      href={link}
+      target="_blank"
+      rel="noopener noreferrer"
+      className="group"
+      aria-label={`Visit ${platform}`}
+    >
       <Icon icon={getSocialIcon(link)} />
     </a>
   );

@@ -17,6 +17,7 @@ const ActionButton = ({
   loading = false,
   active = false,
   children,
+  "aria-label": ariaLabel,
   ...props
 }) => {
   const user = useSelector(selectUser);
@@ -64,6 +65,7 @@ const ActionButton = ({
       className={`${baseStyles} ${variantStyles} ${disabledStyles} ${className}`}
       role="button"
       tabIndex={isDisabled ? -1 : 0}
+      aria-label={ariaLabel}
       {...props}
     >
       {loading ? (

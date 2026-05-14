@@ -1,7 +1,7 @@
-"use client"
-import React, { useState } from 'react'
-import { FaBars } from 'react-icons/fa'
-import SideBar from './SideBar';
+"use client";
+import React, { useState } from "react";
+import { FaBars } from "react-icons/fa";
+import SideBar from "./SideBar";
 
 const BurgerMenu = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -16,8 +16,10 @@ const BurgerMenu = () => {
 
   return (
     <>
-      <button 
+      <button
         onClick={toggleSidebar}
+        aria-label="Open navigation menu"
+        aria-expanded={isOpen}
         className="block w-fit lg:hidden text-cream hover:text-gold duration-300 text-xl cursor-pointer"
       >
         <FaBars />
@@ -25,6 +27,6 @@ const BurgerMenu = () => {
       <SideBar isOpen={isOpen} onClose={closeSidebar} />
     </>
   );
-}
+};
 
-export default BurgerMenu
+export default BurgerMenu;

@@ -101,13 +101,14 @@ const Events = ({ events = [] }) => {
         description="Stay tuned for the hottest upcoming events. Don't miss out!"
       >
         <div className="flex flex-col gap-2 lg:gap-0 lg:flex-row h-fit lg:h-[550px] w-full overflow-hidden">
-          {upcomingEvents.map((event) => {
+          {upcomingEvents.map((event, index) => {
             return (
               <Panel
                 key={event.id}
                 open={open}
                 setOpen={setOpen}
                 event={event}
+                isFirst={index === 0}
                 onEventUpdate={(eventId, patch) =>
                   setEventItems((prev) =>
                     prev.map((item) =>
@@ -124,7 +125,7 @@ const Events = ({ events = [] }) => {
   );
 };
 
-const Panel = ({ open, setOpen, event, onEventUpdate }) => {
+const Panel = ({ open, setOpen, event, onEventUpdate, isFirst = false }) => {
   const { width } = useWindowSize();
   const isOpen = open === event.id;
 
@@ -168,7 +169,7 @@ const Panel = ({ open, setOpen, event, onEventUpdate }) => {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ duration: 0.5 }}
-          className="bg-stone-900 lg:mx-1 hover:bg-gold/50 cursor-pointer border border-gold/30 hover:border-gold/50 duration-300 flex flex-row-reverse lg:flex-col justify-end items-center gap-4 relative group"
+          className="bg-stone-900 lg:mx-1 hover:bg-gold/50 cursor-pointer border border-gold/30 hover:border-gold/50 duration-300 flex flex-row-reverse lg:flex-col justify-end items-center gap-4 relative group "
           onClick={() => setOpen(event.id)}
         >
           {resolveImage(event.image_url, "md") && (
@@ -177,6 +178,7 @@ const Panel = ({ open, setOpen, event, onEventUpdate }) => {
               src={resolveImage(event.image_url, "md")}
               alt={event.event_name}
               className="absolute inset-0 w-full h-full object-cover z-0"
+              fetchpriority="low"
             />
           )}
           <div className="bg-black/60 relative z-[2] w-full h-full p-2 lg:p-5 backdrop-blur-xs flex justify-start">
@@ -205,10 +207,12 @@ const Panel = ({ open, setOpen, event, onEventUpdate }) => {
             exit="closed"
             className="w-full h-full overflow-hidden relative flex items-end lg:mx-1 border border-gold/30"
           >
-            {resolveImage(event.image_url, "lg") && (
+            {resolveImage(event.image_url, "md") && (
               <img
-                loading="lazy"
-                src={resolveImage(event.image_url, "lg")}
+                {...(isFirst
+                  ? { fetchPriority: "high" }
+                  : { loading: "lazy", fetchPriority: "low" })}
+                src={resolveImage(event.image_url, "md")}
                 alt={event.event_name}
                 className="absolute right-0 h-full w-auto object-cover"
               />
@@ -317,7 +321,7 @@ const Panel = ({ open, setOpen, event, onEventUpdate }) => {
                         >
                           <Title
                             color="cream"
-                            className="uppercase text-sm lg:text-4xl leading-4"
+                            className="uppercase text-sm lg:text-4xl leading-7"
                             text={artist}
                           />
                           {index < lineup.length - 1 && <Dot />}

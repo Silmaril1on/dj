@@ -1,4 +1,4 @@
-const BASE_URL = process.env.PROJECT_URL;
+const BASE_URL = process.env.PROJECT_URL || "https://soundfolio.net";
 
 export default function robots() {
   return {

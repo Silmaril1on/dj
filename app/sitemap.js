@@ -1,11 +1,9 @@
 import { supabaseAdmin } from "@/app/lib/config/supabaseServer";
 
-const BASE_URL = process.env.PROJECT_URL;
+const BASE_URL = process.env.PROJECT_URL || "https://soundfolio.net";
 
-/**
- * Fetches slugs + last modified dates from a Supabase table.
- * Returns an array of { slug, date } objects.
- */
+export const revalidate = 3600;
+
 async function fetchEntries(table, slugCol, extraFilter) {
   try {
     let q = supabaseAdmin

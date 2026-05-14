@@ -46,7 +46,7 @@ const securityHeaders = [
         "https://ucyhmkyjbrfbcediafwo.supabase.co",
         "wss://ucyhmkyjbrfbcediafwo.supabase.co",
         "https://maps.googleapis.com",
-        "https://ipwho.is",
+        "https://ipapi.co",
         "https://api.bigdatacloud.net",
         "https://ark.ap-southeast.bytepluses.com",
         isDev ? "ws://localhost:3000" : "",

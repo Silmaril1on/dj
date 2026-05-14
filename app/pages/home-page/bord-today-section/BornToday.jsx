@@ -10,6 +10,7 @@ import SectionContainer from "@/app/components/containers/SectionContainer";
 import SliderContainer from "@/app/components/containers/SliderContainer";
 import { fakeBornData } from "@/app/lib/localDB/fakeBornData";
 import { resolveImage } from "@/app/helpers/utils";
+import Swiper from "@/app/components/containers/Swiper";
 
 const BornToday = () => {
   const [artists, setArtists] = useState([]);
@@ -68,8 +69,42 @@ const BornToday = () => {
       title="Born Today"
       description="Discover artists celebrating their birthday today."
     >
-      <SliderContainer items={artistList} itemsPerPage={4} cardWidth={260}>
-        {artistList.map((artist) => (
+      <div className="hidden lg:block">
+        <SliderContainer items={artistList} itemsPerPage={4} cardWidth={260}>
+          {artistList.map((artist) => (
+            <div
+              key={artist.id}
+              className="group cursor-pointer"
+              style={{ minWidth: 260, margin: "0 8px" }}
+            >
+              <Link href={`/artists/${artist.artist_slug}`}>
+                <div className="bg-stone-900 bordered p-2 transition-colors duration-300">
+                  <div className="relative w-full h-52 mb-3 overflow-hidden">
+                    <Image
+                      src={
+                        resolveImage(artist.image_url, "md") ||
+                        "/assets/elivagar-logo.png"
+                      }
+                      alt={artist.stage_name || artist.name}
+                      width={300}
+                      height={300}
+                      className="object-cover brightness w-full h-full"
+                    />
+                  </div>
+                  <div className="text-center">
+                    <ArtistName size="sm" artistName={artist} />
+                    <p className="text-cream text-xs secondary font-light">
+                      Turns {artist.age} today
+                    </p>
+                  </div>
+                </div>
+              </Link>
+            </div>
+          ))}
+        </SliderContainer>
+      </div>
+      <Swiper items={artistList} animate={true} cardWidth={176}>
+        {artistList?.map((artist, idx) => (
           <div
             key={artist.id}
             className="group cursor-pointer"
@@ -99,7 +134,7 @@ const BornToday = () => {
             </Link>
           </div>
         ))}
-      </SliderContainer>
+      </Swiper>
     </SectionContainer>
   );
 };

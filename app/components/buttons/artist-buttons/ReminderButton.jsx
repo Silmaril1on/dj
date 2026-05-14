@@ -164,6 +164,7 @@ const ReminderButton = ({ className, event, onReminderChange, desc, size }) => {
     <div ref={wrapperRef} className="relative">
       <ActionButton
         onClick={handleToggleMenu}
+        aria-label={isReminderSet ? "Remove reminder" : "Set reminder"}
         icon={
           isReminderSet ? (
             <IoAlarm size={size} />

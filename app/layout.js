@@ -104,16 +104,33 @@ export const metadata = {
 export default function RootLayout({ children }) {
   const structuredData = {
     "@context": "https://schema.org",
-    "@type": "WebSite",
-    name: "Soundfolio",
-    alternateName: "Soundfolio",
-    url: siteUrl,
-    description: "Discover DJs, artists, clubs, festivals and live events.",
+    "@graph": [
+      {
+        "@type": "WebSite",
+        name: "Soundfolio",
+        url: siteUrl,
+      },
+      {
+        "@type": "Organization",
+        name: "Soundfolio",
+        url: siteUrl,
+        logo: `${siteUrl}/icon.png`,
+      },
+    ],
   };
 
   return (
     <html lang="en">
       <head>
+        <link
+          rel="preconnect"
+          href="https://ucyhmkyjbrfbcediafwo.supabase.co"
+        />
+        <link
+          rel="dns-prefetch"
+          href="https://ucyhmkyjbrfbcediafwo.supabase.co"
+        />
+        <link rel="preconnect" href="https://api.bigdatacloud.net" />
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{
@@ -129,7 +146,7 @@ export default function RootLayout({ children }) {
           <AuthProvider>
             <NavigationWrapper />
 
-            {children}
+            <main id="main-content">{children}</main>
 
             <ErrorMsg />
             <ModalRoot />

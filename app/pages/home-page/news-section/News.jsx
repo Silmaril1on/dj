@@ -126,6 +126,7 @@ const ContentSide = ({ currentNews }) => {
           <MyLink
             href={`/news/${currentNews.id}`}
             text="Read more"
+            ariaLabel={`Read more about ${currentNews.title}`}
             icon={<FaLink size={12} />}
           />
         </div>
@@ -165,7 +166,8 @@ const ImageSide = ({ currentNews }) => {
       animate="animate"
       exit="exit"
     >
-      <img loading="lazy"
+      <img
+        loading="lazy"
         src={currentNews.news_image}
         alt="news"
         className="w-full h-full object-cover"

@@ -10,7 +10,12 @@ const Spinner = ({ className = "", size, type }) => {
       <div
         className={`flex w-20 h-20 bg-black animate-spin relative items-center justify-center rounded-full ${sizeClass} ${className}`}
       >
-        <img src="/assets/vynil.png" alt="logo" className="w-full h-full" />
+        <img
+          src="/assets/vynil.png"
+          alt="logo"
+          loading="lazy"
+          className="w-full h-full"
+        />
       </div>
     );
   }

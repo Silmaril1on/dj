@@ -4,7 +4,7 @@ import { getUpcomingEvents } from "@/app/lib/services/events/event";
 export const revalidate = 300;
 
 export const metadata = {
-  title: "Soundfolio | Home",
+  title: "Soundfolio",
   description:
     "Soundfolio - Electronic music production community. Discover DJs, artists, clubs, festivals, and upcoming events. Connect with the best talent in the electronic music world.",
 };
@@ -12,7 +12,7 @@ export const metadata = {
 export default async function Home() {
   let events = [];
   try {
-    events = await getUpcomingEvents(null, { limit: 7, userId: null });
+    events = await getUpcomingEvents(null, { limit: 10, userId: null });
   } catch (error) {
     console.error("Error fetching events:", error);
   }

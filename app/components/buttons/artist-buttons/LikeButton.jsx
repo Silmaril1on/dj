@@ -78,6 +78,7 @@ const LikeButton = ({
       icon={isLiked ? <FaHeart size={size} /> : <FaRegHeart size={size} />}
       text={text}
       onClick={handleToggle}
+      aria-label={isLiked ? `Unlike this ${type}` : `Like this ${type}`}
       loading={isLoading}
       active={isLiked}
       authMessage={`Please login to perform action`}

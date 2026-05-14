@@ -29,9 +29,6 @@ export const faqData = [
   },
 ];
 
-export const appSocialLinks = [ 
-  "https://www.facebook.com/djdbapp",
+export const appSocialLinks = [
   "https://www.instagram.com/soundfoli0?igsh=MTd3aWg4Yzl3eXU0OQ==",
-  "https://www.twitter.com/djdbapp",
-]
-
+];

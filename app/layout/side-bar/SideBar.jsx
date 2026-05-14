@@ -20,12 +20,13 @@ const SideBar = ({ isOpen, onClose }) => {
           transition={{ duration: 0.4 }}
           className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 center flex-col"
         >
-          <div
-            className="absolute top-5 right-5 cursor-pointer text-gold hover:rotate-90 duration-300 text-xl"
+          <button
+            className="absolute top-5 right-5 cursor-pointer text-gold hover:rotate-90 duration-300 text-xl bg-transparent border-none"
             onClick={onClose}
+            aria-label="Close menu"
           >
             <IoMdClose />
-          </div>
+          </button>
           <Logo
             size="lg"
             className="absolute top-30 z-0 sepia blur-[3px] opacity-70 rotate-[45deg] scale-200"
