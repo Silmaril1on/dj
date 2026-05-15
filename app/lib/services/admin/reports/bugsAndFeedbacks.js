@@ -106,7 +106,8 @@ export async function getFeedbacks({ status = "pending" } = {}) {
 
   return data.map((feedback) => ({
     ...feedback,
-    reporter: usersMap[feedback.user_id] || { email: feedback.user_email } || null,
+    reporter:
+      usersMap[feedback.user_id] || { email: feedback.user_email } || null,
   }));
 }
 

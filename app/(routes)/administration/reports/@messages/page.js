@@ -9,7 +9,8 @@ const MessagesSlot = async () => {
     contacts = await getContacts();
   } catch (e) {
     console.error("[MessagesSlot]", e);
-  }  return <Reports data={contacts} type="contact" />;
+  }
+  return <Reports data={contacts} type="contact" />;
 };
 
 export default MessagesSlot;
