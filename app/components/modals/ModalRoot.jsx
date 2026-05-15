@@ -7,7 +7,7 @@ import AddAlbumModal from "./AddAlbumModal";
 import AcceptBookingModal from "./AcceptBookingModal";
 import PrivacyAndTermsModal from "./PrivacyAndTermsModal";
 import BookingForm from "../forms/BookingForm";
-import ReportForm from "../forms/ReportForm";
+import ReportForm from "./ReportModal";
 import SuccessOnSubmit from "../materials/SuccessOnSubmit";
 import ViewSubmittedInfo from "../materials/ViewSubmittedInfo";
 

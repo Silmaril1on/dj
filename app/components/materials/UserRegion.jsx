@@ -5,6 +5,7 @@ import { selectUser } from "@/app/features/userSlice";
 import { CountryFlags } from "./CountryFlags";
 import { AnimatePresence, motion } from "framer-motion";
 import { FiAlertCircle, FiMapPin, FiX } from "react-icons/fi";
+import ArtistCountry from "./ArtistCountry";
 
 const CACHE_KEY = "userLocation";
 const CACHE_TTL = 24 * 60 * 60 * 1000;
@@ -175,10 +176,11 @@ const UserRegion = () => {
       {/* Location display */}
       {location && (
         <div className="flex items-center secondary gap-2 text-cream font-light">
-          <CountryFlags countryName={location.country} />
-          <div className="gap-1 flex text-xs pointer-events-none">
-            <span>{location.country}</span>|<span>{location.city}</span>
-          </div>
+          <ArtistCountry
+            color="text-cream"
+            artistCountry={location}
+            showFlag={true}
+          />
         </div>
       )}
 

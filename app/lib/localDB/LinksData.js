@@ -65,10 +65,45 @@ export const administrationLinks = [
   },
   {
     href: "/administration/reports",
-    text: "Reports and Feedbacks",
+    text: "Reports",
   },
   {
     href: "/administration/audit",
     text: "Audit",
+  },
+];
+
+export const footerData = [
+  {
+    title: "Support",
+    items: [
+      { text: "Contact Us", action: "contact" },
+      { text: "Feedback", action: "feedback" },
+      { text: "Report a Problem", action: "report" },
+      { text: "FAQ", href: "/support/faq" },
+      { text: "Help Center", href: "/support/help-center" },
+    ],
+  },
+  {
+    title: "Legal",
+    items: [
+      { text: "Terms & Conditions", href: "/support/terms-and-conditions" },
+      { text: "Privacy Policy", href: "/support/privacy-policy" },
+      { text: "Cookies", href: "/support/cookies" },
+    ],
+  },
+  {
+    title: "Discover",
+    items: [
+      { text: "Soundfolio", href: "/showcase" },
+      { text: "Artists", href: "/artists" },
+      { text: "Events", href: "/events" },
+      { text: "Clubs", href: "/clubs" },
+      { text: "Festivals", href: "/festivals" },
+    ],
+  },
+  {
+    title: "Company",
+    items: [{ text: "About Us", href: "/support/about" }],
   },
 ];

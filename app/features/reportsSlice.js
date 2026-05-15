@@ -2,7 +2,7 @@ import { createSlice } from "@reduxjs/toolkit";
 
 const initialState = {
   isOpen: false,
-  type: null, // "bug" or "feedback"
+  type: null, // "contact" | "report" | "feedback"
 };
 
 const reportsSlice = createSlice({
@@ -11,7 +11,7 @@ const reportsSlice = createSlice({
   reducers: {
     openReportModal: (state, action) => {
       state.isOpen = true;
-      state.type = action.payload; 
+      state.type = action.payload;
     },
     closeReportModal: (state) => {
       state.isOpen = false;

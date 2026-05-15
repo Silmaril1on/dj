@@ -1,5 +1,4 @@
-import Reports from "@/app/pages/administration/reports/Reports";
-import { cookies } from "next/headers";
+import Reports from "@/app/(routes)/administration/reports/Reports";
 import { getFeedbacks } from "@/app/lib/services/admin/reports/bugsAndFeedbacks";
 
 export const dynamic = "force-dynamic";
@@ -7,9 +6,10 @@ export const dynamic = "force-dynamic";
 const FeedbacksSlot = async () => {
   let feedbacks = [];
   try {
-    const cookieStore = await cookies();
-    feedbacks = await getFeedbacks(cookieStore, { status: "pending" });
-  } catch {}
+    feedbacks = await getFeedbacks({ status: "pending" });
+  } catch (e) {
+    console.error("[FeedbacksSlot]", e);
+  }
   return <Reports data={feedbacks} type="feedback" />;
 };
 

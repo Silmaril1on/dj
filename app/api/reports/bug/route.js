@@ -1,14 +1,14 @@
 import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import {
-  getBugReports,
-  submitBugReport,
-  deleteBugReport,
+  getReports,
+  submitReport,
+  deleteReport,
 } from "@/app/lib/services/admin/reports/bugsAndFeedbacks";
 
 export async function GET() {
   try {
-    const reports = await getBugReports();
+    const reports = await getReports();
     return NextResponse.json({ reports });
   } catch (err) {
     return NextResponse.json(
@@ -22,7 +22,7 @@ export async function POST(request) {
   try {
     const cookieStore = await cookies();
     const { title, content } = await request.json();
-    const result = await submitBugReport(cookieStore, { title, content });
+    const result = await submitReport(cookieStore, { title, content });
     return NextResponse.json(result);
   } catch (err) {
     return NextResponse.json(
@@ -35,7 +35,7 @@ export async function POST(request) {
 export async function DELETE(request) {
   try {
     const { id } = await request.json();
-    const result = await deleteBugReport(id);
+    const result = await deleteReport(id);
     return NextResponse.json(result);
   } catch (err) {
     return NextResponse.json(
@@ -44,4 +44,3 @@ export async function DELETE(request) {
     );
   }
 }
-

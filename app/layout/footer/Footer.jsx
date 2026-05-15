@@ -1,9 +1,9 @@
 "use client";
 import { useDispatch, useSelector } from "react-redux";
 import { openReportModal } from "@/app/features/reportsSlice";
-import { openPrivacyTermsModal } from "@/app/features/privacyTermsSlice";
-import { setError } from "@/app/features/modalSlice"; // ✅ import setError
+import { setError } from "@/app/features/modalSlice";
 import { appSocialLinks } from "@/app/lib/localDB/pageInfoData";
+import { footerData } from "@/app/lib/localDB/LinksData";
 import SocialLinks from "@/app/components/materials/SocialLinks";
 import Paragraph from "@/app/components/ui/Paragraph";
 import Logo from "@/app/components/ui/Logo";
@@ -16,7 +16,7 @@ const Footer = () => {
   const dispatch = useDispatch();
 
   const handleOpen = (type) => {
-    if (!user) {
+    if (type !== "contact" && !user) {
       dispatch(
         setError({
           message: "Please login to send feedback or report",
@@ -45,14 +45,33 @@ const Footer = () => {
           <Paragraph text="Follow Soundfolio on" />
         </div>
       </section>
-      <section className="flex flex-col lg:flex-row justify-center gap-2 lg:gap-5 items-center *:w-fit *:text-2xl *:text-gold *:hover:text-cream *:duration-300 *:cursor-pointer font-bold uppercase py-3 w-full">
-        <h1 onClick={() => handleOpen("bug")}>Contact Us</h1>
-        <h1 onClick={() => handleOpen("feedback")}>feedback</h1>
-        <h1 onClick={() => dispatch(openPrivacyTermsModal("general"))}>
-          Terms & Conditions
-        </h1>
-        <Link href="/showcase">Explore</Link>
-        <h1></h1>
+      <section className="grid grid-cols-2 lg:grid-cols-4 gap-6 lg:gap-12 py-6 w-full px-6 max-w-3xl mx-auto mb-5">
+        {footerData.map((group) => (
+          <div key={group.title} className="flex flex-col items-center gap-1">
+            <h3 className="text-gold text-2xl uppercase font-bold  pb-1">
+              {group.title}
+            </h3>
+            {group.items.map((item) =>
+              item.href ? (
+                <Link
+                  key={item.text}
+                  href={item.href}
+                  className="text-chino hover:text-cream secondary text-xs duration-300"
+                >
+                  {item.text}
+                </Link>
+              ) : (
+                <button
+                  key={item.text}
+                  onClick={() => handleOpen(item.action)}
+                  className="text-chino hover:text-cream secondary text-xs duration-300 cursor-pointer"
+                >
+                  {item.text}
+                </button>
+              ),
+            )}
+          </div>
+        ))}
       </section>
       <UserRegion />
       <p className="secondary text-[9px] text-chino">

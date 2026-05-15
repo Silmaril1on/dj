@@ -2,7 +2,12 @@ import { CountryFlags, getCountryCode } from "./CountryFlags";
 import FlexBox from "../containers/FlexBox";
 import Dot from "../ui/Dot";
 
-const ArtistCountry = ({ artistCountry, className, size }) => {
+const ArtistCountry = ({
+  artistCountry,
+  className,
+  size,
+  color = "text-gold",
+}) => {
   // Check if city should be displayed
   const hasValidCity =
     artistCountry?.city && artistCountry.city.toLowerCase() !== "not specified";
@@ -161,7 +166,7 @@ const ArtistCountry = ({ artistCountry, className, size }) => {
   const countryName = getCountryName(artistCountry?.country);
 
   return (
-    <div className={`items-center text-gold flex ${className}`}>
+    <div className={`items-center ${color} flex ${className}`}>
       <CountryFlags countryName={countryName} size={size} />
       <FlexBox
         type="row-start"

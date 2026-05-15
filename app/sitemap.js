@@ -42,6 +42,20 @@ const staticPages = [
   { url: `${BASE_URL}/events`, changeFrequency: "daily", priority: 0.9 },
   { url: `${BASE_URL}/festivals`, changeFrequency: "weekly", priority: 0.8 },
   { url: `${BASE_URL}/news`, changeFrequency: "weekly", priority: 0.7 },
+  {
+    url: `${BASE_URL}/terms-and-conditions`,
+    changeFrequency: "monthly",
+    priority: 0.3,
+  },
+  {
+    url: `${BASE_URL}/privacy-policy`,
+    changeFrequency: "monthly",
+    priority: 0.3,
+  },
+  { url: `${BASE_URL}/help-center`, changeFrequency: "monthly", priority: 0.4 },
+  { url: `${BASE_URL}/faq`, changeFrequency: "monthly", priority: 0.4 },
+  { url: `${BASE_URL}/cookies`, changeFrequency: "monthly", priority: 0.2 },
+  { url: `${BASE_URL}/about`, changeFrequency: "monthly", priority: 0.3 },
   // /ads intentionally excluded — low unique content, wastes crawl budget
 ].map((page) => ({ ...page, lastModified: new Date().toISOString() }));
 
