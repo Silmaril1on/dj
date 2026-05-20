@@ -1,4 +1,4 @@
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import { cookies } from "next/headers";
 import { CATEGORY_CONFIGS, VALID_CATEGORIES } from "../../categoryConfigs";
 import SingleDataProfile from "@/app/(routes)/(explore)/[category]/[id]/SingleDataProfile";
@@ -41,6 +41,7 @@ export async function generateMetadata({ params }) {
       return {
         title: `Soundfolio | ${name}`,
         description,
+        alternates: { canonical: `${PROJECT_URL}/clubs/${slug}` },
         openGraph: {
           title: `${name} | Soundfolio`,
           description,
@@ -77,6 +78,7 @@ export async function generateMetadata({ params }) {
       return {
         title: `Soundfolio | ${name}`,
         description,
+        alternates: { canonical: `${PROJECT_URL}/festivals/${slug}` },
         openGraph: {
           title: `${name} | Soundfolio`,
           description,
@@ -117,6 +119,7 @@ export async function generateMetadata({ params }) {
       return {
         title: `Soundfolio | ${displayName}`,
         description,
+        alternates: { canonical: `${PROJECT_URL}/events/${slug}` },
         openGraph: {
           title: `${displayName} | Soundfolio`,
           description,
@@ -165,6 +168,25 @@ const CategoryProfilePage = async ({ params }) => {
 
   if (!VALID_CATEGORIES.includes(category)) {
     notFound();
+  }
+
+  // Permanently redirect UUID-based URLs to their slug equivalents
+  if (IS_UUID.test(id)) {
+    const SLUG_CONFIGS = {
+      clubs: { table: "clubs", slugCol: "club_slug" },
+      festivals: { table: "festivals", slugCol: "festival_slug" },
+      events: { table: "events", slugCol: "event_slug" },
+    };
+    const cfg = SLUG_CONFIGS[category];
+    if (cfg) {
+      const { data } = await supabaseAdmin
+        .from(cfg.table)
+        .select(cfg.slugCol)
+        .eq("id", id)
+        .single();
+      const slug = data?.[cfg.slugCol];
+      if (slug) redirect(`/${category}/${slug}`);
+    }
   }
 
   const config = CATEGORY_CONFIGS[category].profile;

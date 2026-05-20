@@ -173,3 +173,102 @@ html {
   -webkit-text-fill-color: transparent;
   background-clip: text;
 }
+
+.shimmer {
+  position: relative;
+  display: inline-block;
+}
+
+.shimmer-overlay {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  color: transparent;
+  /* left -> right gradient (tight bright band in center) */
+  background: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0) 10%,
+    rgb(255, 255, 255) 20%,
+    rgba(255, 255, 255, 0) 10%
+  );
+  background-size: 200% 100%;
+  background-repeat: no-repeat;
+  /* start fully off to the left */
+  background-position: -100% 0;
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  /* keep hidden until mounted/animation begins */
+  opacity: 0;
+  will-change: background-position, opacity;
+  animation-name: shimmer-ltr;
+  animation-duration: 4.2s;
+  animation-timing-function: linear;
+  animation-iteration-count: infinite;
+}
+
+@keyframes shimmer-ltr {
+  /* The total animation duration is 3s. The visible shimmer runs
+     during the first ~1.2s (40% of 3s), then remains invisible so the
+     effect repeats every 3 seconds. */
+  0% {
+    background-position: -100% 0;
+    opacity: 0;
+  }
+  5% {
+    opacity: 1;
+  }
+  40% {
+    background-position: 100% 0;
+    opacity: 1;
+  }
+  45% {
+    opacity: 0;
+  }
+  100% {
+    background-position: 100% 0;
+    opacity: 0;
+  }
+}
+
+.lighting {
+  color: #fff;
+  font-weight: 700;
+  animation: tubelight 5s linear infinite;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+@keyframes tubelight {
+  0%,
+  18%,
+  20%,
+  50.1%,
+  60%,
+  65.1%,
+  80%,
+  90.1%,
+  92% {
+    color: #fcba1356;
+    text-shadow: none;
+  }
+
+  18.1%,
+  20.1%,
+  30%,
+  50%,
+  60.1%,
+  65%,
+  80.1%,
+  90%,
+  92.1%,
+  100% {
+    color: #fcb913;
+    text-shadow:
+      0 0 8px #fcba13af,
+      0 0 18px #fcba13af,
+      0 0 36px #fcba13af,
+      0 0 72px #fcba13af,
+      0 0 140px #fcba13af;
+  }
+}

@@ -22,6 +22,7 @@ const SubmittionCard = ({ submissions, type = "artist" }) => {
   const [loadingStates, setLoadingStates] = useState({});
   const [submissionsList, setSubmissionsList] = useState(submissions);
   const [isBulkApproving, setIsBulkApproving] = useState(false);
+  const [isBulkDeclining, setIsBulkDeclining] = useState(false);
   const [isApproving, setIsApproving] = useState(false);
   const [selectedIds, setSelectedIds] = useState(new Set());
   const isClub = type === "club";
@@ -85,6 +86,45 @@ const SubmittionCard = ({ submissions, type = "artist" }) => {
       console.error("Error approving all submissions:", error);
     } finally {
       setIsBulkApproving(false);
+    }
+  };
+
+  const handleDeclineAll = async () => {
+    if (submissionsList.length === 0) return;
+
+    setIsBulkDeclining(true);
+    try {
+      const response = await fetch(apiEndpoint, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "decline_all" }),
+      });
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        throw new Error(result?.error || "Failed to decline all submissions");
+      }
+
+      setSubmissionsList([]);
+      dispatch(
+        setError({
+          message:
+            result?.message ||
+            `${type.charAt(0).toUpperCase() + type.slice(1)} submissions declined`,
+          type: "success",
+        }),
+      );
+    } catch (error) {
+      dispatch(
+        setError({
+          message: error.message || "Failed to decline all submissions",
+          type: "error",
+        }),
+      );
+      console.error("Error declining all submissions:", error);
+    } finally {
+      setIsBulkDeclining(false);
     }
   };
 
@@ -160,6 +200,14 @@ const SubmittionCard = ({ submissions, type = "artist" }) => {
             type="success"
             onClick={handleApproveAll}
             loading={isBulkApproving}
+            disabled={submissionsList.length === 0}
+          />
+          <Button
+            text="Decline All"
+            size="small"
+            type="danger"
+            onClick={handleDeclineAll}
+            loading={isBulkDeclining}
             disabled={submissionsList.length === 0}
           />
         </div>

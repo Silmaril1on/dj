@@ -101,7 +101,7 @@ export async function POST(req) {
         // Check duplicates by venue_name + event_name + date (all 3 must match)
         let duplicateQuery = supabase
           .from("events")
-          .select("id, event_name, date")
+          .select("id, event_name, date, event_slug, links")
           .ilike("event_name", eventTitle || "");
 
         if (eventDate) duplicateQuery = duplicateQuery.eq("date", eventDate);
@@ -115,32 +115,28 @@ export async function POST(req) {
           console.error("Error checking for duplicate:", checkError);
         }
 
-        if (existingEvent) {
-          console.log(`⏭️ Skipping duplicate event: ${eventTitle}`);
-          errors.push({
-            event: eventTitle || event.id,
-            error: "Event already exists in database",
-          });
-          continue; // Skip to next event
-        }
+        // Build event data upfront — needed for schedule insertion in both branches
+        const raLink = event.contentUrl
+          ? `https://ra.co${event.contentUrl}`
+          : null;
+        const locationUrl =
+          event.venue?.location?.latitude && event.venue?.location?.longitude
+            ? `https://www.google.com/maps?q=${event.venue.location.latitude},${event.venue.location.longitude}`
+            : null;
 
-        // Insert into events table
         const eventData = {
           user_id: user.id,
           country: country,
           city: city,
           address: event.venue?.address || "Not specified",
-          location_url:
-            event.venue?.location?.latitude && event.venue?.location?.longitude
-              ? `https://www.google.com/maps?q=${event.venue.location.latitude},${event.venue.location.longitude}`
-              : null,
+          location_url: locationUrl,
           artists: artistsArray,
           promoter: event.promoters?.[0]?.name || null,
-          date: event.date ? event.date.split("T")[0] : null,
+          date: eventDate,
           doors_open: doorsOpen,
           image_url: eventImageUrls,
           description: cleanDescription,
-          links: event.contentUrl ? `https://ra.co${event.contentUrl}` : null,
+          links: null,
           event_name: eventTitle,
           event_type: event.isFestival ? "festival" : "event",
           status: "approved",
@@ -148,97 +144,43 @@ export async function POST(req) {
           minimum_age: event.minimumAge ? parseInt(event.minimumAge) : null,
         };
 
-        console.log("💾 Inserting event:", eventData);
+        // Resolved after insert or from existing record — used for schedule rows
+        let eventPageLink = raLink;
 
-        const { data: insertedData, error: insertError } = await supabase
-          .from("events")
-          .insert(eventData)
-          .select()
-          .single();
-
-        if (insertError) {
-          console.error("Insert error:", insertError);
+        if (existingEvent) {
+          console.log(`⏭️ Skipping duplicate event: ${eventTitle}`);
           errors.push({
-            event: event.title || event.id,
-            error: insertError.message,
+            event: eventTitle || event.id,
+            error: "Event already exists in database",
           });
+          eventPageLink = existingEvent.event_slug
+            ? `https://soundfolio.net/events/${existingEvent.event_slug}`
+            : existingEvent.links || raLink;
         } else {
+          console.log("💾 Inserting event:", eventData);
+
+          const { data: insertedData, error: insertError } = await supabase
+            .from("events")
+            .insert(eventData)
+            .select()
+            .single();
+
+          if (insertError) {
+            console.error("Insert error:", insertError);
+            errors.push({
+              event: event.title || event.id,
+              error: insertError.message,
+            });
+            continue; // No valid event record — skip schedules
+          }
+
           insertedEvents.push(insertedData);
           console.log(`✅ Inserted event: ${event.title}`);
-
-          // --- Artist schedule insertion ---
-          // For each lineup artist, check if they exist in our artists table
-          // (matching on name or stage_name) and create a schedule row so their
-          // profile page shows this event automatically.
-          const eventPageLink = insertedData.event_slug
+          eventPageLink = insertedData.event_slug
             ? `https://soundfolio.net/events/${insertedData.event_slug}`
-            : eventData.links;
+            : raLink;
 
-          for (const artistEntry of event.artists || []) {
-            const artistName = artistEntry.name?.trim();
-            if (!artistName) continue;
-
-            try {
-              // Two-step lookup: name first, then stage_name — avoids
-              // OR-filter edge cases with special characters in names.
-              let artistId = null;
-
-              const { data: nameMatches } = await supabase
-                .from("artists")
-                .select("id")
-                .ilike("name", artistName)
-                .limit(1);
-              artistId = nameMatches?.[0]?.id ?? null;
-
-              if (!artistId) {
-                const { data: stageMatches } = await supabase
-                  .from("artists")
-                  .select("id")
-                  .ilike("stage_name", artistName)
-                  .limit(1);
-                artistId = stageMatches?.[0]?.id ?? null;
-              }
-
-              if (!artistId) continue;
-
-              // Skip if a schedule already exists for this artist on this date.
-              const { data: existingSched } = await supabase
-                .from("artist_schedule")
-                .select("id")
-                .eq("artist_id", artistId)
-                .eq("date", eventData.date)
-                .maybeSingle();
-
-              if (existingSched) {
-                console.log(
-                  `⏭️ Schedule already exists for ${artistName} on ${eventData.date}`,
-                );
-                continue;
-              }
-
-              await supabase.from("artist_schedule").insert({
-                artist_id: artistId,
-                date: eventData.date,
-                time: eventData.doors_open || "TBA",
-                country: eventData.country || "Not specified",
-                city: eventData.city || "Not specified",
-                club_name: eventData.venue_name || "Not specified",
-                event_link: eventPageLink,
-                event_title: eventData.event_name,
-                event_location: eventData.location_url,
-                event_status: "upcoming",
-                event_type: eventData.event_type,
-              });
-
-              console.log(`✅ Added schedule for artist: ${artistName}`);
-            } catch (schedErr) {
-              // Schedule insertion is non-critical — log but don't fail the event.
-              console.error(
-                `Error inserting schedule for ${artistName}:`,
-                schedErr,
-              );
-            }
-          }
+          // Club dates (only for newly inserted events)
           if (eventData.venue_name) {
             try {
               const normalizedVenueName = eventData.venue_name
@@ -248,7 +190,6 @@ export async function POST(req) {
 
               console.log(`🔍 Checking for club match: ${normalizedVenueName}`);
 
-              // Case-insensitive search for club by name
               const { data: matchingClub, error: clubError } = await supabase
                 .from("clubs")
                 .select("id, name")
@@ -262,8 +203,6 @@ export async function POST(req) {
                   `🎯 Found matching club: ${matchingClub.name} (ID: ${matchingClub.id})`,
                 );
 
-                // Insert into club_dates table
-                // Pre-check for duplicate club date before inserting
                 const { data: existingClubDate } = await supabase
                   .from("club_dates")
                   .select("id")
@@ -311,8 +250,75 @@ export async function POST(req) {
                 "Error processing club_dates insertion:",
                 clubError,
               );
-              // Don't fail the event insertion if club_dates fails
             }
+          }
+        }
+
+        // --- Artist schedule insertion ---
+        // Runs for BOTH new and duplicate events so lineup artists are always
+        // linked even when the event already existed in the DB.
+        for (const artistEntry of event.artists || []) {
+          const artistName = artistEntry.name?.trim();
+          if (!artistName) continue;
+
+          try {
+            let artistId = null;
+
+            const { data: nameMatches } = await supabase
+              .from("artists")
+              .select("id")
+              .ilike("name", artistName)
+              .limit(1);
+            artistId = nameMatches?.[0]?.id ?? null;
+
+            if (!artistId) {
+              const { data: stageMatches } = await supabase
+                .from("artists")
+                .select("id")
+                .ilike("stage_name", artistName)
+                .limit(1);
+              artistId = stageMatches?.[0]?.id ?? null;
+            }
+
+            if (!artistId) continue;
+
+            // Duplicate check: artist + date + event title
+            // (date-only check was too broad — an artist can play two events on the same day)
+            const { data: existingSched } = await supabase
+              .from("artist_schedule")
+              .select("id")
+              .eq("artist_id", artistId)
+              .eq("date", eventData.date)
+              .ilike("event_title", eventData.event_name || "")
+              .maybeSingle();
+
+            if (existingSched) {
+              console.log(
+                `⏭️ Schedule already exists for ${artistName} — ${eventData.event_name} on ${eventData.date}`,
+              );
+              continue;
+            }
+
+            await supabase.from("artist_schedule").insert({
+              artist_id: artistId,
+              date: eventData.date,
+              time: eventData.doors_open || "TBA",
+              country: eventData.country || "Not specified",
+              city: eventData.city || "Not specified",
+              club_name: eventData.venue_name || "Not specified",
+              event_link: eventPageLink,
+              event_title: eventData.event_name,
+              event_location: eventData.location_url,
+              event_status: "upcoming",
+              event_type: eventData.event_type,
+            });
+
+            console.log(`✅ Added schedule for artist: ${artistName}`);
+          } catch (schedErr) {
+            console.error(
+              `Error inserting schedule for ${artistName}:`,
+              schedErr,
+            );
           }
         }
       } catch (eventError) {

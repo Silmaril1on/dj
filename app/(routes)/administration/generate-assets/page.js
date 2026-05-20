@@ -130,6 +130,14 @@ const TASK_LABELS = {
 
 const POLL_INTERVAL = 5000;
 
+const VIDEO_ASPECT_RATIOS = [
+  { value: "16:9", label: "16:9", desc: "Landscape" },
+  { value: "9:16", label: "9:16", desc: "Portrait" },
+  { value: "1:1", label: "1:1", desc: "Square" },
+  { value: "4:3", label: "4:3", desc: "Classic" },
+  { value: "21:9", label: "21:9", desc: "Ultra-wide" },
+];
+
 const BASE64_MIME_MAP = [
   { prefix: "/9j/", mime: "image/jpeg" },
   { prefix: "iVBORw0KGgo", mime: "image/png" },
@@ -263,6 +271,7 @@ export default function GenerateAssetsPage() {
     VIDEO_MODELS[0].duration.default,
   );
   const [videoCameraFixed, setVideoCameraFixed] = useState(false);
+  const [videoAspectRatio, setVideoAspectRatio] = useState("16:9");
   const [videoLoading, setVideoLoading] = useState(false);
   const [videoResults, setVideoResults] = useState([]);
   const [videoError, setVideoError] = useState("");
@@ -357,25 +366,44 @@ export default function GenerateAssetsPage() {
           `/api/admin/byteplus/video/status?taskId=${taskId}`,
         );
         const data = await res.json();
-        const status = data?.status;
+
+        // BytePlus may use different status strings — normalise them
+        const rawStatus = data?.status ?? data?.data?.status ?? "";
+
+        const SUCCESS_STATUSES = [
+          "succeed",
+          "succeeded",
+          "success",
+          "completed",
+          "done",
+        ];
+        const FAILURE_STATUSES = ["failed", "failure", "error"];
+
+        let normStatus = rawStatus;
+        if (SUCCESS_STATUSES.includes(rawStatus)) normStatus = "succeed";
+        if (FAILURE_STATUSES.includes(rawStatus)) normStatus = "failed";
+
+        // content is an object {video_url} OR an array [{video_url}] depending on model
+        const contentObj = Array.isArray(data?.content)
+          ? data.content[0]
+          : data?.content;
+        const videoUrl = contentObj?.video_url || contentObj?.url || "";
 
         setVideoResults((prev) =>
           prev.map((item) =>
             item.id === resultId
               ? {
                   ...item,
-                  status,
-                  url:
-                    data?.content?.[0]?.video_url ||
-                    data?.content?.[0]?.url ||
-                    item.url,
+                  status: normStatus || item.status,
+                  url: videoUrl || item.url,
                   apiError: data?.error?.message || "",
+                  _rawStatus: rawStatus,
                 }
               : item,
           ),
         );
 
-        if (status === "succeed" || status === "failed") {
+        if (normStatus === "succeed" || normStatus === "failed") {
           clearInterval(intervalId);
           delete pollingRef.current[taskId];
         }
@@ -398,13 +426,13 @@ export default function GenerateAssetsPage() {
     try {
       let imageUrl = undefined;
       if (videoTask === "i2v" && videoImageFile) {
-        try {
-          imageUrl = await uploadFileToStorage(videoImageFile);
-        } catch (err) {
-          setVideoError(err.message || "Image upload failed.");
-          setVideoLoading(false);
-          return;
-        }
+        imageUrl = await new Promise((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onload = () => resolve(reader.result);
+          reader.onerror = () =>
+            reject(new Error("Failed to read image file."));
+          reader.readAsDataURL(videoImageFile);
+        });
       }
 
       const res = await fetch("/api/admin/byteplus/video", {
@@ -417,6 +445,7 @@ export default function GenerateAssetsPage() {
           resolution: videoResolution,
           duration: videoDuration,
           cameraFixed: videoCameraFixed,
+          aspectRatio: videoAspectRatio,
           taskType: videoTask,
         }),
       });
@@ -748,8 +777,32 @@ export default function GenerateAssetsPage() {
                     </div>
                   </div>
 
+                  {/* Aspect Ratio */}
+                  <div>
+                    <label className="block text-xs text-gold/50 mb-2 uppercase tracking-wide">
+                      Aspect Ratio
+                    </label>
+                    <div className="flex gap-1 ">
+                      {VIDEO_ASPECT_RATIOS.map((ar) => (
+                        <button
+                          key={ar.value}
+                          type="button"
+                          onClick={() => setVideoAspectRatio(ar.value)}
+                          className={`px-2 py-1 text-[10px] font-bold uppercase border transition-colors ${
+                            videoAspectRatio === ar.value
+                              ? "bg-gold text-black border-gold"
+                              : "border-gold/30 text-gold hover:border-gold/60"
+                          }`}
+                          title={ar.desc}
+                        >
+                          {ar.label}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
                   {/* Camera fixed */}
-                  <div className="pt-2">
+                  <div>
                     <input
                       id="cameraFixed"
                       type="checkbox"
@@ -828,6 +881,12 @@ export default function GenerateAssetsPage() {
                               </p>
                             </div>
                             <StatusBadge status={item.status} />
+                            {item._rawStatus &&
+                              item._rawStatus !== item.status && (
+                                <span className="text-[10px] text-gold/40 font-mono ml-1">
+                                  (raw: {item._rawStatus})
+                                </span>
+                              )}
                           </div>
 
                           {(item.status === "running" ||

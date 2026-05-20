@@ -113,7 +113,7 @@ export default function RaEvents() {
   const [insertingSchedule, setInsertingSchedule] = useState(false);
   const [insertingData, setInsertingData] = useState(false);
   const [insertSuccess, setInsertSuccess] = useState(null);
-  const [insertClubs, setInsertClubs] = useState(true);
+  const [insertClubs, setInsertClubs] = useState(false);
 
   const handleStart = async () => {
     if (!url.trim()) {

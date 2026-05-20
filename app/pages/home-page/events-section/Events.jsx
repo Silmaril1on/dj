@@ -226,7 +226,7 @@ const Panel = ({ open, setOpen, event, onEventUpdate, isFirst = false }) => {
             icon={<FaLink />}
           />
           <MyLink
-            href={`events/${event.id}`}
+            href={`events/${event.event_slug || event.id}`}
             ariaLabel={`View details for ${event.event_name}`}
             text="View Details"
             icon={<FaArrowRight />}

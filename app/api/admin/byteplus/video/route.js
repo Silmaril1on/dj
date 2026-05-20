@@ -21,6 +21,7 @@ export async function POST(request) {
       resolution,
       duration,
       cameraFixed,
+      aspectRatio,
       taskType,
     } = body;
 
@@ -37,16 +38,22 @@ export async function POST(request) {
     if (duration) textContent += ` --duration ${duration}`;
     if (cameraFixed !== undefined)
       textContent += ` --camerafixed ${cameraFixed}`;
+    if (aspectRatio) textContent += ` --aspect_ratio ${aspectRatio}`;
 
     const content = [{ type: "text", text: textContent }];
 
     if (taskType === "i2v" && imageUrl) {
-      const urlObj = new URL(imageUrl); // validates URL
-      if (!["https:", "http:"].includes(urlObj.protocol)) {
-        return NextResponse.json(
-          { error: "Invalid image URL" },
-          { status: 400 },
-        );
+      // Accept both https:// public URLs and data: base64 URLs
+      const isDataUrl =
+        typeof imageUrl === "string" && imageUrl.startsWith("data:");
+      if (!isDataUrl) {
+        const urlObj = new URL(imageUrl); // validates URL
+        if (!["https:", "http:"].includes(urlObj.protocol)) {
+          return NextResponse.json(
+            { error: "Invalid image URL" },
+            { status: 400 },
+          );
+        }
       }
       content.push({ type: "image_url", image_url: { url: imageUrl } });
     }
@@ -57,7 +64,7 @@ export async function POST(request) {
         "Content-Type": "application/json",
         Authorization: `Bearer ${API_KEY}`,
       },
-      body: JSON.stringify({ model, content }),
+      body: JSON.stringify({ model, content, generate_audio: false }),
     });
 
     const data = await response.json();

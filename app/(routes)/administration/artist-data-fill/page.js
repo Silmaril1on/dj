@@ -3,7 +3,15 @@ import { useEffect, useState, useCallback } from "react";
 import { resolveImage } from "@/app/helpers/utils";
 import Link from "next/link";
 
-const FIELDS = ["country", "city", "birth", "description", "artist_slug"];
+const FIELDS = [
+  "name",
+  "description",
+  "bio",
+  "country",
+  "city",
+  "birth",
+  "artist_slug",
+];
 
 function isEmptyValue(v) {
   return v === null || v === undefined || v === "";
@@ -14,7 +22,7 @@ const ArtistRow = ({ artist, onChange, onSave, saving }) => {
   const displayName = artist.stage_name || artist.name;
 
   return (
-    <div className="flex flex-col lg:flex-row gap-3 border border-gold/20 bg-stone-900 p-3">
+    <div className="flex  flex-col lg:flex-row gap-3 border border-gold/20 bg-stone-900 p-3">
       {/* Image + name */}
       <div className="flex items-start gap-3 min-w-[200px]">
         <div className="w-14 h-14 shrink-0 overflow-hidden bg-stone-800 border border-gold/20">
@@ -128,10 +136,12 @@ const ArtistDataFill = () => {
             updates: [
               {
                 id,
+                name: artist.name || null,
+                description: artist.description || null,
+                bio: artist.bio || null,
                 country: artist.country || null,
                 city: artist.city || null,
                 birth: artist.birth || null,
-                description: artist.description || null,
                 artist_slug: artist.artist_slug || null,
               },
             ],
@@ -157,7 +167,7 @@ const ArtistDataFill = () => {
 
   return (
     <div className="min-h-screen bg-black text-cream px-4 py-8">
-      <div className="max-w-6xl mx-auto space-y-6">
+      <div className="w-full space-y-6">
         <h1 className="text-gold text-2xl font-bold uppercase">
           Artist Data Fill
         </h1>

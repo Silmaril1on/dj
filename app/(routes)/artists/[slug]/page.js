@@ -1,20 +1,35 @@
 import ArtistProfile from "./ArtistProfile";
 import { capitalizeTitle } from "@/app/helpers/utils";
-import { getServerUser } from "@/app/lib/config/supabaseServer";
+import { getServerUser, supabaseAdmin } from "@/app/lib/config/supabaseServer";
 import { cookies } from "next/headers";
 import { cache } from "react";
+import { redirect } from "next/navigation";
 import { getArtistProfile } from "@/app/lib/services/artists/artistProfile";
 import { getArtistLikesCount } from "@/app/lib/services/artists/artistLikes";
 import { getArtistScheduleCount } from "@/app/lib/services/artists/artistSchedule";
 import { getArtistUserData } from "@/app/lib/services/artists/getArtistUserData";
 import JsonLd from "@/app/components/ui/JsonLd";
 
+const IS_UUID =
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+
 const getProfile = cache(getArtistProfile);
 
 export const generateMetadata = async ({ params }) => {
   const { slug } = await params;
   try {
-    const artist = await getProfile(slug);
+    // Resolve slug for UUID-based URLs
+    let resolvedSlug = slug;
+    if (IS_UUID.test(slug)) {
+      const { data } = await supabaseAdmin
+        .from("artists")
+        .select("artist_slug")
+        .eq("id", slug)
+        .single();
+      resolvedSlug = data?.artist_slug || slug;
+    }
+
+    const artist = await getProfile(resolvedSlug);
     const artistName = capitalizeTitle(
       artist?.stage_name || artist?.name || "Artist",
     );
@@ -30,11 +45,14 @@ export const generateMetadata = async ({ params }) => {
     return {
       title: `Soundfolio | ${artistName}`,
       description,
+      alternates: {
+        canonical: `${process.env.PROJECT_URL}/artists/${resolvedSlug}`,
+      },
       openGraph: {
         title: `${artistName} | Soundfolio`,
         description,
         type: "profile",
-        url: `${process.env.PROJECT_URL}/artists/${slug}`,
+        url: `${process.env.PROJECT_URL}/artists/${resolvedSlug}`,
         images: [
           { url: artistImage, width: 1200, height: 630, alt: artistName },
         ],
@@ -56,6 +74,17 @@ export const generateMetadata = async ({ params }) => {
 const ArtistProfilePage = async ({ params }) => {
   try {
     const { slug } = await params;
+
+    // Permanently redirect UUID-based URLs to their slug equivalents
+    if (IS_UUID.test(slug)) {
+      const { data } = await supabaseAdmin
+        .from("artists")
+        .select("artist_slug")
+        .eq("id", slug)
+        .single();
+      if (data?.artist_slug) redirect(`/artists/${data.artist_slug}`);
+    }
+
     const cookieStore = await cookies();
     const { user } = await getServerUser(cookieStore);
     const artist = await getProfile(slug);

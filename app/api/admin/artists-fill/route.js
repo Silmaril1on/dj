@@ -18,7 +18,7 @@ export async function GET(request) {
     const { data, error } = await supabaseAdmin
       .from("artists")
       .select(
-        "id, name, stage_name, image_url, artist_slug, country, city, birth, desc, status",
+        "id, name, stage_name, image_url, artist_slug, country, city, birth, desc, bio, status",
       )
       .eq("status", status)
       .or(
@@ -34,6 +34,7 @@ export async function GET(request) {
     const normalized = (data || []).map((a) => ({
       ...a,
       description: a.desc,
+      bio: a.bio ?? "",
     }));
 
     return NextResponse.json({ artists: normalized });

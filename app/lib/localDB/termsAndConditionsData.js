@@ -304,82 +304,130 @@ export const generalTermsAndConditionsData = {
 
 export const privacyPolicyData = {
   title: "Soundfolio Privacy Policy",
-  lastUpdated: "December 2024",
+  lastUpdated: "May 2026",
+
   sections: [
     {
       title: "Information We Collect",
       items: [
-        "Personal data such as name, email address, and password during registration.",
-        "Profile data such as images, descriptions, and links provided by users.",
-        "Event, club, and artist information submitted to the platform.",
-        "Technical data such as IP addresses, browser type, and usage patterns.",
+        "Personal information such as name, email address, password, and account credentials during registration.",
+        "Profile information such as profile images, biographies, links, artist details, club information, festival information, and other content voluntarily submitted by users.",
+        "Technical information such as IP address, browser type, device information, cookies, authentication logs, and usage activity.",
+        "Google account information when users choose to sign in with Google, including Google account email address, profile name, profile image, and Google account unique identifier.",
       ],
     },
+
+    {
+      title: "Google User Data",
+      items: [
+        "Soundfolio uses Google Sign-In and Google OAuth services for authentication and account access.",
+        "When users authenticate using Google, Soundfolio may access basic Google user data including email address, name, profile image, and Google account ID.",
+        "Google user data is only used for authentication, account creation, profile management, session security, and user identification within the platform.",
+        "Soundfolio does not access Google Drive, Gmail, Calendar, Contacts, or other Google services unless explicitly requested and authorized by the user.",
+      ],
+    },
+
     {
       title: "How We Use Your Data",
       items: [
-        "To manage user accounts and authentication.",
-        "To review and approve submitted content.",
-        "To send notifications and administrative messages (including approval/rejection emails).",
-        "To improve platform functionality, security, and user experience.",
+        "To create, manage, and authenticate user accounts.",
+        "To provide platform functionality and personalized user experiences.",
+        "To review, moderate, approve, or reject submitted content.",
+        "To send notifications, verification emails, administrative messages, and support communications.",
+        "To maintain platform security, prevent abuse, detect fraud, and monitor suspicious activity.",
+        "To improve platform performance, stability, features, and overall user experience.",
       ],
     },
+
     {
       title: "Data Sharing",
       items: [
-        "We do not sell or rent personal data to third parties.",
-        "Data may be shared with service providers (e.g., Cloudinary for image hosting, email APIs) strictly for operational purposes.",
-        "We may disclose data if required by law or to protect our rights.",
+        "Soundfolio does not sell, rent, or trade personal information or Google user data to third parties.",
+        "Data may be shared with trusted infrastructure and operational service providers strictly required to operate the platform, including hosting providers, database services, image hosting services, authentication systems, analytics services, and email delivery providers.",
+        "Google user data is never shared with third parties for advertising or marketing purposes.",
+        "Information may be disclosed if required by law, legal process, governmental request, or to protect the rights, security, and integrity of Soundfolio and its users.",
       ],
     },
+
     {
-      title: "Cookies & Tracking",
+      title: "Cookies & Tracking Technologies",
       items: [
-        "Soundfolio uses essential cookies for login sessions and authentication.",
-        "Optional analytics cookies may be used to understand platform usage.",
-        "You can disable cookies in your browser settings, but this may affect functionality.",
+        "Soundfolio uses essential cookies and authentication tokens required for login sessions, account security, and platform functionality.",
+        "Optional analytics technologies may be used to understand usage patterns, diagnose issues, and improve user experience.",
+        "Users may disable cookies through browser settings, though some platform functionality may become unavailable.",
       ],
     },
+
     {
-      title: "Data Security",
+      title: "Data Storage & Protection",
       items: [
-        "We implement technical and organizational measures to protect your information.",
-        "While we strive for security, no online platform can guarantee 100% protection.",
+        "We implement technical and organizational security measures designed to protect personal information and Google user data against unauthorized access, misuse, loss, disclosure, or alteration.",
+        "Security measures include HTTPS encryption, secure authentication systems, restricted administrative access, protected infrastructure, and server-side validation.",
+        "While we continuously work to protect user information, no internet-based service can guarantee absolute security.",
       ],
     },
+
+    {
+      title: "Data Retention & Deletion",
+      items: [
+        "We retain personal information and Google user data only for as long as necessary to provide platform functionality and fulfill the purposes described in this Privacy Policy.",
+        "Inactive accounts, declined submissions, or unused data may be deleted after a reasonable retention period.",
+        "Users may request account deletion and permanent removal of personal information at any time.",
+        "Deletion requests can be submitted by contacting support@soundfolio.net or privacy@soundfolio.net.",
+        "Upon verified deletion requests, associated Google user data and personal information will be permanently removed from our active systems within a reasonable timeframe unless retention is legally required.",
+      ],
+    },
+
     {
       title: "Your Rights",
       items: [
-        "You may request access, correction, or deletion of your data at any time.",
-        "Requests can be made via support@soundfolio.net.",
-        "Account deletion requests will result in permanent removal of personal data.",
+        "Users may request access to the personal information associated with their account.",
+        "Users may request correction, update, export, or deletion of their personal data.",
+        "Users may withdraw consent for optional data processing activities where applicable.",
+        "Requests related to privacy or personal data may be submitted to support@soundfolio.net.",
       ],
     },
+
     {
-      title: "Data Retention",
+      title: "International Data Transfers",
       items: [
-        "We retain personal data only as long as necessary for the purposes described.",
-        "Inactive accounts or declined submissions may be deleted after a reasonable period.",
+        "If user data is processed or stored outside the user's country or jurisdiction, Soundfolio takes reasonable steps to ensure equivalent levels of data protection and security.",
       ],
     },
+
     {
-      title: "International Transfers",
+      title: "Third-Party Services",
       items: [
-        "If data is processed outside your country, we ensure it is protected under equivalent data protection standards.",
+        "Soundfolio may integrate with third-party platforms and infrastructure providers including authentication services, cloud hosting providers, analytics providers, image hosting services, and communication providers.",
+        "Third-party services process data only as necessary to provide their respective functionality and services to Soundfolio.",
       ],
     },
+
     {
-      title: "Updates to This Policy",
+      title: "Children's Privacy",
       items: [
-        "We may update this Privacy Policy periodically.",
-        "Users will be notified of significant changes via email or website notice.",
+        "Soundfolio is not intended for children under the age required by applicable local laws.",
+        "We do not knowingly collect personal information from children without appropriate legal consent.",
+      ],
+    },
+
+    {
+      title: "Updates to This Privacy Policy",
+      items: [
+        "We may update or modify this Privacy Policy periodically to reflect legal, technical, or operational changes.",
+        "Users may be notified of significant updates through email notifications, platform notices, or website announcements.",
+        "Continued use of Soundfolio after updates constitutes acceptance of the revised Privacy Policy.",
       ],
     },
   ],
+
   footer: {
-    note: "By using Soundfolio, you consent to this Privacy Policy and our handling of your personal data as described.",
-    contact: "For privacy concerns, contact privacy@soundfolio.net.",
-    version: "Version 1.0 - December 2024",
+    note: "By using Soundfolio, you acknowledge and consent to the collection, processing, storage, and handling of your personal information as described in this Privacy Policy.",
+
+    contact:
+      "For privacy-related requests or concerns, contact support@soundfolio.net or privacy@soundfolio.net.",
+
+    version: "Version 2.0 - May 2026",
   },
 };
 

@@ -645,8 +645,48 @@ const HowToGet = ({ data, type }) => {
             initial={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0 }}
             transition={{ duration: 0.25, ease: "easeIn" }}
-            className="flex items-start pl-2 lg:pl-4 py-4"
+            className="grid grid-cols-2 items-center pl-2 lg:pl-4 py-4 gap-6"
           >
+            {/* Left: feature list */}
+            <div className="flex flex-col gap-4">
+              <p className="text-gold text-sm uppercase tracking-widest primary font-bold">
+                What you get
+              </p>
+              <ul className="flex flex-col gap-3">
+                {[
+                  {
+                    icon: <FiNavigation size={13} />,
+                    label: "Distance from your location",
+                  },
+                  {
+                    icon: <FiMapPin size={13} />,
+                    label: "Multiple route directions",
+                  },
+                  {
+                    icon: <MdOutlineLocalParking size={13} />,
+                    label: "Nearby parking spots",
+                  },
+                  {
+                    icon: <MdLocalHotel size={13} />,
+                    label: "Hotels within 5 km radius",
+                  },
+                  {
+                    icon: <FiRadio size={13} />,
+                    label: "Transit stations nearby",
+                  },
+                ].map(({ icon, label }) => (
+                  <li
+                    key={label}
+                    className="flex items-center secondary gap-2 text-xs text-chino"
+                  >
+                    <span className="text-gold/60 flex-shrink-0">{icon}</span>
+                    <span>{label}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+
+            {/* Right: reveal button */}
             <button
               onClick={() => setMapRevealed(true)}
               className="group relative w-64 h-64 bg-stone-900 border border-gold/20 flex flex-col items-center justify-center gap-4 overflow-hidden transition-all duration-300 hover:border-gold/50 hover:bg-stone-900/80"

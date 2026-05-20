@@ -54,6 +54,11 @@ export async function PATCH(request, { params }) {
       return NextResponse.json(result);
     }
 
+    if (action === "decline_all") {
+      const result = await updateAllSubmissions(type, "decline");
+      return NextResponse.json(result);
+    }
+
     if (!id) {
       return NextResponse.json(
         { error: "id is required for single submission update" },

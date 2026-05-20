@@ -107,16 +107,21 @@ export async function POST(req) {
           }
 
           if (!artistId) {
-            skipped.push({ artist: artistName, reason: "Not in artists table" });
+            skipped.push({
+              artist: artistName,
+              reason: "Not in artists table",
+            });
             continue;
           }
 
-          // Skip duplicates (same artist, same date)
+          // Duplicate check: artist + date + event title
+          // (date-only was too broad — an artist can play two events on the same day)
           const { data: existing } = await admin
             .from("artist_schedule")
             .select("id")
             .eq("artist_id", artistId)
             .eq("date", eventDate)
+            .ilike("event_title", eventTitle || "")
             .maybeSingle();
 
           if (existing) {
