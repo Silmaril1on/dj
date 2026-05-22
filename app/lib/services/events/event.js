@@ -394,9 +394,10 @@ export async function createEvent(formData, cookieStore) {
     }
   }
 
-  console.log("[createEvent] Inserting event into DB:", {
+  console.log("[createEvent] Starting event insert:", {
     event_name: fields.event_name,
-    status: "pending",
+    date: fields.date,
+    artists,
     user_id: user.id,
   });
 
@@ -405,6 +406,7 @@ export async function createEvent(formData, cookieStore) {
     .insert({
       user_id: user.id,
       ...fields,
+      status: "pending",
       artists,
       image_url: eventImageUrls,
       created_at: new Date().toISOString(),
@@ -420,40 +422,124 @@ export async function createEvent(formData, cookieStore) {
     throw new ServiceError("Failed to create event", 500);
   }
 
-  console.log(
-    "[createEvent] Event created successfully. id:",
-    event.id,
-    "image_url:",
-    event.image_url,
-  );
+  console.log("[createEvent] ✅ Event inserted into DB:", {
+    id: event.id,
+    event_name: event.event_name,
+    date: event.date,
+    country: event.country,
+    city: event.city,
+    venue_name: event.venue_name,
+    artists: artists,
+    status: event.status,
+  });
 
-  // Attempt to link artist_schedule entries (best-effort)
-  if (artists.length) {
-    const { data: matched } = await supabase
-      .from("artists")
-      .select("id, name, stage_name")
-      .or(
-        artists.map((n) => `name.ilike.${n},stage_name.ilike.${n}`).join(","),
+  // Link artist_schedule entries (best-effort, per-artist, with duplicate check)
+  const scheduleInserted = [];
+  const scheduleSkipped = [];
+
+  for (const artistName of artists) {
+    if (!artistName?.trim()) continue;
+
+    try {
+      // Two-step lookup — same approach as the RA events insert route
+      let artistId = null;
+      let artistRecord = null;
+
+      const { data: nameMatches } = await supabase
+        .from("artists")
+        .select("id, name, user_id")
+        .ilike("name", artistName.trim())
+        .limit(1);
+      artistRecord = nameMatches?.[0] ?? null;
+      artistId = artistRecord?.id ?? null;
+
+      if (!artistId) {
+        const { data: stageMatches } = await supabase
+          .from("artists")
+          .select("id, name, user_id")
+          .ilike("stage_name", artistName.trim())
+          .limit(1);
+        artistRecord = stageMatches?.[0] ?? null;
+        artistId = artistRecord?.id ?? null;
+      }
+
+      if (!artistId) {
+        console.log(
+          `[createEvent] Artist not found in DB: "${artistName}" — skipping artist_schedule insert`,
+        );
+        scheduleSkipped.push({
+          artist: artistName,
+          reason: "Not in artists table",
+        });
+        continue;
+      }
+
+      // Duplicate check: artist + date + event title
+      const { data: existingSched } = await supabase
+        .from("artist_schedule")
+        .select("id")
+        .eq("artist_id", artistId)
+        .eq("date", fields.date)
+        .ilike("event_title", fields.event_name || "")
+        .maybeSingle();
+
+      if (existingSched) {
+        console.log(
+          `[createEvent] artist_schedule already exists for "${artistName}" on ${fields.date} — skipping`,
+        );
+        scheduleSkipped.push({ artist: artistName, reason: "Duplicate" });
+        continue;
+      }
+
+      const scheduleRow = {
+        artist_id: artistId,
+        event_id: event.id,
+        date: fields.date,
+        time: fields.doors_open || null,
+        country: fields.country,
+        city: fields.city,
+        club_name: fields.venue_name || null,
+        event_link: fields.links || null,
+        event_title: fields.event_name || null,
+        event_location: fields.location_url || null,
+        event_type: fields.event_type || null,
+        event_status: "upcoming",
+        // Only set pending if the artist has an owner — they need to approve
+        status: artistRecord?.user_id ? "pending" : "approved",
+      };
+
+      console.log(
+        `[createEvent] Inserting artist_schedule for "${artistName}" (${artistRecord?.user_id ? "owner exists → pending" : "no owner → approved"}):`,
+        scheduleRow,
       );
 
-    if (matched?.length) {
-      await supabase.from("artist_schedule").insert(
-        matched.map((a) => ({
-          artist_id: a.id,
-          event_id: event.id,
-          date: fields.date,
-          time: fields.doors_open || null,
-          country: fields.country,
-          city: fields.city,
-          club_name: fields.venue_name || null,
-          event_link: fields.location_url || null,
-          status: "pending",
-          created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString(),
-        })),
+      const { error: schedError } = await supabase
+        .from("artist_schedule")
+        .insert(scheduleRow);
+
+      if (schedError) {
+        console.error(
+          `[createEvent] artist_schedule insert error for "${artistName}":`,
+          schedError.message,
+        );
+      } else {
+        console.log(
+          `[createEvent] ✅ artist_schedule inserted for "${artistName}"`,
+        );
+        scheduleInserted.push(artistName);
+      }
+    } catch (err) {
+      console.error(
+        `[createEvent] Unexpected error processing artist "${artistName}":`,
+        err.message,
       );
     }
   }
+
+  console.log("[createEvent] artist_schedule summary:", {
+    inserted: scheduleInserted,
+    skipped: scheduleSkipped,
+  });
 
   // Update user's submitted_event_id
   const { data: userData } = await supabase

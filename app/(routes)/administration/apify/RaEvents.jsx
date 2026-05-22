@@ -113,7 +113,6 @@ export default function RaEvents() {
   const [insertingSchedule, setInsertingSchedule] = useState(false);
   const [insertingData, setInsertingData] = useState(false);
   const [insertSuccess, setInsertSuccess] = useState(null);
-  const [insertClubs, setInsertClubs] = useState(false);
 
   const handleStart = async () => {
     if (!url.trim()) {
@@ -214,7 +213,7 @@ export default function RaEvents() {
     }
   };
 
-  // from RA : insert event data and club date if club name matches to venue name from the RA event
+  // from RA : insert event data to events table + auto-link artist_schedule (status: approved)
   const handleInsertData = async () => {
     if (selectedEvents.length === 0) {
       setError("Please select at least one event");
@@ -225,65 +224,16 @@ export default function RaEvents() {
     setInsertSuccess(null);
     try {
       const eventsToInsert = selectedEvents.map((index) => results[index]);
-
-      if (insertClubs) {
-        // Insert events + clubs in parallel
-        const [eventsResponse, clubsResponse] = await Promise.all([
-          fetch("/api/events/insert", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ events: eventsToInsert }),
-          }),
-          fetch("/api/club/insert-from-apify", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ events: eventsToInsert }),
-          }),
-        ]);
-        const [eventsData, clubsData] = await Promise.all([
-          eventsResponse.json(),
-          clubsResponse.json(),
-        ]);
-        if (!eventsResponse.ok)
-          throw new Error(eventsData.error || "Failed to insert events");
-        if (!clubsResponse.ok)
-          throw new Error(clubsData.error || "Failed to insert clubs");
-        console.log("✅ Insert success (events):", eventsData);
-        console.log("✅ Insert success (clubs):", clubsData);
-        const combinedErrors = [
-          ...(eventsData.errors || []).map((err) => ({
-            ...err,
-            source: "events",
-          })),
-          ...(clubsData.errors || []).map((err) => ({
-            ...err,
-            source: "clubs",
-          })),
-        ];
-        setInsertSuccess({
-          target: "events+clubs",
-          events: eventsData,
-          clubs: clubsData,
-          errors: combinedErrors.length > 0 ? combinedErrors : undefined,
-        });
-      } else {
-        // Events only — clubs insertion skipped
-        const eventsResponse = await fetch("/api/events/insert", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ events: eventsToInsert }),
-        });
-        const eventsData = await eventsResponse.json();
-        if (!eventsResponse.ok)
-          throw new Error(eventsData.error || "Failed to insert events");
-        console.log("✅ Insert success (events only):", eventsData);
-        setInsertSuccess({
-          target: "events",
-          ...eventsData,
-          errors: eventsData.errors,
-        });
-      }
-
+      const eventsResponse = await fetch("/api/events/insert", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ events: eventsToInsert }),
+      });
+      const eventsData = await eventsResponse.json();
+      if (!eventsResponse.ok)
+        throw new Error(eventsData.error || "Failed to insert events");
+      console.log("✅ Insert success:", eventsData);
+      setInsertSuccess({ ...eventsData, errors: eventsData.errors });
       setSelectedEvents([]);
     } catch (err) {
       console.error("❌ Insert error:", err);
@@ -302,42 +252,12 @@ export default function RaEvents() {
       {/* URL Input Section */}
       <div className="bg-neutral-900 border border-gold/30 p-6 mb-6">
         <div className="">
-          {/* Club insertion toggle */}
-          <div className="flex items-center gap-3 mb-5">
-            <button
-              role="switch"
-              aria-checked={insertClubs}
-              onClick={() => setInsertClubs((v) => !v)}
-              className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 focus:outline-none ${
-                insertClubs ? "bg-gold" : "bg-neutral-600"
-              }`}
-            >
-              <span
-                className={`pointer-events-none inline-block h-5 w-5 rounded-full bg-white shadow transform transition-transform duration-200 ${
-                  insertClubs ? "translate-x-5" : "translate-x-0"
-                }`}
-              />
-            </button>
-            <span className="text-sm font-medium text-cream">
-              Club data insertion
-            </span>
-            <span
-              className={`text-xs px-2 py-0.5 rounded-full font-mono ${
-                insertClubs
-                  ? "bg-gold/20 text-gold"
-                  : "bg-neutral-700 text-neutral-400"
-              }`}
-            >
-              {insertClubs ? "ON" : "OFF"}
-            </span>
-          </div>
-
           <label className="block text-sm font-bold uppercase text-cream ">
             RA Events URLS
           </label>
           <p className="secondary text-xs mb-3">
             Scrapper for Resident Advisory Events or multiple Events with synced
-            data, including club insertion to database. data{" "}
+            data, auto-links artist schedules with approved status.
           </p>
           <textarea
             value={url}
@@ -368,23 +288,9 @@ export default function RaEvents() {
       {insertSuccess && (
         <div className="bg-green-900/20 border border-green-500/50 text-green-300 px-4 py-3 mb-6">
           <p className="font-semibold">✅ Success!</p>
-          {insertSuccess.target === "events+clubs" ? (
-            <>
-              <p>
-                Events: Inserted {insertSuccess.events?.inserted || 0} of{" "}
-                {insertSuccess.events?.total || 0}
-              </p>
-              <p>
-                Clubs: Inserted {insertSuccess.clubs?.inserted || 0} of{" "}
-                {insertSuccess.clubs?.total || 0}
-              </p>
-            </>
-          ) : (
-            <p>
-              Inserted {insertSuccess.inserted} of {insertSuccess.total}{" "}
-              {insertSuccess.target || "events"}
-            </p>
-          )}
+          <p>
+            Inserted {insertSuccess.inserted} of {insertSuccess.total} events
+          </p>
           {insertSuccess.errors && insertSuccess.errors.length > 0 && (
             <div className="mt-2">
               <p className="text-sm text-red-300">Some items failed:</p>

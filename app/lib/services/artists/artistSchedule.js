@@ -39,6 +39,7 @@ export async function getArtistSchedules(artistId) {
     .from("artist_schedule")
     .select("*")
     .eq("artist_id", artistId)
+    .eq("status", "approved")
     .order("date", { ascending: true });
 
   if (error) throw new Error(error.message);

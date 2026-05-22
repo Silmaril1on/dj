@@ -10,7 +10,6 @@ import { AnimatePresence, motion } from "framer-motion";
 import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useRouter } from "next/navigation";
-import { IoMdClose } from "react-icons/io";
 import Button from "@/app/components/buttons/Button";
 import UserVerificationModal from "@/app/components/modals/UserVerificationModal";
 import Close from "../buttons/Close";

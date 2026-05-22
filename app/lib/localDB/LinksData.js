@@ -50,6 +50,7 @@ export const administrationLinks = [
       { href: "/administration/task-manager", text: "Task Manager" },
       { href: "/administration/apify", text: "APIFY" },
       { href: "/administration/artist-data-fill", text: "Artist Data Fill" },
+      { href: "/administration/club-data-fill", text: "Club Data Fill" },
       { href: "/administration/generate-assets", text: "Seedream" },
       { href: "/administration/branding", text: "Branding" },
     ],

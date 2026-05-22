@@ -168,13 +168,18 @@ const ProfileActions = ({ data, type, config, currentUserId = null }) => {
       {/* Rating (clubs and festivals only) */}
       {(type === "club" || type === "festival") && (
         <div className="center space-x-2">
+          <SpanText
+            size="xs"
+            text="Your Rating"
+            className="ml-2 secondary pointer-events-none"
+          />
           <RatingButton
             entityType={type}
             artist={{ id: data.id, name: data.name }}
             ratingStats={ratingStats}
             userRating={userRating}
             size={16}
-            showValue={true}
+            showValue={false}
           />
         </div>
       )}

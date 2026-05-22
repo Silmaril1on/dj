@@ -34,11 +34,7 @@ const MyLink = ({
       className={`inline-flex items-center justify-center gap-2 p-1 duration-300 ${sizeClasses[size]} ${colorClasses[color]} ${className}`}
       {...externalProps}
     >
-      {icon && (
-        <span className="flex items-center justify-center text-base leading-none">
-          {icon}
-        </span>
-      )}
+      {icon && <span className="flex items-center justify-center">{icon}</span>}
 
       <span className="leading-none">{text}</span>
     </Link>

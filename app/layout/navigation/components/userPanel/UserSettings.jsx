@@ -5,6 +5,7 @@ import {
   MdSecurity,
   MdEventAvailable,
   MdVerifiedUser,
+  MdCalendarMonth,
 } from "react-icons/md";
 import { IoMusicalNotes } from "react-icons/io5";
 import PopUpBox from "@/app/components/containers/PopUpBox";
@@ -16,6 +17,7 @@ import ProfilePicture from "@/app/components/materials/ProfilePicture";
 import { FaHouse } from "react-icons/fa6";
 import { MdFestival } from "react-icons/md";
 import UserVerificationModal from "@/app/components/modals/UserVerificationModal";
+import ScheduleModal from "@/app/components/modals/ScheduleModal";
 
 const UserSettings = ({
   onLogout,
@@ -26,6 +28,7 @@ const UserSettings = ({
   user,
 }) => {
   const [verifyModalOpen, setVerifyModalOpen] = useState(false);
+  const [scheduleModalOpen, setScheduleModalOpen] = useState(false);
 
   return (
     <>
@@ -38,6 +41,7 @@ const UserSettings = ({
           toggleSettings={toggleSettings}
           user={user}
           onVerifyClick={() => setVerifyModalOpen(true)}
+          onSchedulesClick={() => setScheduleModalOpen(true)}
         />
         <div className="border-t border-gold/30">
           <Button size="small" text="Logout" onClick={onLogout} />
@@ -46,6 +50,10 @@ const UserSettings = ({
       <UserVerificationModal
         isOpen={verifyModalOpen}
         onClose={() => setVerifyModalOpen(false)}
+      />
+      <ScheduleModal
+        isOpen={scheduleModalOpen}
+        onClose={() => setScheduleModalOpen(false)}
       />
     </>
   );
@@ -76,7 +84,12 @@ const SettingsHeader = ({ avatar_url, isVerified }) => {
   );
 };
 
-const SettingsOption = ({ toggleSettings, user, onVerifyClick }) => {
+const SettingsOption = ({
+  toggleSettings,
+  user,
+  onVerifyClick,
+  onSchedulesClick,
+}) => {
   return (
     <div className="flex flex-col items-start">
       <MyLink
@@ -88,7 +101,7 @@ const SettingsOption = ({ toggleSettings, user, onVerifyClick }) => {
       {user.submitted_artist_slug && (
         <MyLink
           href={`/artists/${user.submitted_artist_slug}`}
-          text="My Artist Profile"
+          text="Artist Profile"
           icon={<IoMusicalNotes />}
           onClick={toggleSettings}
         />
@@ -96,16 +109,15 @@ const SettingsOption = ({ toggleSettings, user, onVerifyClick }) => {
       {user.submitted_club_slug && (
         <MyLink
           href={`/clubs/${user.submitted_club_slug}`}
-          text="My Club Profile"
+          text="Club Profile"
           icon={<FaHouse size={15} />}
           onClick={toggleSettings}
-          className="pl-[1px]"
         />
       )}
       {user.submitted_festival_slug && (
         <MyLink
           href={`/festivals/${user.submitted_festival_slug}`}
-          text="My Festival Profile"
+          text="Festival Profile"
           icon={<MdFestival />}
           onClick={toggleSettings}
         />
@@ -124,6 +136,14 @@ const SettingsOption = ({ toggleSettings, user, onVerifyClick }) => {
         icon={<MdSecurity />}
         onClick={toggleSettings}
       />
+      {user.submitted_artist_slug && (
+        <MyLink
+          href="#"
+          text="Schedules"
+          icon={<MdCalendarMonth />}
+          onClick={onSchedulesClick}
+        />
+      )}
       {!(user.profile_verified && user.email_verified) && (
         <MyLink
           href="#"

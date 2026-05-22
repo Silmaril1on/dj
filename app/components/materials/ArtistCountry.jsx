@@ -1,4 +1,4 @@
-import { CountryFlags, getCountryCode } from "./CountryFlags";
+import { CountryFlags } from "./CountryFlags";
 import FlexBox from "../containers/FlexBox";
 import Dot from "../ui/Dot";
 

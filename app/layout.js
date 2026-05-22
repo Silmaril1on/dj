@@ -12,7 +12,7 @@ import ModalRoot from "./components/modals/ModalRoot";
 const jost = Jost({
   variable: "--font-jost",
   subsets: ["latin"],
-  weight: ["400", "500", "900"],
+  weight: ["200", "400", "500", "900"],
   display: "swap",
 });
 

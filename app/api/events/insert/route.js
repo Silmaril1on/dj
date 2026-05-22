@@ -311,6 +311,7 @@ export async function POST(req) {
               event_location: eventData.location_url,
               event_status: "upcoming",
               event_type: eventData.event_type,
+              status: "approved",
             });
 
             console.log(`✅ Added schedule for artist: ${artistName}`);

@@ -3,18 +3,6 @@ import { createSupabaseServerClient } from "@/app/lib/config/supabaseServer";
 import { getSupabaseAdminClient } from "@/app/lib/services/shared";
 import { cookies } from "next/headers";
 
-/**
- * POST /api/artists/schedule/insert
- *
- * Accepts an array of RA-format event objects, finds any lineup artists that
- * exist in our artists table (matched by name or stage_name), and inserts rows
- * into artist_schedule for each match.
- *
- * Called from the RaEvents admin panel.  When events have already been inserted
- * via /api/events/insert the schedules are created there with a proper internal
- * event_link; this standalone route is useful for back-filling schedules or for
- * calling before the events insert (event_link will use the RA URL in that case).
- */
 export async function POST(req) {
   try {
     const { events } = await req.json();

@@ -1,7 +1,7 @@
 import Title from "@/app/components/ui/Title";
-import ParaLink from "@/app/components/ui/ParaLink";
 import Paragraph from "../ui/Paragraph";
 import Logo from "../ui/Logo";
+import Link from "next/link";
 
 const FormContainer = ({
   title,
@@ -22,11 +22,15 @@ const FormContainer = ({
         <Paragraph text={description} />
         {children}
         {footerText && footerLinkText && footerHref && (
-          <ParaLink
-            text={footerText}
-            href={footerHref}
-            linkText={footerLinkText}
-          />
+          <p className="text-xs text-stone-200 secondary mt-3">
+            {footerText}
+            <Link
+              href={footerHref}
+              className="font-bold  text-gold/70 hover:text-gold ml-1 duration-300"
+            >
+              {footerLinkText}
+            </Link>
+          </p>
         )}
       </div>
     </div>

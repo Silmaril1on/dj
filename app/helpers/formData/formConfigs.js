@@ -577,8 +577,8 @@ export const formConfigs = {
       links: {
         type: "text",
         required: false,
-        label: "Event Links",
-        placeholder: "Enter event links (comma separated)",
+        label: "Event Link",
+        placeholder: "Enter event's external link",
       },
     },
     sections: [

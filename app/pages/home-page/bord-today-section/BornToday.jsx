@@ -8,7 +8,6 @@ import Spinner from "@/app/components/ui/Spinner";
 import ArtistName from "@/app/components/materials/ArtistName";
 import SectionContainer from "@/app/components/containers/SectionContainer";
 import SliderContainer from "@/app/components/containers/SliderContainer";
-import { fakeBornData } from "@/app/lib/localDB/fakeBornData";
 import { resolveImage } from "@/app/helpers/utils";
 import Swiper from "@/app/components/containers/Swiper";
 
@@ -62,8 +61,9 @@ const BornToday = () => {
     );
   }
 
-  const artistList = artists && artists.length > 0 ? artists : fakeBornData;
-
+  if (!artists.length) {
+    return null;
+  }
   return (
     <SectionContainer
       title="Born Today"
@@ -71,7 +71,7 @@ const BornToday = () => {
     >
       <div className="hidden lg:block">
         <SliderContainer items={artistList} itemsPerPage={4} cardWidth={260}>
-          {artistList.map((artist) => (
+          {artists?.map((artist) => (
             <div
               key={artist.id}
               className="group cursor-pointer"

@@ -162,6 +162,16 @@ export async function getSubmissions(type) {
 export async function updateSubmission(type, id, action) {
   const config = TYPE_CONFIGS[type];
   if (!config) throw new Error(`Unknown submission type: ${type}`);
+
+  if (action === "decline") {
+    const { error } = await supabaseAdmin
+      .from(config.table)
+      .delete()
+      .eq("id", id);
+    if (error) throw new Error(error.message);
+    return { success: true, message: `${type} declined and removed` };
+  }
+
   const newStatus = getStatusFromAction(action);
   const { error } = await supabaseAdmin
     .from(config.table)
@@ -176,6 +186,24 @@ export async function updateSubmission(type, id, action) {
 export async function updateAllSubmissions(type, action = "approve") {
   const config = TYPE_CONFIGS[type];
   if (!config) throw new Error(`Unknown submission type: ${type}`);
+
+  if (action === "decline") {
+    // Delete all pending submissions instead of just changing their status
+    const { data, error } = await supabaseAdmin
+      .from(config.table)
+      .delete()
+      .eq("status", "pending")
+      .select("id");
+
+    if (error) throw new Error(error.message);
+
+    const deletedCount = data?.length || 0;
+    return {
+      success: true,
+      updatedCount: deletedCount,
+      message: `${deletedCount} ${type} submission${deletedCount !== 1 ? "s" : ""} deleted successfully`,
+    };
+  }
 
   const newStatus = getStatusFromAction(action);
   const { data, error } = await supabaseAdmin

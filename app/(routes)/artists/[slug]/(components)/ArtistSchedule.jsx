@@ -115,17 +115,16 @@ const ArtistSchedule = ({
 
     // Check if user is the artist owner
     if (artistData && artistId) {
-      return user.submitted_artist_id === parseInt(artistId);
+      return parseInt(user.submitted_artist_id) === parseInt(artistId);
     }
 
     // Check if user is the club owner
     if (clubData && clubId) {
-      if (typeof user.submitted_club_id === "number") {
-        return user.submitted_club_id === parseInt(clubId);
-      }
+      const clubIdInt = parseInt(clubId);
       if (Array.isArray(user.submitted_club_id)) {
-        return user.submitted_club_id.includes(parseInt(clubId));
+        return user.submitted_club_id.map(Number).includes(clubIdInt);
       }
+      return parseInt(user.submitted_club_id) === clubIdInt;
     }
 
     return false;
@@ -185,6 +184,8 @@ const ArtistSchedule = ({
     const status = schedule.event_status || schedule.event_type || "upcoming";
     return status === activeType;
   });
+
+  console.log("Filtered Schedule Data:", filteredData);
 
   return (
     <SectionContainer title={title} description={description} className="mt-10">
@@ -286,7 +287,6 @@ const ArtistSchedule = ({
                       {schedule.event_link && (
                         <MyLink
                           color="chino"
-                          icon={<MdEvent />}
                           href={schedule.event_link}
                           text="View Event"
                           target="_blank"
@@ -295,7 +295,6 @@ const ArtistSchedule = ({
                       {schedule.event_id && (
                         <MyLink
                           color="chino"
-                          icon={<MdEvent />}
                           href={`/events/${schedule.event_id}`}
                           text="View Event Page"
                         />

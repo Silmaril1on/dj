@@ -3,29 +3,50 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import FlexBox from "@/app/components/containers/FlexBox";
 
-const ImageUploadAutomation = () => {
+const ENTITY_CONFIG = {
+  artist: {
+    label: "Artist",
+    endpoint: "/api/admin/upload-artist-images",
+    photoDir: "/public/artist-photos",
+    idKey: "artistId",
+    nameKey: "artistName",
+  },
+  club: {
+    label: "Club",
+    endpoint: "/api/admin/upload-club-images",
+    photoDir: "/public/artist-photos",
+    idKey: "clubId",
+    nameKey: "clubName",
+  },
+  festival: {
+    label: "Festival",
+    endpoint: "/api/admin/upload-festival-images",
+    photoDir: "/public/artist-photos",
+    idKey: "festivalId",
+    nameKey: "festivalName",
+  },
+};
+
+const ImageUploadAutomation = ({ entityType = "artist" }) => {
   const [loading, setLoading] = useState(false);
   const [preview, setPreview] = useState(null);
   const [result, setResult] = useState(null);
   const [showPreview, setShowPreview] = useState(false);
   const router = useRouter();
 
+  const config = ENTITY_CONFIG[entityType] ?? ENTITY_CONFIG.artist;
+
   const handlePreview = async () => {
     setLoading(true);
     setResult(null);
     try {
-      const response = await fetch("/api/admin/upload-artist-images", {
-        method: "GET",
-      });
+      const response = await fetch(config.endpoint, { method: "GET" });
       const data = await response.json();
       setPreview(data);
       setShowPreview(true);
     } catch (error) {
       console.error("Preview error:", error);
-      setResult({
-        success: false,
-        message: "Failed to load preview",
-      });
+      setResult({ success: false, message: "Failed to load preview" });
     } finally {
       setLoading(false);
     }
@@ -34,7 +55,7 @@ const ImageUploadAutomation = () => {
   const handleUpload = async () => {
     if (
       !confirm(
-        "Are you sure you want to upload images for all pending artists?",
+        `Are you sure you want to upload images for all pending ${config.label.toLowerCase()}s?`,
       )
     ) {
       return;
@@ -44,13 +65,10 @@ const ImageUploadAutomation = () => {
     setResult(null);
     setShowPreview(false);
     try {
-      const response = await fetch("/api/admin/upload-artist-images", {
-        method: "POST",
-      });
+      const response = await fetch(config.endpoint, { method: "POST" });
       const data = await response.json();
       setResult(data);
 
-      // Reload page after successful upload to show updated submissions
       if (data.successCount > 0) {
         setTimeout(() => {
           router.refresh();
@@ -58,10 +76,7 @@ const ImageUploadAutomation = () => {
       }
     } catch (error) {
       console.error("Upload error:", error);
-      setResult({
-        success: false,
-        message: "Failed to upload images",
-      });
+      setResult({ success: false, message: "Failed to upload images" });
     } finally {
       setLoading(false);
     }
@@ -72,11 +87,11 @@ const ImageUploadAutomation = () => {
       <FlexBox type="between-row" className="gap-4 flex-wrap">
         <div className="flex-1 min-w-[200px]">
           <h3 className="text-gold font-semibold mb-1">
-            Artist Image Automation
+            {config.label} Image Automation
           </h3>
           <p className="text-cream/70 text-sm">
-            Automatically upload images from /public/artist-photos to pending
-            artists
+            Automatically upload images from {config.photoDir} to pending{" "}
+            {config.label.toLowerCase()}s
           </p>
         </div>
 
@@ -127,12 +142,12 @@ const ImageUploadAutomation = () => {
           {preview.preview && preview.preview.length > 0 && (
             <div className="mt-3 max-h-48 overflow-y-auto">
               <div className="space-y-1">
-                {preview.preview.map((item, index) => (
+                {preview.preview.map((item) => (
                   <div
-                    key={item.artistId}
+                    key={item[config.idKey]}
                     className={`text-xs p-2 rounded ${item.hasMatchingImage ? "bg-green-900/20 text-green-400" : "bg-red-900/20 text-red-400"}`}
                   >
-                    {item.artistName}{" "}
+                    {item[config.nameKey]}{" "}
                     {item.hasMatchingImage
                       ? `✓ ${item.imageFile}`
                       : "✗ No match"}
@@ -160,10 +175,10 @@ const ImageUploadAutomation = () => {
             <div className="max-h-64 overflow-y-auto space-y-2">
               {result.results.map((item) => (
                 <div
-                  key={item.artistId}
+                  key={item[config.idKey]}
                   className={`text-xs p-2 rounded ${item.status === "success" ? "bg-green-900/30 text-green-300" : "bg-red-900/30 text-red-300"}`}
                 >
-                  <div className="font-semibold">{item.artistName}</div>
+                  <div className="font-semibold">{item[config.nameKey]}</div>
                   {item.status === "success" ? (
                     <div className="space-y-0.5">
                       <div className="text-green-400">✓ {item.sourceFile}</div>

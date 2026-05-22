@@ -26,7 +26,9 @@ const Submittions = ({ submissions, type = "artist" }) => {
   if (submissions.length === 0) {
     return (
       <SectionContainer title={title} description={description}>
-        {type === "artist" && <ImageUploadAutomation />}
+        {(type === "artist" || type === "club" || type === "festival") && (
+          <ImageUploadAutomation entityType={type} />
+        )}
         <FlexBox type="center-col" className="py-20">
           <p className="text-gold/70 text-lg">No pending submissions</p>
         </FlexBox>
@@ -37,7 +39,9 @@ const Submittions = ({ submissions, type = "artist" }) => {
   return (
     <SectionContainer title={title} description={description}>
       <div className="w-full flex flex-col">
-        {type === "artist" && <ImageUploadAutomation />}
+        {(type === "artist" || type === "club" || type === "festival") && (
+          <ImageUploadAutomation entityType={type} />
+        )}
         <SubmittionCard submissions={submissions} type={type} />
       </div>
     </SectionContainer>

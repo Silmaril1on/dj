@@ -86,8 +86,6 @@ const Albums = ({ artistId, artistData: initialArtistData = null }) => {
     return null;
   }
 
-  console.log(data, "ARTIST Albums from ALBUMS.jsx");
-
   // Check if user can edit albums (admin or owner)
   const canEditAlbums =
     user && artistData && (user.is_admin || user.id === artistData.user_id);
