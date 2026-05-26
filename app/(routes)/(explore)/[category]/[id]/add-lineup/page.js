@@ -1,11 +1,13 @@
 import AddFestivalLineupForm from "@/app/components/forms/AddFestivalLineupForm";
+import { getLineup } from "@/app/lib/services/festivals/festivalLineup";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 
+// force-dynamic so the auth cookie is always read fresh (ownership check)
 export const dynamic = "force-dynamic";
 
 export const metadata = {
-  title: "Soundfolio | Lineup Update",
+  title: "Lineup Update",
   description: "Add or edit lineup for your festival",
 };
 
@@ -19,7 +21,7 @@ const AddLineupPage = async ({ params }) => {
     .join("; ");
 
   try {
-    // Fetch festival data to verify ownership
+    // Fetch festival data to verify ownership (must stay no-store — auth-gated)
     const response = await fetch(
       `${process.env.PROJECT_URL}/api/festivals?id=${id}`,
       {
@@ -40,7 +42,9 @@ const AddLineupPage = async ({ params }) => {
     // Use the real UUID from the fetched festival (id in URL is a slug)
     const festivalUUID = result.festival.id;
 
-    // Fetch existing lineup + stages in one call
+    // Call the service directly — getLineup is wrapped with unstable_cache so
+    // subsequent page visits within the revalidation window skip the DB entirely.
+    // Cache is busted instantly after any lineup mutation via revalidateTag.
     let existingLineup = null;
     let existingStandardArtists = [];
     let existingStages = [];
@@ -48,33 +52,18 @@ const AddLineupPage = async ({ params }) => {
     let currentLineupStatus = null;
 
     try {
-      const lineupResponse = await fetch(
-        `${process.env.PROJECT_URL}/api/festivals/lineup?festival_id=${festivalUUID}`,
-        {
-          cache: "no-store",
-          headers: {
-            "Content-Type": "application/json",
-            Cookie: cookieHeader,
-          },
-        },
-      );
-
-      if (lineupResponse.ok) {
-        const lineupData = await lineupResponse.json();
-        existingLineup =
-          lineupData.lineup?.length > 0 ? lineupData.lineup : null;
-        existingStandardArtists = lineupData.standardArtists || [];
-        existingStages = lineupData.stages || [];
-        lineupType = lineupData.lineupType || "none";
-        // Infer current lineup status from first artist with a phase
-        const firstPhase =
-          lineupData.lineup?.[0]?.artists?.[0]?.phase ||
-          lineupData.standardArtists?.[0]?.phase ||
-          null;
-        currentLineupStatus = firstPhase;
-      }
+      const lineupData = await getLineup(festivalUUID, cookieStore);
+      existingLineup = lineupData.lineup?.length > 0 ? lineupData.lineup : null;
+      existingStandardArtists = lineupData.standardArtists || [];
+      existingStages = lineupData.stages || [];
+      lineupType = lineupData.lineupType || "none";
+      const firstPhase =
+        lineupData.lineup?.[0]?.artists?.[0]?.phase ||
+        lineupData.standardArtists?.[0]?.phase ||
+        null;
+      currentLineupStatus = firstPhase;
     } catch {
-      console.log("No existing lineup found");
+      // No existing lineup — form starts fresh
     }
 
     return (

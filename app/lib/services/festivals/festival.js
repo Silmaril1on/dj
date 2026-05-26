@@ -10,7 +10,6 @@ import {
 import { getServerUser } from "@/app/lib/config/supabaseServer";
 import {
   processAndUploadImage,
-  processAndUploadMapImage,
   deleteImageVariants,
 } from "@/app/lib/services/imageProcessing";
 
@@ -274,16 +273,40 @@ export async function createFestival(formData, cookieStore) {
   let mapImageUrls = null;
   if (mapImage instanceof File && mapImage.size > 0) {
     validateImageFile({ file: mapImage, maxSize: 10 * 1024 * 1024 });
-    const mapBaseName = `festivals/maps/${user.id}_${Date.now()}_map`;
+    const mapBaseName = `${user.id}_${Date.now()}_map`;
     try {
-      mapImageUrls = await processAndUploadMapImage(
+      mapImageUrls = await processAndUploadImage(
         mapImage,
         admin,
         "festival_map_images",
         mapBaseName,
+        { variants: ["lg"] },
       );
     } catch (err) {
       throw new ServiceError(err.message || "Failed to upload map image", 500);
+    }
+  }
+
+  // Handle optional festival event poster upload
+  const festivalPosterFile = formData.get("festival_poster");
+  let festivalPosterUrl = null;
+  if (festivalPosterFile instanceof File && festivalPosterFile.size > 0) {
+    validateImageFile({ file: festivalPosterFile, maxSize: 10 * 1024 * 1024 });
+    const posterBaseName = `${user.id}_${Date.now()}_event_poster`;
+    try {
+      const result = await processAndUploadImage(
+        festivalPosterFile,
+        admin,
+        "festival_posters",
+        posterBaseName,
+        { variants: ["lg"] },
+      );
+      festivalPosterUrl = result.lg;
+    } catch (err) {
+      throw new ServiceError(
+        err.message || "Failed to upload festival poster",
+        500,
+      );
     }
   }
 
@@ -301,6 +324,7 @@ export async function createFestival(formData, cookieStore) {
       bio: formData.get("bio")?.trim() || null,
       image_url: posterUrls,
       map_image_url: mapImageUrls ? JSON.stringify(mapImageUrls) : null,
+      festival_poster: festivalPosterUrl,
       start_date: start_date || null,
       end_date: end_date || null,
       location_url: formData.get("location_url")?.trim() || null,
@@ -374,7 +398,7 @@ export async function updateFestival(formData, cookieStore) {
 
   const { data: existingFestival, error: fetchError } = await supabase
     .from("festivals")
-    .select("id, user_id, image_url")
+    .select("id, user_id, image_url, map_image_url, festival_poster")
     .eq("id", festivalId)
     .single();
 
@@ -463,17 +487,47 @@ export async function updateFestival(formData, cookieStore) {
         "festival_map_images",
       ).catch(() => {});
     }
-    const mapBaseName = `festivals/maps/${user.id}_${Date.now()}_map`;
+    const mapBaseName = `${user.id}_${Date.now()}_map`;
     try {
-      const mapUrls = await processAndUploadMapImage(
+      const mapUrls = await processAndUploadImage(
         mapImage,
         admin,
         "festival_map_images",
         mapBaseName,
+        { variants: ["lg"] },
       );
       updateData.map_image_url = JSON.stringify(mapUrls);
     } catch (err) {
       throw new ServiceError(err.message || "Failed to upload map image", 500);
+    }
+  }
+
+  // Handle optional festival event poster update
+  const festivalPosterFile = formData.get("festival_poster");
+  if (festivalPosterFile instanceof File && festivalPosterFile.size > 0) {
+    validateImageFile({ file: festivalPosterFile, maxSize: 10 * 1024 * 1024 });
+    if (existingFestival.festival_poster) {
+      await deleteImageVariants(
+        existingFestival.festival_poster,
+        admin,
+        "festival_posters",
+      ).catch(() => {});
+    }
+    const posterBaseName = `${user.id}_${Date.now()}_event_poster`;
+    try {
+      const result = await processAndUploadImage(
+        festivalPosterFile,
+        admin,
+        "festival_posters",
+        posterBaseName,
+        { variants: ["lg"] },
+      );
+      updateData.festival_poster = result.lg;
+    } catch (err) {
+      throw new ServiceError(
+        err.message || "Failed to upload festival poster",
+        500,
+      );
     }
   }
 

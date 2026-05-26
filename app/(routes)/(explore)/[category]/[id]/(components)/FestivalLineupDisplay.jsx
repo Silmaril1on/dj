@@ -341,6 +341,7 @@ const FestivalLineupDisplay = ({ festivalId, eventArtists }) => {
           return {
             ...artistObj,
             day: a.day || a.artist_day || null,
+            support_act: a.support_act || false,
           };
         })
         .filter(Boolean);
@@ -353,9 +354,16 @@ const FestivalLineupDisplay = ({ festivalId, eventArtists }) => {
     });
 
     const standard = (standardArtists || [])
-      .map((a) =>
-        buildArtistObject(a.name, artistMap, a.artist_slug, a.image_url),
-      )
+      .map((a) => {
+        const artistObj = buildArtistObject(
+          a.name,
+          artistMap,
+          a.artist_slug,
+          a.image_url,
+        );
+        if (!artistObj) return null;
+        return { ...artistObj, support_act: a.support_act || false };
+      })
       .filter(Boolean);
 
     const all = [...stages.flatMap((stage) => stage.artists), ...standard];
@@ -454,9 +462,40 @@ const FestivalLineupDisplay = ({ festivalId, eventArtists }) => {
         </div>
 
         <div className="space-y-7 center flex-col">
-          {groups.map((group, groupIndex) => (
-            <ArtistGroup key={group.key} group={group} index={groupIndex} />
-          ))}
+          {groups.map((group, groupIndex) => {
+            const mainArtists = group.artists.filter((a) => !a.support_act);
+            const supportActs = group.artists.filter((a) => a.support_act);
+            return (
+              <div key={group.key} className="center flex-col w-full gap-5">
+                <ArtistGroup
+                  group={{
+                    ...group,
+                    artists: mainArtists.length ? mainArtists : group.artists,
+                  }}
+                  index={groupIndex}
+                />
+                {supportActs.length > 0 && (
+                  <>
+                    <div className="w-full flex items-center gap-4 px-4 max-w-4xl">
+                      <div className="flex-1 h-px bg-gold/40" />
+                      <p className="text-gold text-xs uppercase tracking-widest">
+                        Support Acts
+                      </p>
+                      <div className="flex-1 h-px bg-gold/40" />
+                    </div>
+                    <ArtistGroup
+                      group={{
+                        key: `${group.key}-support`,
+                        title: "",
+                        artists: supportActs,
+                      }}
+                      index={groupIndex + groups.length}
+                    />
+                  </>
+                )}
+              </div>
+            );
+          })}
         </div>
       </div>
     </div>

@@ -8,8 +8,8 @@ const Navigation = () => {
   return (
     <div className="flex justify-between py-1 px-2 items-center relative">
       <BurgerMenu />
-      <div className=" w-full flex items-center lg:w-[60%] ml-2">
-        <div className="hidden lg:flex items-center space-x-3 justify-start mr-2 ">
+      <div className=" w-full flex items-center lg:w-[60%] ml-2 space-x-4">
+        <div className="hidden lg:flex items-center space-x-3 justify-start  ">
           <Logo />
           <NavLinks />
         </div>

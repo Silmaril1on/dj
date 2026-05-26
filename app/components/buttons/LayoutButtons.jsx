@@ -8,7 +8,7 @@ const LayoutButtons = ({
   color,
   className = "",
   buttonClassName = "",
-  layoutId = "activeLayout", // Make layoutId configurable with a default
+  layoutId = "activeLayout",
 }) => {
   return (
     <div className={`flex ${className}`}>

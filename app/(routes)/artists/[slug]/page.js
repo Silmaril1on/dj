@@ -43,7 +43,7 @@ export const generateMetadata = async ({ params }) => {
       `${process.env.PROJECT_URL}/assets/default-artist.jpg`;
 
     return {
-      title: `Soundfolio | ${artistName}`,
+      title: artistName,
       description,
       alternates: {
         canonical: `${process.env.PROJECT_URL}/artists/${resolvedSlug}`,
@@ -67,7 +67,7 @@ export const generateMetadata = async ({ params }) => {
     };
   } catch (error) {
     console.error("Metadata generation error:", error);
-    return { title: "Soundfolio - Artist" };
+    return { title: "Artist" };
   }
 };
 

@@ -6,7 +6,7 @@ export default function robots() {
       {
         // General crawlers — allow everything except private/functional routes
         userAgent: "*",
-        allow: "/",
+        allow: ["/", "/event-searcher/", "/forum/"],
         disallow: [
           "/administration/",
           "/api/",

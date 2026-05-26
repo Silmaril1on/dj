@@ -30,7 +30,7 @@ export const metadata = {
 
   title: {
     default: "Soundfolio",
-    template: "%s | Soundfolio",
+    template: "Soundfolio | %s",
   },
   description:
     "Discover DJs, artists, clubs, festivals and live events. Connect with the global electronic music and nightlife community.",
@@ -142,7 +142,7 @@ export default function RootLayout({ children }) {
       </head>
 
       <body
-        className={`${jost.variable} ${teko.variable} min-h-screen relative flex flex-col duration-300 bg-black text-gold mx-auto max-w-[1800px]`}
+        className={`${jost.variable} ${teko.variable} min-h-screen relative flex flex-col duration-300 bg-black text-gold mx-auto max-w-[1800px] `}
       >
         <StoreProvider>
           <AuthProvider>

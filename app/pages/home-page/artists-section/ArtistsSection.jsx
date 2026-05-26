@@ -6,6 +6,9 @@ import SliderContainer from "@/app/components/containers/SliderContainer";
 import ArtistCard from "./ArtistCard";
 import Swiper from "@/app/components/containers/Swiper";
 
+const CACHE_KEY = "artists_section_cache";
+const CACHE_TTL = 10 * 60 * 1000; // 10 minutes
+
 const ArtistsSection = () => {
   const [artists, setArtists] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -16,6 +19,22 @@ const ArtistsSection = () => {
   useEffect(() => {
     if (hasFetched.current) return;
     hasFetched.current = true;
+
+    // Check sessionStorage cache first
+    try {
+      const cached = sessionStorage.getItem(CACHE_KEY);
+      if (cached) {
+        const { data, timestamp } = JSON.parse(cached);
+        if (Date.now() - timestamp < CACHE_TTL) {
+          setArtists(data);
+          setLoading(false);
+          return;
+        }
+      }
+    } catch {
+      // sessionStorage unavailable — proceed with fetch
+    }
+
     const fetchArtists = async () => {
       setLoading(true);
       setError(null);
@@ -25,7 +44,16 @@ const ArtistsSection = () => {
           throw new Error("Failed to fetch artists");
         }
         const data = await response.json();
-        setArtists(data.artists || []);
+        const fetched = data.artists || [];
+        setArtists(fetched);
+        try {
+          sessionStorage.setItem(
+            CACHE_KEY,
+            JSON.stringify({ data: fetched, timestamp: Date.now() }),
+          );
+        } catch {
+          // ignore storage errors
+        }
       } catch (err) {
         setError(err.message);
       } finally {
@@ -73,13 +101,13 @@ const ArtistsSection = () => {
               ))}
             </SliderContainer>
           </div>
-          <Swiper items={artists} animate={true} cardWidth={176}>
-            {artists?.map((artist, idx) => (
+          <Swiper animate={true} cardWidth={310} spacing={12}>
+            {artists?.map((artist) => (
               <ArtistCard
                 key={artist.id}
                 artist={artist}
-                cardWidth={176}
                 cardMargin={0}
+                cardWidth={310}
                 animate={false}
               />
             ))}

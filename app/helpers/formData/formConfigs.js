@@ -824,6 +824,7 @@ export const formConfigs = {
       minimum_age: "",
       festival_genre: [""],
       social_links: [""],
+      festival_poster: "",
     },
     imageField: "poster",
     arrayFields: ["social_links", "festival_genre"],
@@ -832,7 +833,7 @@ export const formConfigs = {
         type: "image",
         required: true,
         label: "Festival Poster",
-        helpText: "Upload festival poster image (max 5MB).",
+        helpText: "Upload festival Logo image 1:1 Aspect ratio (Max 2MB).",
       },
       name: {
         type: "text",
@@ -906,7 +907,14 @@ export const formConfigs = {
         type: "image",
         required: false,
         label: "Venue Map",
-        helpText: "Upload venue map image (max 5MB). MD and LG sizes only.",
+        helpText: "Upload venue map image (Max 2MB).",
+      },
+      festival_poster: {
+        type: "image",
+        required: false,
+        label: "Festival Event Poster",
+        helpText:
+          "Upload a high-quality festival event poster 16:9 aspect ratio (Max 2MB).",
       },
       minimum_age: {
         type: "text",
@@ -931,8 +939,8 @@ export const formConfigs = {
     sections: [
       {
         title: "Images",
-        fields: ["poster", "map_image_url"],
-        gridClass: "grid grid-cols-1 md:grid-cols-2 gap-4",
+        fields: ["poster", "map_image_url", "festival_poster"],
+        gridClass: "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4",
       },
       {
         title: "Basic Information",

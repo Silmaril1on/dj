@@ -39,9 +39,7 @@ export async function generateMetadata({ params }) {
         resolveMetaImage(data.image_url) ||
         `${PROJECT_URL}/assets/default-club.jpg`;
       return {
-        title: `Soundfolio | ${name}`,
-        description,
-        alternates: { canonical: `${PROJECT_URL}/clubs/${slug}` },
+        title: name,
         openGraph: {
           title: `${name} | Soundfolio`,
           description,
@@ -76,9 +74,7 @@ export async function generateMetadata({ params }) {
         resolveMetaImage(data.image_url) ||
         `${PROJECT_URL}/assets/default-festival.jpg`;
       return {
-        title: `Soundfolio | ${name}`,
-        description,
-        alternates: { canonical: `${PROJECT_URL}/festivals/${slug}` },
+        title: name,
         openGraph: {
           title: `${name} | Soundfolio`,
           description,
@@ -117,9 +113,7 @@ export async function generateMetadata({ params }) {
         resolveMetaImage(data.image_url) ||
         `${PROJECT_URL}/assets/default-event.jpg`;
       return {
-        title: `Soundfolio | ${displayName}`,
-        description,
-        alternates: { canonical: `${PROJECT_URL}/events/${slug}` },
+        title: displayName,
         openGraph: {
           title: `${displayName} | Soundfolio`,
           description,

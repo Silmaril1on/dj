@@ -43,6 +43,12 @@ const staticPages = [
   { url: `${BASE_URL}/festivals`, changeFrequency: "weekly", priority: 0.8 },
   { url: `${BASE_URL}/news`, changeFrequency: "weekly", priority: 0.7 },
   {
+    url: `${BASE_URL}/event-searcher`,
+    changeFrequency: "weekly",
+    priority: 0.7,
+  },
+  { url: `${BASE_URL}/forum`, changeFrequency: "daily", priority: 0.7 },
+  {
     url: `${BASE_URL}/support/terms-and-conditions`,
     changeFrequency: "monthly",
     priority: 0.3,

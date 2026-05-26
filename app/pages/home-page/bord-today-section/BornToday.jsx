@@ -70,7 +70,7 @@ const BornToday = () => {
       description="Discover artists celebrating their birthday today."
     >
       <div className="hidden lg:block">
-        <SliderContainer items={artistList} itemsPerPage={4} cardWidth={260}>
+        <SliderContainer items={artists} itemsPerPage={4} cardWidth={260}>
           {artists?.map((artist) => (
             <div
               key={artist.id}
@@ -103,13 +103,9 @@ const BornToday = () => {
           ))}
         </SliderContainer>
       </div>
-      <Swiper items={artistList} animate={true} cardWidth={176}>
-        {artistList?.map((artist, idx) => (
-          <div
-            key={artist.id}
-            className="group cursor-pointer"
-            style={{ minWidth: 260, margin: "0 8px" }}
-          >
+      <Swiper items={artists} animate={true} cardWidth={320}>
+        {artists?.map((artist, idx) => (
+          <div key={artist.id} className="group cursor-pointer w-[320px]">
             <Link href={`/artists/${artist.artist_slug}`}>
               <div className="bg-stone-900 bordered p-2 transition-colors duration-300">
                 <div className="relative w-full h-52 mb-3 overflow-hidden">

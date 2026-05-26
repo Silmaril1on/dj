@@ -2,6 +2,7 @@
 import { motion } from "framer-motion";
 import { useState, useEffect } from "react";
 import { useSelector } from "react-redux";
+import Link from "next/link";
 import { FaLink, FaUsers } from "react-icons/fa6";
 import Title from "@/app/components/ui/Title";
 import ArtistCountry from "@/app/components/materials/ArtistCountry";
@@ -15,6 +16,7 @@ import SectionContainer from "@/app/components/containers/SectionContainer";
 import LikeButton from "@/app/components/buttons/artist-buttons/LikeButton";
 import ReminderButton from "@/app/components/buttons/artist-buttons/ReminderButton";
 import { selectUser } from "@/app/features/userSlice";
+import Swiper from "@/app/components/containers/Swiper";
 import {
   formatBirthdate,
   isOnOrAfterToday,
@@ -100,7 +102,8 @@ const Events = ({ events = [] }) => {
         title="Upcomming Events"
         description="Stay tuned for the hottest upcoming events. Don't miss out!"
       >
-        <div className="flex flex-col gap-2 lg:gap-0 lg:flex-row h-fit lg:h-[550px] w-full overflow-hidden">
+        {/* Desktop: accordion panels */}
+        <div className="hidden lg:flex lg:flex-row lg:h-[550px] w-full overflow-hidden">
           {upcomingEvents.map((event, index) => {
             return (
               <Panel
@@ -120,6 +123,66 @@ const Events = ({ events = [] }) => {
             );
           })}
         </div>
+
+        {/* Mobile: full-width Swiper cards */}
+        <Swiper cardWidth={360} spacing={12}>
+          {upcomingEvents.map((event, index) => {
+            const lineup = normalizeLineup(event.artists);
+            return (
+              <Link
+                key={event.id}
+                href={`/events/${event.event_slug || event.id}`}
+                className="h-[450px] relative overflow-hidden border border-gold/30 block"
+              >
+                {resolveImage(event.image_url, "md") && (
+                  <img
+                    src={resolveImage(event.image_url, "md")}
+                    alt={event.event_name}
+                    className="absolute inset-0 w-full h-full object-cover"
+                    {...(index === 0
+                      ? { fetchPriority: "high" }
+                      : { loading: "lazy", fetchPriority: "low" })}
+                  />
+                )}
+                <div className="absolute inset-0 bg-gradient-to-t from-black via-black/70 to-transparent" />
+                <div className="absolute bottom-0 left-0 w-full p-4 space-y-1.5">
+                  <Title
+                    className="uppercase text-start leading-none"
+                    text={event.event_name}
+                  />
+                  <ArtistCountry
+                    artistCountry={{ country: event.country, city: event.city }}
+                  />
+                  {event.date && (
+                    <p className="text-gold text-xs uppercase font-bold">
+                      {formatBirthdate(event.date)}
+                    </p>
+                  )}
+                  {lineup.length > 0 && (
+                    <div className="flex flex-wrap gap-x-1.5 gap-y-0.5 pt-0.5">
+                      {lineup.slice(0, 6).map((artist, i, arr) => (
+                        <span
+                          key={i}
+                          className="text-cream/80 text-xs uppercase leading-tight"
+                        >
+                          {artist}
+                          {i < arr.length - 1 && (
+                            <span className="text-gold/50 mx-0.5">·</span>
+                          )}
+                        </span>
+                      ))}
+                      {lineup.length > 6 && (
+                        <span className="text-gold/60 text-xs">
+                          +{lineup.length - 6} more
+                        </span>
+                      )}
+                    </div>
+                  )}
+                </div>
+              </Link>
+            );
+          })}
+        </Swiper>
       </SectionContainer>
     </section>
   );

@@ -185,7 +185,22 @@ const ArtistSchedule = ({
     return status === activeType;
   });
 
-  console.log("Filtered Schedule Data:", filteredData);
+  // Group events by month with separator items
+  const groupedItems = [];
+  let lastMonth = null;
+  filteredData.forEach((schedule, index) => {
+    const month = schedule.date
+      ? new Date(schedule.date).toLocaleString("en-US", {
+          month: "long",
+          year: "numeric",
+        })
+      : null;
+    if (month && month !== lastMonth) {
+      groupedItems.push({ type: "month", label: month, key: `month-${month}` });
+      lastMonth = month;
+    }
+    groupedItems.push({ type: "event", data: schedule, index });
+  });
 
   return (
     <SectionContainer title={title} description={description} className="mt-10">
@@ -207,103 +222,135 @@ const ArtistSchedule = ({
                 : "No past events available."}
             </div>
           ) : (
-            filteredData.map((schedule, index) => (
-              <motion.div
-                key={schedule.id}
-                initial={{ opacity: 0, x: -100 }}
-                whileInView={{ opacity: 1, x: 0 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.6, delay: index * 0.1 }}
-                className="bg-stone-900 py-1 lg:py-2 px-2 lg:px-4 bordered lg:hover:scale-105 relative"
-              >
-                <div className="grid grid-cols-2 lg:grid-cols-[4fr_2fr] items-center">
-                  <section className="grid grid-cols-1 lg:grid-cols-3 gap-1 lg:gap-0">
-                    {/* Date */}
-                    <div className="flex items-center gap-2 text-gold">
-                      {/* Edit & Delete Buttons - Only visible to admin or owner */}
-                      {canEdit() && (
-                        <>
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleEditEvent(schedule);
-                            }}
-                            className="p-1 bg-gold/20 hover:bg-gold/40 cursor-pointer duration-200 z-10 relative"
-                            title="Edit event"
-                          >
-                            <MdEdit className="text-gold text-xs lg:text-sm" />
-                          </button>
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleDeleteEvent(schedule.id);
-                            }}
-                            className="p-1 bg-red-500/20 hover:bg-red-500/40 cursor-pointer duration-200 z-10 relative"
-                            title="Delete event"
-                          >
-                            <MdDelete className="text-red-500 text-xs lg:text-sm" />
-                          </button>
-                        </>
-                      )}
-                      <span className="font-semibold text-xs lg:text-lg  pointer-events-none leading-none">
-                        {formatBirthdate(schedule.date)}
+            <motion.div
+              variants={{
+                hidden: {},
+                visible: { transition: { staggerChildren: 0.05 } },
+              }}
+              initial="hidden"
+              whileInView="visible"
+              viewport={{ once: true, amount: 0.05 }}
+              className="space-y-2 lg:space-y-4"
+            >
+              {groupedItems.map((item) => {
+                if (item.type === "month") {
+                  return (
+                    <div
+                      key={item.key}
+                      className="flex items-center gap-3 pt-2 pb-1"
+                    >
+                      <span className="text-gold font-bold text-sm lg:text-base uppercase tracking-widest secondary">
+                        {item.label}
                       </span>
+                      <div className="flex-1 h-px bg-gold/20" />
                     </div>
-                    {/* Time */}
-                    <div className="flex justify-start lg:justify-center items-center gap-2 text-xs lg:text-base text-chino pointer-events-none leading-none">
-                      <span>{schedule.time}</span>
-                    </div>
-                    {/* Location or Minimum Age */}
-                    <div className="flex justify-start lg:justify-center items-center gap-2 text-chino pointer-events-none">
-                      {clubId ? (
-                        schedule.minimum_age != null && (
-                          <span className="text-xs lg:text-base font-semibold">
-                            {`Age ${schedule.minimum_age}+`}
-                          </span>
-                        )
-                      ) : (
-                        <ArtistCountry
-                          artistCountry={{
-                            country: schedule.country,
-                            city: schedule.city,
-                          }}
-                        />
-                      )}
-                    </div>
-                  </section>
+                  );
+                }
 
-                  {/* Club/Venue Name or Event Name */}
-                  <div className="flex flex-col items-end justify-evenly">
-                    <Title
-                      text={truncateString(
-                        clubId
-                          ? schedule.event_name || schedule.event_title
-                          : schedule.club_name || schedule.event_title,
-                        30,
-                      )}
-                      className="pointer-events-none text-end leading-none"
-                    />
-                    <FlexBox type="row-center" className="gap-4">
-                      {schedule.event_link && (
-                        <MyLink
-                          color="chino"
-                          href={schedule.event_link}
-                          text="View Event"
-                          target="_blank"
+                const schedule = item.data;
+                return (
+                  <motion.div
+                    key={schedule.id}
+                    variants={{
+                      hidden: { opacity: 0, x: -100 },
+                      visible: {
+                        opacity: 1,
+                        x: 0,
+                        transition: { duration: 0.6 },
+                      },
+                    }}
+                    className="bg-stone-900 py-1 lg:py-2 px-2 lg:px-4 bordered lg:hover:scale-105 relative"
+                  >
+                    <div className="grid grid-cols-2 lg:grid-cols-[4fr_2fr] items-center">
+                      <section className="grid grid-cols-1 lg:grid-cols-3 gap-1 lg:gap-0">
+                        {/* Date */}
+                        <div className="flex items-center gap-2 text-gold">
+                          {/* Edit & Delete Buttons - Only visible to admin or owner */}
+                          {canEdit() && (
+                            <>
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleEditEvent(schedule);
+                                }}
+                                className="p-1 bg-gold/20 hover:bg-gold/40 cursor-pointer duration-200 z-10 relative"
+                                title="Edit event"
+                              >
+                                <MdEdit className="text-gold text-xs lg:text-sm" />
+                              </button>
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleDeleteEvent(schedule.id);
+                                }}
+                                className="p-1 bg-red-500/20 hover:bg-red-500/40 cursor-pointer duration-200 z-10 relative"
+                                title="Delete event"
+                              >
+                                <MdDelete className="text-red-500 text-xs lg:text-sm" />
+                              </button>
+                            </>
+                          )}
+                          <span className="font-semibold text-xs lg:text-lg pointer-events-none leading-none">
+                            {formatBirthdate(schedule.date)}
+                          </span>
+                        </div>
+                        {/* Time */}
+                        <div className="flex justify-start lg:justify-center items-center gap-2 text-xs lg:text-base text-chino pointer-events-none leading-none">
+                          <span>{schedule.time}</span>
+                        </div>
+                        {/* Location or Minimum Age */}
+                        <div className="flex justify-start lg:justify-center items-center gap-2 text-chino pointer-events-none">
+                          {clubId ? (
+                            schedule.minimum_age != null && (
+                              <span className="text-xs lg:text-base font-semibold">
+                                {`Age ${schedule.minimum_age}+`}
+                              </span>
+                            )
+                          ) : (
+                            <ArtistCountry
+                              artistCountry={{
+                                country: schedule.country,
+                                city: schedule.city,
+                              }}
+                            />
+                          )}
+                        </div>
+                      </section>
+
+                      {/* Club/Venue Name or Event Name */}
+                      <div className="flex flex-col items-end justify-evenly">
+                        <Title
+                          text={truncateString(
+                            clubId
+                              ? schedule.event_name || schedule.event_title
+                              : schedule.club_name || schedule.event_title,
+                            30,
+                          )}
+                          className="pointer-events-none text-end leading-none"
                         />
-                      )}
-                      {schedule.event_id && (
-                        <MyLink
-                          color="chino"
-                          href={`/events/${schedule.event_id}`}
-                          text="View Event Page"
-                        />
-                      )}
-                    </FlexBox>
-                  </div>
-                </div>
-              </motion.div>
-            ))
+                        <FlexBox type="row-center" className="gap-4">
+                          {schedule.event_link && (
+                            <MyLink
+                              color="chino"
+                              href={schedule.event_link}
+                              text="View Event"
+                              target="_blank"
+                            />
+                          )}
+                          {schedule.event_id && (
+                            <MyLink
+                              color="chino"
+                              href={`/events/${schedule.event_id}`}
+                              text="View Event Page"
+                            />
+                          )}
+                        </FlexBox>
+                      </div>
+                    </div>
+                  </motion.div>
+                );
+              })}
+            </motion.div>
           )}
         </div>
         {clubId &&

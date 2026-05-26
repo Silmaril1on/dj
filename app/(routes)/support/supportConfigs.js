@@ -11,7 +11,7 @@ export const SUPPORT_PAGE_CONFIGS = {
   "terms-and-conditions": {
     dataKey: "general",
     metadata: {
-      title: "Soundfolio | Terms & Conditions",
+      title: "Terms & Conditions",
       description:
         "Read the terms and conditions governing your use of Soundfolio — including user responsibilities, content policies, and platform rules.",
     },
@@ -19,7 +19,7 @@ export const SUPPORT_PAGE_CONFIGS = {
   "privacy-policy": {
     dataKey: "privacy",
     metadata: {
-      title: "Soundfolio | Privacy Policy",
+      title: "Privacy Policy",
       description:
         "Learn how Soundfolio collects, uses, and protects your personal data in accordance with GDPR and applicable privacy laws.",
     },
@@ -27,7 +27,7 @@ export const SUPPORT_PAGE_CONFIGS = {
   "help-center": {
     dataKey: "helpCenter",
     metadata: {
-      title: "Soundfolio | Help Center",
+      title: "Help Center",
       description:
         "Find answers to common questions about Soundfolio — artist submissions, bookings, accounts, ratings, and more.",
     },
@@ -35,7 +35,7 @@ export const SUPPORT_PAGE_CONFIGS = {
   cookies: {
     dataKey: "cookies",
     metadata: {
-      title: "Soundfolio | Cookie Policy",
+      title: "Cookie Policy",
       description:
         "Learn how Soundfolio uses cookies to provide a secure and seamless experience — and how to manage your preferences.",
     },
@@ -43,7 +43,7 @@ export const SUPPORT_PAGE_CONFIGS = {
   faq: {
     dataKey: "faq",
     metadata: {
-      title: "Soundfolio | FAQ",
+      title: "FAQ",
       description:
         "Frequently asked questions about Soundfolio — accounts, artists, events, bookings, privacy, and technical support.",
     },
@@ -51,7 +51,7 @@ export const SUPPORT_PAGE_CONFIGS = {
   about: {
     dataKey: "about",
     metadata: {
-      title: "Soundfolio | About Us",
+      title: "About Us",
       description:
         "Learn about Soundfolio — the platform connecting DJs, artists, clubs, and event promoters across the music industry.",
     },

@@ -5,7 +5,7 @@ import { getUserHasAnyStats } from "@/app/lib/services/user/statistics/getUserHa
 export const dynamic = "force-dynamic";
 
 export const metadata = {
-  title: "Soundfolio | My Statistics",
+  title: "My Statistics",
   description:
     "View your Soundfolio activity statistics — ratings, reviews, likes, and submitted profiles.",
 };

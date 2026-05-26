@@ -6,6 +6,7 @@ import SectionContainer from "@/app/components/containers/SectionContainer";
 import Motion from "@/app/components/containers/Motion";
 import ShareButton from "@/app/components/buttons/ShareButton";
 import ReminderButton from "@/app/components/buttons/artist-buttons/ReminderButton";
+import Swiper from "@/app/components/containers/Swiper";
 import {
   capitalizeFirst,
   formatBirthdate,
@@ -226,7 +227,7 @@ const NearYou = () => {
       title={`Don't Miss ${usedCity && location?.city ? location.city : location?.country || ""} Events`}
       description="Upcoming events near you. Get reminders  and discover who's playing around"
     >
-      <div className="grid lg:grid-cols-2 gap-3  lg:px-[15%] pb-3 w-full ">
+      <div className="hidden lg:grid lg:grid-cols-2 gap-3 lg:px-[15%] pb-3 w-full">
         {/* Left — featured */}
         <div className="relative h-full min-h-[400px] overflow-hidden">
           <AnimatePresence mode="sync" initial={false}>
@@ -247,6 +248,43 @@ const NearYou = () => {
           ))}
         </div>
       </div>
+
+      {/* Mobile Swiper */}
+      <Swiper items={events} cardWidth={320}>
+        {events.map((event, i) => (
+          <Link
+            key={event._key}
+            href={`/events/${event.event_slug || event.id}`}
+            className=" block"
+          >
+            <Motion animation="fade" delay={0.05 * i}>
+              <div className="relative w-full aspect-square overflow-hidden">
+                {resolveImage(event.image_url, "sm") ? (
+                  <img
+                    src={resolveImage(event.image_url, "sm")}
+                    alt={event.event_name || "Event"}
+                    loading="lazy"
+                    className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
+                  />
+                ) : (
+                  <div className="w-full h-full bg-stone-800" />
+                )}
+                <div className="absolute inset-0 bg-linear-to-t from-black/80 to-transparent" />
+                <div className="absolute bottom-0 left-0 w-full p-1.5 space-y-0.5">
+                  <p className="text-cream text-sm font-semibold leading-tight line-clamp-2 text-end">
+                    {event.venue_name}
+                  </p>
+                  {event.date && (
+                    <p className="text-gold text-[9px] font-bold leading-none text-end">
+                      {formatBirthdate(event.date)}
+                    </p>
+                  )}
+                </div>
+              </div>
+            </Motion>
+          </Link>
+        ))}
+      </Swiper>
     </SectionContainer>
   );
 };

@@ -4,7 +4,7 @@ import { getNewsBySlug } from "@/app/lib/services/news/news";
 export const dynamic = "force-dynamic";
 
 export const metadata = {
-  title: "Soundfolio | News",
+  title: "News",
   description:
     "Stay updated with the latest news and announcements from Soundfolio. Explore articles, updates, and insights about our platform and the broader music industry.",
 };

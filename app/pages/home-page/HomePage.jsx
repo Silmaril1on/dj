@@ -6,6 +6,7 @@ import NearYou from "./nearYouEvents-section/NearYou";
 import News from "./news-section/News";
 import MyRecentlyViews from "./recently-viewd-section/MyRecentlyViews";
 import SubmitSection from "./submit-section/SubmitSection";
+import UpcomingFestivals from "./upcoming-festivals/UpcomingFestivals";
 
 const HomePage = ({ events = [] }) => {
   return (
@@ -14,8 +15,9 @@ const HomePage = ({ events = [] }) => {
       <News />
       <ArtistsSection />
       <SubmitSection />
-      <BornToday />
       <NearYou />
+      <BornToday />
+      <UpcomingFestivals />
       <AppDataStats />
       <MyRecentlyViews />
     </div>

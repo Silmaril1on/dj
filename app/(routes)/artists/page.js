@@ -2,7 +2,7 @@ import ProductsPage from "@/app/components/containers/ProductsPage";
 import { getAllArtists } from "@/app/lib/services/artists/getAllArtists";
 
 export const metadata = {
-  title: "Soundfolio | Artists",
+  title: "Artists",
   description: "Discover talented artists on Soundfolio.",
 };
 

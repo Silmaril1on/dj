@@ -45,30 +45,12 @@ async function uploadVariant(client, bucket, filePath, buffer) {
   return publicUrl;
 }
 
-// ---------------------------------------------------------------------------
-// Public API
-// ---------------------------------------------------------------------------
-
-/**
- * Process an image source into WebP variants and upload them to storage.
- *
- * Drop-in replacement for the old 4-param version — the optional 5th param
- * lets callers restrict which variants are generated (e.g. maps only need
- * ["md", "lg"]).
- *
- * @param {File|ArrayBuffer|Buffer} source
- * @param {object} client  - Supabase client (admin or authenticated user)
- * @param {string} bucket  - Storage bucket name
- * @param {string} baseName - Path prefix, e.g. "artists/abc_123"
- * @param {{ variants?: Array<"sm"|"md"|"lg"> }} [options]
- * @returns {Promise<Record<string, string>>} e.g. { sm: "https://...", md, lg }
- */
 export async function processAndUploadImage(
   source,
   client,
   bucket,
   baseName,
-  { variants = ["sm", "md", "lg"] } = {},
+  { variants = ["sm", "md", "lg"], quality: qualityOverride } = {},
 ) {
   const inputBuffer = await toBuffer(source);
 
@@ -89,12 +71,32 @@ export async function processAndUploadImage(
 
   try {
     for (const key of variants) {
-      const { width, quality } = IMAGE_VARIANTS[key];
-      const processed = await sharp(inputBuffer)
+      const { width, quality: variantQuality } = IMAGE_VARIANTS[key];
+      const quality = qualityOverride ?? variantQuality;
+
+      let processed = await sharp(inputBuffer)
         .rotate() // honour EXIF orientation
         .resize({ width, fit: "inside", withoutEnlargement: true })
-        .webp({ quality, effort: 4 })
+        .webp({ quality, effort: 6, smartSubsample: true })
         .toBuffer();
+
+      // Size guard: if re-encoding inflated the file (already well-compressed
+      // source), step down quality until we beat the input size or hit q=60.
+      if (processed.length > inputBuffer.length) {
+        const encode = (q) =>
+          sharp(inputBuffer)
+            .rotate()
+            .resize({ width, fit: "inside", withoutEnlargement: true })
+            .webp({ quality: q, effort: 6, smartSubsample: true })
+            .toBuffer();
+
+        for (const q of [75, 70, 65, 60]) {
+          if (q >= quality) continue; // no point re-trying a higher-or-equal quality
+          const attempt = await encode(q);
+          if (attempt.length < processed.length) processed = attempt;
+          if (processed.length < inputBuffer.length) break; // achieved real compression
+        }
+      }
 
       const filePath = `${baseName}_${key}.webp`;
       urls[key] = await uploadVariant(client, bucket, filePath, processed);
@@ -175,10 +177,21 @@ export async function deleteImageVariants(imageUrl, client, bucket) {
     if (p) paths.push(p);
   };
 
+  // Resolve JSON strings (e.g. map_image_url stored as TEXT JSON)
+  let resolved = imageUrl;
   if (typeof imageUrl === "string") {
-    collect(imageUrl);
-  } else if (typeof imageUrl === "object") {
-    Object.values(imageUrl).forEach((url) => url && collect(url));
+    try {
+      const parsed = JSON.parse(imageUrl);
+      if (parsed !== null && typeof parsed === "object") resolved = parsed;
+    } catch {
+      /* plain URL string */
+    }
+  }
+
+  if (typeof resolved === "string") {
+    collect(resolved);
+  } else if (typeof resolved === "object") {
+    Object.values(resolved).forEach((url) => url && collect(url));
   }
 
   if (paths.length > 0) {

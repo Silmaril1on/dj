@@ -4,7 +4,7 @@ import { cookies } from "next/headers";
 export const dynamic = "force-dynamic";
 
 export const metadata = {
-  title: "Soundfolio | Bookings",
+  title: "Bookings",
   description:
     "Manage your Soundfolio booking requests \u2014 communicate with artists and track your event bookings.",
 };

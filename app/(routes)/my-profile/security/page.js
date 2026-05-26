@@ -2,7 +2,7 @@ import Security from "@/app/(routes)/my-profile/security/Security";
 import React from "react";
 
 export const metadata = {
-  title: "Soundfolio | Security",
+  title: "Security",
   description:
     "Manage your Soundfolio account security — update your password and connected accounts.",
 };

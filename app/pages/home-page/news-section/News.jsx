@@ -111,7 +111,7 @@ const ContentSide = ({ currentNews }) => {
       animate="animate"
       exit="exit"
     >
-      <div className="pl-15 lg:pl-30 h-full flex flex-col items-end justify-between p-5">
+      <div className="pl-15 lg:pl-30 h-full flex flex-col items-end justify-between p-2">
         <FlexBox type="column-end" className="w-full lg:max-w-[70%]">
           <Title
             text={currentNews.title}

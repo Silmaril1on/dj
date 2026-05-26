@@ -9,7 +9,7 @@ export const dynamic = "force-dynamic";
 const TICKETABLE = ["festivals", "events"];
 
 export const metadata = {
-  title: "Soundfolio | Create Tickets",
+  title: "Create Tickets",
   description:
     "Manage ticket informations, tiers, prices and quantity for this entity. Only accessible to event owners and admins.",
 };

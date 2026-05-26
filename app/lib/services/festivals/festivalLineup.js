@@ -1,3 +1,4 @@
+import { revalidateTag, unstable_cache } from "next/cache";
 import {
   ServiceError,
   getAuthenticatedContext,
@@ -57,6 +58,7 @@ async function saveLineupStages(festivalId, stages, lineup_status) {
       artist_day: artist.day || null,
       artist_order: artistIndex,
       phase: artist.phase || lineup_status || null,
+      support_act: artist.support_act || false,
     }));
 
     const { error: artistsError } = await admin
@@ -74,16 +76,29 @@ async function saveLineupStages(festivalId, stages, lineup_status) {
 async function saveStandardLineup(festivalId, artists, lineup_status) {
   // Use admin client — ownership already verified by assertFestivalOwner.
   // Insert directly into festival_lineup with festival_id; no stage row created.
+  // Each artist may be a string (legacy) or { name, phase } object.
   const admin = getSupabaseAdminClient();
 
-  const artistsToInsert = artists.map((name, idx) => ({
-    festival_id: festivalId,
-    stage_id: null,
-    artist_name: name,
-    artist_day: null,
-    artist_order: idx,
-    phase: lineup_status || null,
-  }));
+  const artistsToInsert = artists.map((item, idx) => {
+    const name = typeof item === "string" ? item : item.name;
+    const phase =
+      typeof item === "object" && item.phase !== undefined
+        ? item.phase
+        : lineup_status || null;
+    const support_act =
+      typeof item === "object" && item.support_act !== undefined
+        ? Boolean(item.support_act)
+        : false;
+    return {
+      festival_id: festivalId,
+      stage_id: null,
+      artist_name: name,
+      artist_day: null,
+      artist_order: idx,
+      phase,
+      support_act,
+    };
+  });
 
   const { error } = await admin.from("festival_lineup").insert(artistsToInsert);
   if (error) throw new ServiceError("Failed to save lineup", 500);
@@ -125,85 +140,111 @@ export async function getLineup(festivalId, cookieStore) {
   const supabase = await getSupabaseServerClient(cookieStore);
   const admin = getSupabaseAdminClient();
 
-  // Enhanced entries: join through festival_stages
-  const { data: stagesWithLineup, error: stagesError } = await supabase
-    .from("festival_stages")
-    .select(
-      `id, stage_name, stage_order,
-       festival_lineup (
-         id, artist_name, artist_day, artist_order, phase
-       )`,
-    )
-    .eq("festival_id", festivalId)
-    .order("stage_order", { ascending: true });
+  // Wrap the heavy DB work in unstable_cache so repeated SSR renders within the
+  // revalidation window hit the cache instead of the database.
+  const cached = await unstable_cache(
+    async () => {
+      // Enhanced entries: join through festival_stages
+      const { data: stagesWithLineup, error: stagesError } = await admin
+        .from("festival_stages")
+        .select(
+          `id, stage_name, stage_order,
+           festival_lineup (
+             id, artist_name, artist_day, artist_order, phase, support_act
+           )`,
+        )
+        .eq("festival_id", festivalId)
+        .order("stage_order", { ascending: true });
 
-  if (stagesError) throw new ServiceError("Failed to fetch lineup", 500);
+      if (stagesError) throw new Error("Failed to fetch lineup");
 
-  // Standard entries: festival_lineup rows with festival_id set and stage_id null
-  const { data: rawStandardRows, error: standardError } = await admin
-    .from("festival_lineup")
-    .select("id, artist_name, phase")
-    .eq("festival_id", festivalId)
-    .is("stage_id", null)
-    .order("artist_name", { ascending: true });
+      // Standard entries: festival_lineup rows with null stage_id
+      const { data: rawStandardRows, error: standardError } = await admin
+        .from("festival_lineup")
+        .select("id, artist_name, phase, support_act")
+        .eq("festival_id", festivalId)
+        .is("stage_id", null)
+        .order("artist_name", { ascending: true });
 
-  if (standardError)
-    throw new ServiceError("Failed to fetch standard lineup", 500);
+      if (standardError) throw new Error("Failed to fetch standard lineup");
 
-  const artistMap = await buildArtistMap(supabase);
+      // Artist image / slug cross-reference
+      const { data: allArtistsData } = await admin
+        .from("artists")
+        .select("id, name, stage_name, artist_slug, image_url");
 
-  const mapArtistRow = (row) => {
-    const found = artistMap.get(normalizeArtistName(row.artist_name));
-    return {
-      name: row.artist_name,
-      day: row.artist_day || "",
-      phase: row.phase || null,
-      id: found?.id || null,
-      artist_slug: found?.artist_slug || null,
-      image_url: found?.image_url || null,
-    };
-  };
+      const artistMap = new Map();
+      (allArtistsData || []).forEach((a) => {
+        const n = normalizeArtistName(a.name);
+        const s = normalizeArtistName(a.stage_name);
+        if (n) artistMap.set(n, a);
+        if (s) artistMap.set(s, a);
+      });
 
-  const lineup = (stagesWithLineup || []).map((stage) => ({
-    stage_name: stage.stage_name,
-    artists: (stage.festival_lineup || [])
-      .sort((a, b) => (a.artist_order ?? 0) - (b.artist_order ?? 0))
-      .map(mapArtistRow),
-  }));
+      const mapArtistRow = (row) => {
+        const found = artistMap.get(normalizeArtistName(row.artist_name));
+        return {
+          lineup_id: row.id,
+          name: row.artist_name,
+          day: row.artist_day || "",
+          phase: row.phase || null,
+          support_act: row.support_act || false,
+          id: found?.id || null,
+          artist_slug: found?.artist_slug || null,
+          image_url: found?.image_url || null,
+        };
+      };
 
-  const standardArtists = (rawStandardRows || []).map((row) => {
-    const found = artistMap.get(normalizeArtistName(row.artist_name));
-    return {
-      name: row.artist_name,
-      phase: row.phase || null,
-      id: found?.id || null,
-      artist_slug: found?.artist_slug || null,
-      image_url: found?.image_url || null,
-    };
-  });
+      const lineup = (stagesWithLineup || []).map((stage) => ({
+        stage_name: stage.stage_name,
+        artists: (stage.festival_lineup || [])
+          .sort((a, b) => (a.artist_order ?? 0) - (b.artist_order ?? 0))
+          .map(mapArtistRow),
+      }));
 
-  const hasEnhanced = lineup.length > 0;
-  const hasStandard = standardArtists.length > 0;
-  const lineupType =
-    hasEnhanced && hasStandard
-      ? "mixed"
-      : hasEnhanced
-        ? "enhanced"
-        : hasStandard
-          ? "standard"
-          : "none";
+      const standardArtists = (rawStandardRows || []).map((row) => {
+        const found = artistMap.get(normalizeArtistName(row.artist_name));
+        return {
+          lineup_id: row.id,
+          name: row.artist_name,
+          phase: row.phase || null,
+          support_act: row.support_act || false,
+          id: found?.id || null,
+          artist_slug: found?.artist_slug || null,
+          image_url: found?.image_url || null,
+        };
+      });
 
-  return {
-    success: true,
-    lineup,
-    standardArtists,
-    lineupType,
-    stages: (stagesWithLineup || []).map((s) => ({
-      id: s.id,
-      stage_name: s.stage_name,
-      stage_order: s.stage_order,
-    })),
-  };
+      const hasEnhanced = lineup.length > 0;
+      const hasStandard = standardArtists.length > 0;
+      const lineupType =
+        hasEnhanced && hasStandard
+          ? "mixed"
+          : hasEnhanced
+            ? "enhanced"
+            : hasStandard
+              ? "standard"
+              : "none";
+
+      return {
+        lineup,
+        standardArtists,
+        lineupType,
+        stages: (stagesWithLineup || []).map((s) => ({
+          id: s.id,
+          stage_name: s.stage_name,
+          stage_order: s.stage_order,
+        })),
+      };
+    },
+    [`festival-lineup-${festivalId}`],
+    {
+      revalidate: 3600, // 1 hour fallback; mutations call revalidateTag immediately
+      tags: [`festival-lineup-${festivalId}`],
+    },
+  )();
+
+  return { success: true, ...cached };
 }
 
 async function assertFestivalOwner(user, festivalId) {
@@ -245,6 +286,8 @@ export async function createLineup(
     await saveLineupStages(festival_id, stages, lineup_status);
   }
 
+  revalidateTag(`festival-lineup-${festival_id}`);
+
   return {
     success: true,
     message: "Lineup created successfully",
@@ -278,9 +321,60 @@ export async function updateLineup(
     await saveLineupStages(festival_id, stages, lineup_status);
   }
 
+  revalidateTag(`festival-lineup-${festival_id}`);
+
   return {
     success: true,
     message: "Lineup updated successfully",
     phase_applied: lineup_status,
   };
+}
+
+export async function updateLineupArtist(
+  { lineup_id, festival_id, name, phase, stage_id, day, support_act },
+  cookieStore,
+) {
+  if (!lineup_id || !festival_id)
+    throw new ServiceError("lineup_id and festival_id are required", 400);
+
+  const { user } = await getAuthenticatedContext(cookieStore);
+  await assertFestivalOwner(user, festival_id);
+
+  const admin = getSupabaseAdminClient();
+  const update = {};
+  if (name !== undefined) update.artist_name = name;
+  if (phase !== undefined) update.phase = phase;
+  if (stage_id !== undefined) update.stage_id = stage_id;
+  if (day !== undefined) update.artist_day = day || null;
+  if (support_act !== undefined) update.support_act = Boolean(support_act);
+
+  const { error } = await admin
+    .from("festival_lineup")
+    .update(update)
+    .eq("id", lineup_id);
+
+  if (error) throw new ServiceError("Failed to update artist", 500);
+  revalidateTag(`festival-lineup-${festival_id}`);
+  return { success: true };
+}
+
+export async function deleteLineupArtist(
+  { lineup_id, festival_id },
+  cookieStore,
+) {
+  if (!lineup_id || !festival_id)
+    throw new ServiceError("lineup_id and festival_id are required", 400);
+
+  const { user } = await getAuthenticatedContext(cookieStore);
+  await assertFestivalOwner(user, festival_id);
+
+  const admin = getSupabaseAdminClient();
+  const { error } = await admin
+    .from("festival_lineup")
+    .delete()
+    .eq("id", lineup_id);
+
+  if (error) throw new ServiceError("Failed to delete artist", 500);
+  revalidateTag(`festival-lineup-${festival_id}`);
+  return { success: true };
 }

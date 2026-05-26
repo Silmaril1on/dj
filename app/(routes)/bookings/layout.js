@@ -1,17 +1,13 @@
-import React from 'react'
+import React from "react";
 
 export const metadata = {
-  title: "Soundfolio | My Bookings",
+  title: "My Bookings",
   description:
     "Manage your booking requests and responses on Soundfolio. View, accept, or decline bookings with ease.",
 };
 
 const BookingsLayout = ({ children }) => {
-    return (
-      <div>
-        {children}
-      </div>
-    );
+  return <div>{children}</div>;
 };
 
-export default BookingsLayout
+export default BookingsLayout;

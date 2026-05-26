@@ -29,7 +29,9 @@ const SectionContainer = ({
   };
 
   return (
-    <div className={`w-full flex flex-col space-y-2 pt-3 ${className}`}>
+    <div
+      className={`w-full flex flex-col space-y-2 overflow-hidden pt-3 ${className}`}
+    >
       <FlexBox type="column-start">
         <Motion
           animation="left"
@@ -48,7 +50,7 @@ const SectionContainer = ({
           </p>
         </Motion>
       </FlexBox>
-      <div className="w-full border-t border-gold p-2 lg:p-4 grow-1 flex justify-center items-center">
+      <div className="w-full border-t border-gold p-2 lg:p-4 grow-1 flex justify-center items-center relative">
         {children}
       </div>
     </div>

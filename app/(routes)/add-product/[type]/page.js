@@ -12,7 +12,7 @@ export async function generateMetadata({ params }) {
 
   const label = type.charAt(0).toUpperCase() + type.slice(1);
   return {
-    title: `Soundfolio | Submit ${label}`,
+    title: `Submit ${label}`,
     description: `Submit a new ${type} to Soundfolio and reach a wider audience of music producers and enthusiasts.`,
   };
 }

@@ -55,7 +55,7 @@ const ArtistCard = ({
           href={`/artists/${artist.artist_slug}`}
           className="flex flex-col h-full relative"
         >
-          <div className="w-full h-44 lg:h-64 overflow-hidden relative">
+          <div className="w-full h-78 lg:h-64 overflow-hidden relative">
             {resolveImage(artist.image_url, "md") ? (
               <img
                 src={resolveImage(artist.image_url, "md")}

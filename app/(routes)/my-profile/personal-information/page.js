@@ -5,7 +5,7 @@ import MyProfile from "./(components/MyProfile";
 export const dynamic = "force-dynamic";
 
 export const metadata = {
-  title: "Soundfolio | Personal Information",
+  title: "Personal Information",
   description:
     "Manage your Soundfolio profile — update your name, avatar, bio, and personal details.",
 };

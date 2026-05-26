@@ -9,6 +9,8 @@ import {
   MdDragIndicator,
   MdEdit,
 } from "react-icons/md";
+import SectionContainer from "@/app/components/containers/SectionContainer";
+import LayoutButtons from "@/app/components/buttons/LayoutButtons";
 
 const STATUS_COLUMNS = [
   { key: "tasks", label: "TASKS" },
@@ -79,6 +81,7 @@ const TaskManagerPage = () => {
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [editingTaskId, setEditingTaskId] = useState(null);
   const [taskPriorityOrder, setTaskPriorityOrder] = useState(null);
+  const [activeColumn, setActiveColumn] = useState("tasks");
 
   const groupedTasks = useMemo(() => {
     return STATUS_COLUMNS.reduce((acc, column) => {
@@ -372,76 +375,89 @@ const TaskManagerPage = () => {
   };
 
   return (
-    <div className="p-3 lg:p-4 space-y-4">
-      <div>
-        <h1 className="text-gold text-2xl lg:text-4xl font-bold secondary">
-          Task Manager
-        </h1>
-        <p className="text-chino/80 text-sm">
-          Drag tasks between columns to update status.
-        </p>
-      </div>
-
+    <SectionContainer
+      title="Task Manager"
+      description="Manage your tasks with ease."
+    >
       {error && (
         <div className="border border-crimson/40 bg-crimson/10 text-crimson p-2 text-sm">
           {error}
         </div>
       )}
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-3 lg:gap-4">
-        {STATUS_COLUMNS.map((column) => (
-          <section
-            key={column.key}
-            onDragOver={(event) => event.preventDefault()}
-            onDrop={() => {
-              if (draggedTaskId) {
-                moveTask(draggedTaskId, column.key);
-                setDraggedTaskId(null);
-              }
-            }}
-            className="border border-gold/30 bg-stone-900 min-h-[520px]"
-          >
-            <ColumnHeader
-              columnKey={column.key}
-              label={column.label}
-              count={groupedTasks[column.key]?.length || 0}
-              activePriorityOrder={taskPriorityOrder}
-              isMenuOpen={isMenuOpen}
-              onPriorityOrderChange={setTaskPriorityOrder}
-              onToggleMenu={() => setIsMenuOpen((prev) => !prev)}
-              onCreateClick={() => {
-                setIsMenuOpen(false);
-                openCreateModal();
+      <div>
+        {/* Mobile tab switcher — hidden on lg */}
+        <div className="lg:hidden mb-3">
+          <LayoutButtons
+            layoutId="taskManagerColumns"
+            color="bg-stone-900"
+            activeOption={activeColumn}
+            onOptionChange={setActiveColumn}
+            options={STATUS_COLUMNS.map((col) => ({
+              value: col.key,
+              label: `${col.label}`,
+            }))}
+          />
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-3 lg:gap-4">
+          {STATUS_COLUMNS.map((column) => (
+            <section
+              key={column.key}
+              onDragOver={(event) => event.preventDefault()}
+              onDrop={() => {
+                if (draggedTaskId) {
+                  moveTask(draggedTaskId, column.key);
+                  setDraggedTaskId(null);
+                }
               }}
-            />
+              className={`border border-gold/30 bg-stone-900 min-h-[520px] ${
+                column.key !== activeColumn ? "hidden lg:block" : ""
+              }`}
+            >
+              <ColumnHeader
+                columnKey={column.key}
+                label={column.label}
+                count={groupedTasks[column.key]?.length || 0}
+                activePriorityOrder={taskPriorityOrder}
+                isMenuOpen={isMenuOpen}
+                onPriorityOrderChange={setTaskPriorityOrder}
+                onToggleMenu={() => setIsMenuOpen((prev) => !prev)}
+                onCreateClick={() => {
+                  setIsMenuOpen(false);
+                  openCreateModal();
+                }}
+              />
 
-            <div className="p-2 space-y-2">
-              {!loading && groupedTasks[column.key]?.length === 0 && (
-                <div className="text-chino/60 text-xs border border-dashed border-gold/20 p-3 text-center">
-                  No tasks in {column.label.toLowerCase()}
-                </div>
-              )}
+              <div className="p-2 space-y-2">
+                {!loading && groupedTasks[column.key]?.length === 0 && (
+                  <div className="text-chino/60 text-xs border border-dashed border-gold/20 p-3 text-center">
+                    No tasks in {column.label.toLowerCase()}
+                  </div>
+                )}
 
-              {groupedTasks[column.key]?.map((task) => (
-                <TaskCard
-                  key={task.id}
-                  task={task}
-                  onDragStart={() => setDraggedTaskId(task.id)}
-                  onStart={() => moveTask(task.id, "progress")}
-                  onComplete={() => moveTask(task.id, "completed")}
-                  onEdit={() => openEditModal(task.id)}
-                  onDelete={() => handleDeleteTask(task.id)}
-                  onToggleSubtask={(subtaskId) =>
-                    handleToggleSubtask(task.id, subtaskId)
-                  }
-                  onRemoveSubtask={(subtaskId) =>
-                    handleRemoveSubtask(task.id, subtaskId)
-                  }
-                />
-              ))}
-            </div>
-          </section>
-        ))}
+                {groupedTasks[column.key]?.map((task) => (
+                  <TaskCard
+                    key={task.id}
+                    task={task}
+                    onDragStart={() => setDraggedTaskId(task.id)}
+                    onStart={() => moveTask(task.id, "progress")}
+                    onComplete={() => moveTask(task.id, "completed")}
+                    onEdit={() => openEditModal(task.id)}
+                    onDelete={() => handleDeleteTask(task.id)}
+                    canToggleSubtasks={task.status === "progress"}
+                    onToggleSubtask={(subtaskId) =>
+                      handleToggleSubtask(task.id, subtaskId)
+                    }
+                    onRemoveSubtask={(subtaskId) =>
+                      handleRemoveSubtask(task.id, subtaskId)
+                    }
+                  />
+                ))}
+              </div>
+            </section>
+          ))}
+        </div>
       </div>
 
       <CreateTaskModal
@@ -452,7 +468,7 @@ const TaskManagerPage = () => {
         mode={editingTaskId ? "edit" : "create"}
         task={editingTask}
       />
-    </div>
+    </SectionContainer>
   );
 };
 
@@ -470,7 +486,7 @@ const ColumnHeader = ({
     <header className="border-b border-gold/30 px-3 py-2 flex items-start justify-between relative gap-2 ">
       <div className="flex items-center space-x-5">
         <div className="*:leading-none">
-          <h2 className="text-gold font-bold text-sm lg:text-base secondary">
+          <h2 className="text-gold font-bold text-sm uppercase lg:text-base secondary">
             {columnKey === "completed" ? "Completed" : label}
           </h2>
           <p className="text-chino text-xs secondary">
@@ -544,6 +560,7 @@ const TaskCard = ({
   onComplete,
   onEdit,
   onDelete,
+  canToggleSubtasks,
   onToggleSubtask,
   onRemoveSubtask,
 }) => {
@@ -602,14 +619,15 @@ const TaskCard = ({
             <ul>
               {subtasks.map((subtask) => {
                 const isDone = Boolean(subtask.done);
-
                 return (
                   <li key={subtask.id}>
                     <div className="group w-full flex items-center justify-between gap-2 hover:bg-gold/10 px-1 py-0.5 duration-200">
                       <button
                         type="button"
-                        onClick={() => onToggleSubtask(subtask.id)}
-                        className="flex-1 *:capitalize flex items-center gap-2 text-xs secondary text-chino cursor-pointer text-left hover:pl-3 duration-300"
+                        onClick={() =>
+                          canToggleSubtasks && onToggleSubtask(subtask.id)
+                        }
+                        className={`flex-1 *:capitalize flex items-center gap-2 text-xs secondary text-chino text-left hover:pl-3 duration-300`}
                       >
                         <span
                           aria-hidden="true"

@@ -645,10 +645,10 @@ const HowToGet = ({ data, type }) => {
             initial={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0 }}
             transition={{ duration: 0.25, ease: "easeIn" }}
-            className="grid grid-cols-2 items-center pl-2 lg:pl-4 py-4 gap-6"
+            className="grid  lg:grid-cols-2 items-center pl-2 lg:pl-4 py-4 gap-6"
           >
             {/* Left: feature list */}
-            <div className="flex flex-col gap-4">
+            <div className="flex flex-col gap-4 items-center">
               <p className="text-gold text-sm uppercase tracking-widest primary font-bold">
                 What you get
               </p>

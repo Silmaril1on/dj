@@ -17,6 +17,7 @@ import Icon from "@/app/components/ui/Icon";
 import SelectInput from "./SelectInput";
 import AdditionalInput from "./AdditionalInput";
 import PasswordStrengthIndicator from "./PasswordStrengthIndicator";
+import SwitchButton from "@/app/components/buttons/SwitchButton";
 import { checkPasswordStrength } from "@/app/helpers/validatePwd";
 import GoogleAuth from "../buttons/GoogleAuth";
 import FlexBox from "../containers/FlexBox";
@@ -43,10 +44,13 @@ const SubmissionForm = ({
   const [imagePreview, setImagePreview] = useState(null);
   const [selectedFile, setSelectedFile] = useState(null);
   const [existingImage, setExistingImage] = useState(null);
+  const [extraImageFiles, setExtraImageFiles] = useState({});
+  const [extraImagePreviews, setExtraImagePreviews] = useState({});
   const [showPassword, setShowPassword] = useState({});
   const [passwordStrength, setPasswordStrength] = useState({});
   const [fieldErrors, setFieldErrors] = useState({});
   const fileInputRef = useRef(null);
+  const currentUploadFieldRef = useRef(null);
   const initialDataKey = useMemo(
     () => JSON.stringify(formConfig.initialData || {}),
     [formConfig.initialData],
@@ -159,27 +163,49 @@ const SubmissionForm = ({
             type: "error",
           }),
         );
+        currentUploadFieldRef.current = null;
         return;
       }
-      if (file.size > 1 * 1024 * 1024) {
+      if (file.size > 15 * 1024 * 1024) {
         dispatch(
           setError({
-            message: "Image size must be less than 1MB",
+            message: "Image size must be less than 15MB",
             type: "error",
           }),
         );
+        currentUploadFieldRef.current = null;
         return;
       }
-      setSelectedFile(file);
-      setFormData((prev) => ({
-        ...prev,
-        [formConfig.imageField]: file,
-      }));
+
+      const uploadField =
+        currentUploadFieldRef.current || formConfig.imageField;
+      currentUploadFieldRef.current = null;
+      // Reset the input so the same file can be re-selected for a different field
+      e.target.value = "";
+
       const reader = new FileReader();
-      reader.onload = (e) => {
-        setImagePreview(e.target.result);
+      reader.onload = (ev) => {
+        if (uploadField === formConfig.imageField) {
+          setImagePreview(ev.target.result);
+        } else {
+          setExtraImagePreviews((prev) => ({
+            ...prev,
+            [uploadField]: ev.target.result,
+          }));
+        }
       };
       reader.readAsDataURL(file);
+
+      if (uploadField === formConfig.imageField) {
+        setSelectedFile(file);
+        setFormData((prev) => ({
+          ...prev,
+          [formConfig.imageField]: file,
+        }));
+      } else {
+        setExtraImageFiles((prev) => ({ ...prev, [uploadField]: file }));
+        setFormData((prev) => ({ ...prev, [uploadField]: file }));
+      }
     }
   };
 
@@ -245,6 +271,10 @@ const SubmissionForm = ({
     if (selectedFile) {
       formDataToSend.append(formConfig.imageField, selectedFile);
     }
+    // Add extra image files (for forms with multiple image upload fields)
+    Object.entries(extraImageFiles).forEach(([field, file]) => {
+      if (file) formDataToSend.append(field, file);
+    });
     // Add arrays as JSON strings (always send, even if empty)
     formConfig.arrayFields?.forEach((field) => {
       const arrayData = filteredData[field] || [];
@@ -334,27 +364,35 @@ const SubmissionForm = ({
         const containerClass = isAvatar ? "w-24 h-24" : "w-32 h-32";
         const iconSize = isAvatar ? "text-4xl" : "w-8 h-8";
         const editButtonClass =
-          "absolute -bottom-2 -right-2 bg-gold hover:bg-gold/80 text-black p-2 rounded-full shadow-lg transition-colors";
-        // For secondary image fields (not the main imageField), use the field's
-        // own value from formData so we don't accidentally show the poster image.
+          "absolute bottom-1 right-1 bg-gold hover:bg-gold/80 text-black p-2 shadow-xl transition-colors";
         const isMainImageField = fieldName === formConfig.imageField;
+        // Determine the active preview for this specific field
+        const previewForField = isMainImageField
+          ? imagePreview
+          : extraImagePreviews[fieldName] || null;
         const existingImageForField = isMainImageField
           ? existingImage
           : fieldValue || null;
+        const triggerUpload = () => {
+          currentUploadFieldRef.current = fieldName;
+          fileInputRef.current?.click();
+        };
         return (
-          <div id={fieldName} className="flex items-center space-x-6 ">
+          <div id={fieldName} className="flex items-start space-x-3 ">
             <div className="relative">
               <div
                 className={`${containerClass} overflow-hidden bg-stone-700 border-2 border-gold/30`}
               >
-                {imagePreview && isMainImageField ? (
-                  <img loading="lazy"
-                    src={imagePreview}
+                {previewForField ? (
+                  <img
+                    loading="lazy"
+                    src={previewForField}
                     alt="Preview"
                     className="w-full h-full object-cover"
                   />
                 ) : existingImageForField ? (
-                  <img loading="lazy"
+                  <img
+                    loading="lazy"
                     src={existingImageForField}
                     alt="Current"
                     className="w-full h-full object-cover"
@@ -372,29 +410,40 @@ const SubmissionForm = ({
 
               <button
                 type="button"
-                onClick={() => fileInputRef.current?.click()}
+                onClick={triggerUpload}
                 className={editButtonClass}
                 title="Upload Image"
               >
-                <MdEdit size={isAvatar ? 16 : 16} />
+                <MdEdit size={16} />
               </button>
             </div>
 
             <div className="flex-1">
               <button
                 type="button"
-                onClick={() => fileInputRef.current?.click()}
+                onClick={triggerUpload}
                 className="px-2 py-1 bg-gold/30 text-gold border border-gold/30  transition-colors flex items-center gap-2"
               >
                 <MdUpload size={20} />
-                {imagePreview ? "Change Image" : "Upload Image"}
+                {previewForField ? "Change Image" : "Upload Image"}
               </button>
-              <p className="text-xs text-chino/70 mt-2">
-                {fieldConfig.helpText || "Upload an image (max 2MB)."}
+              <p className="text-[10px] text-chino/70 mt-2 secondary">
+                {fieldConfig.helpText || "Upload an image (max 15MB)."}
               </p>
             </div>
           </div>
         );
+
+      case "switch": {
+        const isOn = Boolean(formData[fieldName]);
+        return (
+          <SwitchButton
+            checked={isOn}
+            onChange={(val) => handleInputChange(fieldName, val)}
+            label={fieldConfig.switchLabel || ""}
+          />
+        );
+      }
 
       case "textarea":
         return (
@@ -533,10 +582,11 @@ const SubmissionForm = ({
 
               return (
                 <div key={fieldName}>
-                  {/* Render label for all types except image and additional */}
+                  {/* Render label for all types except image, additional, checkbox, and switch */}
                   {fieldConfig.type !== "image" &&
                     fieldConfig.type !== "additional" &&
                     fieldConfig.type !== "checkbox" &&
+                    fieldConfig.type !== "switch" &&
                     !fieldConfig.hideLabel && (
                       <label
                         htmlFor={

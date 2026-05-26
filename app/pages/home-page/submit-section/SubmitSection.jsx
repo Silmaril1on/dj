@@ -7,9 +7,9 @@ import { SiYoutubemusic, SiNeteasecloudmusic } from "react-icons/si";
 import { MdEvent, MdFestival } from "react-icons/md";
 import { FaNewspaper } from "react-icons/fa";
 import Motion from "@/app/components/containers/Motion";
-import Title from "@/app/components/ui/Title";
-import Paragraph from "@/app/components/ui/Paragraph";
 import Image from "next/image";
+import Swiper from "@/app/components/containers/Swiper";
+import SectionContainer from "@/app/components/containers/SectionContainer";
 
 const SubmitSection = () => {
   const router = useRouter();
@@ -131,7 +131,10 @@ const SubmitSection = () => {
   ];
 
   return (
-    <div className="py-20 overflow-hidden relative">
+    <SectionContainer
+      title="Contribute to Soundfolio"
+      description="Help us grow by submitting new artists, clubs, events, festivals, or news. Join our community in building the ultimate electronic music database."
+    >
       <Motion
         animation="fade"
         delay={1}
@@ -145,37 +148,57 @@ const SubmitSection = () => {
           className="w-full h-full"
         />
       </Motion>
-      <div className="w-full center flex-col mb-5">
-        <Title text="Submit New Content" />
-        <Paragraph
-          className="text-center"
-          text="Contribute to our community by adding new artists, clubs, or events. Your submissions help keep our platform vibrant and up-to-date."
-        />
+      {/* Desktop grid */}
+      <div className="w-full hidden lg:block lg:px-[10%]">
+        <div className="grid lg:grid-cols-5 gap-6 overflow-hidden">
+          {cards.map(({ type, title, description, icon: Icon }, index) => (
+            <Motion
+              animation="fade"
+              delay={index * 0.2}
+              key={type}
+              onClick={() => handleSubmit(type)}
+              className="group relative bg-gradient-to-br from-gold/20 to-gold/10 border border-gold/30 rounded-lg p-6 cursor-pointer hover:border-gold/60 hover:bg-gradient-to-br hover:from-gold/30 hover:to-gold/20 transition-all duration-300"
+            >
+              <div className="text-center space-y-4">
+                <div className="mx-auto text-2xl w-16 h-16 bg-gold/20 rounded-full flex items-center justify-center group-hover:bg-gold/30 transition-colors duration-300">
+                  <span>{Icon}</span>
+                </div>
+                <h3 className="text-xl font-bold text-gold group-hover:text-gold/90 transition-colors duration-300">
+                  {title}
+                </h3>
+                <p className="text-[10px] text-chino/80 secondary leading-relaxed">
+                  {description}
+                </p>
+              </div>
+            </Motion>
+          ))}
+        </div>
       </div>
-      <div className="w-full grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6 px-[10%] overflow-hidden">
-        {cards.map(({ type, title, description, icon: Icon }, index) => (
-          <Motion
-            animation="fade"
-            delay={index * 0.2}
+      {/* mobile grid */}
+      <Swiper cardWidth={350} spacing={12} animate={true}>
+        {cards.map(({ type, title, description, icon: Icon }) => (
+          <div
             key={type}
             onClick={() => handleSubmit(type)}
-            className="group relative bg-gradient-to-br from-gold/20 to-gold/10 border border-gold/30 rounded-lg p-6 cursor-pointer hover:border-gold/60 hover:bg-gradient-to-br hover:from-gold/30 hover:to-gold/20 transition-all duration-300"
+            className=" group relative bg-gradient-to-br from-gold/20 to-gold/10 border border-gold/30 rounded-lg p-6 cursor-pointer hover:border-gold/60 hover:from-gold/30 hover:to-gold/20 transition-all duration-300"
           >
             <div className="text-center space-y-4">
               <div className="mx-auto text-2xl w-16 h-16 bg-gold/20 rounded-full flex items-center justify-center group-hover:bg-gold/30 transition-colors duration-300">
                 <span>{Icon}</span>
               </div>
+
               <h3 className="text-xl font-bold text-gold group-hover:text-gold/90 transition-colors duration-300">
                 {title}
               </h3>
+
               <p className="text-[10px] text-chino/80 secondary leading-relaxed">
                 {description}
               </p>
             </div>
-          </Motion>
+          </div>
         ))}
-      </div>
-    </div>
+      </Swiper>
+    </SectionContainer>
   );
 };
 
