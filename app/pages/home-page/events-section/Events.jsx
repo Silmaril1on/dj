@@ -145,7 +145,7 @@ const Events = ({ events = [] }) => {
                   />
                 )}
                 <div className="absolute inset-0 bg-gradient-to-t from-black via-black/70 to-transparent" />
-                <div className="absolute bottom-0 left-0 w-full p-4 space-y-1.5">
+                <div className="absolute bottom-0 left-0 w-full p-2  space-y-1.5">
                   <Title
                     className="uppercase text-start leading-none"
                     text={event.event_name}

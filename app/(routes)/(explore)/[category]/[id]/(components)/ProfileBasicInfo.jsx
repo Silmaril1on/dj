@@ -6,7 +6,7 @@ import Paragraph from "@/app/components/ui/Paragraph";
 import SpanText from "@/app/components/ui/SpanText";
 import Title from "@/app/components/ui/Title";
 import { capitalizeFirst, formatBirthdate } from "@/app/helpers/utils";
-import { FaCalendar, FaLink, FaStar } from "react-icons/fa";
+import { FaStar } from "react-icons/fa";
 import EmailTag from "@/app/components/ui/EmailTag";
 import SocialLinks from "@/app/components/materials/SocialLinks";
 
@@ -83,12 +83,7 @@ const ProfileBasicInfo = ({ data, type }) => {
     <div className="flex  flex-1 relative justify-between items-start flex-col bg-stone-900 p-4">
       {isEvent && data.links && (
         <Motion animation="pop" delay={0.2} className="mb-3">
-          <MyLink
-            icon={<FaLink />}
-            text="Check Event"
-            target="_blank"
-            href={data.links}
-          />
+          <MyLink text="Check Event" target="_blank" href={data.links} />
         </Motion>
       )}
 
@@ -120,9 +115,12 @@ const ProfileBasicInfo = ({ data, type }) => {
       )}
 
       {dateText && (
-        <Motion animation="top" delay={0.7} className="w-full pb-2">
+        <Motion
+          animation="top"
+          delay={0.7}
+          className="w-full pb-2 leading-none"
+        >
           <SpanText
-            icon={<FaCalendar />}
             color="cream"
             size="md"
             className="font-bold"

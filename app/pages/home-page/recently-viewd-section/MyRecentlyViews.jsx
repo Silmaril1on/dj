@@ -82,7 +82,7 @@ const MyRecentlyViews = () => {
       {/* Mobile Swiper */}
       <Swiper cardWidth={160} spacing={12}>
         {recentItems.map((item, index) => (
-          <div key={item.id}>
+          <div key={item.id} className="h-full *:h-full">
             <ProductCard
               id={item.id}
               name={item.name}

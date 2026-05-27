@@ -171,7 +171,7 @@ const ArtistCountry = ({
       <FlexBox
         type="row-start"
         className={`secondary gap-1 pl-1 capitalize items-center *:leading-none ${
-          size === "small" ? "text-[9px]" : "text-[9px] md:text-xs"
+          size === "small" ? "text-[9px]" : "text-xs"
         }`}
       >
         {countryName && <p>{countryName}</p>}

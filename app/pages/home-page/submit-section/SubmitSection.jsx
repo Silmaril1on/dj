@@ -133,12 +133,12 @@ const SubmitSection = () => {
   return (
     <SectionContainer
       title="Contribute to Soundfolio"
-      description="Help us grow by submitting new artists, clubs, events, festivals, or news. Join our community in building the ultimate electronic music database."
+      description="Join our community in building the ultimate electronic music database."
     >
       <Motion
         animation="fade"
         delay={1}
-        className="absolute w-98 h-98 -right-10 sepia -bottom-22 rotate-[65deg] -z-[1] brightness-20 blur-[2px]"
+        className="absolute w-98 h-98 -right-10 sepia -bottom-22 rotate-[65deg] -z-[1] brightness-10 lg:brightness-20 blur-[2px]"
       >
         <Image
           src="/assets/elivagar-logo.png"
@@ -180,7 +180,7 @@ const SubmitSection = () => {
           <div
             key={type}
             onClick={() => handleSubmit(type)}
-            className=" group relative bg-gradient-to-br from-gold/20 to-gold/10 border border-gold/30 rounded-lg p-6 cursor-pointer hover:border-gold/60 hover:from-gold/30 hover:to-gold/20 transition-all duration-300"
+            className="h-full group relative bg-gradient-to-br from-gold/20 to-gold/10 border border-gold/30 rounded-lg p-6 cursor-pointer hover:border-gold/60 hover:from-gold/30 hover:to-gold/20 transition-all duration-300"
           >
             <div className="text-center space-y-4">
               <div className="mx-auto text-2xl w-16 h-16 bg-gold/20 rounded-full flex items-center justify-center group-hover:bg-gold/30 transition-colors duration-300">
@@ -191,7 +191,7 @@ const SubmitSection = () => {
                 {title}
               </h3>
 
-              <p className="text-[10px] text-chino/80 secondary leading-relaxed">
+              <p className="text-sm text-chino/80 secondary leading-relaxed">
                 {description}
               </p>
             </div>

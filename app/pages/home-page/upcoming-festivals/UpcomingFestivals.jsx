@@ -95,7 +95,7 @@ const FestivalCard = ({ festival, index, total, sectionProgress }) => {
       >
         <div className="w-full grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-20 items-center relative ">
           <div className="flex flex-col gap-4 py-5 pl-5">
-            <div className="flex flex-col items-start gap-1">
+            <div className="flex flex-col items-center lg:items-start gap-1">
               <MyLink
                 href={`/festivals/${festival.festival_slug}`}
                 text="View Details"
@@ -111,7 +111,7 @@ const FestivalCard = ({ festival, index, total, sectionProgress }) => {
               <ArtistCountry artistCountry={festival} />
             </div>
 
-            <div className="flex flex-col gap-1">
+            <div className="flex flex-col items-center lg:items-start gap-1">
               <p className="secondary text-xs text-chino mb-1">
                 Date & Location
               </p>
@@ -138,7 +138,7 @@ const FestivalCard = ({ festival, index, total, sectionProgress }) => {
               )}
             </div>
 
-            <div className="flex flex-col items-start text-xs text-chino/60">
+            <div className="flex flex-col items-center lg:items-start text-xs text-chino/60">
               <div className="flex items-center space-x-2">
                 {(festival.festival_genre || []).slice(0, 3).map((g, i) => (
                   <span

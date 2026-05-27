@@ -190,8 +190,8 @@ const TicketsDisplay = ({ entityType, entityId }) => {
                             )}
                           </div>
 
-                          <div className="border-t lg:border-t-0 lg:border-l border-gold/20 p-3 lg:p-4 flex flex-col justify-start items-end gap-1">
-                            <div className="text-right">
+                          <div className="border-t lg:border-t-0 lg:border-l border-gold/20 p-3 lg:p-4 flex lg:flex-col justify-between lg:justify-start items-end gap-1">
+                            <div className="text-right ">
                               <p className="font-bold text-2xl text-cream">
                                 {formatPrice(
                                   (ticket?.priceTiers || []).reduce(
@@ -203,7 +203,7 @@ const TicketsDisplay = ({ entityType, entityId }) => {
                                   ),
                                 )}
                               </p>
-                              <div className=" flex items-center justify-end gap-2 text-xs text-cream/90">
+                              <div className=" flex items-center justify-start lg:justify-end gap-2 text-xs text-cream/90">
                                 <span
                                   className={`h-2 w-2 rounded-full ${statusDotClass[currentStatus]}`}
                                 />
@@ -211,17 +211,19 @@ const TicketsDisplay = ({ entityType, entityId }) => {
                               </div>
                             </div>
 
-                            <Button
-                              href={purchaseLink || undefined}
-                              target="_blank"
-                              size="small"
-                              text={allSoldOut ? "Sold Out" : "Buy Now"}
-                              className="w-fit"
-                              disabled={allSoldOut}
-                            />
+                            <div>
+                              <Button
+                                href={purchaseLink || undefined}
+                                target="_blank"
+                                size="small"
+                                text={allSoldOut ? "Sold Out" : "Buy Now"}
+                                className="w-fit"
+                                disabled={allSoldOut}
+                              />
 
-                            <div className="text-right text-xs text-cream/70">
-                              max {ticket?.maxPerOrder || 1}
+                              <div className="text-right text-xs text-cream/70">
+                                max {ticket?.maxPerOrder || 1}
+                              </div>
                             </div>
                           </div>
                         </div>

@@ -84,7 +84,7 @@ const MyEvents = ({ events: initialEvents = [] }) => {
         >
           <Motion
             animation="fade"
-            className="bg-stone-900 bordered flex p-3 gap-3 relative hover:bg-stone-800 transition-colors"
+            className="bg-stone-900 bordered flex flex-col lg:flex-row p-3 gap-3 relative hover:bg-stone-800 transition-colors"
           >
             <div className="w-64 h-44 ">
               {resolveImage(event.image_url, "md") ? (
@@ -100,7 +100,10 @@ const MyEvents = ({ events: initialEvents = [] }) => {
             </div>
             <article className=" w-full items-start flex flex-col">
               <div className="flex justify-between w-full">
-                <Title text={event.event_name} />
+                <Title
+                  className="text-start lg:text-center leading-none"
+                  text={event.event_name}
+                />
               </div>
               {canEditEvent(event) && (
                 <div className="absolute top-3 right-3 flex gap-2">
