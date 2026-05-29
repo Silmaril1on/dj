@@ -59,6 +59,8 @@ const buildEnhancedInitialStages = (
         lineup_id: a.lineup_id || null,
         name: a.name || "",
         day: a.day || "",
+        time_from: a.time_from || "",
+        time_to: a.time_to || "",
         phase: a.phase || null,
         support_act: a.support_act || false,
         phase_locked: true, // came from DB — don't auto-update when lineupStatus changes
@@ -77,6 +79,8 @@ const buildEnhancedInitialStages = (
               lineup_id: null,
               name: a.name,
               day: "",
+              time_from: "",
+              time_to: "",
               phase: lineupStatus,
               support_act: false,
               phase_locked: false,
@@ -86,6 +90,8 @@ const buildEnhancedInitialStages = (
                 lineup_id: null,
                 name: "",
                 day: "",
+                time_from: "",
+                time_to: "",
                 phase: lineupStatus,
                 support_act: false,
                 phase_locked: false,
@@ -101,6 +107,8 @@ const buildEnhancedInitialStages = (
           lineup_id: null,
           name: a.name,
           day: "",
+          time_from: "",
+          time_to: "",
           phase: lineupStatus,
           support_act: false,
           phase_locked: false,
@@ -110,6 +118,8 @@ const buildEnhancedInitialStages = (
             lineup_id: null,
             name: "",
             day: "",
+            time_from: "",
+            time_to: "",
             phase: lineupStatus,
             support_act: false,
             phase_locked: false,
@@ -409,6 +419,42 @@ const StageCard = ({
                 </button>
               )}
             </div>
+            <div className="mt-2 grid grid-cols-2 gap-2 pr-9">
+              <div>
+                <label className="text-xs text-stone-400">From</label>
+                <input
+                  type="text"
+                  placeholder="e.g. 13:00"
+                  className="py-1 text-sm w-full"
+                  value={artist.time_from || ""}
+                  onChange={(e) =>
+                    onArtistChange(
+                      stageIndex,
+                      artistIndex,
+                      "time_from",
+                      e.target.value,
+                    )
+                  }
+                />
+              </div>
+              <div>
+                <label className="text-xs text-stone-400">To</label>
+                <input
+                  type="text"
+                  placeholder="e.g. 14:00"
+                  className="py-1 text-sm w-full"
+                  value={artist.time_to || ""}
+                  onChange={(e) =>
+                    onArtistChange(
+                      stageIndex,
+                      artistIndex,
+                      "time_to",
+                      e.target.value,
+                    )
+                  }
+                />
+              </div>
+            </div>
             <div className="mt-2 flex items-center justify-between w-full gap-2 pr-9">
               <span className="text-xs text-chino secondary">Support Act</span>
               <SwitchButton
@@ -490,6 +536,10 @@ const AddFestivalLineupForm = ({
     artist: null,
   });
 
+  // Delete full lineup confirmation state
+  const [deleteFullConfirm, setDeleteFullConfirm] = useState(false);
+  const [isDeletingFull, setIsDeletingFull] = useState(false);
+
   // Edit artist modal state
   const [editModal, setEditModal] = useState({ open: false, artist: null });
   const [editForm, setEditForm] = useState({
@@ -554,6 +604,8 @@ const AddFestivalLineupForm = ({
             lineup_id: null,
             name: "",
             day: "",
+            time_from: "",
+            time_to: "",
             phase: lineupStatus,
             phase_locked: false,
           },
@@ -595,6 +647,8 @@ const AddFestivalLineupForm = ({
             lineup_id: null,
             name: "",
             day: "",
+            time_from: "",
+            time_to: "",
             phase: lineupStatus,
             support_act: false,
             phase_locked: false,
@@ -605,7 +659,29 @@ const AddFestivalLineupForm = ({
     setStages(next);
   };
 
-  const handleRemoveArtist = (stageIndex, artistIndex) => {
+  const handleRemoveArtist = async (stageIndex, artistIndex) => {
+    const artist = stages[stageIndex]?.artists[artistIndex];
+
+    if (artist?.lineup_id) {
+      try {
+        const response = await fetch(
+          `/api/festivals/lineup?lineup_id=${artist.lineup_id}&festival_id=${festivalId}`,
+          { method: "DELETE" },
+        );
+        if (!response.ok) {
+          dispatch(
+            setError({ message: "Failed to delete artist", type: "error" }),
+          );
+          return;
+        }
+      } catch {
+        dispatch(
+          setError({ message: "Failed to delete artist", type: "error" }),
+        );
+        return;
+      }
+    }
+
     const next = stages.map((stage, si) => {
       if (si !== stageIndex) return stage;
       return {
@@ -702,6 +778,33 @@ const AddFestivalLineupForm = ({
     }
   };
 
+  // ── Delete full lineup ───────────────────────────────────────────────────────
+
+  const handleDeleteFullLineup = async () => {
+    setDeleteFullConfirm(false);
+    setIsDeletingFull(true);
+    try {
+      const response = await fetch(
+        `/api/festivals/lineup?festival_id=${festivalId}`,
+        { method: "DELETE" },
+      );
+      if (!response.ok) throw new Error("Failed to delete lineup");
+      setExistingStandardArtists([]);
+      saveLineupCache(festivalId, []);
+      setStages(
+        buildEnhancedInitialStages(null, existingStages, null, lineupStatus),
+      );
+      setStandardArtists([""]);
+      router.refresh();
+    } catch {
+      dispatch(
+        setError({ message: "Failed to delete full lineup", type: "error" }),
+      );
+    } finally {
+      setIsDeletingFull(false);
+    }
+  };
+
   // ── Submit ──────────────────────────────────────────────────────────────────
 
   const hasExistingData =
@@ -757,6 +860,8 @@ const AddFestivalLineupForm = ({
           .map((a) => ({
             name: a.name,
             day: a.day,
+            time_from: a.time_from || null,
+            time_to: a.time_to || null,
             phase: a.phase_locked ? a.phase : (lineupStatus ?? null),
             support_act: a.support_act || false,
           })),
@@ -954,12 +1059,15 @@ const AddFestivalLineupForm = ({
 
         {/* ── Actions ── */}
         <div className="flex justify-end gap-4 pt-6 border-t border-stone-700">
-          <Button
-            text="Cancel"
-            type="button"
-            size="small"
-            onClick={() => router.push(`/festivals/${festivalId}`)}
-          />
+          {hasExistingData && (
+            <Button
+              text={isDeletingFull ? "Deleting..." : "Delete Full Lineup"}
+              type="remove"
+              size="small"
+              disabled={isDeletingFull}
+              onClick={() => setDeleteFullConfirm(true)}
+            />
+          )}
           <Button
             text={
               isSubmitting
@@ -1108,6 +1216,38 @@ const AddFestivalLineupForm = ({
               text="Yes, Delete"
               type="remove"
               onClick={performDelete}
+            />
+          </div>
+        </div>
+      </GlobalModal>
+
+      {/* ── Delete Full Lineup Confirmation Modal ── */}
+      <GlobalModal
+        isOpen={deleteFullConfirm}
+        onClose={() => setDeleteFullConfirm(false)}
+        title="Delete Full Lineup"
+        maxWidth="max-w-sm"
+        hideSubmit
+      >
+        <div className="space-y-5">
+          <p className="text-cream text-sm text-center secondary">
+            This will permanently remove{" "}
+            <span className="text-gold font-bold">all artists and stages</span>{" "}
+            for <span className="text-gold font-bold">{festivalName}</span>.
+            This action cannot be undone.
+          </p>
+          <div className="flex justify-center gap-3">
+            <Button
+              text="No, Keep It"
+              type="success"
+              size="small"
+              onClick={() => setDeleteFullConfirm(false)}
+            />
+            <Button
+              size="small"
+              text="Yes, Delete All"
+              type="remove"
+              onClick={handleDeleteFullLineup}
             />
           </div>
         </div>

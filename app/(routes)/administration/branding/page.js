@@ -1,13 +1,18 @@
 import React from "react";
-import TrackListAnimation from "./TrackListAnimation";
-import Twinkles from "./components/Twinkles";
+import Branding from "./Branding";
+import { getBranding } from "@/app/lib/services/admin/branding";
 
-const BrandingPage = () => {
+const BrandingPage = async () => {
+  let branding = null;
+  try {
+    branding = await getBranding();
+  } catch {
+    // Table may not exist yet; component will handle null gracefully
+  }
+
   return (
-    <div className="center bg-black relative bo">
-      <Twinkles />
-      <TrackListAnimation tracklist={true} />
-      {/* <PosterTool /> */}
+    <div className="center bg-black relative">
+      <Branding branding={branding} />
     </div>
   );
 };

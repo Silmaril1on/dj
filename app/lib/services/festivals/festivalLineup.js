@@ -56,6 +56,8 @@ async function saveLineupStages(festivalId, stages, lineup_status) {
       stage_id: insertedStage.id,
       artist_name: artist.name,
       artist_day: artist.day || null,
+      time_from: artist.time_from || null,
+      time_to: artist.time_to || null,
       artist_order: artistIndex,
       phase: artist.phase || lineup_status || null,
       support_act: artist.support_act || false,
@@ -109,6 +111,28 @@ async function saveStandardLineup(festivalId, artists, lineup_status) {
     .eq("id", festivalId);
 }
 
+/**
+ * Invoke the send-lineup-notifications Supabase Edge Function.
+ * Fire-and-forget — does not block lineup save; edge function runs independently
+ * on Supabase's infrastructure so it completes even after this request ends.
+ */
+function triggerLineupNotifications(festivalId, phaseName) {
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  if (!supabaseUrl || !serviceRoleKey) return;
+
+  fetch(`${supabaseUrl}/functions/v1/send-lineup-notifications`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${serviceRoleKey}`,
+    },
+    body: JSON.stringify({ festivalId, phaseName }),
+  }).catch((err) =>
+    console.error("[LINEUP NOTIFY] Edge function invoke failed:", err),
+  );
+}
+
 async function clearAllLineupData(festivalId) {
   const admin = getSupabaseAdminClient();
   // Delete standard lineup entries (no stage row — keyed by festival_id + null stage_id)
@@ -150,7 +174,7 @@ export async function getLineup(festivalId, cookieStore) {
         .select(
           `id, stage_name, stage_order,
            festival_lineup (
-             id, artist_name, artist_day, artist_order, phase, support_act
+             id, artist_name, artist_day, artist_order, phase, support_act, time_from, time_to
            )`,
         )
         .eq("festival_id", festivalId)
@@ -187,6 +211,8 @@ export async function getLineup(festivalId, cookieStore) {
           lineup_id: row.id,
           name: row.artist_name,
           day: row.artist_day || "",
+          time_from: row.time_from || null,
+          time_to: row.time_to || null,
           phase: row.phase || null,
           support_act: row.support_act || false,
           id: found?.id || null,
@@ -288,6 +314,12 @@ export async function createLineup(
 
   revalidateTag(`festival-lineup-${festival_id}`);
 
+  // Fire-and-forget: invoke edge function to notify subscribers
+  const phaseLabel = lineup_status
+    ? lineup_status.replace(/\b\w/g, (c) => c.toUpperCase())
+    : "New";
+  triggerLineupNotifications(festival_id, `${phaseLabel} Lineup`);
+
   return {
     success: true,
     message: "Lineup created successfully",
@@ -322,6 +354,12 @@ export async function updateLineup(
   }
 
   revalidateTag(`festival-lineup-${festival_id}`);
+
+  // Fire-and-forget: invoke edge function to notify subscribers
+  const phaseLabel = lineup_status
+    ? lineup_status.replace(/\b\w/g, (c) => c.toUpperCase())
+    : "Updated";
+  triggerLineupNotifications(festival_id, `${phaseLabel} Lineup`);
 
   return {
     success: true,
@@ -377,4 +415,22 @@ export async function deleteLineupArtist(
   if (error) throw new ServiceError("Failed to delete artist", 500);
   revalidateTag(`festival-lineup-${festival_id}`);
   return { success: true };
+}
+
+export async function deleteFullLineup({ festival_id }, cookieStore) {
+  if (!festival_id) throw new ServiceError("Festival ID is required", 400);
+
+  const { user } = await getAuthenticatedContext(cookieStore);
+  await assertFestivalOwner(user, festival_id);
+
+  await clearAllLineupData(festival_id);
+
+  const admin = getSupabaseAdminClient();
+  await admin
+    .from("festivals")
+    .update({ lineup_status: null })
+    .eq("id", festival_id);
+
+  revalidateTag(`festival-lineup-${festival_id}`);
+  return { success: true, message: "Full lineup deleted" };
 }

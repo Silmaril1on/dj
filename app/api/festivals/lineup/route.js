@@ -6,6 +6,7 @@ import {
   updateLineup,
   updateLineupArtist,
   deleteLineupArtist,
+  deleteFullLineup,
 } from "@/app/lib/services/festivals/festivalLineup";
 import { ServiceError } from "@/app/lib/services/shared";
 
@@ -64,6 +65,13 @@ export async function DELETE(request) {
     const lineup_id = searchParams.get("lineup_id");
     const festival_id = searchParams.get("festival_id");
     const cookieStore = await cookies();
+
+    // No lineup_id = delete the entire festival lineup
+    if (!lineup_id && festival_id) {
+      const result = await deleteFullLineup({ festival_id }, cookieStore);
+      return NextResponse.json(result);
+    }
+
     const result = await deleteLineupArtist(
       { lineup_id, festival_id },
       cookieStore,

@@ -1,5 +1,5 @@
 "use client";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { MdSearch, MdPublic } from "react-icons/md";
 import EnhancedSearch from "./enhanced-search/EnhancedSearch";
@@ -17,13 +17,31 @@ const modes = [
     id: "globe",
     icon: MdPublic,
     label: "Global Search",
-    description: "Spin the world & Explore events around the world",
+    description: "Spin the world & Explore festivals around the world",
     component: <Globe />,
   },
 ];
 
 const EventSearcher = () => {
   const [activeMode, setActiveMode] = useState(null);
+  const contentRef = useRef(null);
+
+  const handleModeSelect = (modeId) => {
+    const next = activeMode === modeId ? null : modeId;
+    setActiveMode(next);
+
+    if (next === "globe") {
+      // Scroll to the globe container after it animates in
+      requestAnimationFrame(() => {
+        setTimeout(() => {
+          contentRef.current?.scrollIntoView({
+            behavior: "smooth",
+            block: "start",
+          });
+        }, 80);
+      });
+    }
+  };
 
   return (
     <div className="w-full min-h-screen space-y-12 py-10 px-4">
@@ -41,9 +59,8 @@ const EventSearcher = () => {
                 opacity: 0,
                 x: initialX,
                 scale: 0.8,
-                opacity: 0,
               }}
-              animate={{ y: 0, opacity: 1, x: 0, scale: 1, opacity: 1 }}
+              animate={{ y: 0, opacity: 1, x: 0, scale: 1 }}
               transition={{
                 duration: 0.55,
                 delay: idx * 0.1,
@@ -51,7 +68,7 @@ const EventSearcher = () => {
                 bounce: 0.1,
               }}
               whileTap={{ scale: 0.97 }}
-              onClick={() => setActiveMode(isActive ? null : mode.id)}
+              onClick={() => handleModeSelect(mode.id)}
               className={`w-64 h-64 flex flex-col items-center justify-center gap-4 border-2 transition-all duration-300 cursor-pointer ${
                 isActive
                   ? "bg-gold/15 border-gold text-gold"
@@ -81,19 +98,21 @@ const EventSearcher = () => {
       </div>
 
       {/* ── Active Component ── */}
-      <AnimatePresence mode="wait">
-        {activeMode && (
-          <motion.div
-            key={activeMode}
-            initial={{ opacity: 0, y: 24 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -16 }}
-            transition={{ duration: 0.35 }}
-          >
-            {modes.find((m) => m.id === activeMode)?.component}
-          </motion.div>
-        )}
-      </AnimatePresence>
+      <div ref={contentRef}>
+        <AnimatePresence mode="wait">
+          {activeMode && (
+            <motion.div
+              key={activeMode}
+              initial={{ opacity: 0, y: 24 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -16 }}
+              transition={{ duration: 0.35 }}
+            >
+              {modes.find((m) => m.id === activeMode)?.component}
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </div>
     </div>
   );
 };

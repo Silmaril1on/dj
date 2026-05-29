@@ -1,13 +1,21 @@
 "use client";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, useCallback } from "react";
 import { createPortal } from "react-dom";
 import Link from "next/link";
-import { motion, useMotionValue, useSpring } from "framer-motion";
+import {
+  motion,
+  AnimatePresence,
+  useMotionValue,
+  useSpring,
+} from "framer-motion";
+import { useSelector } from "react-redux";
 import Spinner from "@/app/components/ui/Spinner";
 import Motion from "@/app/components/containers/Motion";
 import Dot from "@/app/components/ui/Dot";
 import LayoutButtons from "@/app/components/buttons/LayoutButtons";
 import { resolveImage } from "@/app/helpers/utils";
+import { selectIsAuthenticated } from "@/app/features/userSlice";
+import { IoMusicalNotesOutline } from "react-icons/io5";
 
 const LIVE_RE = /\s+live$/i;
 const B2B_RE = /\s*b2b\s*/i;
@@ -243,6 +251,223 @@ const ArtistGroup = ({ group, index }) => (
   </Motion>
 );
 
+// ─── Lineup Alert subscribe button ───────────────────────────────────────────
+const LineupAlertButton = ({ festivalId }) => {
+  const isAuthenticated = useSelector(selectIsAuthenticated);
+  const [status, setStatus] = useState("idle"); // idle | loading | subscribed | error
+  const [subscriptionChecked, setSubscriptionChecked] = useState(false);
+
+  // Check existing subscription on mount
+  useEffect(() => {
+    if (!isAuthenticated || !festivalId) {
+      setSubscriptionChecked(true);
+      return;
+    }
+    fetch(
+      `/api/notifications/subscriptions?entity_type=festival&entity_id=${festivalId}&notification_type=lineup_phase_drop`,
+    )
+      .then((r) => r.json())
+      .then((json) => {
+        if (json.subscribed) setStatus("subscribed");
+      })
+      .catch(() => {})
+      .finally(() => setSubscriptionChecked(true));
+  }, [isAuthenticated, festivalId]);
+
+  const handleSubscribe = useCallback(async () => {
+    if (!isAuthenticated) {
+      window.location.href = "/login";
+      return;
+    }
+    setStatus("loading");
+    try {
+      const res = await fetch("/api/notifications/subscriptions", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          entity_type: "festival",
+          entity_id: festivalId,
+          notification_type: "lineup_phase_drop",
+        }),
+      });
+      if (res.ok) {
+        setStatus("subscribed");
+      } else {
+        setStatus("error");
+      }
+    } catch {
+      setStatus("error");
+    }
+  }, [isAuthenticated, festivalId]);
+
+  const handleUnsubscribe = useCallback(async () => {
+    setStatus("loading");
+    try {
+      const res = await fetch("/api/notifications/subscriptions", {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          entity_type: "festival",
+          entity_id: festivalId,
+          notification_type: "lineup_phase_drop",
+        }),
+      });
+      if (res.ok) setStatus("idle");
+      else setStatus("subscribed");
+    } catch {
+      setStatus("subscribed");
+    }
+  }, [festivalId]);
+
+  if (!subscriptionChecked) return null;
+
+  return (
+    <AnimatePresence mode="wait">
+      {status === "subscribed" ? (
+        <motion.button
+          key="subscribed"
+          initial={{ opacity: 0, scale: 0.95 }}
+          animate={{ opacity: 1, scale: 1 }}
+          exit={{ opacity: 0, scale: 0.95 }}
+          onClick={handleUnsubscribe}
+          className="flex items-center gap-2 px-5 py-2 border border-green-500/50 text-green-500 text-xs uppercase tracking-widest hover:bg-green-500/20 transition-colors"
+        >
+          <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse inline-block" />
+          Alert active - cancel
+        </motion.button>
+      ) : (
+        <motion.button
+          key="subscribe"
+          initial={{ opacity: 0, scale: 0.95 }}
+          animate={{ opacity: 1, scale: 1 }}
+          exit={{ opacity: 0, scale: 0.95 }}
+          disabled={status === "loading"}
+          onClick={handleSubscribe}
+          className="flex items-center cursor-pointer gap-2 px-6 py-2.5 bg-gold text-black text-xs font-bold uppercase tracking-widest hover:bg-gold/85 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          {status === "loading" ? (
+            <span className="w-3 h-3 border border-black/40 border-t-black rounded-full animate-spin inline-block" />
+          ) : (
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 24 24"
+              fill="currentColor"
+              className="w-3.5 h-3.5"
+            >
+              <path d="M5.85 3.5a.75.75 0 00-1.117-1 9.719 9.719 0 00-2.348 4.876.75.75 0 001.479.248A8.219 8.219 0 015.85 3.5zM19.267 2.5a.75.75 0 10-1.118 1 8.22 8.22 0 011.987 4.124.75.75 0 001.48-.248A9.72 9.72 0 0019.266 2.5z" />
+              <path
+                fillRule="evenodd"
+                d="M12 2.25A6.75 6.75 0 005.25 9v.75a8.217 8.217 0 01-2.119 5.52.75.75 0 00.298 1.206c1.544.57 3.16.99 4.831 1.243a3.75 3.75 0 107.48 0 24.583 24.583 0 004.83-1.244.75.75 0 00.298-1.205 8.217 8.217 0 01-2.118-5.52V9A6.75 6.75 0 0012 2.25zM9.75 18c0-.034 0-.067.002-.1a25.05 25.05 0 004.496 0l.002.1a2.25 2.25 0 01-4.5 0z"
+                clipRule="evenodd"
+              />
+            </svg>
+          )}
+          {status === "error" ? "Try again" : "Notify me when lineup drops"}
+        </motion.button>
+      )}
+    </AnimatePresence>
+  );
+};
+
+// ─── No-lineup placeholder ────────────────────────────────────────────────────
+const NoLineupContainer = ({ festivalId }) => (
+  <Motion animation="fade" delay={0.1} className="center flex-col py-20 px-4">
+    <div className="max-w-md w-full border border-gold/30  bg-stone-950 p-10 flex flex-col items-center gap-6 text-center">
+      {/* Icon */}
+      <div className="w-18 h-18 rounded-full border border-gold/30 flex items-center justify-center">
+        <IoMusicalNotesOutline size={30} />
+      </div>
+
+      <div className="space-y-2">
+        <p className="text-cream text-sm font-semibold uppercase tracking-widest">
+          Lineup not announced yet
+        </p>
+        <p className="text-chino/90 text-xs leading-relaxed max-w-[280px] secondary">
+          The lineup for this festival hasn't been revealed yet. Set up an alert
+          and we'll email you the moment artists are announced.
+        </p>
+      </div>
+
+      <LineupAlertButton festivalId={festivalId} />
+    </div>
+  </Motion>
+);
+
+// ─── Timetable components ─────────────────────────────────────────────────────────
+const TimetableCard = ({ artist }) => {
+  const timeLine =
+    artist.time_from && artist.time_to
+      ? `${artist.time_from} – ${artist.time_to}`
+      : artist.time_from || "";
+  const firstPart = artist.parts?.[0];
+  return (
+    <div className="bg-stone-900/60 border border-chino/15 p-3 flex flex-col gap-1.5 min-h-[72px]">
+      {timeLine && (
+        <p className="text-gold text-[10px] font-semibold secondary tracking-wide">
+          {timeLine}
+        </p>
+      )}
+      {firstPart?.slug ? (
+        <Link
+          href={`/artists/${firstPart.slug}`}
+          className="text-cream font-bold uppercase text-xs leading-tight hover:text-gold transition-colors"
+        >
+          {artist.rawName}
+        </Link>
+      ) : (
+        <p className="text-cream font-bold uppercase text-xs leading-tight">
+          {artist.rawName}
+        </p>
+      )}
+    </div>
+  );
+};
+
+const TimetableSection = ({ stages }) => {
+  const artistsByDay = stages
+    .flatMap((s) => s.artists)
+    .filter((a) => a.time_from)
+    .reduce((acc, a) => {
+      const day = a.day || "TBA";
+      if (!acc[day]) acc[day] = [];
+      acc[day].push(a);
+      return acc;
+    }, {});
+
+  const sortedDays = Object.keys(artistsByDay).sort((a, b) => {
+    if (a === "TBA") return 1;
+    if (b === "TBA") return -1;
+    return a.localeCompare(b);
+  });
+
+  if (sortedDays.length === 0) return null;
+
+  return (
+    <div className="w-full max-w-7xl mx-auto px-4 space-y-10">
+      {sortedDays.map((day) => {
+        const sorted = [...artistsByDay[day]].sort((a, b) =>
+          (a.time_from || "").localeCompare(b.time_from || ""),
+        );
+        return (
+          <div key={day}>
+            <h2 className="text-gold text-2xl lg:text-3xl font-bold uppercase mb-4">
+              {day}
+            </h2>
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-2">
+              {sorted.map((artist, i) => (
+                <TimetableCard
+                  key={`${day}-${artist.rawName}-${i}`}
+                  artist={artist}
+                />
+              ))}
+            </div>
+          </div>
+        );
+      })}
+    </div>
+  );
+};
+
 const FestivalLineupDisplay = ({ festivalId, eventArtists }) => {
   const [lineup, setLineup] = useState([]);
   const [standardArtists, setStandardArtists] = useState([]);
@@ -341,6 +566,8 @@ const FestivalLineupDisplay = ({ festivalId, eventArtists }) => {
           return {
             ...artistObj,
             day: a.day || a.artist_day || null,
+            time_from: a.time_from || null,
+            time_to: a.time_to || null,
             support_act: a.support_act || false,
           };
         })
@@ -387,11 +614,17 @@ const FestivalLineupDisplay = ({ festivalId, eventArtists }) => {
     normalizedFestival.stages.some((stage) =>
       stage.artists.some((artist) => artist.day),
     );
+  const hasTimetable =
+    hasStages &&
+    normalizedFestival.stages.some((stage) =>
+      stage.artists.some((artist) => artist.time_from),
+    );
 
   const layoutOptions = [
     { value: "all", label: "Lineup" },
     ...(hasStages ? [{ value: "by-stage", label: "By Stage" }] : []),
     ...(hasDays ? [{ value: "by-day", label: "By Day" }] : []),
+    ...(hasTimetable ? [{ value: "timetable", label: "Timetable" }] : []),
   ];
 
   const safeViewMode =
@@ -399,10 +632,17 @@ const FestivalLineupDisplay = ({ festivalId, eventArtists }) => {
       ? "all"
       : viewMode === "by-day" && !hasDays
         ? "all"
-        : viewMode;
+        : viewMode === "timetable" && !hasTimetable
+          ? "all"
+          : viewMode;
 
   const groups = useMemo(() => {
     if (allSorted.length === 0) return [];
+
+    if (safeViewMode === "timetable") {
+      // sentinel — indicates lineup exists; actual rendering is handled separately
+      return [{ key: "__timetable__", title: "", artists: [] }];
+    }
 
     if (safeViewMode === "all") {
       return [{ key: "all", title: "", artists: allSorted }];
@@ -446,7 +686,13 @@ const FestivalLineupDisplay = ({ festivalId, eventArtists }) => {
     );
   }
 
-  if (groups.length === 0) return null;
+  if (groups.length === 0) {
+    // For festival pages (no eventArtists prop), show the notify-me container
+    if (!eventArtists && festivalId) {
+      return <NoLineupContainer festivalId={festivalId} />;
+    }
+    return null;
+  }
 
   return (
     <div className="center flex-col relative py-20">
@@ -461,42 +707,46 @@ const FestivalLineupDisplay = ({ festivalId, eventArtists }) => {
           />
         </div>
 
-        <div className="space-y-7 center flex-col">
-          {groups.map((group, groupIndex) => {
-            const mainArtists = group.artists.filter((a) => !a.support_act);
-            const supportActs = group.artists.filter((a) => a.support_act);
-            return (
-              <div key={group.key} className="center flex-col w-full gap-5">
-                <ArtistGroup
-                  group={{
-                    ...group,
-                    artists: mainArtists.length ? mainArtists : group.artists,
-                  }}
-                  index={groupIndex}
-                />
-                {supportActs.length > 0 && (
-                  <>
-                    <div className="w-full flex items-center gap-4 px-4 max-w-4xl">
-                      <div className="flex-1 h-px bg-gold/40" />
-                      <p className="text-gold text-xs uppercase tracking-widest">
-                        Support Acts
-                      </p>
-                      <div className="flex-1 h-px bg-gold/40" />
-                    </div>
-                    <ArtistGroup
-                      group={{
-                        key: `${group.key}-support`,
-                        title: "",
-                        artists: supportActs,
-                      }}
-                      index={groupIndex + groups.length}
-                    />
-                  </>
-                )}
-              </div>
-            );
-          })}
-        </div>
+        {safeViewMode === "timetable" ? (
+          <TimetableSection stages={normalizedFestival.stages} />
+        ) : (
+          <div className="space-y-7 center flex-col">
+            {groups.map((group, groupIndex) => {
+              const mainArtists = group.artists.filter((a) => !a.support_act);
+              const supportActs = group.artists.filter((a) => a.support_act);
+              return (
+                <div key={group.key} className="center flex-col w-full gap-5">
+                  <ArtistGroup
+                    group={{
+                      ...group,
+                      artists: mainArtists.length ? mainArtists : group.artists,
+                    }}
+                    index={groupIndex}
+                  />
+                  {supportActs.length > 0 && (
+                    <>
+                      <div className="w-full flex items-center gap-4 px-4 max-w-4xl">
+                        <div className="flex-1 h-px bg-gold/40" />
+                        <p className="text-gold text-xs uppercase tracking-widest">
+                          Support Acts
+                        </p>
+                        <div className="flex-1 h-px bg-gold/40" />
+                      </div>
+                      <ArtistGroup
+                        group={{
+                          key: `${group.key}-support`,
+                          title: "",
+                          artists: supportActs,
+                        }}
+                        index={groupIndex + groups.length}
+                      />
+                    </>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        )}
       </div>
     </div>
   );
