@@ -20,7 +20,11 @@ const Instructions = ({ branding, onSaved }) => {
       initialData: {
         id: branding?.id ?? "",
         episode_number: branding?.episode_number ?? 1,
-        tracklist: branding?.tracklist ?? [""],
+        tracklist: Array.isArray(branding?.tracklist)
+          ? branding.tracklist.join("\n")
+          : typeof branding?.tracklist === "string"
+            ? branding.tracklist
+            : "",
         poster_url:
           typeof branding?.poster_url === "string" ? branding.poster_url : "",
       },
@@ -75,10 +79,22 @@ const Instructions = ({ branding, onSaved }) => {
 
         // If textarea sends plain text, normalize to JSON array
         if (typeof tracklistValue === "string") {
-          const tracks = tracklistValue
-            .split("\n")
-            .map((t) => t.trim())
-            .filter(Boolean);
+          const trimmed = tracklistValue.trim();
+          let tracks = null;
+
+          if (trimmed.startsWith("[") && trimmed.endsWith("]")) {
+            try {
+              const parsed = JSON.parse(trimmed);
+              if (Array.isArray(parsed)) tracks = parsed;
+            } catch {}
+          }
+
+          if (!tracks) {
+            tracks = tracklistValue
+              .split("\n")
+              .map((t) => t.trim())
+              .filter(Boolean);
+          }
 
           fd.set("tracklist", JSON.stringify(tracks));
         }

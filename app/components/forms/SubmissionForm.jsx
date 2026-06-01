@@ -240,6 +240,21 @@ const SubmissionForm = ({
     return isValid;
   };
 
+  const normalizeArrayField = (value) => {
+    if (Array.isArray(value)) return value;
+    if (typeof value === "string") {
+      const trimmed = value.trim();
+      if (trimmed.startsWith("[") && trimmed.endsWith("]")) {
+        try {
+          const parsed = JSON.parse(trimmed);
+          if (Array.isArray(parsed)) return parsed;
+        } catch {}
+      }
+      return value.split("\n").map((item) => item.trim());
+    }
+    return [];
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!validateForm()) {
@@ -248,11 +263,10 @@ const SubmissionForm = ({
     // Filter out empty strings from arrays
     const filteredData = { ...formData };
     formConfig.arrayFields?.forEach((field) => {
-      if (filteredData[field]) {
-        filteredData[field] = filteredData[field].filter(
-          (item) => item && typeof item === "string" && item.trim() !== "",
-        );
-      }
+      const normalized = normalizeArrayField(filteredData[field]);
+      filteredData[field] = normalized.filter(
+        (item) => item && typeof item === "string" && item.trim() !== "",
+      );
     });
     // Create FormData for file upload
     const formDataToSend = new FormData();

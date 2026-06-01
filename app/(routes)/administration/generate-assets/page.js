@@ -966,6 +966,8 @@ export default function GenerateAssetsPage() {
         handleGenerateImage={handleGenerateImage}
         addImageSlot={addImageSlot}
         removeImageSlot={removeImageSlot}
+        imageFileRefs={imageFileRefs}
+        setImageFileAt={setImageFileAt}
       />
     </div>
   );
@@ -992,6 +994,8 @@ const ImageSection = ({
   setImageResults,
   imageError,
   setImageError,
+  imageFileRefs,
+  setImageFileAt,
 }) => {
   return (
     <>

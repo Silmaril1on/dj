@@ -92,7 +92,8 @@ const PosterTool = ({ branding }) => {
         {saving ? "Saving..." : "Save Coordinates"}
       </button>
 
-      <div className="relative w-[800px] h-[650px] overflow-hidden border border-gold/40">
+      <div className="relative w-[800px] h-[650px] overflow-hidden border border-white/50">
+        {/* Poster background */}
         <Image
           src={posterSrc}
           alt="Essence Radio poster"
@@ -103,14 +104,14 @@ const PosterTool = ({ branding }) => {
           className="absolute inset-0 w-full h-full object-cover"
           unoptimized={posterSrc.startsWith("http")}
         />
-
+        {/* ESSENCE RADIO TITLE */}
         <DraggableItem
           id="radio"
           positions={positions}
           onDragEnd={handleDragEnd}
         >
-          <div className="relative w-fit center backdrop-blur-lg">
-            <BorderSvg color="grey" strokeWidth={0.6} />
+          <div className="relative w-fit center rounded-lg backdrop-blur-lg">
+            <BorderSvg color="grey" strokeWidth={1} />
             <Image
               src="/assets/radiotitle.png"
               alt="Essence radio"
@@ -120,14 +121,14 @@ const PosterTool = ({ branding }) => {
             />
           </div>
         </DraggableItem>
-
+        {/* EPISODE NUMBER */}
         <DraggableItem
           id="episode"
           positions={positions}
           onDragEnd={handleDragEnd}
         >
-          <div className="relative w-fit center px-4 pt-1 rounded-sm backdrop-blur-lg">
-            <BorderSvg color="grey" strokeWidth={0.6} />
+          <div className="relative w-fit center px-4 pt-1 rounded-lg backdrop-blur-lg">
+            <BorderSvg color="grey" strokeWidth={1} />
             <h1 className="text-3xl font-bold text-cream">{episodeLabel}</h1>
           </div>
         </DraggableItem>
@@ -138,7 +139,7 @@ const PosterTool = ({ branding }) => {
           onDragEnd={handleDragEnd}
         >
           <div className="relative p-4 h-20 center backdrop-blur-lg">
-            <BorderSvg color="grey" />
+            <BorderSvg color="grey" strokeWidth={1} />
             <Image
               className="sepia mt-2"
               src="/assets/elivagar.png"
@@ -149,14 +150,14 @@ const PosterTool = ({ branding }) => {
             />
           </div>
         </DraggableItem>
-
+        {/* LOGO elivagar logo*/}
         <DraggableItem
           id="logo"
           positions={positions}
           onDragEnd={handleDragEnd}
         >
           <div className="relative rounded-xl backdrop-blur-xl">
-            <BorderSvg color="grey" strokeWidth={0.6} />
+            <BorderSvg color="grey" strokeWidth={1} />
             <Image
               className="sepia"
               src="/assets/elivagar-logo.png"
