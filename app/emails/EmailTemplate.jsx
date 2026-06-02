@@ -12,7 +12,7 @@ export function buildEmailBase({
 
   const badgeHtml = badge
     ? `<p style="text-align:center;margin:0 0 24px;">
-        <span style="display:inline-block;background:#1a1600;border:1px solid #fcb913;
+        <span style="display:inline-block;background:#f5f5f5;border:1px solid #fcb913;
           color:#fcb913;font-size:11px;letter-spacing:3px;text-transform:uppercase;
           padding:6px 18px;">
           ${badge}
@@ -44,7 +44,7 @@ export function buildEmailBase({
       : "";
 
   const footerNoteHtml = footerNote
-    ? `<p style="color:#555;font-size:11px;text-align:center;margin:0 0 16px;line-height:1.6;">
+    ? `<p style="color:#6b7280;font-size:11px;text-align:center;margin:0 0 16px;line-height:1.6;">
         ${footerNote}
       </p>`
     : "";
@@ -56,16 +56,16 @@ export function buildEmailBase({
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>${title}</title>
 </head>
-<body style="margin:0;padding:0;font-family:Arial,sans-serif;background-color:#0d0d0d;">
-  <table width="100%" cellpadding="0" cellspacing="0" style="background-color:#0d0d0d;padding:40px 0;">
+<body style="margin:0;padding:0;font-family:Arial,sans-serif;background-color:#f7f7f7;color:#111111;">
+  <table width="100%" cellpadding="0" cellspacing="0" style="background-color:#f7f7f7;padding:40px 0;">
     <tr>
       <td align="center">
         <table width="600" cellpadding="0" cellspacing="0"
-          style="background-color:#111111;max-width:600px;border:1px solid #222;">
+          style="background-color:#ffffff;max-width:600px;border:1px solid #e5e7eb;">
 
           <!-- Header -->
           <tr>
-            <td style="background-color:#000000;padding:28px 32px;text-align:center;">
+            <td style="background-color:#ffffff;padding:28px 32px;text-align:center;">
               <h1 style="color:#fcb913;margin:0;font-size:26px;letter-spacing:2px;text-transform:uppercase;">
                 SoundFolio
               </h1>
@@ -82,7 +82,7 @@ export function buildEmailBase({
             <td style="padding:40px 32px;">
               ${badgeHtml}
 
-              <h2 style="color:#ffffff;font-size:22px;margin:0 0 8px;text-align:center;
+              <h2 style="color:#111111;font-size:22px;margin:0 0 8px;text-align:center;
                 text-transform:uppercase;letter-spacing:1px;">
                 ${heading}
               </h2>
@@ -93,11 +93,11 @@ export function buildEmailBase({
 
               ${ctaHtml}
 
-              <hr style="border:none;border-top:1px solid #222;margin:0 0 20px;" />
+              <hr style="border:none;border-top:1px solid #e5e7eb;margin:0 0 20px;" />
 
               ${footerNoteHtml}
 
-              <p style="color:#555;font-size:11px;text-align:center;margin:0;line-height:1.6;">
+              <p style="color:#6b7280;font-size:11px;text-align:center;margin:0;line-height:1.6;">
                 SoundFolio &mdash; The music community platform.<br/>
                 &copy; ${year} SoundFolio. All rights reserved.
               </p>
@@ -106,8 +106,8 @@ export function buildEmailBase({
 
           <!-- Footer -->
           <tr>
-            <td style="background-color:#000;padding:16px 32px;text-align:center;">
-              <p style="color:#444;font-size:11px;margin:0;letter-spacing:1px;text-transform:uppercase;">
+            <td style="background-color:#f5f5f5;padding:16px 32px;text-align:center;">
+              <p style="color:#6b7280;font-size:11px;margin:0;letter-spacing:1px;text-transform:uppercase;">
                 Discover DJs, Artists &amp; Book Amazing Talents
               </p>
             </td>

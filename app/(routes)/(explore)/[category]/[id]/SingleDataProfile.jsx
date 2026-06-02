@@ -24,7 +24,11 @@ const SingleDataProfile = ({ data, type = "events", currentUserId = null }) => {
   const hasFestivalLineup = type === "festivals";
   const showLineupDisplay = hasFestivalLineup || hasEventLineup;
   const lineupProps = hasFestivalLineup
-    ? { festivalId: profileData.id }
+    ? {
+        festivalId: profileData.id,
+        editionId: profileData.edition_id,
+        editionStatus: profileData.edition_status,
+      }
     : { eventArtists: profileData.lineup };
 
   // Track recently viewed id for user
@@ -66,9 +70,11 @@ const SingleDataProfile = ({ data, type = "events", currentUserId = null }) => {
       )}
 
       {/* Countdown — festivals only */}
-      {type === "festivals" && profileData.start_date && (
-        <CountDown startDate={profileData.start_date} />
-      )}
+      {type === "festivals" &&
+        profileData.start_date &&
+        profileData.edition_status !== "past" && (
+          <CountDown startDate={profileData.start_date} />
+        )}
 
       {/* How to Get There — clubs, events, festivals */}
       {["clubs", "events", "festivals"].includes(type) && (

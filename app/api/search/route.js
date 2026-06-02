@@ -100,10 +100,10 @@ export async function GET(request) {
       supabase
         .from("festival_lineup")
         .select(
-          "festival_id, festivals!inner(id, name, country, city, image_url, festival_slug)",
+          "stage_id, festival_stages!inner(festival_id, festivals!inner(id, name, country, city, image_url, festival_slug))",
         )
         .or(`artist_name.ilike.${q}%,artist_name.ilike.% ${q}%`)
-        .eq("festivals.status", "approved")
+        .eq("festival_stages.festivals.status", "approved")
         .limit(20),
     ]);
 
@@ -145,7 +145,7 @@ export async function GET(request) {
     const seenFestivalIds = new Set(namedFestivalIds);
     const festivalsFromLineup = [];
     for (const row of festivalLineupResult.data || []) {
-      const fest = row.festivals;
+      const fest = row.festival_stages?.festivals;
       if (fest && !seenFestivalIds.has(fest.id)) {
         seenFestivalIds.add(fest.id);
         festivalsFromLineup.push(fest);

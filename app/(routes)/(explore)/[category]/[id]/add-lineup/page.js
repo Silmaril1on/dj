@@ -41,6 +41,10 @@ const AddLineupPage = async ({ params }) => {
 
     // Use the real UUID from the fetched festival (id in URL is a slug)
     const festivalUUID = result.festival.id;
+    const editionId =
+      result.festival?.edition_id ||
+      result.festival?.currentEdition?.id ||
+      null;
 
     // Call the service directly — getLineup is wrapped with unstable_cache so
     // subsequent page visits within the revalidation window skip the DB entirely.
@@ -52,7 +56,7 @@ const AddLineupPage = async ({ params }) => {
     let currentLineupStatus = null;
 
     try {
-      const lineupData = await getLineup(festivalUUID, cookieStore);
+      const lineupData = await getLineup(festivalUUID, cookieStore, editionId);
       existingLineup = lineupData.lineup?.length > 0 ? lineupData.lineup : null;
       existingStandardArtists = lineupData.standardArtists || [];
       existingStages = lineupData.stages || [];
@@ -69,6 +73,7 @@ const AddLineupPage = async ({ params }) => {
     return (
       <AddFestivalLineupForm
         festivalId={festivalUUID}
+        editionId={editionId}
         festivalName={result.festival.name}
         existingLineup={existingLineup}
         existingStandardArtists={existingStandardArtists}

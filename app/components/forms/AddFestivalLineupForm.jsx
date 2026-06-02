@@ -6,11 +6,12 @@ import { setError } from "@/app/features/modalSlice";
 import { selectUser } from "@/app/features/userSlice";
 
 const LINEUP_CACHE_TTL = 30 * 60 * 1000;
-const lineupCacheKey = (id) => `lineup_form_${id}`;
+const lineupCacheKey = (id, editionId) =>
+  `lineup_form_${id}_${editionId || "none"}`;
 
-function loadLineupCache(festivalId) {
+function loadLineupCache(festivalId, editionId) {
   try {
-    const raw = sessionStorage.getItem(lineupCacheKey(festivalId));
+    const raw = sessionStorage.getItem(lineupCacheKey(festivalId, editionId));
     if (!raw) return null;
     const parsed = JSON.parse(raw);
     if (Date.now() - parsed.timestamp > LINEUP_CACHE_TTL) return null;
@@ -20,10 +21,10 @@ function loadLineupCache(festivalId) {
   }
 }
 
-function saveLineupCache(festivalId, artists) {
+function saveLineupCache(festivalId, editionId, artists) {
   try {
     sessionStorage.setItem(
-      lineupCacheKey(festivalId),
+      lineupCacheKey(festivalId, editionId),
       JSON.stringify({ artists, timestamp: Date.now() }),
     );
   } catch {
@@ -485,6 +486,7 @@ const StageCard = ({
 
 const AddFestivalLineupForm = ({
   festivalId,
+  editionId = null,
   festivalName,
   existingLineup = null,
   existingStandardArtists: initialStandardArtists = [],
@@ -501,14 +503,14 @@ const AddFestivalLineupForm = ({
   // Local copy of existing standard artists — initialise from sessionStorage cache (30 min)
   // so the UI is instantly populated on revisit without waiting for server re-fetch.
   const [existingStandardArtists, setExistingStandardArtists] = useState(() => {
-    const cached = loadLineupCache(festivalId);
+    const cached = loadLineupCache(festivalId, editionId);
     return cached ?? initialStandardArtists;
   });
 
   // Keep cache in sync with server-provided prop on initial mount
   useEffect(() => {
     if (initialStandardArtists.length > 0) {
-      saveLineupCache(festivalId, initialStandardArtists);
+      saveLineupCache(festivalId, editionId, initialStandardArtists);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -720,6 +722,7 @@ const AddFestivalLineupForm = ({
           action: "update_artist",
           lineup_id: editModal.artist.lineup_id,
           festival_id: festivalId,
+          edition_id: editionId,
           name: editForm.name,
           phase: editForm.phase,
           stage_id: editForm.stage_id || null,
@@ -742,7 +745,7 @@ const AddFestivalLineupForm = ({
               }
             : a,
         );
-        saveLineupCache(festivalId, updated);
+        saveLineupCache(festivalId, editionId, updated);
         return updated;
       });
       closeEditModal();
@@ -764,13 +767,13 @@ const AddFestivalLineupForm = ({
     setDeleteConfirm({ open: false, artist: null });
     try {
       const response = await fetch(
-        `/api/festivals/lineup?lineup_id=${artist.lineup_id}&festival_id=${festivalId}`,
+        `/api/festivals/lineup?lineup_id=${artist.lineup_id}&festival_id=${festivalId}&edition_id=${editionId || ""}`,
         { method: "DELETE" },
       );
       if (!response.ok) throw new Error("Failed to delete");
       setExistingStandardArtists((prev) => {
         const updated = prev.filter((a) => a.lineup_id !== artist.lineup_id);
-        saveLineupCache(festivalId, updated);
+        saveLineupCache(festivalId, editionId, updated);
         return updated;
       });
     } catch {
@@ -785,12 +788,12 @@ const AddFestivalLineupForm = ({
     setIsDeletingFull(true);
     try {
       const response = await fetch(
-        `/api/festivals/lineup?festival_id=${festivalId}`,
+        `/api/festivals/lineup?festival_id=${festivalId}&edition_id=${editionId || ""}`,
         { method: "DELETE" },
       );
       if (!response.ok) throw new Error("Failed to delete lineup");
       setExistingStandardArtists([]);
-      saveLineupCache(festivalId, []);
+      saveLineupCache(festivalId, editionId, []);
       setStages(
         buildEnhancedInitialStages(null, existingStages, null, lineupStatus),
       );
@@ -827,17 +830,16 @@ const AddFestivalLineupForm = ({
         setIsSubmitting(false);
         return;
       }
-      // Send existing artists with their original per-artist phases, new artists with selected lineupStatus
+      // Only send new artists — existing ones are managed via individual edit/delete.
+      // The service inserts them without touching existing rows.
       body = {
         festival_id: festivalId,
+        edition_id: editionId,
         lineup_type: "standard",
-        artists: [
-          ...existingStandardArtists.map((a) => ({
-            name: a.name,
-            phase: a.phase,
-          })),
-          ...newNames.map((name) => ({ name, phase: lineupStatus || null })),
-        ],
+        artists: newNames.map((name) => ({
+          name,
+          phase: lineupStatus || null,
+        })),
         lineup_status: lineupStatus || null,
       };
     } else {
@@ -858,6 +860,7 @@ const AddFestivalLineupForm = ({
         artists: stage.artists
           .filter((a) => a.name.trim() !== "")
           .map((a) => ({
+            lineup_id: a.lineup_id || null,
             name: a.name,
             day: a.day,
             time_from: a.time_from || null,
@@ -880,6 +883,7 @@ const AddFestivalLineupForm = ({
 
       body = {
         festival_id: festivalId,
+        edition_id: editionId,
         lineup_type: "enhanced",
         stages: cleanedStages,
         lineup_status: lineupStatus || null,
@@ -900,13 +904,13 @@ const AddFestivalLineupForm = ({
 
       // Re-fetch updated lineup to get proper lineup_ids for new artists, then update state + cache
       const updatedResponse = await fetch(
-        `/api/festivals/lineup?festival_id=${festivalId}`,
+        `/api/festivals/lineup?festival_id=${festivalId}&edition_id=${editionId || ""}`,
       );
       if (updatedResponse.ok) {
         const updatedData = await updatedResponse.json();
         const freshArtists = updatedData.standardArtists || [];
         setExistingStandardArtists(freshArtists);
-        saveLineupCache(festivalId, freshArtists);
+        saveLineupCache(festivalId, editionId, freshArtists);
       }
       setStandardArtists([""]);
     } catch (err) {

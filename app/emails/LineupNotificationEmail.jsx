@@ -1,14 +1,5 @@
 import { buildEmailBase } from "./EmailTemplate";
 
-/**
- * Email sent to subscribers when a festival drops a new lineup phase.
- *
- * Props:
- *  - userName      : subscriber's display name
- *  - festivalName  : name of the festival
- *  - phaseName     : e.g. "Phase 1", "Phase 2", "Full Lineup"
- *  - festivalUrl   : absolute URL to the festival profile page
- */
 export const LineupNotificationEmail = ({
   userName,
   festivalName,

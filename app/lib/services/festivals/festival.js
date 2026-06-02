@@ -31,6 +31,120 @@ const validateFestivalDates = (startDate, endDate) => {
   }
 };
 
+const EDITION_FIELDS =
+  "id, festival_id, edition_year, start_date, end_date, status";
+
+const parseDateValue = (value) => {
+  if (!value) return null;
+  const parsed = new Date(value);
+  return Number.isNaN(parsed.getTime()) ? null : parsed;
+};
+
+const getEditionSortValue = (edition) => {
+  if (!edition) return null;
+  const parsed =
+    parseDateValue(edition.start_date) ||
+    parseDateValue(edition.end_date) ||
+    (edition.edition_year ? new Date(`${edition.edition_year}-12-31`) : null);
+  return parsed ? parsed.getTime() : null;
+};
+
+const pickCurrentEdition = (editions = []) => {
+  if (!Array.isArray(editions) || editions.length === 0) return null;
+
+  const upcoming = editions.filter((e) => e.status === "upcoming");
+  if (upcoming.length > 0) {
+    return [...upcoming].sort((a, b) => {
+      const aValue = getEditionSortValue(a);
+      const bValue = getEditionSortValue(b);
+      if (aValue === null && bValue === null) return 0;
+      if (aValue === null) return 1;
+      if (bValue === null) return -1;
+      return aValue - bValue;
+    })[0];
+  }
+
+  const past = editions.filter((e) => e.status === "past");
+  if (past.length > 0) {
+    return [...past].sort((a, b) => {
+      const aValue = getEditionSortValue(a);
+      const bValue = getEditionSortValue(b);
+      if (aValue === null && bValue === null) return 0;
+      if (aValue === null) return 1;
+      if (bValue === null) return -1;
+      return bValue - aValue;
+    })[0];
+  }
+
+  return [...editions].sort((a, b) => {
+    const aValue = getEditionSortValue(a);
+    const bValue = getEditionSortValue(b);
+    if (aValue === null && bValue === null) return 0;
+    if (aValue === null) return 1;
+    if (bValue === null) return -1;
+    return bValue - aValue;
+  })[0];
+};
+
+const getEditionYear = (startDate, endDate) => {
+  const parsed = parseDateValue(startDate) || parseDateValue(endDate);
+  return parsed ? parsed.getFullYear() : new Date().getFullYear();
+};
+
+const getEditionStatus = (startDate, endDate) => {
+  const now = new Date();
+  const parsedEnd = parseDateValue(endDate);
+  const parsedStart = parseDateValue(startDate);
+
+  if (
+    (parsedEnd && parsedEnd < now) ||
+    (!parsedEnd && parsedStart && parsedStart < now)
+  ) {
+    return "past";
+  }
+
+  return "upcoming";
+};
+
+const applyEditionToFestival = (festival, edition) => {
+  if (!festival) return festival;
+  return {
+    ...festival,
+    start_date: edition?.start_date ?? null,
+    end_date: edition?.end_date ?? null,
+    edition_id: edition?.id ?? null,
+    edition_year: edition?.edition_year ?? null,
+    edition_status: edition?.status ?? null,
+    currentEdition: edition ?? null,
+  };
+};
+
+async function getCurrentEditionsMap(admin, festivalIds) {
+  if (!festivalIds || festivalIds.length === 0) return new Map();
+  const { data, error } = await admin
+    .from("festival_editions")
+    .select(EDITION_FIELDS)
+    .in("festival_id", festivalIds);
+
+  if (error) {
+    throw new ServiceError("Failed to fetch festival editions", 500);
+  }
+
+  const grouped = new Map();
+  (data || []).forEach((edition) => {
+    const list = grouped.get(edition.festival_id) || [];
+    list.push(edition);
+    grouped.set(edition.festival_id, list);
+  });
+
+  const map = new Map();
+  grouped.forEach((editions, festivalId) => {
+    map.set(festivalId, pickCurrentEdition(editions));
+  });
+
+  return map;
+}
+
 export async function getAllFestivals({
   limit = 20,
   offset = 0,
@@ -41,10 +155,12 @@ export async function getAllFestivals({
 } = {}) {
   const admin = getSupabaseAdminClient();
 
+  const useDateSort = sort === "date_asc" || sort === "date_desc";
+
   let query = admin
     .from("festivals")
     .select(
-      "id, name, festival_slug, image_url, country, city, location_url, start_date, end_date, description, created_at, rating_stats",
+      "id, name, festival_slug, image_url, country, city, location_url, description, created_at, rating_stats",
       { count: "exact" },
     )
     .eq("status", "approved");
@@ -58,21 +174,37 @@ export async function getAllFestivals({
     query = query.order("created_at", { ascending: false });
   } else if (sort === "oldest") {
     query = query.order("created_at", { ascending: true });
-  } else if (sort === "date_asc") {
-    query = query.order("start_date", { ascending: true, nulls: "last" });
-  } else if (sort === "date_desc") {
-    query = query.order("start_date", { ascending: false, nulls: "last" });
-  } else {
+  } else if (!useDateSort) {
     query = query.order("name", { ascending: true });
   }
 
-  query = query.range(offset, offset + limit - 1);
+  if (!useDateSort) {
+    query = query.range(offset, offset + limit - 1);
+  }
 
   const { data: festivalsPage, count, error } = await query;
   if (error) throw new ServiceError(error.message, 500);
 
-  const festivals = festivalsPage || [];
+  let festivals = festivalsPage || [];
   const festivalIds = festivals.map((f) => f.id);
+
+  if (festivalIds.length > 0) {
+    const editionsMap = await getCurrentEditionsMap(admin, festivalIds);
+    festivals = festivals.map((festival) =>
+      applyEditionToFestival(festival, editionsMap.get(festival.id)),
+    );
+  }
+
+  if (useDateSort) {
+    festivals = [...festivals].sort((a, b) => {
+      const aValue = getEditionSortValue(a.currentEdition);
+      const bValue = getEditionSortValue(b.currentEdition);
+      if (aValue === null && bValue === null) return 0;
+      if (aValue === null) return 1;
+      if (bValue === null) return -1;
+      return sort === "date_desc" ? bValue - aValue : aValue - bValue;
+    });
+  }
 
   let likesCount = {};
   let userLikedSet = new Set();
@@ -114,6 +246,11 @@ export async function getAllFestivals({
   }
 
   const total = typeof count === "number" ? count : null;
+
+  if (useDateSort) {
+    festivalsWithLikes = festivalsWithLikes.slice(offset, offset + limit);
+  }
+
   return {
     data: festivalsWithLikes,
     total,
@@ -168,6 +305,22 @@ export async function getFestivalById(slug, cookieStore) {
 
   const admin = getSupabaseAdminClient();
 
+  const { data: editionsData, error: editionsError } = await admin
+    .from("festival_editions")
+    .select(EDITION_FIELDS)
+    .eq("festival_id", festival.id);
+
+  if (editionsError) {
+    throw new ServiceError("Failed to fetch festival editions", 500);
+  }
+
+  const editions = editionsData || [];
+  const currentEdition = pickCurrentEdition(editions);
+  const festivalWithEdition = {
+    ...applyEditionToFestival(festival, currentEdition),
+    editions,
+  };
+
   const { count: likesCount } = await admin
     .from("festival_likes")
     .select("*", { count: "exact", head: true })
@@ -199,7 +352,7 @@ export async function getFestivalById(slug, cookieStore) {
 
   return {
     festival: {
-      ...festival,
+      ...festivalWithEdition,
       lineup: lineupWithIds.length > 0 ? lineupWithIds : festival.lineup,
       likesCount: likesCount || 0,
       userLiked,
@@ -325,8 +478,6 @@ export async function createFestival(formData, cookieStore) {
       image_url: posterUrls,
       map_image_url: mapImageUrls ? JSON.stringify(mapImageUrls) : null,
       festival_poster: festivalPosterUrl,
-      start_date: start_date || null,
-      end_date: end_date || null,
       location_url: formData.get("location_url")?.trim() || null,
       address: formData.get("address")?.trim() || null,
       capacity_total: formData.get("capacity_total")?.trim() || null,
@@ -348,6 +499,19 @@ export async function createFestival(formData, cookieStore) {
       () => {},
     );
     throw new ServiceError("Failed to submit festival", 500);
+  }
+
+  const { error: editionError } = await admin.from("festival_editions").insert({
+    festival_id: data.id,
+    edition_year: getEditionYear(start_date, end_date),
+    start_date: start_date || null,
+    end_date: end_date || null,
+    status: getEditionStatus(start_date, end_date),
+  });
+
+  if (editionError) {
+    console.error("[createFestival] Edition insert failed:", editionError);
+    throw new ServiceError("Failed to save festival edition", 500);
   }
 
   console.log(
@@ -418,6 +582,8 @@ export async function updateFestival(formData, cookieStore) {
   const end_date = formData.get("end_date") || null;
   validateFestivalDates(start_date, end_date);
 
+  const editionId = formData.get("edition_id") || null;
+
   const social_links = parseArrayField(formData, "social_links");
   const festival_genre = parseArrayField(formData, "festival_genre");
   const rawFestivalSlug = formData.get("festival_slug");
@@ -429,8 +595,6 @@ export async function updateFestival(formData, cookieStore) {
       : null,
     description: formData.get("description")?.trim() || null,
     bio: formData.get("bio")?.trim() || null,
-    start_date,
-    end_date,
     location_url: formData.get("location_url")?.trim() || null,
     address: formData.get("address")?.trim() || null,
     capacity_total: formData.get("capacity_total")?.trim() || null,
@@ -539,6 +703,69 @@ export async function updateFestival(formData, cookieStore) {
     .single();
 
   if (error) throw new ServiceError("Failed to update festival", 500);
+
+  const editionYear = getEditionYear(start_date, end_date);
+  const editionStatus = getEditionStatus(start_date, end_date);
+
+  if (editionId) {
+    const { error: editionUpdateError } = await admin
+      .from("festival_editions")
+      .update({
+        edition_year: editionYear,
+        start_date,
+        end_date,
+        status: editionStatus,
+        updated_at: new Date().toISOString(),
+      })
+      .eq("id", editionId);
+
+    if (editionUpdateError) {
+      throw new ServiceError("Failed to update festival edition", 500);
+    }
+  } else {
+    const { data: editionsData, error: editionsError } = await admin
+      .from("festival_editions")
+      .select(EDITION_FIELDS)
+      .eq("festival_id", festivalId);
+
+    if (editionsError) {
+      throw new ServiceError("Failed to fetch festival editions", 500);
+    }
+
+    const editions = editionsData || [];
+    const currentEdition = pickCurrentEdition(editions);
+
+    if (currentEdition) {
+      const { error: fallbackUpdateError } = await admin
+        .from("festival_editions")
+        .update({
+          edition_year: editionYear,
+          start_date,
+          end_date,
+          status: editionStatus,
+          updated_at: new Date().toISOString(),
+        })
+        .eq("id", currentEdition.id);
+
+      if (fallbackUpdateError) {
+        throw new ServiceError("Failed to update festival edition", 500);
+      }
+    } else {
+      const { error: editionInsertError } = await admin
+        .from("festival_editions")
+        .insert({
+          festival_id: festivalId,
+          edition_year: editionYear,
+          start_date,
+          end_date,
+          status: editionStatus,
+        });
+
+      if (editionInsertError) {
+        throw new ServiceError("Failed to create festival edition", 500);
+      }
+    }
+  }
 
   revalidateTag("festivals");
   revalidateTag(`user-statistics-${user.id}`);

@@ -6,13 +6,32 @@ export async function GET() {
     const admin = getSupabaseAdminClient();
     const today = new Date().toISOString().slice(0, 10);
 
-    // Fetch 8 upcoming approved festivals
-    const { data: festivals, error } = await admin
-      .from("festivals")
+    // Fetch 8 upcoming approved festival editions
+    const { data: editions, error } = await admin
+      .from("festival_editions")
       .select(
-        "id, name, start_date, end_date, capacity_total, country, city, address, festival_slug,  festival_genre, festival_poster",
+        `
+          id,
+          festival_id,
+          start_date,
+          end_date,
+          status,
+          festivals!inner(
+            id,
+            name,
+            capacity_total,
+            country,
+            city,
+            address,
+            festival_slug,
+            festival_genre,
+            festival_poster,
+            status
+          )
+        `,
       )
-      .eq("status", "approved")
+      .eq("status", "upcoming")
+      .eq("festivals.status", "approved")
       .gte("start_date", today)
       .order("start_date", { ascending: true })
       .limit(8);
@@ -24,31 +43,38 @@ export async function GET() {
       );
     }
 
-    if (!festivals || festivals.length === 0) {
+    if (!editions || editions.length === 0) {
       return NextResponse.json({ festivals: [] });
     }
 
-    // Fetch up to 10 artist names per festival
-    const festivalIds = festivals.map((f) => f.id);
+    // Fetch up to 10 artist names per edition
+    const editionIds = editions.map((e) => e.id);
     const { data: lineupRows } = await admin
       .from("festival_lineup")
-      .select("festival_id, artist_name")
-      .in("festival_id", festivalIds)
+      .select("edition_id, artist_name, artist_order")
+      .in("edition_id", editionIds)
       .order("artist_order", { ascending: true });
 
-    const lineupByFestival = {};
+    const lineupByEdition = {};
     (lineupRows || []).forEach((row) => {
-      if (!lineupByFestival[row.festival_id])
-        lineupByFestival[row.festival_id] = [];
-      if (lineupByFestival[row.festival_id].length < 10) {
-        lineupByFestival[row.festival_id].push(row.artist_name);
+      if (!lineupByEdition[row.edition_id])
+        lineupByEdition[row.edition_id] = [];
+      if (lineupByEdition[row.edition_id].length < 10) {
+        lineupByEdition[row.edition_id].push(row.artist_name);
       }
     });
 
-    const result = festivals.map((f) => ({
-      ...f,
-      artists: lineupByFestival[f.id] || [],
-    }));
+    const result = editions.map((edition) => {
+      const festival = edition.festivals;
+      return {
+        ...festival,
+        start_date: edition.start_date,
+        end_date: edition.end_date,
+        edition_id: edition.id,
+        edition_status: edition.status,
+        artists: lineupByEdition[edition.id] || [],
+      };
+    });
 
     return NextResponse.json(
       { festivals: result },

@@ -4,31 +4,38 @@ import { getTodayDateOnlyString } from "@/app/helpers/utils";
 import { parseLatLng } from "@/app/helpers/parseLocationUrl";
 import { ServiceError } from "@/app/lib/services/shared";
 
-const GLOBE_FESTIVAL_FIELDS = [
-  "id",
-  "name",
-  "festival_slug",
-  "country",
-  "city",
-  "start_date",
-  "end_date",
-  "location_url",
-  "image_url",
-].join(", ");
+const GLOBE_EDITION_FIELDS = `
+  id,
+  festival_id,
+  start_date,
+  end_date,
+  status,
+  festivals!inner(
+    id,
+    name,
+    festival_slug,
+    country,
+    city,
+    location_url,
+    image_url,
+    status
+  )
+`;
 
 const LIMIT = 500;
 
 /**
  * Returns upcoming approved festivals with parsed lat/lng for globe display.
- * Only festivals with a known start_date (upcoming) are included.
+ * Uses festival_editions for date filtering.
  */
 export async function getGlobeFestivals() {
   const today = getTodayDateOnlyString();
 
   const { data, error } = await supabaseAdmin
-    .from("festivals")
-    .select(GLOBE_FESTIVAL_FIELDS)
-    .eq("status", "approved")
+    .from("festival_editions")
+    .select(GLOBE_EDITION_FIELDS)
+    .eq("status", "upcoming")
+    .eq("festivals.status", "approved")
     .gte("start_date", today)
     .order("start_date", { ascending: true })
     .limit(LIMIT);
@@ -36,7 +43,10 @@ export async function getGlobeFestivals() {
   if (error) throw new ServiceError(error.message, 500);
 
   const festivals = (data ?? [])
-    .map((festival) => {
+    .map((edition) => {
+      const festival = edition.festivals;
+      if (!festival) return null;
+
       const coords = parseLatLng(festival.location_url);
       if (!coords) return null;
 
@@ -51,8 +61,10 @@ export async function getGlobeFestivals() {
         slug: festival.festival_slug,
         country: festival.country,
         city: festival.city,
-        start_date: festival.start_date,
-        end_date: festival.end_date,
+        start_date: edition.start_date,
+        end_date: edition.end_date,
+        edition_id: edition.id,
+        edition_status: edition.status,
         image: imageSm,
         lat: coords.lat,
         lng: coords.lng,

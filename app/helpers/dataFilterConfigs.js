@@ -136,6 +136,13 @@ export const filterArtists = (artists, filters) => {
 
 // Sort logic for festivals
 export const sortFestivals = (festivals, sortType) => {
+  const getFestivalSortDate = (festival) => {
+    const value = festival.start_date || festival.date;
+    if (!value) return null;
+    const parsed = new Date(value);
+    return Number.isNaN(parsed.getTime()) ? null : parsed.getTime();
+  };
+
   return [...festivals].sort((a, b) => {
     if (sortType === "name") {
       return a.name.localeCompare(b.name);
@@ -153,16 +160,20 @@ export const sortFestivals = (festivals, sortType) => {
       return ratingB - ratingA;
     }
     if (sortType === "date_asc") {
-      return (
-        new Date(a.start_date || a.date || 0) -
-        new Date(b.start_date || b.date || 0)
-      );
+      const aTime = getFestivalSortDate(a);
+      const bTime = getFestivalSortDate(b);
+      if (aTime === null && bTime === null) return 0;
+      if (aTime === null) return 1;
+      if (bTime === null) return -1;
+      return aTime - bTime;
     }
     if (sortType === "date_desc") {
-      return (
-        new Date(b.start_date || b.date || 0) -
-        new Date(a.start_date || a.date || 0)
-      );
+      const aTime = getFestivalSortDate(a);
+      const bTime = getFestivalSortDate(b);
+      if (aTime === null && bTime === null) return 0;
+      if (aTime === null) return 1;
+      if (bTime === null) return -1;
+      return bTime - aTime;
     }
     return 0;
   });

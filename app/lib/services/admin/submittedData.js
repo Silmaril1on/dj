@@ -99,7 +99,7 @@ const TYPE_CONFIGS = {
   festival: {
     table: "festivals",
     select: `
-      id, name, country, city, location_url, address, start_date, end_date,
+      id, name, country, city, location_url, address,
       capacity_total, status, created_at, image_url, description, social_links, user_id,
       users:user_id(id, userName, email, user_avatar)
     `,
@@ -108,8 +108,6 @@ const TYPE_CONFIGS = {
       name: item.name,
       address: item.address,
       location_url: item.location_url,
-      start_date: item.start_date,
-      end_date: item.end_date,
       capacity_total: item.capacity_total,
       artist_image: _resolveImageUrl(item.image_url),
       country: item.country,
@@ -127,6 +125,45 @@ const TYPE_CONFIGS = {
         : null,
     }),
   },
+};
+
+const parseDateValue = (value) => {
+  if (!value) return null;
+  const parsed = new Date(value);
+  return Number.isNaN(parsed.getTime()) ? null : parsed;
+};
+
+const getEditionSortValue = (edition) => {
+  const parsed =
+    parseDateValue(edition?.start_date) ||
+    parseDateValue(edition?.end_date) ||
+    (edition?.edition_year ? new Date(`${edition.edition_year}-12-31`) : null);
+  return parsed ? parsed.getTime() : null;
+};
+
+const pickCurrentEdition = (editions) => {
+  if (!Array.isArray(editions) || editions.length === 0) return null;
+
+  const upcoming = editions.filter((e) => e.status === "upcoming");
+  if (upcoming.length > 0) {
+    return upcoming.slice().sort((a, b) => {
+      const aValue = getEditionSortValue(a);
+      const bValue = getEditionSortValue(b);
+      if (aValue === null && bValue === null) return 0;
+      if (aValue === null) return 1;
+      if (bValue === null) return -1;
+      return aValue - bValue;
+    })[0];
+  }
+
+  return editions.slice().sort((a, b) => {
+    const aValue = getEditionSortValue(a);
+    const bValue = getEditionSortValue(b);
+    if (aValue === null && bValue === null) return 0;
+    if (aValue === null) return 1;
+    if (bValue === null) return -1;
+    return bValue - aValue;
+  })[0];
 };
 
 export const VALID_SUBMISSION_TYPES = Object.keys(TYPE_CONFIGS);
@@ -156,7 +193,41 @@ export async function getSubmissions(type) {
 
   if (error) throw new Error(error.message);
 
-  return { submissions: (data || []).map(config.mapItem) };
+  const mapped = (data || []).map(config.mapItem);
+
+  if (type !== "festival" || mapped.length === 0) {
+    return { submissions: mapped };
+  }
+
+  const festivalIds = mapped.map((item) => item.id);
+  const { data: editionsData, error: editionsError } = await supabaseAdmin
+    .from("festival_editions")
+    .select("id, festival_id, edition_year, start_date, end_date, status")
+    .in("festival_id", festivalIds);
+
+  if (editionsError) throw new Error(editionsError.message);
+
+  const editionsMap = new Map();
+  (editionsData || []).forEach((edition) => {
+    const list = editionsMap.get(edition.festival_id) || [];
+    list.push(edition);
+    editionsMap.set(edition.festival_id, list);
+  });
+
+  const submissions = mapped.map((item) => {
+    const editions = editionsMap.get(item.id) || [];
+    const currentEdition = pickCurrentEdition(editions);
+    return {
+      ...item,
+      start_date: currentEdition?.start_date || null,
+      end_date: currentEdition?.end_date || null,
+      edition_id: currentEdition?.id || null,
+      edition_status: currentEdition?.status || null,
+      edition_year: currentEdition?.edition_year || null,
+    };
+  });
+
+  return { submissions };
 }
 
 export async function updateSubmission(type, id, action) {

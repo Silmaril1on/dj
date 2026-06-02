@@ -23,43 +23,25 @@ const teko = Teko({
   display: "swap",
 });
 
-const siteUrl = process.env.PROJECT_URL || "https://soundfolio.net";
+const siteUrl = "https://soundfolio.net";
 
 export const metadata = {
   metadataBase: new URL(siteUrl),
 
   title: {
     default: "Soundfolio",
-    template: "Soundfolio | %s",
+    template: "%s | Soundfolio",
   },
+
   description:
-    "Discover DJs, artists, clubs, festivals and live events. Connect with the global electronic music and nightlife community.",
+    "Soundfolio is an electronic music community for discovering DJs, artists, clubs, festivals, and live events.",
+
   applicationName: "Soundfolio",
-  keywords: [
-    "Soundfolio",
-    "electronic music",
-    "DJ platform",
-    "music community",
-    "festivals",
-    "clubs",
-    "artists",
-    "events",
-    "techno",
-    "house music",
-    "edm",
-    "nightlife",
-  ],
-  authors: [
-    {
-      name: "Levan Chikovani",
-      url: siteUrl,
-    },
-  ],
-  creator: "Levan Chikovani",
-  publisher: "Levan Chikovani",
+
   alternates: {
-    canonical: siteUrl,
+    canonical: "/",
   },
+
   robots: {
     index: true,
     follow: true,
@@ -71,13 +53,15 @@ export const metadata = {
       "max-snippet": -1,
     },
   },
+
   openGraph: {
     type: "website",
     locale: "en_US",
     url: siteUrl,
     siteName: "Soundfolio",
     title: "Soundfolio",
-    description: "Discover DJs, artists, clubs, festivals and live events.",
+    description:
+      "Discover DJs, artists, clubs, festivals, and live events with Soundfolio.",
     images: [
       {
         url: "/og-image.jpg",
@@ -91,7 +75,8 @@ export const metadata = {
   twitter: {
     card: "summary_large_image",
     title: "Soundfolio",
-    description: "Discover DJs, artists, clubs, festivals and live events.",
+    description:
+      "Discover DJs, artists, clubs, festivals, and live events with Soundfolio.",
     images: ["/og-image.jpg"],
   },
 
@@ -109,14 +94,22 @@ export default function RootLayout({ children }) {
     "@graph": [
       {
         "@type": "WebSite",
+        "@id": `${siteUrl}/#website`,
+        url: `${siteUrl}/`,
         name: "Soundfolio",
-        url: siteUrl,
+        alternateName: ["soundfolio.net", "Soundfolio.net"],
+        inLanguage: "en",
       },
       {
         "@type": "Organization",
+        "@id": `${siteUrl}/#organization`,
         name: "Soundfolio",
-        url: siteUrl,
-        logo: `${siteUrl}/icon.png`,
+        url: `${siteUrl}/`,
+        logo: {
+          "@type": "ImageObject",
+          url: `${siteUrl}/icon.png`,
+        },
+        sameAs: ["https://www.instagram.com/soundfolio"],
       },
     ],
   };
@@ -133,6 +126,7 @@ export default function RootLayout({ children }) {
           href="https://ucyhmkyjbrfbcediafwo.supabase.co"
         />
         <link rel="preconnect" href="https://api.bigdatacloud.net" />
+
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{
@@ -142,7 +136,7 @@ export default function RootLayout({ children }) {
       </head>
 
       <body
-        className={`${jost.variable} ${teko.variable} min-h-screen relative flex flex-col duration-300 bg-black text-gold mx-auto max-w-[1800px] `}
+        className={`${jost.variable} ${teko.variable} min-h-screen relative flex flex-col duration-300 bg-black text-gold mx-auto max-w-[1800px]`}
       >
         <StoreProvider>
           <AuthProvider>

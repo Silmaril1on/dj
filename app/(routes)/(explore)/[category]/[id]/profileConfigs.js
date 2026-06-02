@@ -49,6 +49,14 @@ export const PROFILE_TYPE_CONFIG = {
 // Extract common profile data
 export const extractProfileData = (data, type) => {
   const config = PROFILE_TYPE_CONFIG[type];
+  const edition =
+    type === "festivals" ? data.currentEdition || data.edition || null : null;
+  const festivalStartDate = edition?.start_date ?? data.start_date ?? null;
+  const festivalEndDate = edition?.end_date ?? data.end_date ?? null;
+  const festivalEditionId = edition?.id ?? data.edition_id ?? null;
+  const festivalEditionYear =
+    edition?.edition_year ?? data.edition_year ?? null;
+  const festivalEditionStatus = edition?.status ?? data.edition_status ?? null;
 
   return {
     id: data.id,
@@ -85,8 +93,11 @@ export const extractProfileData = (data, type) => {
     venue_name: type === "events" ? data.venue_name || null : null,
     event_type: type === "events" ? data.event_type || null : null,
     // Festival-specific
-    start_date: type === "festivals" ? data.start_date : null,
-    end_date: type === "festivals" ? data.end_date : null,
+    start_date: type === "festivals" ? festivalStartDate : null,
+    end_date: type === "festivals" ? festivalEndDate : null,
+    edition_id: type === "festivals" ? festivalEditionId : null,
+    edition_year: type === "festivals" ? festivalEditionYear : null,
+    edition_status: type === "festivals" ? festivalEditionStatus : null,
     website: type === "festivals" ? data.website : null,
     capacity_total: type === "festivals" ? data.capacity_total : null,
   };

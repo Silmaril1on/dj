@@ -468,12 +468,21 @@ const TimetableSection = ({ stages }) => {
   );
 };
 
-const FestivalLineupDisplay = ({ festivalId, eventArtists }) => {
+const FestivalLineupDisplay = ({
+  festivalId,
+  eventArtists,
+  editionId = null,
+  editionStatus = null,
+}) => {
   const [lineup, setLineup] = useState([]);
   const [standardArtists, setStandardArtists] = useState([]);
   const [lineupType, setLineupType] = useState("none");
   const [artistMap, setArtistMap] = useState(null);
-  const [loading, setLoading] = useState(Boolean(festivalId) && !eventArtists);
+  const isPastEdition =
+    Boolean(festivalId) && !eventArtists && editionStatus === "past";
+  const [loading, setLoading] = useState(
+    Boolean(festivalId) && !eventArtists && !isPastEdition,
+  );
   const [viewMode, setViewMode] = useState("all");
 
   useEffect(() => {
@@ -507,12 +516,13 @@ const FestivalLineupDisplay = ({ festivalId, eventArtists }) => {
   }, [eventArtists]);
 
   useEffect(() => {
-    if (!festivalId) return;
+    if (!festivalId || isPastEdition) return;
 
     const fetchLineup = async () => {
       try {
+        const editionQuery = editionId ? `&edition_id=${editionId}` : "";
         const response = await fetch(
-          `/api/festivals/lineup?festival_id=${festivalId}`,
+          `/api/festivals/lineup?festival_id=${festivalId}${editionQuery}`,
         );
         if (!response.ok) {
           setLineup([]);
@@ -537,7 +547,7 @@ const FestivalLineupDisplay = ({ festivalId, eventArtists }) => {
     };
 
     fetchLineup();
-  }, [festivalId]);
+  }, [festivalId, editionId, isPastEdition]);
 
   const normalizedEventArtists = useMemo(() => {
     if (!eventArtists || !artistMap) return null;
@@ -678,6 +688,10 @@ const FestivalLineupDisplay = ({ festivalId, eventArtists }) => {
     }));
   }, [allSorted, safeViewMode, normalizedFestival]);
 
+  if (isPastEdition) {
+    return <NoLineupContainer festivalId={festivalId} />;
+  }
+
   if (loading || !artistMap) {
     return (
       <div className="py-8 center">
@@ -693,6 +707,8 @@ const FestivalLineupDisplay = ({ festivalId, eventArtists }) => {
     }
     return null;
   }
+
+  console.log(groups, "///");
 
   return (
     <div className="center flex-col relative py-20">

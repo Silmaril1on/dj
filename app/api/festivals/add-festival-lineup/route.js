@@ -19,9 +19,11 @@ const handleError = (error) => {
 
 export async function GET(request) {
   try {
-    const festivalId = new URL(request.url).searchParams.get("festival_id");
+    const { searchParams } = new URL(request.url);
+    const festivalId = searchParams.get("festival_id");
+    const editionId = searchParams.get("edition_id");
     const cookieStore = await cookies();
-    const result = await getLineup(festivalId, cookieStore);
+    const result = await getLineup(festivalId, cookieStore, editionId);
     return NextResponse.json(result);
   } catch (error) {
     return handleError(error);
