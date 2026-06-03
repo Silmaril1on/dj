@@ -146,48 +146,73 @@ const phaseStyle = (phase) => {
 
 const StandardLineupSection = ({
   existingArtists,
-  newArtists,
-  onNewArtistsChange,
+  activeDays,
+  artistsByDay,
+  onArtistsByDayChange,
   canEdit,
   onEditArtist,
   onDeleteArtist,
 }) => {
-  const handleChange = (index, value) => {
-    const next = [...newArtists];
-    next[index] = value;
-    onNewArtistsChange(next);
-  };
-
-  const handleAdd = () => onNewArtistsChange([...newArtists, ""]);
-
-  const handleRemove = (index) => {
-    if (newArtists.length === 1) return;
-    onNewArtistsChange(newArtists.filter((_, i) => i !== index));
-  };
-
   const PHASE_OPTIONS = [
     { label: "All", value: null },
     { label: "1st Phase", value: "first phase" },
     { label: "2nd Phase", value: "second phase" },
     { label: "3rd Phase", value: "third phase" },
   ];
-  const [phaseFilter, setPhaseFilter] = useState(null);
 
-  const filteredArtists = phaseFilter
-    ? existingArtists.filter((a) => a.phase === phaseFilter)
-    : existingArtists;
+  const DAY_FILTER_OPTIONS = [
+    { label: "All", value: null },
+    ...["Friday", "Saturday", "Sunday"]
+      .filter((d) => existingArtists.some((a) => a.day === d))
+      .map((d) => ({ label: d, value: d })),
+  ];
+
+  const [phaseFilter, setPhaseFilter] = useState(null);
+  const [dayFilter, setDayFilter] = useState(null);
+
+  const filteredArtists = existingArtists.filter((a) => {
+    const phaseOk = !phaseFilter || a.phase === phaseFilter;
+    const dayOk = !dayFilter || a.day === dayFilter;
+    return phaseOk && dayOk;
+  });
+
+  const handleDayInput = (dayKey, index, value) => {
+    const cur = artistsByDay[dayKey] || [""];
+    const next = [...cur];
+    next[index] = value;
+    onArtistsByDayChange({ ...artistsByDay, [dayKey]: next });
+  };
+
+  const handleDayAdd = (dayKey) => {
+    const cur = artistsByDay[dayKey] || [""];
+    onArtistsByDayChange({ ...artistsByDay, [dayKey]: [...cur, ""] });
+  };
+
+  const handleDayRemove = (dayKey, index) => {
+    const cur = artistsByDay[dayKey] || [""];
+    if (cur.length === 1) return;
+    onArtistsByDayChange({
+      ...artistsByDay,
+      [dayKey]: cur.filter((_, i) => i !== index),
+    });
+  };
+
+  const inputSections =
+    activeDays.length === 0
+      ? [{ key: "", label: null }]
+      : activeDays.map((d) => ({ key: d, label: d }));
 
   return (
     <div className="space-y-4">
       {/* Existing artists — read-only display grid */}
       {existingArtists.length > 0 && (
-        <div className="relative ">
+        <div className="relative">
           <p className="text-xs text-chino mb-2 uppercase secondary">
             {existingArtists.length} artist
             {existingArtists.length !== 1 ? "s" : ""} already in lineup
           </p>
-          {/* Phase filter */}
-          <div className="mb-3">
+          <div className="flex justify-between flex-col lg:flex-row mb-2">
+            {/* Phase filter */}
             <LayoutButtons
               color="bg-stone-900"
               layoutId="phaseModeToggle"
@@ -198,13 +223,23 @@ const StandardLineupSection = ({
               activeOption={phaseFilter ?? "all"}
               onOptionChange={(v) => setPhaseFilter(v === "all" ? null : v)}
             />
+            {/* Day filter — only when at least one existing artist has a day assigned */}
+            {DAY_FILTER_OPTIONS.length > 1 && (
+              <LayoutButtons
+                color="bg-stone-900"
+                layoutId="dayModeToggle"
+                options={DAY_FILTER_OPTIONS.map((d) => ({
+                  label: d.label,
+                  value: d.value ?? "all",
+                }))}
+                activeOption={dayFilter ?? "all"}
+                onOptionChange={(v) => setDayFilter(v === "all" ? null : v)}
+              />
+            )}
           </div>
-          {/* Phase headings if filtered */}
-          {phaseFilter ? (
+          {/* Artist grid */}
+          {phaseFilter || dayFilter ? (
             <div>
-              <p className="text-xs text-gold/70 uppercase tracking-widest mb-2">
-                {phaseFilter}
-              </p>
               <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-2">
                 {filteredArtists.map((artist, i) => (
                   <ArtistCard
@@ -233,25 +268,30 @@ const StandardLineupSection = ({
         </div>
       )}
 
-      {/* New artists input */}
-      <div className="space-y-2">
-        <label className="text-xs text-chino block secondary uppercase">
-          {existingArtists.length > 0 ? "Add More Artists" : "Artist Names"}{" "}
-          {existingArtists.length === 0 && (
-            <span className="text-red-500">*</span>
-          )}
-        </label>
-        <AdditionalInput
-          className="grid grid-cols-5"
-          fields={newArtists}
-          onChange={handleChange}
-          onAdd={handleAdd}
-          onRemove={handleRemove}
-          placeholder="Artist name"
-          id="standard-artist"
-          name="standard-artist"
-          minFields={1}
-        />
+      {/* New artists input — one section per active day, or single no-day section */}
+      <div className="space-y-4">
+        {inputSections.map(({ key, label }) => (
+          <div key={key || "__noday"} className={`space-y-2 `}>
+            <label className="text-xs text-chino block secondary uppercase">
+              {label && <span className="text-cream font-bold">{label} </span>}
+              {existingArtists.length > 0 ? "Add More Artists" : "Artist Names"}
+              {existingArtists.length === 0 && inputSections[0].key === key && (
+                <span className="text-red-500 ml-1">*</span>
+              )}
+            </label>
+            <AdditionalInput
+              className="grid grid-cols-5"
+              fields={artistsByDay[key] || [""]}
+              onChange={(index, value) => handleDayInput(key, index, value)}
+              onAdd={() => handleDayAdd(key)}
+              onRemove={(index) => handleDayRemove(key, index)}
+              placeholder={label ? `Artist name (${label})` : "Artist name"}
+              id={`standard-artist-${key || "noday"}`}
+              name={`standard-artist-${key || "noday"}`}
+              minFields={1}
+            />
+          </div>
+        ))}
       </div>
     </div>
   );
@@ -265,6 +305,11 @@ const ArtistCard = ({ artist, canEdit, onEditArtist, onDeleteArtist }) => (
           className={`text-[8px] px-1.5 py-0.5 border font-bold secondary uppercase self-start ${phaseStyle(artist.phase)}`}
         >
           {artist.phase}
+        </span>
+      )}
+      {artist.day && (
+        <span className="text-[8px] px-1.5 py-0.5 border border-stone-500 text-stone-400 bg-stone-700/60 font-bold secondary uppercase self-start">
+          {artist.day}
         </span>
       )}
       {artist.support_act && (
@@ -519,8 +564,9 @@ const AddFestivalLineupForm = ({
     lineupType === "standard" ? "standard" : "enhanced",
   );
 
-  // Standard mode state — only NEW artists being added (existing ones shown read-only)
-  const [standardArtists, setStandardArtists] = useState([""]);
+  // Standard mode state — per-day artist input buckets
+  const [activeDays, setActiveDays] = useState([]);
+  const [artistsByDay, setArtistsByDay] = useState({ "": [""] });
 
   // Enhanced mode state
   const [stages, setStages] = useState(() =>
@@ -571,6 +617,16 @@ const AddFestivalLineupForm = ({
     setLineupStatus((prev) => (prev === phase ? null : phase));
   };
 
+  // ── Day toggle (standard mode — re-click to deselect) ───────────────────────
+
+  const handleDayToggle = (day) => {
+    setActiveDays((prev) => {
+      if (prev.includes(day)) return prev.filter((d) => d !== day);
+      setArtistsByDay((cur) => ({ ...cur, [day]: cur[day] || [""] }));
+      return [...prev, day];
+    });
+  };
+
   // ── Mode switching ──────────────────────────────────────────────────────────
 
   const switchToStandard = () => {
@@ -579,9 +635,12 @@ const AddFestivalLineupForm = ({
 
   const switchToEnhanced = () => {
     // When upgrading from standard, prefill all standard artists into stage 1
+    const allNames = Object.values(artistsByDay)
+      .flat()
+      .filter((n) => n.trim());
     const prefill =
-      lineupMode === "standard" && standardArtists.some((n) => n.trim())
-        ? standardArtists.filter((n) => n.trim()).map((name) => ({ name }))
+      lineupMode === "standard" && allNames.length > 0
+        ? allNames.map((name) => ({ name }))
         : null;
 
     setStages(
@@ -797,7 +856,8 @@ const AddFestivalLineupForm = ({
       setStages(
         buildEnhancedInitialStages(null, existingStages, null, lineupStatus),
       );
-      setStandardArtists([""]);
+      setActiveDays([]);
+      setArtistsByDay({ "": [""] });
       router.refresh();
     } catch {
       dispatch(
@@ -822,8 +882,25 @@ const AddFestivalLineupForm = ({
     let body;
 
     if (lineupMode === "standard") {
-      const newNames = standardArtists.map((n) => n.trim()).filter(Boolean);
-      if (existingStandardArtists.length === 0 && newNames.length === 0) {
+      const allNewArtists = [];
+      if (activeDays.length === 0) {
+        (artistsByDay[""] || [])
+          .map((n) => n.trim())
+          .filter(Boolean)
+          .forEach((name) => {
+            allNewArtists.push({ name, phase: lineupStatus || null });
+          });
+      } else {
+        activeDays.forEach((day) => {
+          (artistsByDay[day] || [])
+            .map((n) => n.trim())
+            .filter(Boolean)
+            .forEach((name) => {
+              allNewArtists.push({ name, day, phase: lineupStatus || null });
+            });
+        });
+      }
+      if (existingStandardArtists.length === 0 && allNewArtists.length === 0) {
         dispatch(
           setError({ message: "Add at least one artist name", type: "error" }),
         );
@@ -831,15 +908,11 @@ const AddFestivalLineupForm = ({
         return;
       }
       // Only send new artists — existing ones are managed via individual edit/delete.
-      // The service inserts them without touching existing rows.
       body = {
         festival_id: festivalId,
         edition_id: editionId,
         lineup_type: "standard",
-        artists: newNames.map((name) => ({
-          name,
-          phase: lineupStatus || null,
-        })),
+        artists: allNewArtists,
         lineup_status: lineupStatus || null,
       };
     } else {
@@ -912,7 +985,14 @@ const AddFestivalLineupForm = ({
         setExistingStandardArtists(freshArtists);
         saveLineupCache(festivalId, editionId, freshArtists);
       }
-      setStandardArtists([""]);
+      // Reset input fields for each active section
+      setArtistsByDay(() => {
+        const reset = { "": [""] };
+        activeDays.forEach((d) => {
+          reset[d] = [""];
+        });
+        return reset;
+      });
     } catch (err) {
       dispatch(setError({ message: err.message, type: "error" }));
     } finally {
@@ -931,79 +1011,121 @@ const AddFestivalLineupForm = ({
           : "Organize your festival lineup by stages. Add multiple stages and artists for each stage."
       }
     >
-      <form onSubmit={handleSubmit} className="w-full space-y-6">
+      <form onSubmit={handleSubmit} className="w-full space-y-3">
+        <div className="">
+          <span className="secondary text-xs text-chino">
+            <b className="text-cream">NOTE:</b> Adding a new artists instantly
+            triggers an email notification to all fans who have turned on lineup
+            alerts.
+          </span>
+        </div>
         {/* ── Announcement Phase + Mode Toggle ── */}
         <div className="bg-stone-900/50 space-y-4">
           {/* Mode toggle row */}
-          <div className="flex items-start flex-col gap-1">
+          <div className="flex items-center flex-col gap-1">
             <LayoutButtons
-              layoutId="lineupModeToggle"
               color="bg-stone-900"
               activeOption={lineupMode}
               onOptionChange={(val) =>
                 val === "standard" ? switchToStandard() : switchToEnhanced()
               }
+              size="md"
               options={[
                 { value: "standard", label: "Simple Lineup Upload" },
                 { value: "enhanced", label: "Enhanced Lineup Upload" },
               ]}
             />
-            {lineupMode === "standard" && (
+            {lineupMode === "standard" ? (
               <span className="text-xs text-chino secondary">
-                Best for quick uploads or when you only have artist names. You
-                can assign stages and days later using Enhanced mode
+                Best for quick lineup upload. You can assign stages later.
+              </span>
+            ) : (
+              <span className="text-xs text-chino secondary">
+                Best for full control over structured lineup, stages, and
+                scheduling.
               </span>
             )}
           </div>
 
-          {/* Phase selection — shown for both modes */}
-          <div>
-            <label className="text-lg font-bold text-gold block leading-none">
-              Announcement Phase
-            </label>
-            <p className="text-xs text-chino mb-3 secondary">
-              {lineupMode === "enhanced"
-                ? "Select a phase to apply to all new artists you add. Existing artists keep their original phase."
-                : "Select a phase to assign to this set of artists. Click again to deselect."}
-            </p>
-            <div className="flex gap-2 flex-wrap">
-              {/* First Phase — green */}
-              <button
-                type="button"
-                onClick={() => handlePhaseToggle("first phase")}
-                className={`px-3 py-1 font-semibold text-sm duration-300 border ${
-                  lineupStatus === "first phase"
-                    ? "bg-emerald-500/30 border-emerald-400 text-emerald-300"
-                    : "bg-stone-800 border-emerald-500/30 text-emerald-500/70 hover:bg-emerald-500/10 hover:border-emerald-400/60"
-                }`}
-              >
-                First Phase
-              </button>
-              {/* Second Phase — blue */}
-              <button
-                type="button"
-                onClick={() => handlePhaseToggle("second phase")}
-                className={`px-3 py-1 font-semibold text-sm duration-300 border ${
-                  lineupStatus === "second phase"
-                    ? "bg-blue-500/30 border-blue-400 text-blue-300"
-                    : "bg-stone-800 border-blue-500/30 text-blue-500/70 hover:bg-blue-500/10 hover:border-blue-400/60"
-                }`}
-              >
-                Second Phase
-              </button>
-              {/* Third Phase — orange */}
-              <button
-                type="button"
-                onClick={() => handlePhaseToggle("third phase")}
-                className={`px-3 py-1 font-semibold text-sm duration-300 border ${
-                  lineupStatus === "third phase"
-                    ? "bg-orange-500/30 border-orange-400 text-orange-300"
-                    : "bg-stone-800 border-orange-500/30 text-orange-500/70 hover:bg-orange-500/10 hover:border-orange-400/60"
-                }`}
-              >
-                Third Phase
-              </button>
+          <div className="flex flex-col lg:flex-row justify-between">
+            {/* Phase selection — shown for both modes */}
+            <div className="">
+              <label className="text-lg font-bold text-gold block leading-none">
+                Announcement Phase
+              </label>
+              <p className="text-xs text-chino mb-3 secondary">
+                {lineupMode === "enhanced"
+                  ? "Select a phase to apply to all new artists you add. Existing artists keep their original phase."
+                  : "Select a phase to assign to this set of artists. Click again to deselect."}
+              </p>
+              <div className="flex gap-2 flex-wrap ">
+                {/* First Phase — green */}
+                <button
+                  type="button"
+                  onClick={() => handlePhaseToggle("first phase")}
+                  className={`px-3 py-1 font-semibold text-sm duration-300 border ${
+                    lineupStatus === "first phase"
+                      ? "bg-emerald-500/30 border-emerald-400 text-emerald-300"
+                      : "bg-stone-800 border-emerald-500/30 text-emerald-500/70 hover:bg-emerald-500/10 hover:border-emerald-400/60"
+                  }`}
+                >
+                  First Phase
+                </button>
+                {/* Second Phase — blue */}
+                <button
+                  type="button"
+                  onClick={() => handlePhaseToggle("second phase")}
+                  className={`px-3 py-1 font-semibold text-sm duration-300 border ${
+                    lineupStatus === "second phase"
+                      ? "bg-blue-500/30 border-blue-400 text-blue-300"
+                      : "bg-stone-800 border-blue-500/30 text-blue-500/70 hover:bg-blue-500/10 hover:border-blue-400/60"
+                  }`}
+                >
+                  Second Phase
+                </button>
+                {/* Third Phase — orange */}
+                <button
+                  type="button"
+                  onClick={() => handlePhaseToggle("third phase")}
+                  className={`px-3 py-1 font-semibold text-sm duration-300 border ${
+                    lineupStatus === "third phase"
+                      ? "bg-orange-500/30 border-orange-400 text-orange-300"
+                      : "bg-stone-800 border-orange-500/30 text-orange-500/70 hover:bg-orange-500/10 hover:border-orange-400/60"
+                  }`}
+                >
+                  Third Phase
+                </button>
+              </div>
             </div>
+
+            {/* Day selection — standard mode only */}
+            {lineupMode === "standard" && (
+              <div className="">
+                <label className="text-lg font-bold text-gold lg:text-end block leading-none">
+                  Festival Day
+                </label>
+                <p className="text-xs text-chino mb-3 secondary">
+                  Artists added in each day section will be tagged with that
+                  day. Click again to deselect.
+                </p>
+                <div className="flex gap-2 flex-wrap lg:justify-end">
+                  {FESTIVAL_DAYS.map((day) => (
+                    <button
+                      key={day}
+                      type="button"
+                      onClick={() => handleDayToggle(day)}
+                      className={`px-3 py-1 font-semibold text-sm duration-300 border ${
+                        activeDays.includes(day)
+                          ? "bg-chino/40 border-chino/60 text-cream "
+                          : "bg-chino/20 border-chino/40 text-chino"
+                      }`}
+                    >
+                      {day}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
         </div>
 
@@ -1012,8 +1134,9 @@ const AddFestivalLineupForm = ({
           <div className="bg-stone-800/50 p-4 border border-gold/20">
             <StandardLineupSection
               existingArtists={existingStandardArtists}
-              newArtists={standardArtists}
-              onNewArtistsChange={setStandardArtists}
+              activeDays={activeDays}
+              artistsByDay={artistsByDay}
+              onArtistsByDayChange={setArtistsByDay}
               canEdit={canUserEdit}
               onEditArtist={openEditModal}
               onDeleteArtist={handleDeleteArtist}

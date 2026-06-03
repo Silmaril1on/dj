@@ -16,7 +16,7 @@ export const LineupNotificationEmail = ({
         Hey <strong style="color:#fff;">${userName}</strong>,
       </p>
       <p style="color:#cccccc;font-size:15px;line-height:1.7;margin:0 0 32px;">
-        Great news &#8212; <strong style="color:#fff;">${festivalName}</strong> has just
+        Goood news &#8212; <strong style="color:#fff;">${festivalName}</strong> has just
         published their <strong style="color:#fcb913;">${phaseName}</strong> lineup.
         Head over to their page to see who's playing.
       </p>

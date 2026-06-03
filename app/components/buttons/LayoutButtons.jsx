@@ -5,6 +5,7 @@ const LayoutButtons = ({
   options = [],
   activeOption,
   onOptionChange,
+  size,
   color,
   className = "",
   buttonClassName = "",
@@ -21,7 +22,7 @@ const LayoutButtons = ({
               key={option.value}
               type="button"
               onClick={() => onOptionChange(option.value)}
-              className={`relative px-4 py-1 uppercase rounded-full text-xs font-medium cursor-pointer z-10 ${
+              className={`relative px-4 py-1 uppercase rounded-full ${size === "md" ? "text-lg font-bold" : "text-xs font-medium"} cursor-pointer z-10 ${
                 isActive ? "text-cream" : "text-stone-900"
               } ${buttonClassName}`}
             >

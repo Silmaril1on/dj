@@ -143,6 +143,7 @@ const HoverImage = ({ src, name, springX, springY }) =>
     document.body,
   );
 
+// ARTIST LIST with HOVER IMAGE =============================================
 const ArtistPart = ({ name, slug, image_url }) => {
   const imgSrc = slug ? resolveImage(image_url, "md") : null;
   const [isHovered, setIsHovered] = useState(false);
@@ -251,7 +252,7 @@ const ArtistGroup = ({ group, index }) => (
   </Motion>
 );
 
-// ─── Lineup Alert subscribe button ───────────────────────────────────────────
+// LINEUP ALERT EMAIL SUBSCRIPTION CONTAINER  =============================================
 const LineupAlertButton = ({ festivalId }) => {
   const isAuthenticated = useSelector(selectIsAuthenticated);
   const [status, setStatus] = useState("idle"); // idle | loading | subscribed | error
@@ -369,7 +370,6 @@ const LineupAlertButton = ({ festivalId }) => {
   );
 };
 
-// ─── No-lineup placeholder ────────────────────────────────────────────────────
 const NoLineupContainer = ({ festivalId }) => (
   <Motion animation="fade" delay={0.1} className="center flex-col py-20 px-4">
     <div className="max-w-md w-full border border-gold/30  bg-stone-950 p-10 flex flex-col items-center gap-6 text-center">
@@ -387,13 +387,12 @@ const NoLineupContainer = ({ festivalId }) => (
           and we'll email you the moment artists are announced.
         </p>
       </div>
-
       <LineupAlertButton festivalId={festivalId} />
     </div>
   </Motion>
 );
 
-// ─── Timetable components ─────────────────────────────────────────────────────────
+// LINEUP TIMETABLE =============================================
 const TimetableCard = ({ artist }) => {
   const timeLine =
     artist.time_from && artist.time_to
@@ -401,70 +400,94 @@ const TimetableCard = ({ artist }) => {
       : artist.time_from || "";
   const firstPart = artist.parts?.[0];
   return (
-    <div className="bg-stone-900/60 border border-chino/15 p-3 flex flex-col gap-1.5 min-h-[72px]">
+    <div className="p-1 flex flex-col">
       {timeLine && (
-        <p className="text-gold text-[10px] font-semibold secondary tracking-wide">
+        <p className="text-gold text-[10px] secondary tracking-wide">
           {timeLine}
         </p>
       )}
-      {firstPart?.slug ? (
-        <Link
-          href={`/artists/${firstPart.slug}`}
-          className="text-cream font-bold uppercase text-xs leading-tight hover:text-gold transition-colors"
-        >
-          {artist.rawName}
-        </Link>
-      ) : (
-        <p className="text-cream font-bold uppercase text-xs leading-tight">
-          {artist.rawName}
-        </p>
-      )}
+
+      <p className="text-cream font-bold uppercase text-sm leading-tight">
+        {artist.rawName}
+      </p>
     </div>
   );
 };
 
 const TimetableSection = ({ stages }) => {
-  const artistsByDay = stages
-    .flatMap((s) => s.artists)
-    .filter((a) => a.time_from)
-    .reduce((acc, a) => {
-      const day = a.day || "TBA";
-      if (!acc[day]) acc[day] = [];
-      acc[day].push(a);
-      return acc;
-    }, {});
+  const activeStages = stages
+    .map((s) => ({
+      ...s,
+      artists: s.artists.filter((a) => a.time_from),
+    }))
+    .filter((s) => s.artists.length > 0);
 
-  const sortedDays = Object.keys(artistsByDay).sort((a, b) => {
-    if (a === "TBA") return 1;
-    if (b === "TBA") return -1;
-    return a.localeCompare(b);
-  });
+  if (activeStages.length === 0) return null;
 
-  if (sortedDays.length === 0) return null;
+  const hasDayInfo = activeStages.some((s) => s.artists.some((a) => a.day));
+
+  const sortedDays = hasDayInfo
+    ? [
+        ...new Set(
+          activeStages.flatMap((s) => s.artists.map((a) => a.day || "TBA")),
+        ),
+      ].sort((a, b) => {
+        if (a === "TBA") return 1;
+        if (b === "TBA") return -1;
+        return a.localeCompare(b);
+      })
+    : [null];
 
   return (
-    <div className="w-full max-w-7xl mx-auto px-4 space-y-10">
+    <section className="w-full space-y-16">
       {sortedDays.map((day) => {
-        const sorted = [...artistsByDay[day]].sort((a, b) =>
-          (a.time_from || "").localeCompare(b.time_from || ""),
-        );
+        const dayStages = activeStages
+          .map((stage) => ({
+            ...stage,
+            artists: stage.artists
+              .filter((a) => !day || (a.day || "TBA") === day)
+              .sort((a, b) =>
+                (a.time_from || "").localeCompare(b.time_from || ""),
+              ),
+          }))
+          .filter((stage) => stage.artists.length > 0);
+
+        if (dayStages.length === 0) return null;
+
         return (
-          <div key={day}>
-            <h2 className="text-gold text-2xl lg:text-3xl font-bold uppercase mb-4">
-              {day}
-            </h2>
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-2">
-              {sorted.map((artist, i) => (
-                <TimetableCard
-                  key={`${day}-${artist.rawName}-${i}`}
-                  artist={artist}
-                />
+          <div key={day ?? "all"}>
+            {day && (
+              <h2 className="text-gold text-3xl lg:text-4xl font-black uppercase">
+                {day}
+              </h2>
+            )}
+            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
+              {dayStages.map((stage) => (
+                <div
+                  key={`${day}-${stage.key}`}
+                  className=" border-gold/40 space-y-2"
+                >
+                  <div className="border-b border-gold/40 bg-gold/10 px-4 py-3 text-center">
+                    <h3 className="text-cream text-xs font-bold uppercase tracking-widest">
+                      {stage.title}
+                    </h3>
+                  </div>
+
+                  <div className=" space-y-2">
+                    {stage.artists.map((artist, i) => (
+                      <TimetableCard
+                        key={`${day}-${stage.key}-${artist.rawName}-${i}`}
+                        artist={artist}
+                      />
+                    ))}
+                  </div>
+                </div>
               ))}
             </div>
           </div>
         );
       })}
-    </div>
+    </section>
   );
 };
 
@@ -707,8 +730,6 @@ const FestivalLineupDisplay = ({
     }
     return null;
   }
-
-  console.log(groups, "///");
 
   return (
     <div className="center flex-col relative py-20">

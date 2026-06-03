@@ -279,7 +279,7 @@ async function saveStandardLineup(
     return {
       stage_id: standardStage.id,
       artist_name: name,
-      artist_day: null,
+      artist_day: typeof item === "object" && item.day ? item.day : null,
       artist_order: idx,
       phase,
       support_act,
@@ -409,7 +409,7 @@ export async function getLineup(festivalId, cookieStore, editionId = null) {
       if (standardStage?.id) {
         let standardQuery = admin
           .from("festival_lineup")
-          .select("id, artist_name, phase, support_act, edition_id")
+          .select("id, artist_name, artist_day, phase, support_act, edition_id")
           .eq("stage_id", standardStage.id)
           .order("artist_name", { ascending: true });
 
@@ -420,6 +420,26 @@ export async function getLineup(festivalId, cookieStore, editionId = null) {
         const { data, error: standardError } = await standardQuery;
         if (standardError) throw new Error("Failed to fetch standard lineup");
         rawStandardRows = data || [];
+      }
+
+      // Also include any orphan rows (stage_id IS NULL) added directly to the
+      // edition — these exist when artists were saved without a stage assignment.
+      if (editionFilter) {
+        const { data: orphanData, error: orphanError } = await admin
+          .from("festival_lineup")
+          .select("id, artist_name, artist_day, phase, support_act, edition_id")
+          .is("stage_id", null)
+          .eq("edition_id", editionFilter)
+          .order("artist_name", { ascending: true });
+
+        if (!orphanError && orphanData?.length) {
+          // De-duplicate by id in case the standard stage also picked them up
+          const existingIds = new Set(rawStandardRows.map((r) => r.id));
+          rawStandardRows = [
+            ...rawStandardRows,
+            ...orphanData.filter((r) => !existingIds.has(r.id)),
+          ];
+        }
       }
 
       // Artist image / slug cross-reference
@@ -475,6 +495,7 @@ export async function getLineup(festivalId, cookieStore, editionId = null) {
         return {
           lineup_id: row.id,
           name: row.artist_name,
+          day: row.artist_day || null,
           phase: row.phase || null,
           support_act: row.support_act || false,
           id: found?.id || null,
