@@ -52,6 +52,7 @@ export const administrationLinks = [
       { href: "/administration/artist-data-fill", text: "Artist Data Fill" },
       { href: "/administration/generate-assets", text: "Seedream" },
       { href: "/administration/branding", text: "Branding" },
+      { href: "/administration/commercials", text: "Commercials" },
     ],
   },
   {

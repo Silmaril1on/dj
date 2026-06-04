@@ -9,8 +9,7 @@ export async function POST() {
     const { data: festivals, error: festivalsError } = await supabaseAdmin
       .from("festivals")
       .select("id, name, image_url")
-      .eq("status", "pending")
-      .is("image_url", null);
+      .eq("status", "pending");
 
     if (festivalsError) {
       return NextResponse.json(
@@ -19,7 +18,25 @@ export async function POST() {
       );
     }
 
-    if (!festivals || festivals.length === 0) {
+    // Filter to only festivals with no usable image (null, empty object, or empty-string JSONB)
+    const toProcess = (festivals || []).filter((f) => {
+      if (!f.image_url) return true;
+      if (
+        typeof f.image_url === "string" &&
+        (f.image_url === "{}" || f.image_url.trim() === "")
+      )
+        return true;
+      if (
+        typeof f.image_url === "object" &&
+        !f.image_url.sm &&
+        !f.image_url.md &&
+        !f.image_url.lg
+      )
+        return true;
+      return false;
+    });
+
+    if (toProcess.length === 0) {
       return NextResponse.json({
         success: true,
         message: "No pending festivals without images found",
@@ -32,7 +49,7 @@ export async function POST() {
     let successCount = 0;
     let failCount = 0;
 
-    for (const festival of festivals) {
+    for (const festival of toProcess) {
       try {
         const imageInfo = findFestivalImage(festival.name);
 
@@ -107,8 +124,8 @@ export async function POST() {
 
     return NextResponse.json({
       success: true,
-      message: `Processed ${festivals.length} festivals: ${successCount} successful, ${failCount} failed`,
-      processed: festivals.length,
+      message: `Processed ${toProcess.length} festivals: ${successCount} successful, ${failCount} failed`,
+      processed: toProcess.length,
       successCount,
       failCount,
       results,
@@ -126,8 +143,7 @@ export async function GET() {
     const { data: festivals, error: festivalsError } = await supabaseAdmin
       .from("festivals")
       .select("id, name, image_url")
-      .eq("status", "pending")
-      .is("image_url", null);
+      .eq("status", "pending");
 
     if (festivalsError) {
       return NextResponse.json(
@@ -136,7 +152,24 @@ export async function GET() {
       );
     }
 
-    const preview = (festivals || []).map((festival) => {
+    const toProcess = (festivals || []).filter((f) => {
+      if (!f.image_url) return true;
+      if (
+        typeof f.image_url === "string" &&
+        (f.image_url === "{}" || f.image_url.trim() === "")
+      )
+        return true;
+      if (
+        typeof f.image_url === "object" &&
+        !f.image_url.sm &&
+        !f.image_url.md &&
+        !f.image_url.lg
+      )
+        return true;
+      return false;
+    });
+
+    const preview = toProcess.map((festival) => {
       const imageInfo = findFestivalImage(festival.name);
       return {
         festivalId: festival.id,
@@ -147,7 +180,7 @@ export async function GET() {
     });
 
     return NextResponse.json({
-      totalPendingWithoutImages: festivals?.length || 0,
+      totalPendingWithoutImages: toProcess.length,
       withMatchingImages: preview.filter((p) => p.hasMatchingImage).length,
       withoutMatchingImages: preview.filter((p) => !p.hasMatchingImage).length,
       preview,

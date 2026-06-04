@@ -39,7 +39,13 @@ import AdditionalInput from "@/app/components/forms/AdditionalInput";
 import LayoutButtons from "@/app/components/buttons/LayoutButtons";
 import GlobalModal from "@/app/components/modals/GlobalModal";
 import SwitchButton from "@/app/components/buttons/SwitchButton";
-import { FaPlus, FaTrash, FaEdit } from "react-icons/fa";
+import {
+  FaPlus,
+  FaTrash,
+  FaEdit,
+  FaChevronDown,
+  FaChevronUp,
+} from "react-icons/fa";
 import { MdEdit } from "react-icons/md";
 
 const FESTIVAL_DAYS = ["Friday", "Saturday", "Sunday"];
@@ -132,6 +138,22 @@ const buildEnhancedInitialStages = (
 
 // ─── Phase style helper ──────────────────────────────────────────────────────
 
+const PHASES = [
+  { value: "first phase", label: "First Phase" },
+  { value: "second phase", label: "Second Phase" },
+  { value: "third phase", label: "Third Phase" },
+];
+
+const dayStyle = (day) => {
+  if (day === "Friday")
+    return "bg-violet-500/20 border-violet-500/40 text-violet-400";
+  if (day === "Saturday")
+    return "bg-amber-500/20 border-amber-500/40 text-amber-400";
+  if (day === "Sunday")
+    return "bg-teal-500/20 border-teal-500/40 text-teal-400";
+  return "bg-stone-700/60 border-stone-500 text-stone-400";
+};
+
 const phaseStyle = (phase) => {
   if (phase === "first phase")
     return "bg-emerald-500/20 border-emerald-500/40 text-emerald-400";
@@ -169,6 +191,7 @@ const StandardLineupSection = ({
 
   const [phaseFilter, setPhaseFilter] = useState(null);
   const [dayFilter, setDayFilter] = useState(null);
+  const [isCollapsed, setIsCollapsed] = useState(false);
 
   const filteredArtists = existingArtists.filter((a) => {
     const phaseOk = !phaseFilter || a.phase === phaseFilter;
@@ -203,45 +226,67 @@ const StandardLineupSection = ({
       : activeDays.map((d) => ({ key: d, label: d }));
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-4 ">
       {/* Existing artists — read-only display grid */}
       {existingArtists.length > 0 && (
         <div className="relative">
-          <p className="text-xs text-chino mb-2 uppercase secondary">
-            {existingArtists.length} artist
-            {existingArtists.length !== 1 ? "s" : ""} already in lineup
-          </p>
-          <div className="flex justify-between flex-col lg:flex-row mb-2">
-            {/* Phase filter */}
-            <LayoutButtons
-              color="bg-stone-900"
-              layoutId="phaseModeToggle"
-              options={PHASE_OPTIONS.map((p) => ({
-                label: p.label,
-                value: p.value ?? "all",
-              }))}
-              activeOption={phaseFilter ?? "all"}
-              onOptionChange={(v) => setPhaseFilter(v === "all" ? null : v)}
-            />
-            {/* Day filter — only when at least one existing artist has a day assigned */}
-            {DAY_FILTER_OPTIONS.length > 1 && (
-              <LayoutButtons
-                color="bg-stone-900"
-                layoutId="dayModeToggle"
-                options={DAY_FILTER_OPTIONS.map((d) => ({
-                  label: d.label,
-                  value: d.value ?? "all",
-                }))}
-                activeOption={dayFilter ?? "all"}
-                onOptionChange={(v) => setDayFilter(v === "all" ? null : v)}
-              />
-            )}
+          <div className="flex items-center justify-between mb-2">
+            <p className="text-xs text-chino uppercase secondary">
+              {existingArtists.length} artist
+              {existingArtists.length !== 1 ? "s" : ""} already in lineup
+            </p>
+            <button
+              type="button"
+              onClick={() => setIsCollapsed((v) => !v)}
+              className="flex items-center gap-1 text-xs text-chino hover:text-cream transition-colors secondary uppercase"
+            >
+              {isCollapsed ? (
+                <>
+                  <span>Show</span>
+                  <FaChevronDown size={10} />
+                </>
+              ) : (
+                <>
+                  <span>Hide</span>
+                  <FaChevronUp size={10} />
+                </>
+              )}
+            </button>
           </div>
-          {/* Artist grid */}
-          {phaseFilter || dayFilter ? (
-            <div>
+          {!isCollapsed && (
+            <>
+              <div className="flex justify-between flex-col lg:flex-row mb-2">
+                {/* Phase filter */}
+                <LayoutButtons
+                  color="bg-stone-900"
+                  layoutId="phaseModeToggle"
+                  options={PHASE_OPTIONS.map((p) => ({
+                    label: p.label,
+                    value: p.value ?? "all",
+                  }))}
+                  activeOption={phaseFilter ?? "all"}
+                  onOptionChange={(v) => setPhaseFilter(v === "all" ? null : v)}
+                />
+                {/* Day filter — only when at least one existing artist has a day assigned */}
+                {DAY_FILTER_OPTIONS.length > 1 && (
+                  <LayoutButtons
+                    color="bg-stone-900"
+                    layoutId="dayModeToggle"
+                    options={DAY_FILTER_OPTIONS.map((d) => ({
+                      label: d.label,
+                      value: d.value ?? "all",
+                    }))}
+                    activeOption={dayFilter ?? "all"}
+                    onOptionChange={(v) => setDayFilter(v === "all" ? null : v)}
+                  />
+                )}
+              </div>
+              {/* Artist grid */}
               <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-2">
-                {filteredArtists.map((artist, i) => (
+                {(phaseFilter || dayFilter
+                  ? filteredArtists
+                  : existingArtists
+                ).map((artist, i) => (
                   <ArtistCard
                     key={i}
                     artist={artist}
@@ -251,19 +296,7 @@ const StandardLineupSection = ({
                   />
                 ))}
               </div>
-            </div>
-          ) : (
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-2">
-              {existingArtists.map((artist, i) => (
-                <ArtistCard
-                  key={i}
-                  artist={artist}
-                  canEdit={canEdit}
-                  onEditArtist={onEditArtist}
-                  onDeleteArtist={onDeleteArtist}
-                />
-              ))}
-            </div>
+            </>
           )}
         </div>
       )}
@@ -308,7 +341,9 @@ const ArtistCard = ({ artist, canEdit, onEditArtist, onDeleteArtist }) => (
         </span>
       )}
       {artist.day && (
-        <span className="text-[8px] px-1.5 py-0.5 border border-stone-500 text-stone-400 bg-stone-700/60 font-bold secondary uppercase self-start">
+        <span
+          className={`text-[8px] px-1.5 py-0.5 border font-bold secondary uppercase self-start ${dayStyle(artist.day)}`}
+        >
           {artist.day}
         </span>
       )}
@@ -1059,42 +1094,20 @@ const AddFestivalLineupForm = ({
                   : "Select a phase to assign to this set of artists. Click again to deselect."}
               </p>
               <div className="flex gap-2 flex-wrap ">
-                {/* First Phase — green */}
-                <button
-                  type="button"
-                  onClick={() => handlePhaseToggle("first phase")}
-                  className={`px-3 py-1 font-semibold text-sm duration-300 border ${
-                    lineupStatus === "first phase"
-                      ? "bg-emerald-500/30 border-emerald-400 text-emerald-300"
-                      : "bg-stone-800 border-emerald-500/30 text-emerald-500/70 hover:bg-emerald-500/10 hover:border-emerald-400/60"
-                  }`}
-                >
-                  First Phase
-                </button>
-                {/* Second Phase — blue */}
-                <button
-                  type="button"
-                  onClick={() => handlePhaseToggle("second phase")}
-                  className={`px-3 py-1 font-semibold text-sm duration-300 border ${
-                    lineupStatus === "second phase"
-                      ? "bg-blue-500/30 border-blue-400 text-blue-300"
-                      : "bg-stone-800 border-blue-500/30 text-blue-500/70 hover:bg-blue-500/10 hover:border-blue-400/60"
-                  }`}
-                >
-                  Second Phase
-                </button>
-                {/* Third Phase — orange */}
-                <button
-                  type="button"
-                  onClick={() => handlePhaseToggle("third phase")}
-                  className={`px-3 py-1 font-semibold text-sm duration-300 border ${
-                    lineupStatus === "third phase"
-                      ? "bg-orange-500/30 border-orange-400 text-orange-300"
-                      : "bg-stone-800 border-orange-500/30 text-orange-500/70 hover:bg-orange-500/10 hover:border-orange-400/60"
-                  }`}
-                >
-                  Third Phase
-                </button>
+                {PHASES.map(({ value, label }) => (
+                  <button
+                    key={value}
+                    type="button"
+                    onClick={() => handlePhaseToggle(value)}
+                    className={`px-3 py-1 font-semibold text-sm duration-300 border ${phaseStyle(value)} ${
+                      lineupStatus === value
+                        ? "opacity-100"
+                        : "opacity-70 hover:opacity-100"
+                    }`}
+                  >
+                    {label}
+                  </button>
+                ))}
               </div>
             </div>
 
@@ -1114,10 +1127,10 @@ const AddFestivalLineupForm = ({
                       key={day}
                       type="button"
                       onClick={() => handleDayToggle(day)}
-                      className={`px-3 py-1 font-semibold text-sm duration-300 border ${
+                      className={`px-3 py-1 font-semibold text-sm duration-300 border ${dayStyle(day)} ${
                         activeDays.includes(day)
-                          ? "bg-chino/40 border-chino/60 text-cream "
-                          : "bg-chino/20 border-chino/40 text-chino"
+                          ? "opacity-100"
+                          : "opacity-70 hover:opacity-100"
                       }`}
                     >
                       {day}

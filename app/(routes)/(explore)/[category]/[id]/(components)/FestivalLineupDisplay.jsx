@@ -622,7 +622,11 @@ const FestivalLineupDisplay = ({
           a.image_url,
         );
         if (!artistObj) return null;
-        return { ...artistObj, support_act: a.support_act || false };
+        return {
+          ...artistObj,
+          day: a.day || a.artist_day || null,
+          support_act: a.support_act || false,
+        };
       })
       .filter(Boolean);
 
@@ -643,10 +647,11 @@ const FestivalLineupDisplay = ({
   const hasStages =
     !eventArtists && (lineupType === "enhanced" || lineupType === "mixed");
   const hasDays =
-    hasStages &&
-    normalizedFestival.stages.some((stage) =>
+    !eventArtists &&
+    (normalizedFestival.stages.some((stage) =>
       stage.artists.some((artist) => artist.day),
-    );
+    ) ||
+      normalizedFestival.standard.some((artist) => artist.day));
   const hasTimetable =
     hasStages &&
     normalizedFestival.stages.some((stage) =>
@@ -689,14 +694,15 @@ const FestivalLineupDisplay = ({
       }));
     }
 
-    const artistsByDay = normalizedFestival.stages
-      .flatMap((stage) => stage.artists)
-      .reduce((acc, artist) => {
-        const day = artist.day || "TBA";
-        if (!acc[day]) acc[day] = [];
-        acc[day].push(artist);
-        return acc;
-      }, {});
+    const artistsByDay = [
+      ...normalizedFestival.stages.flatMap((stage) => stage.artists),
+      ...normalizedFestival.standard,
+    ].reduce((acc, artist) => {
+      const day = artist.day || "TBA";
+      if (!acc[day]) acc[day] = [];
+      acc[day].push(artist);
+      return acc;
+    }, {});
 
     const sortedDays = Object.keys(artistsByDay).sort((a, b) => {
       if (a === "TBA") return 1;
