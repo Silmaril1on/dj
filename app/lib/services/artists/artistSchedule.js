@@ -16,12 +16,11 @@ function invalidateScheduleCache(artistId) {
 export async function getArtistScheduleCount(artistId) {
   return unstable_cache(
     async () => {
-      const today = new Date().toISOString().split("T")[0];
       const { count, error } = await supabaseAdmin
         .from("artist_schedule")
         .select("*", { count: "exact", head: true })
         .eq("artist_id", artistId)
-        .gte("date", today);
+        .eq("event_status", "upcoming");
 
       if (error) throw new Error(error.message);
       return count || 0;

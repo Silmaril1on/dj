@@ -13,8 +13,10 @@ const AuthProvider = ({ children }) => {
   const dispatch = useDispatch();
   // Guard against React 18 Strict Mode double-invocation and state-triggered re-runs
   const hasFetched = useRef(false);
+  const profileUserIdRef = useRef(null);
+  const profileRequestRef = useRef(null);
 
-  // Supabase browser client — created ONCE for the lifetime of the app.
+  // Supabase browser client created once for the lifetime of the app.
   // Creating it on every render would open a new WebSocket per render.
   const supabase = useMemo(
     () =>
@@ -26,12 +28,30 @@ const AuthProvider = ({ children }) => {
   );
 
   useEffect(() => {
-    const fetchProfile = async () => {
-      const response = await fetch("/api/auth/profile");
-      if (response.ok) {
-        const data = await response.json();
-        dispatch(setUser(data.profile));
-      }
+    const fetchProfile = async (userId, { force = false } = {}) => {
+      if (!userId) return;
+      if (!force && profileUserIdRef.current === userId) return;
+      if (profileRequestRef.current) return profileRequestRef.current;
+
+      profileRequestRef.current = fetch("/api/auth/profile")
+        .then(async (response) => {
+          if (!response.ok) {
+            if (response.status === 401) {
+              profileUserIdRef.current = null;
+              dispatch(setUser(null));
+            }
+            return;
+          }
+
+          const data = await response.json();
+          profileUserIdRef.current = userId;
+          dispatch(setUser(data.profile));
+        })
+        .finally(() => {
+          profileRequestRef.current = null;
+        });
+
+      return profileRequestRef.current;
     };
 
     const getInitialSession = async () => {
@@ -43,7 +63,7 @@ const AuthProvider = ({ children }) => {
         const {
           data: { session },
         } = await supabase.auth.getSession();
-        if (session?.user) await fetchProfile();
+        if (session?.user) await fetchProfile(session.user.id);
       } finally {
         dispatch(setLoading(false));
       }
@@ -51,20 +71,24 @@ const AuthProvider = ({ children }) => {
 
     getInitialSession();
 
-    // Subscribe to auth state changes (sign-in, sign-out, token refresh)
+    // Subscribe to auth state changes (sign-in and sign-out).
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange(async (event, session) => {
-      dispatch(setLoading(true));
-      try {
-        if (event === "SIGNED_IN" && session?.user) {
-          await fetchProfile();
-        } else if (event === "SIGNED_OUT") {
-          dispatch(setUser(null));
+      if (event === "SIGNED_OUT") {
+        profileUserIdRef.current = null;
+        profileRequestRef.current = null;
+        dispatch(setUser(null));
+        return;
+      }
+
+      if (event === "SIGNED_IN" && session?.user) {
+        dispatch(setLoading(true));
+        try {
+          await fetchProfile(session.user.id);
+        } finally {
+          dispatch(setLoading(false));
         }
-        // TOKEN_REFRESHED / USER_UPDATED — session stays valid, no re-fetch needed
-      } finally {
-        dispatch(setLoading(false));
       }
     });
 
@@ -75,6 +99,7 @@ const AuthProvider = ({ children }) => {
   useEffect(() => {
     const handleProfileUpdate = (event) => {
       if (event.type === "profile-updated" && event.detail?.profile) {
+        profileUserIdRef.current = event.detail.profile.id ?? null;
         dispatch(updateUserProfile(event.detail.profile));
       }
     };

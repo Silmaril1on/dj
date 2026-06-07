@@ -39,7 +39,7 @@ const SectionContainer = ({
           className="w-full overflow-hidden pl-2 lg:pl-4 flex flex-col items-start"
         >
           <h1
-            className={`font-bold ${getTitleSize(size)} leading-none text-gold`}
+            className={`font-bold ${getTitleSize(size)} capitalize leading-none text-gold`}
           >
             {title}
           </h1>

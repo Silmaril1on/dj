@@ -202,6 +202,8 @@ const ArtistSchedule = ({
     groupedItems.push({ type: "event", data: schedule, index });
   });
 
+  console.log(data, "///");
+
   return (
     <SectionContainer title={title} description={description} className="mt-10">
       <article className="center flex-col w-full">
@@ -228,8 +230,7 @@ const ArtistSchedule = ({
                 visible: { transition: { staggerChildren: 0.05 } },
               }}
               initial="hidden"
-              whileInView="visible"
-              viewport={{ once: true, amount: 0.05 }}
+              animate="visible"
               className="space-y-2 lg:space-y-4"
             >
               {groupedItems.map((item) => {

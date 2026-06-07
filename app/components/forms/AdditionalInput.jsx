@@ -23,7 +23,7 @@ const AdditionalInput = ({
         const inputName = `${name || id}[${index}]`;
 
         return (
-          <div key={index} className="flex items-center gap-2 my-3">
+          <div key={index} className="flex items-center gap-2">
             <label htmlFor={inputId} className="sr-only">
               {placeholder} {index + 1}
             </label>

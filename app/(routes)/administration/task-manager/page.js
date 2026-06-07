@@ -11,6 +11,7 @@ import {
 } from "react-icons/md";
 import SectionContainer from "@/app/components/containers/SectionContainer";
 import LayoutButtons from "@/app/components/buttons/LayoutButtons";
+import Spinner from "@/app/components/ui/Spinner";
 
 const STATUS_COLUMNS = [
   { key: "tasks", label: "TASKS" },
@@ -385,80 +386,88 @@ const TaskManagerPage = () => {
         </div>
       )}
 
-      <div>
-        {/* Mobile tab switcher — hidden on lg */}
-        <div className="lg:hidden mb-3">
-          <LayoutButtons
-            layoutId="taskManagerColumns"
-            color="bg-stone-900"
-            activeOption={activeColumn}
-            onOptionChange={setActiveColumn}
-            options={STATUS_COLUMNS.map((col) => ({
-              value: col.key,
-              label: `${col.label}`,
-            }))}
-          />
+      {loading && tasks.length === 0 ? (
+        <div className="w-full center ">
+          <div className="flex items-center justify-center rounded-full w-7 h-7">
+            <div className="animate-spin rounded-full w-full h-full border-t-3 border-gold"></div>
+          </div>
         </div>
+      ) : (
+        <div>
+          {/* Mobile tab switcher — hidden on lg */}
+          <div className="lg:hidden mb-3">
+            <LayoutButtons
+              layoutId="taskManagerColumns"
+              color="bg-stone-900"
+              activeOption={activeColumn}
+              onOptionChange={setActiveColumn}
+              options={STATUS_COLUMNS.map((col) => ({
+                value: col.key,
+                label: `${col.label}`,
+              }))}
+            />
+          </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-3 lg:gap-4">
-          {STATUS_COLUMNS.map((column) => (
-            <section
-              key={column.key}
-              onDragOver={(event) => event.preventDefault()}
-              onDrop={() => {
-                if (draggedTaskId) {
-                  moveTask(draggedTaskId, column.key);
-                  setDraggedTaskId(null);
-                }
-              }}
-              className={`border border-gold/30 bg-stone-900 min-h-[520px] ${
-                column.key !== activeColumn ? "hidden lg:block" : ""
-              }`}
-            >
-              <ColumnHeader
-                columnKey={column.key}
-                label={column.label}
-                count={groupedTasks[column.key]?.length || 0}
-                activePriorityOrder={taskPriorityOrder}
-                isMenuOpen={isMenuOpen}
-                onPriorityOrderChange={setTaskPriorityOrder}
-                onToggleMenu={() => setIsMenuOpen((prev) => !prev)}
-                onCreateClick={() => {
-                  setIsMenuOpen(false);
-                  openCreateModal();
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-3 lg:gap-4">
+            {STATUS_COLUMNS.map((column) => (
+              <section
+                key={column.key}
+                onDragOver={(event) => event.preventDefault()}
+                onDrop={() => {
+                  if (draggedTaskId) {
+                    moveTask(draggedTaskId, column.key);
+                    setDraggedTaskId(null);
+                  }
                 }}
-              />
+                className={`border border-gold/30 bg-stone-900 min-h-[520px] ${
+                  column.key !== activeColumn ? "hidden lg:block" : ""
+                }`}
+              >
+                <ColumnHeader
+                  columnKey={column.key}
+                  label={column.label}
+                  count={groupedTasks[column.key]?.length || 0}
+                  activePriorityOrder={taskPriorityOrder}
+                  isMenuOpen={isMenuOpen}
+                  onPriorityOrderChange={setTaskPriorityOrder}
+                  onToggleMenu={() => setIsMenuOpen((prev) => !prev)}
+                  onCreateClick={() => {
+                    setIsMenuOpen(false);
+                    openCreateModal();
+                  }}
+                />
 
-              <div className="p-2 space-y-2">
-                {!loading && groupedTasks[column.key]?.length === 0 && (
-                  <div className="text-chino/60 text-xs border border-dashed border-gold/20 p-3 text-center">
-                    No tasks in {column.label.toLowerCase()}
-                  </div>
-                )}
+                <div className="p-2 space-y-2">
+                  {!loading && groupedTasks[column.key]?.length === 0 && (
+                    <div className="text-chino/60 text-xs border border-dashed border-gold/20 p-3 text-center">
+                      No tasks in {column.label.toLowerCase()}
+                    </div>
+                  )}
 
-                {groupedTasks[column.key]?.map((task) => (
-                  <TaskCard
-                    key={task.id}
-                    task={task}
-                    onDragStart={() => setDraggedTaskId(task.id)}
-                    onStart={() => moveTask(task.id, "progress")}
-                    onComplete={() => moveTask(task.id, "completed")}
-                    onEdit={() => openEditModal(task.id)}
-                    onDelete={() => handleDeleteTask(task.id)}
-                    canToggleSubtasks={task.status === "progress"}
-                    onToggleSubtask={(subtaskId) =>
-                      handleToggleSubtask(task.id, subtaskId)
-                    }
-                    onRemoveSubtask={(subtaskId) =>
-                      handleRemoveSubtask(task.id, subtaskId)
-                    }
-                  />
-                ))}
-              </div>
-            </section>
-          ))}
+                  {groupedTasks[column.key]?.map((task) => (
+                    <TaskCard
+                      key={task.id}
+                      task={task}
+                      onDragStart={() => setDraggedTaskId(task.id)}
+                      onStart={() => moveTask(task.id, "progress")}
+                      onComplete={() => moveTask(task.id, "completed")}
+                      onEdit={() => openEditModal(task.id)}
+                      onDelete={() => handleDeleteTask(task.id)}
+                      canToggleSubtasks={task.status === "progress"}
+                      onToggleSubtask={(subtaskId) =>
+                        handleToggleSubtask(task.id, subtaskId)
+                      }
+                      onRemoveSubtask={(subtaskId) =>
+                        handleRemoveSubtask(task.id, subtaskId)
+                      }
+                    />
+                  ))}
+                </div>
+              </section>
+            ))}
+          </div>
         </div>
-      </div>
+      )}
 
       <CreateTaskModal
         isOpen={isCreateModalOpen}

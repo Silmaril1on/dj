@@ -1,12 +1,15 @@
 "use client";
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { FaSearch, FaTimes, FaHistory } from "react-icons/fa";
 import { MdMusicNote } from "react-icons/md";
 import ProductCard from "@/app/components/containers/ProductCard";
+import Button from "@/app/components/buttons/Button";
+import usePagination from "@/app/lib/hooks/usePagination";
 
 const CACHE_TTL = 30 * 60 * 1000; // 30 minutes
 const STORAGE_KEY = "enhanced_search_cache";
+const LIMIT = 20;
 
 function loadCache() {
   try {
@@ -20,15 +23,28 @@ function loadCache() {
   }
 }
 
-function saveCache(artists, data) {
+function saveCache(artists, data, hasMore = false) {
   try {
     sessionStorage.setItem(
       STORAGE_KEY,
-      JSON.stringify({ artists, data, timestamp: Date.now() }),
+      JSON.stringify({ artists, data, hasMore, timestamp: Date.now() }),
     );
   } catch {
     // ignore
   }
+}
+
+function normalizeSearchItems(items) {
+  return (items || []).map((item) => {
+    const type = item.type || "event";
+
+    return {
+      ...item,
+      type,
+      original_id: item.original_id || item.id,
+      id: `${type}-${item.edition_id || item.original_id || item.id}`,
+    };
+  });
 }
 
 const EnhancedSearch = () => {
@@ -38,11 +54,54 @@ const EnhancedSearch = () => {
   const [error, setError] = useState(null);
   const [prevSearch, setPrevSearch] = useState(null);
   const inputRefs = [useRef(null), useRef(null), useRef(null)];
+  const resultArtists = results?.artists;
+
+  const fetchPage = useCallback(
+    async ({ limit, offset }) => {
+      if (!resultArtists?.length) return { data: [], hasMore: false };
+      const params = new URLSearchParams({
+        artists: resultArtists.join(","),
+        limit: String(limit),
+        offset: String(offset),
+      });
+      const res = await fetch(`/api/events/enhanced-search?${params}`, {
+        cache: "no-store",
+      });
+      const json = await res.json();
+      if (!json.success) throw new Error(json.error || "Search failed");
+      return {
+        data: normalizeSearchItems(json.data),
+        hasMore: Boolean(json.hasMore),
+      };
+    },
+    [resultArtists],
+  );
+
+  const {
+    data,
+    loading: loadingMore,
+    hasMore,
+    loadMore,
+    reset,
+    setHasMore,
+  } = usePagination({
+    initialData: [],
+    limit: LIMIT,
+    initialHasMore: false,
+    fetchPage,
+    onError: (err) => setError(err.message),
+  });
 
   // Load previous search from cache on mount
   useEffect(() => {
     const cached = loadCache();
-    if (cached) setPrevSearch(cached);
+    if (cached) {
+      setPrevSearch({
+        ...cached,
+        data: normalizeSearchItems(cached.data),
+        hasMore: Boolean(cached.hasMore),
+      });
+    }
   }, []);
 
   const handleSearch = async () => {
@@ -51,15 +110,31 @@ const EnhancedSearch = () => {
     setLoading(true);
     setError(null);
     setResults(null);
+    await reset([]);
+    setHasMore(false);
     try {
-      const res = await fetch(
-        `/api/events/enhanced-search?artists=${encodeURIComponent(terms.join(","))}`,
-      );
+      const params = new URLSearchParams({
+        artists: terms.join(","),
+        limit: String(LIMIT),
+        offset: "0",
+      });
+      const res = await fetch(`/api/events/enhanced-search?${params}`, {
+        cache: "no-store",
+      });
       const json = await res.json();
       if (!json.success) throw new Error(json.error || "Search failed");
-      setResults({ artists: terms, data: json.data });
-      saveCache(terms, json.data);
-      setPrevSearch({ artists: terms, data: json.data, timestamp: Date.now() });
+      const normalizedData = normalizeSearchItems(json.data);
+      const nextSearch = {
+        artists: terms,
+        data: normalizedData,
+        hasMore: Boolean(json.hasMore),
+        timestamp: Date.now(),
+      };
+      setResults(nextSearch);
+      await reset(normalizedData);
+      setHasMore(Boolean(json.hasMore));
+      saveCache(terms, normalizedData, Boolean(json.hasMore));
+      setPrevSearch(nextSearch);
     } catch (err) {
       setError(err.message);
     } finally {
@@ -87,6 +162,8 @@ const EnhancedSearch = () => {
   const loadPrevSearch = () => {
     if (!prevSearch) return;
     setResults(prevSearch);
+    reset(prevSearch.data || []);
+    setHasMore(Boolean(prevSearch.hasMore));
   };
 
   const hasTerms = inputs.some((v) => v.trim());
@@ -97,9 +174,9 @@ const EnhancedSearch = () => {
       {/* ── Search Inputs ── */}
       <div className="flex flex-col items-center gap-6">
         <p className="text-center text-sm text-chino secondary max-w-lg">
-          Search for events featuring multiple artists on the same lineup. Enter
-          up to 3 artist names - results will only show events where all
-          searched artists appear together.
+          Search for events and festivals featuring multiple artists on the same
+          lineup. Enter up to 3 artist names - results will only show lineups
+          where all searched artists appear together.
         </p>
         <div className="flex flex-col lg:flex-row items-center gap-4 w-full max-w-3xl">
           {inputs.map((value, idx) => (
@@ -174,37 +251,63 @@ const EnhancedSearch = () => {
             transition={{ duration: 0.4 }}
           >
             <p className="text-xs text-chino secondary mb-4 text-center">
-              {results.data.length === 0
-                ? `No events found for "${results.artists.join(" & ")}"`
-                : `${results.data.length} Event${results.data.length !== 1 ? "s" : ""} featuring ${results.artists.join(" & ")}`}
+              {data.length === 0
+                ? `No lineups found for "${results.artists.join(" & ")}"`
+                : `${data.length} Result${data.length !== 1 ? "s" : ""} featuring ${results.artists.join(" & ")}`}
             </p>
 
-            {results.data.length > 0 && (
-              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
-                {results.data.map((event, idx) => (
-                  <ProductCard
-                    key={event.id}
-                    id={event.id}
-                    image={event.image_url}
-                    name={event.event_name || event.venue_name}
-                    country={event.country}
-                    city={event.city}
-                    artists={event.artists || []}
-                    date={
-                      event.date
-                        ? new Date(event.date).toLocaleDateString("en-US", {
-                            month: "short",
-                            day: "2-digit",
-                            year: "numeric",
-                          })
-                        : null
-                    }
-                    href={`/events/${event.event_slug}`}
-                    delay={idx}
-                    type="event"
-                  />
-                ))}
-              </div>
+            {data.length > 0 && (
+              <>
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
+                  {data.map((item, idx) => {
+                    const isFestival = item.type === "festival";
+                    const dateValue = isFestival ? item.start_date : item.date;
+
+                    return (
+                      <ProductCard
+                        key={item.id}
+                        id={item.id}
+                        image={item.image_url}
+                        name={
+                          isFestival
+                            ? item.name
+                            : item.event_name || item.venue_name
+                        }
+                        country={item.country}
+                        city={item.city}
+                        artists={item.artists || []}
+                        date={
+                          dateValue
+                            ? new Date(dateValue).toLocaleDateString("en-US", {
+                                month: "short",
+                                day: "2-digit",
+                                year: "numeric",
+                              })
+                            : null
+                        }
+                        href={
+                          isFestival
+                            ? `/festivals/${item.festival_slug}`
+                            : `/events/${item.event_slug}`
+                        }
+                        delay={idx % LIMIT}
+                        type={isFestival ? "festival" : "event"}
+                      />
+                    );
+                  })}
+                </div>
+
+                {hasMore && (
+                  <div className="flex justify-center pt-5">
+                    <Button
+                      text={loadingMore ? "Loading..." : "Load More"}
+                      onClick={loadMore}
+                      loading={loadingMore}
+                      disabled={loadingMore}
+                    />
+                  </div>
+                )}
+              </>
             )}
           </motion.div>
         )}

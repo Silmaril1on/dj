@@ -106,6 +106,22 @@ const getEditionStatus = (startDate, endDate) => {
   return "upcoming";
 };
 
+const buildEditionUpdateData = (startDate, endDate, existingEdition = null) => {
+  const hasAnyDate = Boolean(startDate || endDate);
+
+  return {
+    edition_year: hasAnyDate
+      ? getEditionYear(startDate, endDate)
+      : (existingEdition?.edition_year ?? new Date().getFullYear()),
+    start_date: startDate || null,
+    end_date: endDate || null,
+    status: hasAnyDate
+      ? getEditionStatus(startDate, endDate)
+      : (existingEdition?.status ?? "upcoming"),
+    updated_at: new Date().toISOString(),
+  };
+};
+
 const applyEditionToFestival = (festival, edition) => {
   if (!festival) return festival;
   return {
@@ -704,19 +720,21 @@ export async function updateFestival(formData, cookieStore) {
 
   if (error) throw new ServiceError("Failed to update festival", 500);
 
-  const editionYear = getEditionYear(start_date, end_date);
-  const editionStatus = getEditionStatus(start_date, end_date);
-
   if (editionId) {
+    const { data: existingEdition, error: editionFetchError } = await admin
+      .from("festival_editions")
+      .select(EDITION_FIELDS)
+      .eq("id", editionId)
+      .eq("festival_id", festivalId)
+      .single();
+
+    if (editionFetchError || !existingEdition) {
+      throw new ServiceError("Festival edition not found", 404);
+    }
+
     const { error: editionUpdateError } = await admin
       .from("festival_editions")
-      .update({
-        edition_year: editionYear,
-        start_date,
-        end_date,
-        status: editionStatus,
-        updated_at: new Date().toISOString(),
-      })
+      .update(buildEditionUpdateData(start_date, end_date, existingEdition))
       .eq("id", editionId);
 
     if (editionUpdateError) {
@@ -738,13 +756,7 @@ export async function updateFestival(formData, cookieStore) {
     if (currentEdition) {
       const { error: fallbackUpdateError } = await admin
         .from("festival_editions")
-        .update({
-          edition_year: editionYear,
-          start_date,
-          end_date,
-          status: editionStatus,
-          updated_at: new Date().toISOString(),
-        })
+        .update(buildEditionUpdateData(start_date, end_date, currentEdition))
         .eq("id", currentEdition.id);
 
       if (fallbackUpdateError) {
@@ -755,10 +767,10 @@ export async function updateFestival(formData, cookieStore) {
         .from("festival_editions")
         .insert({
           festival_id: festivalId,
-          edition_year: editionYear,
+          edition_year: getEditionYear(start_date, end_date),
           start_date,
           end_date,
-          status: editionStatus,
+          status: getEditionStatus(start_date, end_date),
         });
 
       if (editionInsertError) {

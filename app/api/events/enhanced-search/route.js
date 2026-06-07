@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { searchEventsByArtists } from "@/app/lib/services/events/enhancedSearch";
+import { searchLineupsByArtists } from "@/app/lib/services/events/enhancedSearch";
 
 export const dynamic = "force-dynamic";
 
@@ -11,6 +11,8 @@ export async function GET(request) {
       .split(",")
       .map((n) => n.trim())
       .filter(Boolean);
+    const limit = parseInt(searchParams.get("limit") || "20", 10);
+    const offset = parseInt(searchParams.get("offset") || "0", 10);
 
     if (artistNames.length === 0) {
       return NextResponse.json(
@@ -19,7 +21,10 @@ export async function GET(request) {
       );
     }
 
-    const result = await searchEventsByArtists(artistNames);
+    const result = await searchLineupsByArtists(artistNames, {
+      limit,
+      offset,
+    });
     return NextResponse.json(result, {
       headers: {
         // Allow CDN/browser to cache for up to 5 min; stale-while-revalidate 25 min

@@ -156,20 +156,30 @@ const SubmissionForm = ({
   const handleImageChange = (e) => {
     const file = e.target.files[0];
     if (file) {
-      if (!file.type.startsWith("image/")) {
+      const uploadField =
+        currentUploadFieldRef.current || formConfig.imageField;
+      const fieldConfig = formConfig.fields[uploadField] || {};
+      const isVideoField = fieldConfig.type === "video";
+      const expectedType = isVideoField ? "video/" : "image/";
+      const maxSize =
+        fieldConfig.maxSize || (isVideoField ? 100 : 15) * 1024 * 1024;
+
+      if (!file.type.startsWith(expectedType)) {
         dispatch(
           setError({
-            message: "Please upload a valid image file",
+            message: isVideoField
+              ? "Please upload a valid video file"
+              : "Please upload a valid image file",
             type: "error",
           }),
         );
         currentUploadFieldRef.current = null;
         return;
       }
-      if (file.size > 15 * 1024 * 1024) {
+      if (file.size > maxSize) {
         dispatch(
           setError({
-            message: "Image size must be less than 15MB",
+            message: `${isVideoField ? "Video" : "Image"} size must be less than ${Math.round(maxSize / (1024 * 1024))}MB`,
             type: "error",
           }),
         );
@@ -177,24 +187,35 @@ const SubmissionForm = ({
         return;
       }
 
-      const uploadField =
-        currentUploadFieldRef.current || formConfig.imageField;
       currentUploadFieldRef.current = null;
       // Reset the input so the same file can be re-selected for a different field
       e.target.value = "";
 
-      const reader = new FileReader();
-      reader.onload = (ev) => {
+      const previewUrl = isVideoField ? URL.createObjectURL(file) : null;
+
+      if (isVideoField) {
         if (uploadField === formConfig.imageField) {
-          setImagePreview(ev.target.result);
+          setImagePreview(previewUrl);
         } else {
           setExtraImagePreviews((prev) => ({
             ...prev,
-            [uploadField]: ev.target.result,
+            [uploadField]: previewUrl,
           }));
         }
-      };
-      reader.readAsDataURL(file);
+      } else {
+        const reader = new FileReader();
+        reader.onload = (ev) => {
+          if (uploadField === formConfig.imageField) {
+            setImagePreview(ev.target.result);
+          } else {
+            setExtraImagePreviews((prev) => ({
+              ...prev,
+              [uploadField]: ev.target.result,
+            }));
+          }
+        };
+        reader.readAsDataURL(file);
+      }
 
       if (uploadField === formConfig.imageField) {
         setSelectedFile(file);
@@ -334,7 +355,7 @@ const SubmissionForm = ({
       if (!icon) return inputElement;
 
       return (
-        <div className="relative ">
+        <div className="relative">
           {inputElement}
           {getIcon()}
           {type === "password" && (
@@ -373,6 +394,65 @@ const SubmissionForm = ({
         );
 
       case "image":
+      case "video":
+        if (type === "video") {
+          const isMainVideoField = fieldName === formConfig.imageField;
+          const previewForField = isMainVideoField
+            ? imagePreview
+            : extraImagePreviews[fieldName] || null;
+          const existingVideoForField = isMainVideoField
+            ? existingImage
+            : fieldValue || null;
+          const triggerUpload = () => {
+            currentUploadFieldRef.current = fieldName;
+            fileInputRef.current?.click();
+          };
+
+          return (
+            <div id={fieldName} className="flex items-start space-x-3 ">
+              <div className="relative h-28 w-32 overflow-hidden border-2 border-gold/30 bg-stone-700">
+                {previewForField || existingVideoForField ? (
+                  <video
+                    src={previewForField || existingVideoForField}
+                    muted
+                    playsInline
+                    className="h-full w-full object-cover"
+                  />
+                ) : (
+                  <div className="flex h-full w-full items-center justify-center">
+                    <MdUpload className="h-8 w-8 text-gray-400" />
+                  </div>
+                )}
+
+                <button
+                  type="button"
+                  onClick={triggerUpload}
+                  className="absolute bottom-1 right-1 bg-gold p-2 text-black shadow-xl transition-colors hover:bg-gold/80"
+                  title="Upload Video"
+                >
+                  <MdEdit size={16} />
+                </button>
+              </div>
+
+              <div className="flex-1">
+                <button
+                  type="button"
+                  onClick={triggerUpload}
+                  className="flex items-center gap-2 bg-gold/30 px-2 py-1 text-gold border border-gold/30 transition-colors"
+                >
+                  <MdUpload size={20} />
+                  {previewForField || existingVideoForField
+                    ? "Change Video"
+                    : "Upload Video"}
+                </button>
+                <p className="secondary mt-2 text-[10px] text-chino/70">
+                  {fieldConfig.helpText || "Upload a video file."}
+                </p>
+              </div>
+            </div>
+          );
+        }
+
         const isAvatar =
           fieldName.includes("avatar") || fieldName.includes("profile");
         const containerClass = isAvatar ? "w-24 h-24" : "w-32 h-32";
@@ -478,6 +558,7 @@ const SubmissionForm = ({
           <AdditionalInput
             id={inputId}
             name={fieldName}
+            className={fieldConfig.className}
             fields={getAdditionalFieldValues(formData[fieldName])}
             onChange={(index, value) =>
               handleArrayFieldChange(fieldName, index, value)
@@ -669,7 +750,11 @@ const SubmissionForm = ({
           name={`${formConfig.imageField}_file`}
           ref={fileInputRef}
           type="file"
-          accept="image/*"
+          accept={
+            formConfig.fields[formConfig.imageField]?.type === "video"
+              ? "video/*"
+              : "image/*"
+          }
           onChange={handleImageChange}
           className="hidden"
         />

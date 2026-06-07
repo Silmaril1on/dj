@@ -36,7 +36,7 @@ const ProfileBasicInfo = ({ data, type }) => {
       const start = safeFormatDate(data.start_date);
       const end = safeFormatDate(data.end_date);
       if (start && end) return `${start} - ${end}`;
-      return start || end;
+      return start || end || "Next dates will be dropped soon";
     }
 
     return null;

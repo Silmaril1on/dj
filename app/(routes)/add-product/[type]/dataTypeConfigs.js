@@ -216,27 +216,38 @@ export const DATA_TYPE_CONFIGS = {
       description:
         "You can only submit one festival profile. To edit your submission, use the edit link or contact support.",
     },
-    mapInitialData: (data, defaults) => ({
-      ...defaults,
-      name: data.name || "",
-      festival_slug: data.festival_slug || "",
-      description: data.description || "",
-      bio: data.bio || "",
-      poster: resolveImageUrl(data.image_url, "sm"),
-      map_image_url: resolveImageUrl(data.map_image_url, "lg"),
-      festival_poster: data.festival_poster || "",
-      start_date: data.currentEdition?.start_date || data.start_date || "",
-      end_date: data.currentEdition?.end_date || data.end_date || "",
-      edition_id: data.currentEdition?.id || data.edition_id || "",
-      location_url: data.location_url || "",
-      address: data.address || "",
-      capacity_total: data.capacity_total || "",
-      country: data.country || "",
-      city: data.city || "",
-      minimum_age: data.minimum_age != null ? String(data.minimum_age) : "",
-      festival_genre: data.festival_genre?.length ? data.festival_genre : [""],
-      social_links: data.social_links || [""],
-    }),
+    mapInitialData: (data, defaults) => {
+      const currentEdition = data.currentEdition || data.edition || null;
+      const hasCurrentEdition = Boolean(currentEdition?.id);
+
+      return {
+        ...defaults,
+        name: data.name || "",
+        festival_slug: data.festival_slug || "",
+        description: data.description || "",
+        bio: data.bio || "",
+        poster: resolveImageUrl(data.image_url, "sm"),
+        map_image_url: resolveImageUrl(data.map_image_url, "lg"),
+        festival_poster: data.festival_poster || "",
+        start_date: hasCurrentEdition
+          ? currentEdition.start_date || ""
+          : data.start_date || "",
+        end_date: hasCurrentEdition
+          ? currentEdition.end_date || ""
+          : data.end_date || "",
+        edition_id: currentEdition?.id || data.edition_id || "",
+        location_url: data.location_url || "",
+        address: data.address || "",
+        capacity_total: data.capacity_total || "",
+        country: data.country || "",
+        city: data.city || "",
+        minimum_age: data.minimum_age != null ? String(data.minimum_age) : "",
+        festival_genre: data.festival_genre?.length
+          ? data.festival_genre
+          : [""],
+        social_links: data.social_links || [""],
+      };
+    },
     mapSuccessPayload: (result) => ({
       type: "festival",
       image: resolveImageUrl(result.data?.image_url),

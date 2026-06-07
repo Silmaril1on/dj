@@ -1,8 +1,4 @@
-import {
-  termsAndConditionsData,
-  artistTermsAndConditionsData,
-  clubsTermsAndConditionsData,
-} from "@/app/lib/localDB/termsAndConditionsData";
+import { termsAndConditionsData } from "@/app/lib/localDB/termsAndConditionsData";
 import Title from "../ui/Title";
 import Paragraph from "../ui/Paragraph";
 
@@ -10,10 +6,14 @@ const TermsAndConditions = ({ type = "artist", className = "" }) => {
   const data = termsAndConditionsData[type] || termsAndConditionsData.artist;
 
   return (
-    <div className={`bg-black  p-4 max-w-md h-fit sticky top-4 ${className}`}>
+    <div className={`bg-black p-4 max-w-md h-fit sticky top-4 ${className}`}>
       {/* Header */}
       <div className="mb-6 border-b border-gold/40 pb-4">
-        <Title text={data.title} size="lg" />
+        <Title
+          text={data.title}
+          className="text-start leading-none"
+          size="lg"
+        />
         <Paragraph text={`Last updated: ${data.lastUpdated}`} />
       </div>
 
@@ -24,13 +24,13 @@ const TermsAndConditions = ({ type = "artist", className = "" }) => {
             <h3 className="text-gold font-semibold text-base mb-3">
               {section.title}
             </h3>
-            <ul className="space-y-2">
+            <ul className="space-y-1">
               {section.items.map((item, itemIndex) => (
                 <li
                   key={itemIndex}
                   className="flex items-start gap-2 text-sm text-cream"
                 >
-                  <span className="text-gold font-bold mt-1">•</span>
+                  <span className="text-gold font-bold">•</span>
                   <span className="leading-relaxed secondary text-xs">
                     {item}
                   </span>

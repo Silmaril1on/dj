@@ -622,6 +622,7 @@ const AddFestivalLineupForm = ({
   // Delete full lineup confirmation state
   const [deleteFullConfirm, setDeleteFullConfirm] = useState(false);
   const [isDeletingFull, setIsDeletingFull] = useState(false);
+  const [lineupHelpOpen, setLineupHelpOpen] = useState(false);
 
   // Edit artist modal state
   const [editModal, setEditModal] = useState({ open: false, artist: null });
@@ -1047,12 +1048,13 @@ const AddFestivalLineupForm = ({
       }
     >
       <form onSubmit={handleSubmit} className="w-full space-y-3">
-        <div className="">
-          <span className="secondary text-xs text-chino">
-            <b className="text-cream">NOTE:</b> Adding a new artists instantly
-            triggers an email notification to all fans who have turned on lineup
-            alerts.
-          </span>
+        <div className="flex justify-end">
+          <Button
+            text="Help Center"
+            type="button"
+            size="small"
+            onClick={() => setLineupHelpOpen(true)}
+          />
         </div>
         {/* ── Announcement Phase + Mode Toggle ── */}
         <div className="bg-stone-900/50 space-y-4">
@@ -1223,6 +1225,103 @@ const AddFestivalLineupForm = ({
           />
         </div>
       </form>
+
+      {/* lineup help modal */}
+      <GlobalModal
+        isOpen={lineupHelpOpen}
+        onClose={() => setLineupHelpOpen(false)}
+        title="Lineup Help Center"
+        maxWidth="max-w-3xl"
+      >
+        <div className="space-y-5 text-sm text-cream/85 secondary">
+          <section className="space-y-2">
+            <h3 className="text-gold font-bold uppercase tracking-widest text-xs">
+              Before You Save
+            </h3>
+            <p>
+              Saving newly added artists publishes those lineup changes and can
+              notify fans who enabled lineup alerts for this festival. Review
+              names, phases, days, and stage placement before submitting.
+            </p>
+          </section>
+
+          <section className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="bg-stone-900/70 border border-gold/20 p-4 space-y-2">
+              <h3 className="text-gold font-bold uppercase tracking-widest text-xs">
+                Simple Lineup Upload
+              </h3>
+              <p className="secondary text-[10px] text-chino">
+                Add lineup, later you can assign stages, days ans set times
+              </p>
+              <ul className="list-disc pl-5 space-y-1">
+                <li>Sort lineup by days</li>
+                <li>Sort lineup by phases</li>
+                <li>Mark artists as a support act</li>
+                <li>Later assign stages</li>
+                <li>Filter lineup by phases and days</li>
+              </ul>
+            </div>
+
+            <div className="bg-stone-900/70 border border-gold/20 p-4 space-y-2">
+              <h3 className="text-gold font-bold uppercase tracking-widest text-xs">
+                Enhanced Lineup Upload
+              </h3>
+              <p className="secondary text-[10px] text-chino">
+                When you know full artist schedule by stages, days and set times
+              </p>
+              <ul className="list-disc pl-5 space-y-1">
+                <li>Create multiple stages for your festival.</li>
+                <li>Submit lineup by stages, days, and set times.</li>
+                <li>Mark lineup as phase announcement.</li>
+                <li>Add support-act labels.</li>
+              </ul>
+            </div>
+          </section>
+
+          <section className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <h3 className="text-gold font-bold uppercase tracking-widest text-xs">
+                Phase Tags
+              </h3>
+              <ul className="list-disc pl-5 space-y-1">
+                <li>First Phase: first public artist announcement.</li>
+                <li>Second Phase: next wave of confirmed artists.</li>
+                <li>Third Phase: final additions or closing announcement.</li>
+              </ul>
+              <p className="text-chino">
+                Existing artists keep their saved phase. The selected phase is
+                applied to newly added artists.
+              </p>
+            </div>
+
+            <div className="space-y-2">
+              <h3 className="text-gold font-bold uppercase tracking-widest text-xs">
+                Day Tags
+              </h3>
+              <p>
+                Day tags help visitors filter and understand when artists play.
+                In simple mode, choose days first and add names into each day
+                section. In enhanced mode, each artist row can have its own day.
+              </p>
+              <p className="text-chino">
+                Leave day empty when the day split is not announced yet.
+              </p>
+            </div>
+          </section>
+
+          <section className="space-y-2">
+            <h3 className="text-gold font-bold uppercase tracking-widest text-xs">
+              Updating Existing Lineups
+            </h3>
+            <p className="text-[10px]">
+              - Additions are saved without wiping the current lineup. Existing
+              artists should be changed with the edit button on their card, and
+              removed with the delete button. Use Delete Full Lineup only when
+              you want to clear the entire edition lineup.
+            </p>
+          </section>
+        </div>
+      </GlobalModal>
 
       {/* ── Edit Artist Modal ── */}
       <GlobalModal

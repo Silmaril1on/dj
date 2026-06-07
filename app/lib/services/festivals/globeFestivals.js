@@ -22,23 +22,25 @@ const GLOBE_EDITION_FIELDS = `
   )
 `;
 
-const LIMIT = 500;
+const DEFAULT_LIMIT = 20;
 
 /**
  * Returns upcoming approved festivals with parsed lat/lng for globe display.
  * Uses festival_editions for date filtering.
  */
-export async function getGlobeFestivals() {
+export async function getGlobeFestivals({ limit = DEFAULT_LIMIT, offset = 0 } = {}) {
   const today = getTodayDateOnlyString();
+  const safeLimit = Math.min(Math.max(Number(limit) || DEFAULT_LIMIT, 1), 100);
+  const safeOffset = Math.max(Number(offset) || 0, 0);
 
-  const { data, error } = await supabaseAdmin
+  const { data, count, error } = await supabaseAdmin
     .from("festival_editions")
-    .select(GLOBE_EDITION_FIELDS)
+    .select(GLOBE_EDITION_FIELDS, { count: "exact" })
     .eq("status", "upcoming")
     .eq("festivals.status", "approved")
     .gte("start_date", today)
     .order("start_date", { ascending: true })
-    .limit(LIMIT);
+    .range(safeOffset, safeOffset + safeLimit - 1);
 
   if (error) throw new ServiceError(error.message, 500);
 
@@ -72,5 +74,15 @@ export async function getGlobeFestivals() {
     })
     .filter(Boolean);
 
-  return festivals;
+  const rowsRead = data?.length ?? 0;
+
+  return {
+    festivals,
+    nextOffset: safeOffset + rowsRead,
+    hasMore:
+      typeof count === "number"
+        ? safeOffset + rowsRead < count
+        : rowsRead === safeLimit,
+    total: count ?? null,
+  };
 }

@@ -51,9 +51,16 @@ export const extractProfileData = (data, type) => {
   const config = PROFILE_TYPE_CONFIG[type];
   const edition =
     type === "festivals" ? data.currentEdition || data.edition || null : null;
-  const festivalStartDate = edition?.start_date ?? data.start_date ?? null;
-  const festivalEndDate = edition?.end_date ?? data.end_date ?? null;
-  const festivalEditionId = edition?.id ?? data.edition_id ?? null;
+  const hasFestivalEdition = Boolean(edition?.id);
+  const festivalStartDate = hasFestivalEdition
+    ? edition.start_date || null
+    : data.start_date || null;
+  const festivalEndDate = hasFestivalEdition
+    ? edition.end_date || null
+    : data.end_date || null;
+  const festivalEditionId = hasFestivalEdition
+    ? edition.id
+    : data.edition_id || null;
   const festivalEditionYear =
     edition?.edition_year ?? data.edition_year ?? null;
   const festivalEditionStatus = edition?.status ?? data.edition_status ?? null;

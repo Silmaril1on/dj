@@ -170,7 +170,7 @@ export const eventsTermsAndConditionsData = {
 };
 
 export const festivalsTermsAndConditionsData = {
-  title: "Festival Submission Terms & Conditions",
+  title: "Festival Submission guidelines",
   lastUpdated: "December 2024",
   sections: [
     {
@@ -178,14 +178,14 @@ export const festivalsTermsAndConditionsData = {
       items: [
         "You must have a verified account to submit festivals",
         "Each user can submit only one festival profile",
-        "Festival profiles can be edited once per month - update carefully",
+        "Festival profiles can be edited anytime",
         "All submissions require admin approval before going live",
       ],
     },
     {
       title: "Submission Guidelines",
       items: [
-        "Provide high-quality festival images (poster and logo)",
+        "Provide high-quality festival images ( LOGO, MAP photo & POSTER,)",
         "Fill in all required fields completely and accurately",
         "Use professional images that represent the festival brand",
         "Ensure all information is truthful and up-to-date",
@@ -196,7 +196,7 @@ export const festivalsTermsAndConditionsData = {
       items: [
         "All submissions are reviewed by our admin team",
         "You will be notified via email about the approval decision",
-        "Approval typically takes 1-3 business days",
+        "Approval typically takes 24 hours",
         "Rejected submissions can be resubmitted after addressing feedback",
       ],
     },
@@ -207,6 +207,7 @@ export const festivalsTermsAndConditionsData = {
         "Festival information must be factual and verifiable",
         "Social media links must be legitimate and active",
         "Dates, location, and capacity information should be accurate",
+        "Fill END DATE field if festival is a single day event",
       ],
     },
     {

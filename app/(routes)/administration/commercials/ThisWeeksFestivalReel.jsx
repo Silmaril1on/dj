@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useMemo, useState } from "react";
 import { motion } from "framer-motion";
 import ArtistCountry from "@/app/components/materials/ArtistCountry";
 
@@ -8,9 +8,9 @@ const demoFestival = {
   name: "Tomorrowland",
   country: "Belgium",
   city: "Boom",
-  date: "Jul 17 - Jul 26",
+  start_date: "2026-07-17",
+  end_date: "2026-07-26",
   genre: "Electronic Music",
-  videoUrl: "/videos/reel-test-video.mp4",
   artists: [
     "Anyma",
     "Charlotte de Witte",
@@ -23,7 +23,102 @@ const demoFestival = {
   ],
 };
 
+const formatDateRange = (start, end) => {
+  if (!start) return "TBA";
+
+  const startDate = new Date(start);
+  const endDate = end ? new Date(end) : null;
+  if (Number.isNaN(startDate.getTime())) return "TBA";
+
+  const startMonth = startDate.toLocaleString("en-US", { month: "short" });
+  const startDay = startDate.getDate();
+  const endDay =
+    endDate && !Number.isNaN(endDate.getTime()) ? endDate.getDate() : null;
+  const endMonth =
+    endDate && !Number.isNaN(endDate.getTime())
+      ? endDate.toLocaleString("en-US", { month: "short" })
+      : startMonth;
+
+  if (!endDay || endDay === startDay) return `${startMonth} ${startDay}`;
+  if (endMonth !== startMonth) {
+    return `${startMonth} ${startDay} - ${endMonth} ${endDay}`;
+  }
+
+  return `${startMonth} ${startDay} - ${endDay}`;
+};
+
+const fillLineup = (lineup = []) => {
+  const artists = Array.isArray(lineup)
+    ? lineup
+        .map((artist) => String(artist).trim())
+        .filter(Boolean)
+        .slice(0, 8)
+    : [];
+
+  while (artists.length < 8) artists.push("ADD LINEUP");
+  return artists;
+};
+
+const isImageAsset = (url = "") =>
+  /\.(avif|gif|jpe?g|png|webp)(\?.*)?$/i.test(url);
+
+const buildFestival = (festival) => {
+  const source = festival || demoFestival;
+  const config = source.reel_config || {};
+
+  return {
+    ...demoFestival,
+    ...source,
+    date: formatDateRange(source.start_date, source.end_date),
+    genre: config.custom_text || source.genre || demoFestival.genre,
+    assetUrl: config.asset_url || config.video_url || "",
+    artists: fillLineup(config.lineup),
+    extraNote: config.extra_note || "and many more...",
+  };
+};
+
+const ReelMedia = ({ assetUrl }) => {
+  const [hasError, setHasError] = useState(false);
+  const hasAsset = Boolean(assetUrl) && !hasError;
+  const mediaIsImage = useMemo(() => isImageAsset(assetUrl), [assetUrl]);
+  console.log("ReelMedia assetUrl:", assetUrl);
+
+  if (!hasAsset) {
+    return (
+      <div className="flex h-full w-full items-center justify-center px-6 text-center text-sm font-black uppercase leading-tight tracking-[0.18em] text-gold">
+        ADD VIDEO OR IMAGE
+      </div>
+    );
+  }
+
+  if (mediaIsImage) {
+    return (
+      <img
+        src={assetUrl}
+        alt=""
+        className="h-full w-full object-cover"
+        onError={() => setHasError(true)}
+      />
+    );
+  }
+
+  return (
+    <video
+      src={assetUrl}
+      autoPlay
+      muted
+      loop
+      playsInline
+      preload="auto"
+      className="h-full w-full object-cover"
+      onError={() => setHasError(true)}
+    />
+  );
+};
+
 const ThisWeeksFestivalReel = ({ festival = demoFestival }) => {
+  const reelFestival = buildFestival(festival);
+
   return (
     <div className="relative aspect-[9/16] h-[720px] overflow-hidden bg-black text-gold">
       <div className="pointer-events-none absolute inset-0 z-50">
@@ -155,7 +250,7 @@ const ThisWeeksFestivalReel = ({ festival = demoFestival }) => {
         <section className="relative flex flex-1 flex-col items-center justify-center py-3">
           {/* video logo animation */}
           <motion.div
-            className="relative h-[200px] w-[200px] overflow-hidden rounded-full border border-gold/50 bg-black shadow-[0_0_60px_rgba(255,186,0,0.18)]"
+            className="relative h-[200px] w-[200px] rounded-full"
             initial={{ scale: 0.55, opacity: 0, rotate: -8 }}
             animate={{
               scale: [0.55, 1.08, 1],
@@ -164,15 +259,12 @@ const ThisWeeksFestivalReel = ({ festival = demoFestival }) => {
             }}
             transition={{ delay: 1.4, duration: 1.1, ease: "easeOut" }}
           >
-            <video
-              src={festival.videoUrl}
-              autoPlay
-              muted
-              playsInline
-              className="h-full w-full object-cover"
-            />
-            {/* circular glow over video */}
-            <div className="absolute inset-0 rounded-full bg-gradient-to-b from-transparent via-transparent to-black/50" />
+            <div className="festival-glow-ring" />
+            <div className="relative z-10 h-full w-full overflow-hidden rounded-full border border-gold/50 bg-black shadow-[0_0_60px_rgba(255,186,0,0.18)]">
+              <ReelMedia assetUrl={reelFestival.assetUrl} />
+              {/* circular glow over video */}
+              <div className="absolute inset-0 rounded-full bg-gradient-to-b from-transparent via-transparent to-black/50" />
+            </div>
           </motion.div>
 
           {/* festival name animation */}
@@ -183,7 +275,7 @@ const ThisWeeksFestivalReel = ({ festival = demoFestival }) => {
             transition={{ delay: 3.0, duration: 0.7, ease: "easeOut" }}
           >
             <h1 className="text-3xl font-black uppercase leading-none">
-              {festival.name}
+              {reelFestival.name}
             </h1>
             {/* location and date animation */}
             <motion.div
@@ -194,13 +286,13 @@ const ThisWeeksFestivalReel = ({ festival = demoFestival }) => {
             >
               <ArtistCountry
                 artistCountry={{
-                  country: festival.country,
-                  city: festival.city,
+                  country: reelFestival.country,
+                  city: reelFestival.city,
                 }}
               />
               <span className="text-gold/50">•</span>
               <span className="secondary text-[10px] font-bold text-cream">
-                {festival.date}
+                {reelFestival.date}
               </span>
             </motion.div>
             {/* genre animation */}
@@ -210,7 +302,7 @@ const ThisWeeksFestivalReel = ({ festival = demoFestival }) => {
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 4.2, duration: 0.5 }}
             >
-              {festival.genre}
+              {reelFestival.genre}
             </motion.p>
           </motion.div>
 
@@ -226,9 +318,9 @@ const ThisWeeksFestivalReel = ({ festival = demoFestival }) => {
             </p>
             {/* artists list animation */}
             <div className="grid grid-cols-2 gap-2">
-              {festival.artists.map((artist, index) => (
+              {reelFestival.artists.map((artist, index) => (
                 <motion.div
-                  key={artist}
+                  key={`${artist}-${index}`}
                   className="border border-cream/30 bg-cream/15 text-cream px-3 py-1 text-center text-sm uppercase font-bold backdrop-blur"
                   initial={{ opacity: 0, y: 18, scale: 0.96 }}
                   animate={{ opacity: 1, y: 0, scale: 1 }}
@@ -249,7 +341,7 @@ const ThisWeeksFestivalReel = ({ festival = demoFestival }) => {
             transition={{ delay: 7.5, duration: 0.6 }}
             className="secondary text-[9px] text-chino tracking-[0.45em] uppercase mt-2"
           >
-            and many more...
+            {reelFestival.extraNote}
           </motion.h1>
         </section>
 
@@ -258,14 +350,14 @@ const ThisWeeksFestivalReel = ({ festival = demoFestival }) => {
           className="border-t border-gold/30 pt-5 flex justify-between items-center"
           initial={{ y: 40, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
-          transition={{ delay: 12.2, duration: 0.8, ease: "easeOut" }}
+          transition={{ delay: 9, duration: 0.8, ease: "easeOut" }}
         >
           <div className=" flex flex-col justify-start items-start">
             <motion.p
               className="text-sm font-bold uppercase leading-tight"
               animate={{ opacity: [1, 0.65, 1] }}
               transition={{
-                delay: 13,
+                delay: 9.5,
                 duration: 1.1,
                 repeat: 1,
                 repeatType: "reverse",
@@ -278,7 +370,7 @@ const ThisWeeksFestivalReel = ({ festival = demoFestival }) => {
               className="secondary text-sm uppercase tracking-[0.35em] text-cream/80"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
-              transition={{ delay: 13.2, duration: 0.5 }}
+              transition={{ delay: 9.7, duration: 0.5 }}
             >
               Soundfolio.net
             </motion.p>
@@ -298,7 +390,7 @@ const ThisWeeksFestivalReel = ({ festival = demoFestival }) => {
               scale: 1,
             }}
             transition={{
-              delay: 13.5,
+              delay: 10.5,
               duration: 0.8,
               ease: "easeOut",
             }}

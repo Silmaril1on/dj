@@ -2,11 +2,12 @@
 
 import { formatBirthdate } from "@/app/helpers/utils";
 import dynamic from "next/dynamic";
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { createRoot } from "react-dom/client";
 import { motion, AnimatePresence } from "framer-motion";
 import ArtistCountry from "@/app/components/materials/ArtistCountry";
 import Close from "@/app/components/buttons/Close";
+import Button from "@/app/components/buttons/Button";
 
 // SSR-safe dynamic import
 const GlobeGL = dynamic(
@@ -20,6 +21,7 @@ const GLOBE_BUMP_URL = "/globe/earth-topology.png";
 const ATMOSPHERE_COLOR = "#00d4ff";
 const ATMOSPHERE_ALTITUDE = 0.22;
 const RING_COLOR = () => "rgba(252,185,19,0.45)";
+const FESTIVAL_PAGE_SIZE = 20;
 
 // ─── Festival Card ────────────────────────────────────────────────────────────
 const FestivalCard = ({ festival, onClose }) => {
@@ -129,19 +131,42 @@ const Globe = () => {
   const [festivals, setFestivals] = useState([]);
   const [selectedFestival, setSelectedFestival] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const [nextOffset, setNextOffset] = useState(0);
+  const [hasMore, setHasMore] = useState(false);
   const [visibleCount, setVisibleCount] = useState(0);
   const [dimensions, setDimensions] = useState({ width: 800, height: 600 });
 
-  // Fetch upcoming festivals
-  useEffect(() => {
-    fetch("/api/festivals/globe")
+  const fetchFestivalPage = useCallback(({ offset = 0, pageLoading = false } = {}) => {
+    const params = new URLSearchParams({
+      limit: String(FESTIVAL_PAGE_SIZE),
+      offset: String(offset),
+    });
+
+    if (pageLoading) setLoadingMore(true);
+    else setLoading(true);
+
+    return fetch(`/api/festivals/globe?${params.toString()}`)
       .then((r) => r.json())
       .then((json) => {
-        if (json.success) setFestivals(json.festivals ?? []);
+        if (!json.success) return;
+
+        setSelectedFestival(null);
+        setFestivals(json.festivals ?? []);
+        setNextOffset(json.nextOffset ?? offset + FESTIVAL_PAGE_SIZE);
+        setHasMore(Boolean(json.hasMore));
       })
       .catch(() => {})
-      .finally(() => setLoading(false));
+      .finally(() => {
+        if (pageLoading) setLoadingMore(false);
+        else setLoading(false);
+      });
   }, []);
+
+  // Fetch nearest upcoming festivals first
+  useEffect(() => {
+    fetchFestivalPage();
+  }, [fetchFestivalPage]);
 
   // Stagger-reveal festival pins after data loads
   useEffect(() => {
@@ -273,6 +298,18 @@ const Globe = () => {
           {festivals.length} upcoming
           {festivals.length !== 1 ? " festivals" : " festival"}
         </p>
+        {hasMore && (
+          <Button
+            text={loadingMore ? "Loading..." : "Load Next 20"}
+            size="small"
+            loading={loadingMore}
+            disabled={loadingMore}
+            onClick={() =>
+              fetchFestivalPage({ offset: nextOffset, pageLoading: true })
+            }
+            className="mt-2"
+          />
+        )}
       </div>
     </div>
   );

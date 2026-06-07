@@ -55,6 +55,7 @@ const securityHeaders = [
         .join(" "),
       [
         "media-src 'self'",
+        "https://ucyhmkyjbrfbcediafwo.supabase.co",
         "https://*.byteplusapi.com",
         "https://*.byteimg.com",
         "https://*.bytedance.com",

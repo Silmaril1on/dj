@@ -17,9 +17,9 @@ const FETCH_TIMEOUT_MS = 15_000;
  * All variants are encoded as WebP for optimal compression.
  */
 const IMAGE_VARIANTS = {
-  sm: { width: 250, quality: 75 },
-  md: { width: 600, quality: 80 },
-  lg: { width: 1400, quality: 85 },
+  sm: { width: 250, minWidth: 180, quality: 72, maxBytes: 40 * 1024 },
+  md: { width: 600, minWidth: 420, quality: 76, maxBytes: 140 * 1024 },
+  lg: { width: 1200, minWidth: 900, quality: 78, maxBytes: 420 * 1024 },
 };
 
 // ---------------------------------------------------------------------------
@@ -43,6 +43,44 @@ async function uploadVariant(client, bucket, filePath, buffer) {
     data: { publicUrl },
   } = client.storage.from(bucket).getPublicUrl(filePath);
   return publicUrl;
+}
+
+async function encodeWebpVariant(inputBuffer, variant, qualityOverride) {
+  const qualityStart = qualityOverride ?? variant.quality;
+  const qualitySteps = [qualityStart, 74, 70, 66, 62, 58].filter(
+    (quality, index, list) =>
+      quality <= qualityStart && list.indexOf(quality) === index,
+  );
+  const widthSteps = [];
+
+  for (let width = variant.width; width >= variant.minWidth; ) {
+    widthSteps.push(width);
+    if (width === variant.minWidth) break;
+    const nextWidth = Math.floor(width * 0.85);
+    width = nextWidth < variant.minWidth ? variant.minWidth : nextWidth;
+  }
+
+  let best = null;
+
+  for (const width of widthSteps) {
+    for (const quality of qualitySteps) {
+      const processed = await sharp(inputBuffer)
+        .rotate()
+        .resize({ width, fit: "inside", withoutEnlargement: true })
+        .webp({
+          quality,
+          effort: 6,
+          smartSubsample: true,
+          nearLossless: false,
+        })
+        .toBuffer();
+
+      if (!best || processed.length < best.length) best = processed;
+      if (processed.length <= variant.maxBytes) return processed;
+    }
+  }
+
+  return best;
 }
 
 export async function processAndUploadImage(
@@ -71,32 +109,15 @@ export async function processAndUploadImage(
 
   try {
     for (const key of variants) {
-      const { width, quality: variantQuality } = IMAGE_VARIANTS[key];
-      const quality = qualityOverride ?? variantQuality;
-
-      let processed = await sharp(inputBuffer)
-        .rotate() // honour EXIF orientation
-        .resize({ width, fit: "inside", withoutEnlargement: true })
-        .webp({ quality, effort: 6, smartSubsample: true })
-        .toBuffer();
-
-      // Size guard: if re-encoding inflated the file (already well-compressed
-      // source), step down quality until we beat the input size or hit q=60.
-      if (processed.length > inputBuffer.length) {
-        const encode = (q) =>
-          sharp(inputBuffer)
-            .rotate()
-            .resize({ width, fit: "inside", withoutEnlargement: true })
-            .webp({ quality: q, effort: 6, smartSubsample: true })
-            .toBuffer();
-
-        for (const q of [75, 70, 65, 60]) {
-          if (q >= quality) continue; // no point re-trying a higher-or-equal quality
-          const attempt = await encode(q);
-          if (attempt.length < processed.length) processed = attempt;
-          if (processed.length < inputBuffer.length) break; // achieved real compression
-        }
+      const variant = IMAGE_VARIANTS[key];
+      if (!variant) {
+        throw new Error(`Unknown image variant: ${key}`);
       }
+      const processed = await encodeWebpVariant(
+        inputBuffer,
+        variant,
+        qualityOverride,
+      );
 
       const filePath = `${baseName}_${key}.webp`;
       urls[key] = await uploadVariant(client, bucket, filePath, processed);
@@ -139,6 +160,12 @@ export async function processAndUploadRemoteImage(
     if (!response.ok) {
       throw new Error(
         `Remote image fetch failed (${response.status}): ${remoteUrl}`,
+      );
+    }
+    const contentLength = Number(response.headers.get("content-length") || 0);
+    if (contentLength > MAX_INPUT_BYTES) {
+      throw new Error(
+        `Remote image exceeds the ${MAX_INPUT_BYTES / 1024 / 1024} MB limit`,
       );
     }
     arrayBuffer = await response.arrayBuffer();
