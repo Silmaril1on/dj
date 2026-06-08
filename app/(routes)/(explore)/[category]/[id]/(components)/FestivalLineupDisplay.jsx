@@ -19,6 +19,21 @@ import { IoMusicalNotesOutline } from "react-icons/io5";
 
 const LIVE_RE = /\s+live$/i;
 const B2B_RE = /\s*b2b\s*/i;
+const PRESENTS_RE = /\s+presents\s+/i;
+const DAY_ORDER = ["Thursday", "Friday", "Saturday", "Sunday"];
+
+const sortDayName = (a, b) => {
+  if (a === "TBA") return 1;
+  if (b === "TBA") return -1;
+  const aIndex = DAY_ORDER.indexOf(a);
+  const bIndex = DAY_ORDER.indexOf(b);
+  if (aIndex !== -1 || bIndex !== -1) {
+    if (aIndex === -1) return 1;
+    if (bIndex === -1) return -1;
+    return aIndex - bIndex;
+  }
+  return a.localeCompare(b);
+};
 
 const cleanRawName = (value) => {
   if (!value) return "";
@@ -35,13 +50,25 @@ const normalizeKey = (value) => {
     .trim();
 };
 
+const splitPresents = (value) => {
+  const [artistText = "", ...presentedParts] =
+    cleanRawName(value).split(PRESENTS_RE);
+  const presentedText = cleanRawName(presentedParts.join(" presents "));
+  return {
+    artistText: cleanRawName(artistText),
+    presentedText,
+    hasPresents: Boolean(presentedText),
+  };
+};
+
 const buildArtistObject = (rawName, artistMap, overrideSlug, overrideImage) => {
   const cleanedRaw = cleanRawName(rawName);
   if (!cleanedRaw) return null;
 
   const hasLive = LIVE_RE.test(cleanedRaw);
   const baseText = cleanedRaw.replace(LIVE_RE, "").trim();
-  const chunks = baseText
+  const { artistText, presentedText, hasPresents } = splitPresents(baseText);
+  const chunks = artistText
     .split(B2B_RE)
     .map((chunk) => cleanRawName(chunk))
     .filter(Boolean);
@@ -66,7 +93,14 @@ const buildArtistObject = (rawName, artistMap, overrideSlug, overrideImage) => {
     };
   });
 
-  return { rawName: cleanedRaw, parts, hasB2B, hasLive };
+  return {
+    rawName: cleanedRaw,
+    parts,
+    hasB2B,
+    hasLive,
+    hasPresents,
+    presentedText: cleanRawName(presentedText),
+  };
 };
 
 const normalizeEventArtist = (entry, artistMap) => {
@@ -79,6 +113,12 @@ const normalizeEventArtist = (entry, artistMap) => {
 
   if (entry?.b2bParts?.length) {
     const hasLive = LIVE_RE.test(rawName);
+    const {
+      presentedText: rawPresentedText,
+      hasPresents: rawHasPresents,
+    } = splitPresents(rawName.replace(LIVE_RE, "").trim());
+    let detectedPresentedText = rawPresentedText;
+
     const parts = entry.b2bParts
       .map((part, index) => {
         const partObj = typeof part === "string" ? { name: part } : part || {};
@@ -87,6 +127,12 @@ const normalizeEventArtist = (entry, artistMap) => {
         if (hasLive && index === entry.b2bParts.length - 1) {
           name = cleanRawName(name.replace(LIVE_RE, ""));
         }
+        const partPresents = splitPresents(name);
+        name = partPresents.artistText;
+        if (!detectedPresentedText && partPresents.hasPresents) {
+          detectedPresentedText = partPresents.presentedText;
+        }
+        if (!name) return null;
 
         const mapKey = normalizeKey(name);
         const dbArtist = artistMap?.get(mapKey) || null;
@@ -109,6 +155,8 @@ const normalizeEventArtist = (entry, artistMap) => {
       parts,
       hasB2B: parts.length > 1,
       hasLive,
+      hasPresents: rawHasPresents || Boolean(detectedPresentedText),
+      presentedText: detectedPresentedText,
     };
   }
 
@@ -213,6 +261,18 @@ const LIVE_BADGE = (
   </span>
 );
 
+const PRESENTS_BADGE = (
+  <span className="text-[7px] md:text-[9px] text-cream/60 uppercase font-bold self-start leading-none mt-1">
+    PRESENTS
+  </span>
+);
+
+const PresentedText = ({ text }) => (
+  <span className="text-xl md:text-2xl font-bold uppercase leading-none text-cream/60">
+    {text}
+  </span>
+);
+
 const ArtistRowItem = ({ artist, index, total }) => (
   <div className="flex leading-none items-center gap-1 lg:gap-2">
     <span className="inline-flex items-start gap-1 flex-wrap">
@@ -222,6 +282,12 @@ const ArtistRowItem = ({ artist, index, total }) => (
           {artist.hasB2B && i < artist.parts.length - 1 && B2B_BADGE}
         </span>
       ))}
+      {artist.hasPresents && (
+        <>
+          {PRESENTS_BADGE}
+          <PresentedText text={artist.presentedText} />
+        </>
+      )}
       {artist.hasLive && LIVE_BADGE}
     </span>
     {index < total - 1 && <Dot />}
@@ -431,11 +497,7 @@ const TimetableSection = ({ stages }) => {
         ...new Set(
           activeStages.flatMap((s) => s.artists.map((a) => a.day || "TBA")),
         ),
-      ].sort((a, b) => {
-        if (a === "TBA") return 1;
-        if (b === "TBA") return -1;
-        return a.localeCompare(b);
-      })
+      ].sort(sortDayName)
     : [null];
 
   return (
@@ -704,11 +766,7 @@ const FestivalLineupDisplay = ({
       return acc;
     }, {});
 
-    const sortedDays = Object.keys(artistsByDay).sort((a, b) => {
-      if (a === "TBA") return 1;
-      if (b === "TBA") return -1;
-      return a.localeCompare(b);
-    });
+    const sortedDays = Object.keys(artistsByDay).sort(sortDayName);
 
     return sortedDays.map((day) => ({
       key: `day-${day}`,

@@ -55,7 +55,7 @@ const CustomInput = ({
           placeholder: "Artist name",
           minFields: 8,
           maxFields: 8,
-          className: "grid grid-cols-2 gap-x-2",
+          className: "grid grid-cols-2 gap-x-2 gap-y-0",
         },
         custom_text: {
           type: "textarea",
@@ -81,7 +81,7 @@ const CustomInput = ({
         },
         {
           title: "Text",
-          gridClass: "grid grid-cols-2 gap-3",
+          gridClass: "grid grid-cols-2 gap-2",
           fields: ["custom_text", "extra_note"],
         },
       ],
@@ -125,9 +125,7 @@ const CustomInput = ({
           <p className="secondary text-[10px] uppercase tracking-[0.35em] text-chino">
             Reel Control
           </p>
-          <h2 className="text-xl font-bold uppercase text-gold">
-            This Month
-          </h2>
+          <h2 className="text-xl font-bold uppercase text-gold">This Month</h2>
         </div>
 
         <div className="mt-4 border border-gold/20 bg-stone-900 p-3">

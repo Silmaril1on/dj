@@ -700,7 +700,7 @@ const SubmissionForm = ({
 
                   {/* For additional type, render label without htmlFor */}
                   {fieldConfig.type === "additional" && (
-                    <div className="mb-2">
+                    <div className="mb-2 ">
                       <span className="text-sm font-medium text-cream">
                         {fieldConfig.label ||
                           fieldName
@@ -717,14 +717,14 @@ const SubmissionForm = ({
 
                   {/* Display field error if exists */}
                   {fieldErrors[fieldName] && (
-                    <p className="text-red-500 text-xs mt-1">
+                    <p className="text-red-500 text-[10px] secondary leading-none mt-1">
                       {fieldErrors[fieldName]}
                     </p>
                   )}
 
                   {/* Display help text if exists and no error */}
                   {!fieldErrors[fieldName] && fieldConfig.helpText && (
-                    <p className="text-chino/60 text-xs mt-1">
+                    <p className="text-chino/80 text-[10px] secondary leading-none mt-1">
                       {fieldConfig.helpText}
                     </p>
                   )}

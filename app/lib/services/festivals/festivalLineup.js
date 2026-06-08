@@ -1,4 +1,4 @@
-import { revalidateTag, unstable_cache } from "next/cache";
+import { revalidateTag } from "next/cache";
 import {
   ServiceError,
   getAuthenticatedContext,
@@ -176,6 +176,20 @@ async function hasExistingLineup(admin, festivalId, editionId) {
     throw new ServiceError("Failed to fetch festival stages", 500);
 
   const stageIds = (stageRows || []).map((row) => row.id);
+  let festivalQuery = admin
+    .from("festival_lineup")
+    .select("id", { count: "exact", head: true })
+    .eq("festival_id", festivalId);
+
+  festivalQuery = editionId
+    ? festivalQuery.eq("edition_id", editionId)
+    : festivalQuery.is("edition_id", null);
+
+  const { count: festivalCount, error: festivalError } = await festivalQuery;
+  if (festivalError)
+    throw new ServiceError("Failed to check existing lineup", 500);
+  if ((festivalCount || 0) > 0) return true;
+
   if (stageIds.length === 0) return false;
 
   let query = admin
@@ -328,13 +342,26 @@ async function clearAllLineupData(festivalId, editionId) {
   if (error) throw new ServiceError("Failed to fetch festival stages", 500);
 
   const stageIds = (stageRows || []).map((row) => row.id);
+  let festivalQuery = admin
+    .from("festival_lineup")
+    .delete()
+    .eq("festival_id", festivalId);
+
+  festivalQuery = editionId
+    ? festivalQuery.eq("edition_id", editionId)
+    : festivalQuery.is("edition_id", null);
+  await festivalQuery;
+
   if (stageIds.length === 0) return;
 
-  let query = admin.from("festival_lineup").delete().in("stage_id", stageIds);
-  query = editionId
-    ? query.eq("edition_id", editionId)
-    : query.is("edition_id", null);
-  await query;
+  let stageQuery = admin
+    .from("festival_lineup")
+    .delete()
+    .in("stage_id", stageIds);
+  stageQuery = editionId
+    ? stageQuery.eq("edition_id", editionId)
+    : stageQuery.is("edition_id", null);
+  await stageQuery;
 }
 
 export async function getStages(festivalId, cookieStore) {
@@ -354,17 +381,12 @@ export async function getStages(festivalId, cookieStore) {
 
 export async function getLineup(festivalId, cookieStore, editionId = null) {
   if (!festivalId) throw new ServiceError("Festival ID is required", 400);
-  const supabase = await getSupabaseServerClient(cookieStore);
   const admin = getSupabaseAdminClient();
 
   const effectiveEditionId = await resolveEditionId(festivalId, editionId);
-  const cacheTag = buildLineupTag(festivalId, effectiveEditionId);
+  const editionFilter = effectiveEditionId || null;
 
-  // Wrap the heavy DB work in unstable_cache so repeated SSR renders within the
-  // revalidation window hit the cache instead of the database.
-  const cached = await unstable_cache(
-    async () => {
-      const editionFilter = effectiveEditionId || null;
+  const cached = await (async () => {
       const { data: stages, error: stagesError } = await admin
         .from("festival_stages")
         .select("id, stage_name, stage_order")
@@ -396,6 +418,28 @@ export async function getLineup(festivalId, cookieStore, editionId = null) {
       }
 
       let rawStandardRows = [];
+      let detachedStandardQuery = admin
+        .from("festival_lineup")
+        .select(
+          "id, stage_id, artist_name, artist_day, phase, support_act, edition_id",
+        )
+        .eq("festival_id", festivalId)
+        .is("stage_id", null)
+        .order("artist_name", { ascending: true });
+
+      detachedStandardQuery = editionFilter
+        ? detachedStandardQuery.eq("edition_id", editionFilter)
+        : detachedStandardQuery.is("edition_id", null);
+
+      const {
+        data: detachedStandardRows,
+        error: detachedStandardError,
+      } = await detachedStandardQuery;
+
+      if (detachedStandardError)
+        throw new Error("Failed to fetch standard lineup");
+      rawStandardRows = detachedStandardRows || [];
+
       const { data: standardStage, error: standardStageError } = await admin
         .from("festival_stages")
         .select("id")
@@ -409,7 +453,9 @@ export async function getLineup(festivalId, cookieStore, editionId = null) {
       if (standardStage?.id) {
         let standardQuery = admin
           .from("festival_lineup")
-          .select("id, artist_name, artist_day, phase, support_act, edition_id")
+          .select(
+            "id, stage_id, artist_name, artist_day, phase, support_act, edition_id",
+          )
           .eq("stage_id", standardStage.id)
           .order("artist_name", { ascending: true });
 
@@ -419,7 +465,11 @@ export async function getLineup(festivalId, cookieStore, editionId = null) {
 
         const { data, error: standardError } = await standardQuery;
         if (standardError) throw new Error("Failed to fetch standard lineup");
-        rawStandardRows = data || [];
+        const existingIds = new Set(rawStandardRows.map((row) => row.id));
+        rawStandardRows = [
+          ...rawStandardRows,
+          ...(data || []).filter((row) => !existingIds.has(row.id)),
+        ];
       }
 
       // Also include any orphan rows (stage_id IS NULL) added directly to the
@@ -427,7 +477,9 @@ export async function getLineup(festivalId, cookieStore, editionId = null) {
       if (editionFilter) {
         const { data: orphanData, error: orphanError } = await admin
           .from("festival_lineup")
-          .select("id, artist_name, artist_day, phase, support_act, edition_id")
+          .select(
+            "id, stage_id, artist_name, artist_day, phase, support_act, edition_id",
+          )
           .is("stage_id", null)
           .eq("edition_id", editionFilter)
           .order("artist_name", { ascending: true });
@@ -459,6 +511,7 @@ export async function getLineup(festivalId, cookieStore, editionId = null) {
         const found = artistMap.get(normalizeArtistName(row.artist_name));
         return {
           lineup_id: row.id,
+          stage_id: row.stage_id || null,
           name: row.artist_name,
           day: row.artist_day || "",
           time_from: row.time_from || null,
@@ -494,6 +547,7 @@ export async function getLineup(festivalId, cookieStore, editionId = null) {
         const found = artistMap.get(normalizeArtistName(row.artist_name));
         return {
           lineup_id: row.id,
+          stage_id: row.stage_id || null,
           name: row.artist_name,
           day: row.artist_day || null,
           phase: row.phase || null,
@@ -527,13 +581,7 @@ export async function getLineup(festivalId, cookieStore, editionId = null) {
             stage_order: s.stage_order,
           })),
       };
-    },
-    [cacheTag],
-    {
-      revalidate: 3600, // 1 hour fallback; mutations call revalidateTag immediately
-      tags: [cacheTag],
-    },
-  )();
+  })();
 
   return { success: true, ...cached };
 }
@@ -850,15 +898,10 @@ export async function updateLineupArtist(
   const admin = getSupabaseAdminClient();
   let resolvedStageId = stage_id;
   if (stage_id !== undefined && !stage_id) {
-    const stageMap = await buildStageMap(admin, festival_id);
-    const standardStage = await getOrCreateStandardStage(
-      admin,
-      festival_id,
-      stageMap,
-    );
-    resolvedStageId = standardStage.id;
+    resolvedStageId = null;
   }
   const update = {};
+  update.festival_id = festival_id;
   if (name !== undefined) update.artist_name = name;
   if (phase !== undefined) update.phase = phase;
   if (stage_id !== undefined) update.stage_id = resolvedStageId;

@@ -6,6 +6,7 @@ import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import DisplayName from "./DisplayName";
 import Link from "next/link";
+import Motion from "@/app/components/containers/Motion";
 
 const UserPanel = () => {
   const user = useSelector(selectUser);
@@ -24,9 +25,13 @@ const UserPanel = () => {
 
   return (
     <div className="hidden lg:flex space-x-2">
-      <div className="px-5 center mb-0.5 rounded-full bg-gold/20 cursor-pointer hover:bg-gold/30 duration-300 font-bold pt-0.5">
+      <Motion
+        animation="fade"
+        delay={2}
+        className="px-5 center mb-0.5 rounded-full bg-gold/20 cursor-pointer hover:bg-gold/30 duration-300 font-bold pt-0.5"
+      >
         <Link href="/event-searcher">Event Searcher</Link>
-      </div>
+      </Motion>
       {isAuthenticated ? <DisplayName user={user} /> : <AuthButtons />}
     </div>
   );

@@ -1,25 +1,12 @@
 "use client";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { useDispatch, useSelector } from "react-redux";
 import { setError } from "@/app/features/modalSlice";
 import { selectUser } from "@/app/features/userSlice";
 
-const LINEUP_CACHE_TTL = 30 * 60 * 1000;
 const lineupCacheKey = (id, editionId) =>
   `lineup_form_${id}_${editionId || "none"}`;
-
-function loadLineupCache(festivalId, editionId) {
-  try {
-    const raw = sessionStorage.getItem(lineupCacheKey(festivalId, editionId));
-    if (!raw) return null;
-    const parsed = JSON.parse(raw);
-    if (Date.now() - parsed.timestamp > LINEUP_CACHE_TTL) return null;
-    return parsed.artists;
-  } catch {
-    return null;
-  }
-}
 
 function saveLineupCache(festivalId, editionId, artists) {
   try {
@@ -48,7 +35,7 @@ import {
 } from "react-icons/fa";
 import { MdEdit } from "react-icons/md";
 
-const FESTIVAL_DAYS = ["Friday", "Saturday", "Sunday"];
+const FESTIVAL_DAYS = ["Thursday", "Friday", "Saturday", "Sunday"];
 
 /** Given existing stages from DB and optional pre-fill artists, build form state */
 const buildEnhancedInitialStages = (
@@ -60,10 +47,12 @@ const buildEnhancedInitialStages = (
   // Case 1: existing enhanced lineup → use it as-is, mark all as phase_locked (from DB)
   if (existingLineup && existingLineup.length > 0) {
     return existingLineup.map((stage) => ({
+      stage_id: stage.stage_id || null,
       stage_name: stage.stage_name || "",
       locked_name: true, // came from DB stages
       artists: stage.artists.map((a) => ({
         lineup_id: a.lineup_id || null,
+        stage_id: a.stage_id || stage.stage_id || null,
         name: a.name || "",
         day: a.day || "",
         time_from: a.time_from || "",
@@ -145,6 +134,8 @@ const PHASES = [
 ];
 
 const dayStyle = (day) => {
+  if (day === "Thursday")
+    return "bg-rose-500/20 border-rose-500/40 text-rose-400";
   if (day === "Friday")
     return "bg-violet-500/20 border-violet-500/40 text-violet-400";
   if (day === "Saturday")
@@ -184,9 +175,9 @@ const StandardLineupSection = ({
 
   const DAY_FILTER_OPTIONS = [
     { label: "All", value: null },
-    ...["Friday", "Saturday", "Sunday"]
-      .filter((d) => existingArtists.some((a) => a.day === d))
-      .map((d) => ({ label: d, value: d })),
+    ...FESTIVAL_DAYS.filter((d) =>
+      existingArtists.some((a) => a.day === d),
+    ).map((d) => ({ label: d, value: d })),
   ];
 
   const [phaseFilter, setPhaseFilter] = useState(null);
@@ -580,20 +571,36 @@ const AddFestivalLineupForm = ({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [lineupStatus, setLineupStatus] = useState(currentLineupStatus || null);
 
-  // Local copy of existing standard artists — initialise from sessionStorage cache (30 min)
-  // so the UI is instantly populated on revisit without waiting for server re-fetch.
+  // Local copy of existing standard artists. Server data stays authoritative so
+  // SQL-inserted lineup rows are not hidden by stale sessionStorage.
   const [existingStandardArtists, setExistingStandardArtists] = useState(() => {
-    const cached = loadLineupCache(festivalId, editionId);
-    return cached ?? initialStandardArtists;
+    return initialStandardArtists;
   });
 
-  // Keep cache in sync with server-provided prop on initial mount
+  // Keep cache in sync with server-provided data.
   useEffect(() => {
-    if (initialStandardArtists.length > 0) {
-      saveLineupCache(festivalId, editionId, initialStandardArtists);
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+    setExistingStandardArtists(initialStandardArtists);
+    saveLineupCache(festivalId, editionId, initialStandardArtists);
+  }, [festivalId, editionId, initialStandardArtists]);
+
+  const allExistingArtists = useMemo(() => {
+    const enhancedArtists = (existingLineup || []).flatMap((stage) =>
+      (stage.artists || []).map((artist) => ({
+        ...artist,
+        stage_id: artist.stage_id || stage.stage_id || "",
+        stage_name: stage.stage_name || "",
+      })),
+    );
+    const byLineupId = new Map();
+
+    [...enhancedArtists, ...existingStandardArtists].forEach((artist) => {
+      const key =
+        artist.lineup_id || `${artist.stage_id || "standard"}-${artist.name}`;
+      if (!byLineupId.has(key)) byLineupId.set(key, artist);
+    });
+
+    return [...byLineupId.values()];
+  }, [existingLineup, existingStandardArtists]);
 
   const [lineupMode, setLineupMode] = useState(
     lineupType === "standard" ? "standard" : "enhanced",
@@ -936,7 +943,7 @@ const AddFestivalLineupForm = ({
             });
         });
       }
-      if (existingStandardArtists.length === 0 && allNewArtists.length === 0) {
+      if (allExistingArtists.length === 0 && allNewArtists.length === 0) {
         dispatch(
           setError({ message: "Add at least one artist name", type: "error" }),
         );
@@ -1148,7 +1155,7 @@ const AddFestivalLineupForm = ({
         {lineupMode === "standard" && (
           <div className="bg-stone-800/50 p-4 border border-gold/20">
             <StandardLineupSection
-              existingArtists={existingStandardArtists}
+              existingArtists={allExistingArtists}
               activeDays={activeDays}
               artistsByDay={artistsByDay}
               onArtistsByDayChange={setArtistsByDay}
@@ -1238,7 +1245,7 @@ const AddFestivalLineupForm = ({
             <h3 className="text-gold font-bold uppercase tracking-widest text-xs">
               Before You Save
             </h3>
-            <p>
+            <p className="border p-2 bg-cream/30 border-cream/40 text-cream text-xs">
               Saving newly added artists publishes those lineup changes and can
               notify fans who enabled lineup alerts for this festival. Review
               names, phases, days, and stage placement before submitting.
@@ -1254,8 +1261,7 @@ const AddFestivalLineupForm = ({
                 Add lineup, later you can assign stages, days ans set times
               </p>
               <ul className="list-disc pl-5 space-y-1">
-                <li>Sort lineup by days</li>
-                <li>Sort lineup by phases</li>
+                <li>Sort lineup by days and phases</li>
                 <li>Mark artists as a support act</li>
                 <li>Later assign stages</li>
                 <li>Filter lineup by phases and days</li>
@@ -1278,32 +1284,42 @@ const AddFestivalLineupForm = ({
             </div>
           </section>
 
-          <section className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <section className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div className="space-y-2">
               <h3 className="text-gold font-bold uppercase tracking-widest text-xs">
                 Phase Tags
               </h3>
-              <ul className="list-disc pl-5 space-y-1">
-                <li>First Phase: first public artist announcement.</li>
-                <li>Second Phase: next wave of confirmed artists.</li>
-                <li>Third Phase: final additions or closing announcement.</li>
-              </ul>
-              <p className="text-chino">
-                Existing artists keep their saved phase. The selected phase is
-                applied to newly added artists.
+              <p className="text-[10px] text-cream">
+                Phase tags help fans understand which artists are part of each
+                announcement phase. In both mode, the selected phase applies to
+                all artists you add. Existing artists keep their saved phase.
+                The selected phase is applied to newly added artists.
               </p>
+            </div>
+
+            <div className="space-y-2">
+              <h3 className="text-gold font-bold uppercase tracking-widest text-xs">
+                Artist Relevant Tags
+              </h3>
+              <p className="text-[10px] text-cream">
+                Tags for artists like B2B, LIVE or PRESENTS must be added
+                directly in the artist name field.
+              </p>
+              <ul className="text-[10px] list-disc pl-5  text-chino">
+                <li>B2B e.g "Boris Brejcha b2b Eric Prydz"</li>
+                <li>PRESENTS e.g "Andrew Rayel presents Extasia"</li>
+                <li>LIVE e.g "Stephan Bodzin live"</li>
+              </ul>
             </div>
 
             <div className="space-y-2">
               <h3 className="text-gold font-bold uppercase tracking-widest text-xs">
                 Day Tags
               </h3>
-              <p>
+              <p className="text-[10px] text-cream">
                 Day tags help visitors filter and understand when artists play.
                 In simple mode, choose days first and add names into each day
                 section. In enhanced mode, each artist row can have its own day.
-              </p>
-              <p className="text-chino">
                 Leave day empty when the day split is not announced yet.
               </p>
             </div>
@@ -1313,8 +1329,8 @@ const AddFestivalLineupForm = ({
             <h3 className="text-gold font-bold uppercase tracking-widest text-xs">
               Updating Existing Lineups
             </h3>
-            <p className="text-[10px]">
-              - Additions are saved without wiping the current lineup. Existing
+            <p className="text-chino text-xs">
+              Additions are saved without wiping the current lineup. Existing
               artists should be changed with the edit button on their card, and
               removed with the delete button. Use Delete Full Lineup only when
               you want to clear the entire edition lineup.
