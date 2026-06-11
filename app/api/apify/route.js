@@ -1,11 +1,7 @@
-import { ApifyClient } from "apify-client";
 import { NextResponse } from "next/server";
+import { runApifyActor } from "./apifyApi";
 
 export async function POST(req) {
-  const client = new ApifyClient({
-    token: process.env.APIFY_API_TOKEN,
-  });
-
   try {
     const { url, urls, maxItems = 50 } = await req.json();
 
@@ -44,13 +40,10 @@ export async function POST(req) {
         typeEvents: "upcoming",
       };
 
-      // Run Actor and wait for completion
-      const run = await client.actor("Ai7Xm7cH2PZHcaU7p").call(input);
+      const { run, items } = await runApifyActor("Ai7Xm7cH2PZHcaU7p", input);
       runIds.push(run.id);
 
       console.log("✅ Actor finished:", run.id);
-
-      const { items } = await client.dataset(run.defaultDatasetId).listItems();
 
       console.log("📦 Dataset items:", items.length);
       if (items.length > 0) {

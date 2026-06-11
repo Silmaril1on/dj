@@ -17,7 +17,6 @@
     "@tsparticles/slim": "^3.9.1",
     "@upstash/ratelimit": "^2.0.8",
     "@upstash/redis": "^1.37.0",
-    "apify-client": "^2.21.0",
     "framer-motion": "^12.23.12",
     "howler": "^2.2.4",
     "next": "15.5.9",

@@ -1,5 +1,5 @@
-import { ApifyClient } from "apify-client";
 import { NextResponse } from "next/server";
+import { runApifyActor } from "../apifyApi";
 
 export async function POST(req) {
   try {
@@ -14,11 +14,6 @@ export async function POST(req) {
 
     console.log("🚀 Starting RA Events scrape for URLs:", urlArray);
 
-    // Initialize the ApifyClient with API token
-    const client = new ApifyClient({
-      token: process.env.APIFY_API_TOKEN,
-    });
-
     // Prepare Actor input for RA Events with multiple URLs
     const input = {
       startUrls: urlArray.map((url) => ({ url })),
@@ -32,13 +27,9 @@ export async function POST(req) {
       downloadDelay: 1500,
     };
 
-    // Run the Actor and wait for it to finish
     console.log("⏳ Running RA Events Apify actor...");
-    const run = await client.actor("YdJ5E7Ofhy8QgcXUs").call(input);
+    const { run, items } = await runApifyActor("YdJ5E7Ofhy8QgcXUs", input);
     console.log("✅ Actor run completed. Run ID:", run.id);
-
-    // Fetch and print Actor results from the run's dataset (if any)
-    const { items } = await client.dataset(run.defaultDatasetId).listItems();
 
     console.log("📊 Results retrieved:");
     console.log("   - Total items:", items.length);
