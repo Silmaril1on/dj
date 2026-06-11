@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import React, { useMemo, useState } from "react";
 import { MdKeyboardArrowDown } from "react-icons/md";
 
@@ -80,13 +81,15 @@ const DataList = ({
 
           return (
             <section key={week}>
-              <div className="mb-2 flex items-center justify-between border-b border-gold/15 pb-1">
+              <div
+                onClick={() => toggleWeek(week)}
+                className="mb-2 flex items-center cursor-pointer justify-between border-b border-gold/20 pb-1"
+              >
                 <p className="text-xs font-bold uppercase tracking-[0.25em] text-gold">
                   Week {week}
                 </p>
                 <button
                   type="button"
-                  onClick={() => toggleWeek(week)}
                   className="flex h-6 w-6 items-center justify-center text-gold transition hover:text-cream"
                   aria-expanded={!isCollapsed}
                   aria-label={`${isCollapsed ? "Expand" : "Collapse"} week ${week}`}
@@ -106,6 +109,7 @@ const DataList = ({
                     const isPast =
                       typeof festival.status === "string" &&
                       festival.status.toLowerCase() === "past";
+                    console.log(festival, "///");
 
                     return (
                       <button
@@ -118,6 +122,12 @@ const DataList = ({
                             : "border-gold/20 bg-stone-900 hover:border-gold/60"
                         } relative`}
                       >
+                        <Link
+                          className="absolute z-50 text-chino hover:text-cream duration-300 bottom-1 right-1 text-[10px] secondary "
+                          href={`/festivals/${festival.festival_slug}`}
+                        >
+                          VIEW FESTIVAL
+                        </Link>
                         {isPast && (
                           <span className="absolute right-1 top-1 text-[9px] font-bold uppercase tracking-wide text-crimson">
                             status: past

@@ -4,19 +4,20 @@ import React, { useEffect, useMemo, useRef, useState } from "react";
 import dynamic from "next/dynamic";
 import { createRoot } from "react-dom/client";
 import { motion, AnimatePresence } from "framer-motion";
+import ArtistCountry from "@/app/components/materials/ArtistCountry";
+import { playSound } from "@/app/helpers/playSound";
+import { soundManager } from "@/app/helpers/soundManager";
+import Twinkles from "../branding/components/Twinkles";
 
 const GlobeGL = dynamic(
   () => import("react-globe.gl").then((m) => m.default ?? m),
   { ssr: false },
 );
 
-const INTRO_DURATION = 2500;
+const INTRO_DURATION = 5000;
 const FESTIVAL_DURATION = 2600;
 const GLOBE_IMG_URL = "/globe/earth-night.jpg";
 const GLOBE_BUMP_URL = "/globe/earth-topology.png";
-const ATMOSPHERE_COLOR = "#00d4ff";
-const ATMOSPHERE_ALTITUDE = 0.22;
-const RING_COLOR = () => "rgba(252,185,19,0.45)";
 
 const getFestivalKey = (festival) =>
   `${festival.id}-${festival.edition_id || "no-edition"}`;
@@ -70,14 +71,14 @@ const FestivalInfoCard = ({ festival, index }) => {
       animate={{ opacity: 1, y: 0, scale: 1 }}
       exit={{ opacity: 0, y: -25, scale: 0.95 }}
       transition={{ duration: 0.45, ease: "easeOut" }}
-      className="absolute bottom-16 left-1/2 z-30 w-[82%] -translate-x-1/2 border border-gold/50 bg-black/80 p-4 shadow-[0_0_45px_rgba(255,190,0,0.18)] backdrop-blur-md"
+      className="absolute bottom-16 left-1/2 z-30 w-[82%] -translate-x-1/2 border border-gold/50 bg-black/80 p-4  backdrop-blur-md"
     >
       <div className="flex items-center gap-4">
         <motion.div
           initial={{ rotate: -20, scale: 0 }}
           animate={{ rotate: 0, scale: 1 }}
           transition={{ delay: 0.1, type: "spring", stiffness: 170 }}
-          className="h-16 w-16 overflow-hidden rounded-full border-2 border-gold bg-black"
+          className="h-16 w-16 overflow-hidden border-2 border-gold bg-black"
         >
           <img
             src={imageUrl}
@@ -105,14 +106,18 @@ const FestivalInfoCard = ({ festival, index }) => {
             {festival.name}
           </motion.h2>
 
-          <motion.p
+          <motion.div
             initial={{ opacity: 0, x: -18 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ delay: 0.35 }}
             className="text-sm font-bold uppercase text-white"
           >
-            {festival.country} · {festival.city}
-          </motion.p>
+            <ArtistCountry
+              color="text-cream"
+              className="font-medium"
+              artistCountry={{ country: festival.country, city: festival.city }}
+            />
+          </motion.div>
 
           <motion.p
             initial={{ opacity: 0, x: -18 }}
@@ -130,16 +135,27 @@ const FestivalInfoCard = ({ festival, index }) => {
 
 const ThisMonthFestivalReel = ({ festivals = [], monthLabel = "" }) => {
   const globeRef = useRef(null);
+  const [twinkle, setTwinkle] = useState(false);
   const [activeIndex, setActiveIndex] = useState(0);
   const [showIntro, setShowIntro] = useState(true);
   const [showGlobe, setShowGlobe] = useState(false);
   const [showOutro, setShowOutro] = useState(false);
+
+  useEffect(() => {
+    setTimeout(() => {
+      setTwinkle(true);
+    }, 1200);
+  });
+
   const reelFestivals = useMemo(
-    () => (Array.isArray(festivals) ? festivals.slice(0, 5) : []),
+    () => (Array.isArray(festivals) ? festivals : []),
     [festivals],
   );
 
   const activeFestival = reelFestivals[activeIndex];
+  const activeFestivalKey = activeFestival
+    ? getFestivalKey(activeFestival)
+    : "";
 
   const activeGlobeData = useMemo(() => {
     if (activeFestival?.lat == null || activeFestival?.lng == null) return [];
@@ -153,6 +169,8 @@ const ThisMonthFestivalReel = ({ festivals = [], monthLabel = "" }) => {
     setShowOutro(false);
 
     if (!reelFestivals.length) return undefined;
+
+    playSound("monthIntro");
 
     const introTimer = setTimeout(() => setShowIntro(false), INTRO_DURATION);
     const globeTimer = setTimeout(
@@ -177,10 +195,13 @@ const ThisMonthFestivalReel = ({ festivals = [], monthLabel = "" }) => {
       }, FESTIVAL_DURATION);
     }, INTRO_DURATION);
 
-    const outroTimer = setTimeout(() => {
-      if (sequenceTimer) clearInterval(sequenceTimer);
-      setShowOutro(true);
-    }, INTRO_DURATION + reelFestivals.length * FESTIVAL_DURATION + 1400);
+    const outroTimer = setTimeout(
+      () => {
+        if (sequenceTimer) clearInterval(sequenceTimer);
+        setShowOutro(true);
+      },
+      INTRO_DURATION + reelFestivals.length * FESTIVAL_DURATION + 1400,
+    );
 
     return () => {
       clearTimeout(introTimer);
@@ -188,8 +209,29 @@ const ThisMonthFestivalReel = ({ festivals = [], monthLabel = "" }) => {
       clearTimeout(sequenceStartTimer);
       clearTimeout(outroTimer);
       if (sequenceTimer) clearInterval(sequenceTimer);
+      soundManager.stopMany(["monthIntro", "monthlyListing", "weekIntro"]);
     };
   }, [reelFestivals]);
+
+  useEffect(() => {
+    if (showIntro || showOutro || !activeFestivalKey) return undefined;
+
+    playSound("monthlyListing");
+
+    return () => {
+      soundManager.stop("monthlyListing");
+    };
+  }, [activeFestivalKey, showIntro, showOutro]);
+
+  useEffect(() => {
+    if (!showOutro) return undefined;
+
+    playSound("weekIntro");
+
+    return () => {
+      soundManager.stop("weekIntro");
+    };
+  }, [showOutro]);
 
   useEffect(() => {
     if (
@@ -238,8 +280,7 @@ const ThisMonthFestivalReel = ({ festivals = [], monthLabel = "" }) => {
   return (
     <div className="relative h-[800px] w-[450px] overflow-hidden bg-black text-white">
       {/* background gradients */}
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(255,190,0,0.22),transparent_35%),radial-gradient(circle_at_bottom,rgba(0,120,255,0.18),transparent_42%)]" />
-      <div className="absolute inset-0 bg-black/35" />
+      {/* <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(255,190,0,0.22),transparent_25%),radial-gradient(circle_at_bottom,rgba(255,190,0,0.12),transparent_35%)]" /> */}
 
       {!reelFestivals.length && (
         <div className="absolute inset-0 z-50 flex items-center justify-center bg-black px-8 text-center">
@@ -247,6 +288,10 @@ const ThisMonthFestivalReel = ({ festivals = [], monthLabel = "" }) => {
             No festivals found for this reel.
           </p>
         </div>
+      )}
+
+      {twinkle && (
+        <Twinkles id="month-reel-twinkles" className="absolute inset-0 z-0" />
       )}
 
       {/* intro section */}
@@ -312,39 +357,32 @@ const ThisMonthFestivalReel = ({ festivals = [], monthLabel = "" }) => {
           y: showGlobe ? 0 : 80,
         }}
         transition={{ duration: 0.9, ease: "easeOut" }}
-        className="absolute left-1/2 top-[115px] z-10 h-[470px] w-[470px] -translate-x-1/2"
+        className="absolute left-1/2 top-[115px] z-10 h-[440px] w-[440px] -translate-x-1/2"
       >
-        <GlobeGL
-          ref={globeRef}
-          width={470}
-          height={470}
-          backgroundColor="rgba(0,0,0,0)"
-          globeImageUrl={GLOBE_IMG_URL}
-          bumpImageUrl={GLOBE_BUMP_URL}
-          onGlobeReady={handleGlobeReady}
-          ringsData={activeGlobeData}
-          ringLat="lat"
-          ringLng="lng"
-          ringColor={RING_COLOR}
-          ringMaxRadius={2.5}
-          ringPropagationSpeed={2}
-          ringRepeatPeriod={900}
-          htmlElementsData={activeGlobeData}
-          htmlLat={(d) => Number(d.lat)}
-          htmlLng={(d) => Number(d.lng)}
-          htmlElement={(festival) => {
-            const el = document.createElement("div");
-            el.style.cssText =
-              "pointer-events:none;transform:translate(-50%,-100%);";
-            createRoot(el).render(<FestivalPin festival={festival} />);
-            return el;
-          }}
-          htmlAltitude={0.01}
-          htmlTransitionDuration={300}
-          atmosphereColor={ATMOSPHERE_COLOR}
-          atmosphereAltitude={ATMOSPHERE_ALTITUDE}
-          showAtmosphere
-        />
+        {/* <div className="month-glow-ring" /> */}
+        <div className="relative z-10 h-full w-full">
+          <GlobeGL
+            ref={globeRef}
+            width={440}
+            height={440}
+            backgroundColor="rgba(0,0,0,0)"
+            globeImageUrl={GLOBE_IMG_URL}
+            bumpImageUrl={GLOBE_BUMP_URL}
+            onGlobeReady={handleGlobeReady}
+            htmlElementsData={activeGlobeData}
+            htmlLat={(d) => Number(d.lat)}
+            htmlLng={(d) => Number(d.lng)}
+            htmlElement={(festival) => {
+              const el = document.createElement("div");
+              el.style.cssText =
+                "pointer-events:none;transform:translate(-50%,-100%);";
+              createRoot(el).render(<FestivalPin festival={festival} />);
+              return el;
+            }}
+            htmlAltitude={0.01}
+            htmlTransitionDuration={300}
+          />
+        </div>
       </motion.div>
 
       {/* active festival data section */}
@@ -363,7 +401,7 @@ const ThisMonthFestivalReel = ({ festivals = [], monthLabel = "" }) => {
         {reelFestivals.map((festival, index) => (
           <div
             key={getFestivalKey(festival)}
-            className={`h-1.5 rounded-full transition-all duration-500 ${
+            className={`h-1.5 transition-all duration-500 ${
               index === activeIndex ? "w-8 bg-gold" : "w-2 bg-gold/30"
             }`}
           />

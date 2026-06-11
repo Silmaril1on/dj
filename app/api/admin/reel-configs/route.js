@@ -17,6 +17,7 @@ const FESTIVAL_SELECT = `
     location_url,
     image_url,
     festival_genre,
+    festival_slug, 
     status
   )
 `;
@@ -220,6 +221,7 @@ export async function GET() {
           lat: coords?.lat ?? null,
           lng: coords?.lng ?? null,
           reel_config: config,
+          festival_slug: festival.festival_slug,
         };
       })
       .filter(Boolean);
@@ -256,7 +258,10 @@ export async function POST(request) {
       try {
         const parsed = JSON.parse(raw);
         return Array.isArray(parsed)
-          ? parsed.map((item) => String(item).trim()).filter(Boolean).slice(0, 8)
+          ? parsed
+              .map((item) => String(item).trim())
+              .filter(Boolean)
+              .slice(0, 8)
           : [];
       } catch {
         return String(raw)
@@ -276,7 +281,10 @@ export async function POST(request) {
       extra_note: formData.get("extra_note")?.trim() || null,
     };
 
-    const videoUpload = await uploadVideoAsset(formData.get("asset_file"), entityId);
+    const videoUpload = await uploadVideoAsset(
+      formData.get("asset_file"),
+      entityId,
+    );
     if (videoUpload?.error) {
       return NextResponse.json({ error: videoUpload.error }, { status: 400 });
     }

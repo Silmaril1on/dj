@@ -1,10 +1,63 @@
 "use client";
-import { useEffect, useState } from "react";
+
+import { memo, useCallback, useEffect, useMemo, useState } from "react";
 import Particles, { initParticlesEngine } from "@tsparticles/react";
 import { loadSlim } from "@tsparticles/slim";
 
-const Twinkles = () => {
+const Twinkles = ({
+  className = "absolute z-0 inset-0",
+  id = "tsparticles",
+}) => {
   const [init, setInit] = useState(false);
+  const options = useMemo(
+    () => ({
+      fullScreen: { enable: false, zIndex: 0 },
+      background: { color: { value: "transparent" } },
+      particles: {
+        size: {
+          value: { min: 0.7, max: 1.3 },
+          animation: {
+            enable: true,
+            speed: 2,
+            minimumValue: 1,
+            sync: false,
+          },
+        },
+        number: { value: 250 },
+        color: { value: "#fcf5df" },
+        shape: { type: "star" },
+        opacity: {
+          value: { min: 0.1, max: 0.8 },
+          animation: {
+            enable: true,
+            speed: 0.4,
+            minimumValue: 0.3,
+            sync: false,
+          },
+        },
+        move: {
+          enable: true,
+          speed: 0.3,
+          direction: "none",
+          random: true,
+          straight: false,
+          outModes: { default: "out" },
+        },
+      },
+      interactivity: {
+        events: {
+          onHover: { enable: false, mode: "repulse" },
+          onClick: { enable: false, mode: "push" },
+        },
+        modes: {
+          repulse: { distance: 100 },
+          push: { quantity: 2 },
+        },
+      },
+      detectRetina: true,
+    }),
+    [],
+  );
 
   useEffect(() => {
     initParticlesEngine(async (engine) => {
@@ -14,66 +67,20 @@ const Twinkles = () => {
     });
   }, []);
 
-  const particlesLoaded = (container) => {
-    console.log(container);
-  };
+  const particlesLoaded = useCallback(() => {}, []);
+
   return (
     <>
       {init && (
         <Particles
-          id="tsparticles"
-          className="absolute z-0 inset-0"
+          id={id}
+          className={className}
           particlesLoaded={particlesLoaded}
-          options={{
-            fullScreen: { enable: false, zIndex: 0 },
-            background: { color: { value: "transparent" } },
-            particles: {
-              size: {
-                value: { min: 0.7, max: 1.3 }, // 👈 This controls the particle size range
-                animation: {
-                  enable: true, // set true if you want particles to "pulse" in size
-                  speed: 2, // pulsing speed
-                  minimumValue: 1,
-                  sync: false, // false = each particle pulses individually
-                },
-              },
-              number: { value: 250 },
-              color: { value: "#fcf5df" },
-              shape: { type: "star" },
-              opacity: {
-                value: { min: 0.1, max: 0.8 },
-                animation: {
-                  enable: true,
-                  speed: 0.4,
-                  minimumValue: 0.3,
-                  sync: false, // each particle glows independently
-                },
-              },
-              move: {
-                enable: true,
-                speed: 0.3,
-                direction: "none",
-                random: true,
-                straight: false,
-                outModes: { default: "out" },
-              },
-            },
-            interactivity: {
-              events: {
-                onHover: { enable: false, mode: "repulse" },
-                onClick: { enable: false, mode: "push" },
-              },
-              modes: {
-                repulse: { distance: 100 },
-                push: { quantity: 2 },
-              },
-            },
-            detectRetina: true,
-          }}
+          options={options}
         />
       )}
     </>
   );
 };
 
-export default Twinkles;
+export default memo(Twinkles);

@@ -92,17 +92,13 @@ html {
 .festival-glow-ring {
   position: absolute;
   inset: 0;
-  border-radius: 9999px;
   transform: scale(1.05);
-  z-index: 0;
-  background: linear-gradient(270deg, #fcb913, #6f4f05, #fcb913);
+  z-index: -1;
+  background: linear-gradient(270deg, #f0ce79, #5e4506, #d39804);
   background-size: 400% 400%;
-  animation: festival-glow 6s ease infinite;
-  opacity: 0.95;
-  filter: blur(5px);
-  box-shadow:
-    0 0 24px rgba(252, 185, 19, 0.5),
-    0 0 52px rgba(252, 185, 19, 0.22);
+  animation: verified-glow 6s ease infinite;
+  opacity: 0.5;
+  filter: blur(7px);
 }
 
 @keyframes verified-glow {

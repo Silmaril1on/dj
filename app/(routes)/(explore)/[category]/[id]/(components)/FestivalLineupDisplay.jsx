@@ -18,9 +18,12 @@ import { selectIsAuthenticated } from "@/app/features/userSlice";
 import { IoMusicalNotesOutline } from "react-icons/io5";
 
 const LIVE_RE = /\s+live$/i;
-const B2B_RE = /\s*b2b\s*/i;
+const ARTIST_CONNECTOR_RE = /\s+(b2b|and)\s+/i;
 const PRESENTS_RE = /\s+presents\s+/i;
+const BRACKET_NOTE_RE = /\s*\(([^()]*)\)\s*/g;
 const DAY_ORDER = ["Thursday", "Friday", "Saturday", "Sunday"];
+const SPLIT_BADGE_CLASS =
+  "text-[7px] md:text-[9px] text-violet-500 uppercase font-bold self-start leading-none mt-1";
 
 const sortDayName = (a, b) => {
   if (a === "TBA") return 1;
@@ -61,45 +64,92 @@ const splitPresents = (value) => {
   };
 };
 
+const splitBracketNotes = (value) => {
+  const notes = [];
+  const text = cleanRawName(value).replace(BRACKET_NOTE_RE, (_, note) => {
+    const cleanedNote = cleanRawName(note);
+    if (cleanedNote) notes.push(cleanedNote);
+    return " ";
+  });
+
+  return {
+    text: cleanRawName(text),
+    notes,
+  };
+};
+
+const splitArtistConnectors = (value) => {
+  const tokens = cleanRawName(value).split(ARTIST_CONNECTOR_RE);
+  const parts = [];
+
+  for (let i = 0; i < tokens.length; i += 2) {
+    const name = cleanRawName(tokens[i]);
+    if (!name) continue;
+    const connector = cleanRawName(tokens[i + 1]).toUpperCase();
+    parts.push({
+      name,
+      connector: connector || null,
+    });
+  }
+
+  return parts;
+};
+
+const mapArtistPart = (
+  part,
+  index,
+  total,
+  artistMap,
+  overrideSlug,
+  overrideImage,
+) => {
+  const mapKey = normalizeKey(part.name);
+  const dbArtist = artistMap?.get(mapKey) || null;
+
+  return {
+    name: part.name,
+    connector: part.connector,
+    slug:
+      dbArtist?.artist_slug ||
+      dbArtist?.slug ||
+      (total === 1 && index === 0 ? overrideSlug : null) ||
+      null,
+    image_url:
+      dbArtist?.image_url ||
+      (total === 1 && index === 0 ? overrideImage : null) ||
+      null,
+  };
+};
+
 const buildArtistObject = (rawName, artistMap, overrideSlug, overrideImage) => {
   const cleanedRaw = cleanRawName(rawName);
   if (!cleanedRaw) return null;
 
   const hasLive = LIVE_RE.test(cleanedRaw);
   const baseText = cleanedRaw.replace(LIVE_RE, "").trim();
-  const { artistText, presentedText, hasPresents } = splitPresents(baseText);
-  const chunks = artistText
-    .split(B2B_RE)
-    .map((chunk) => cleanRawName(chunk))
-    .filter(Boolean);
-
-  const hasB2B = chunks.length > 1;
-
-  const parts = chunks.map((chunk, index) => {
-    const mapKey = normalizeKey(chunk);
-    const dbArtist = artistMap?.get(mapKey) || null;
-
-    return {
-      name: chunk,
-      slug:
-        dbArtist?.artist_slug ||
-        dbArtist?.slug ||
-        (!hasB2B && index === 0 ? overrideSlug : null) ||
-        null,
-      image_url:
-        dbArtist?.image_url ||
-        (!hasB2B && index === 0 ? overrideImage : null) ||
-        null,
-    };
-  });
+  const { text: baseTextWithoutNotes, notes: bracketNotes } =
+    splitBracketNotes(baseText);
+  const { artistText, presentedText, hasPresents } =
+    splitPresents(baseTextWithoutNotes);
+  const artistParts = splitArtistConnectors(artistText);
+  const parts = artistParts.map((part, index) =>
+    mapArtistPart(
+      part,
+      index,
+      artistParts.length,
+      artistMap,
+      overrideSlug,
+      overrideImage,
+    ),
+  );
 
   return {
     rawName: cleanedRaw,
     parts,
-    hasB2B,
     hasLive,
     hasPresents,
     presentedText: cleanRawName(presentedText),
+    bracketNotes,
   };
 };
 
@@ -113,20 +163,26 @@ const normalizeEventArtist = (entry, artistMap) => {
 
   if (entry?.b2bParts?.length) {
     const hasLive = LIVE_RE.test(rawName);
+    const { text: rawNameWithoutNotes, notes: rawBracketNotes } =
+      splitBracketNotes(rawName.replace(LIVE_RE, "").trim());
     const {
       presentedText: rawPresentedText,
       hasPresents: rawHasPresents,
-    } = splitPresents(rawName.replace(LIVE_RE, "").trim());
+    } = splitPresents(rawNameWithoutNotes);
     let detectedPresentedText = rawPresentedText;
+    const detectedBracketNotes = [...rawBracketNotes];
 
     const parts = entry.b2bParts
-      .map((part, index) => {
+      .flatMap((part, index) => {
         const partObj = typeof part === "string" ? { name: part } : part || {};
         let name = cleanRawName(partObj.name || "");
         if (!name) return null;
         if (hasLive && index === entry.b2bParts.length - 1) {
           name = cleanRawName(name.replace(LIVE_RE, ""));
         }
+        const partBracketNotes = splitBracketNotes(name);
+        name = partBracketNotes.text;
+        detectedBracketNotes.push(...partBracketNotes.notes);
         const partPresents = splitPresents(name);
         name = partPresents.artistText;
         if (!detectedPresentedText && partPresents.hasPresents) {
@@ -134,29 +190,42 @@ const normalizeEventArtist = (entry, artistMap) => {
         }
         if (!name) return null;
 
-        const mapKey = normalizeKey(name);
-        const dbArtist = artistMap?.get(mapKey) || null;
+        const splitParts = splitArtistConnectors(name);
+        return splitParts.map((splitPart, splitIndex) => {
+          const mapKey = normalizeKey(splitPart.name);
+          const dbArtist = artistMap?.get(mapKey) || null;
+          const canUseOriginalPartAsset = splitParts.length === 1;
 
-        return {
-          name,
-          slug:
-            partObj.artist_slug ||
-            partObj.slug ||
-            dbArtist?.artist_slug ||
-            dbArtist?.slug ||
-            null,
-          image_url: partObj.image_url || dbArtist?.image_url || null,
-        };
+          return {
+            name: splitPart.name,
+            connector:
+              splitPart.connector ||
+              (index < entry.b2bParts.length - 1 &&
+              splitIndex === splitParts.length - 1
+                ? "B2B"
+                : null),
+            slug:
+              (canUseOriginalPartAsset &&
+                (partObj.artist_slug || partObj.slug)) ||
+              dbArtist?.artist_slug ||
+              dbArtist?.slug ||
+              null,
+            image_url:
+              (canUseOriginalPartAsset && partObj.image_url) ||
+              dbArtist?.image_url ||
+              null,
+          };
+        });
       })
       .filter(Boolean);
 
     return {
       rawName,
       parts,
-      hasB2B: parts.length > 1,
       hasLive,
       hasPresents: rawHasPresents || Boolean(detectedPresentedText),
       presentedText: detectedPresentedText,
+      bracketNotes: [...new Set(detectedBracketNotes)],
     };
   }
 
@@ -249,27 +318,31 @@ const ArtistPart = ({ name, slug, image_url }) => {
   );
 };
 
-const B2B_BADGE = (
-  <span className="text-[7px] md:text-[9px] text-cream/60 uppercase font-bold self-start leading-none mt-1">
-    B2B
-  </span>
+const SplitBadge = ({ children }) => (
+  <span className={SPLIT_BADGE_CLASS}>{children}</span>
 );
 
 const LIVE_BADGE = (
-  <span className="text-[7px] md:text-[9px] text-cream/60 uppercase font-bold self-start leading-none mt-0.5">
+  <span className={SPLIT_BADGE_CLASS}>
     LIVE
   </span>
 );
 
 const PRESENTS_BADGE = (
-  <span className="text-[7px] md:text-[9px] text-cream/60 uppercase font-bold self-start leading-none mt-1">
+  <span className={SPLIT_BADGE_CLASS}>
     PRESENTS
   </span>
 );
 
 const PresentedText = ({ text }) => (
-  <span className="text-xl md:text-2xl font-bold uppercase leading-none text-cream/60">
+  <span className="text-xl md:text-2xl font-bold uppercase leading-none text-violet-500">
     {text}
+  </span>
+);
+
+const BracketNote = ({ text }) => (
+  <span className={SPLIT_BADGE_CLASS}>
+    ({text})
   </span>
 );
 
@@ -279,7 +352,7 @@ const ArtistRowItem = ({ artist, index, total }) => (
       {artist.parts.map((part, i) => (
         <span key={i} className="inline-flex items-start gap-1">
           <ArtistPart {...part} />
-          {artist.hasB2B && i < artist.parts.length - 1 && B2B_BADGE}
+          {part.connector && <SplitBadge>{part.connector}</SplitBadge>}
         </span>
       ))}
       {artist.hasPresents && (
@@ -288,6 +361,9 @@ const ArtistRowItem = ({ artist, index, total }) => (
           <PresentedText text={artist.presentedText} />
         </>
       )}
+      {artist.bracketNotes?.map((note, noteIndex) => (
+        <BracketNote key={`${artist.rawName}-note-${noteIndex}`} text={note} />
+      ))}
       {artist.hasLive && LIVE_BADGE}
     </span>
     {index < total - 1 && <Dot />}

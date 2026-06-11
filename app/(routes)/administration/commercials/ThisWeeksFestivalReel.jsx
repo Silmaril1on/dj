@@ -1,8 +1,10 @@
 "use client";
 
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import { motion } from "framer-motion";
 import ArtistCountry from "@/app/components/materials/ArtistCountry";
+import { playSound } from "@/app/helpers/playSound";
+import { soundManager } from "@/app/helpers/soundManager";
 
 const demoFestival = {
   name: "Tomorrowland",
@@ -62,6 +64,9 @@ const fillLineup = (lineup = []) => {
 const isImageAsset = (url = "") =>
   /\.(avif|gif|jpe?g|png|webp)(\?.*)?$/i.test(url);
 
+const WEEK_LINEUP_SOUND_DELAY = 5000;
+const REEL_MEDIA_PLAY_DELAY = 1400;
+
 const buildFestival = (festival) => {
   const source = festival || demoFestival;
   const config = source.reel_config || {};
@@ -79,9 +84,36 @@ const buildFestival = (festival) => {
 
 const ReelMedia = ({ assetUrl }) => {
   const [hasError, setHasError] = useState(false);
+  const videoRef = useRef(null);
   const hasAsset = Boolean(assetUrl) && !hasError;
   const mediaIsImage = useMemo(() => isImageAsset(assetUrl), [assetUrl]);
-  console.log("ReelMedia assetUrl:", assetUrl);
+
+  useEffect(() => {
+    setHasError(false);
+  }, [assetUrl]);
+
+  useEffect(() => {
+    if (!hasAsset || mediaIsImage) return undefined;
+
+    const video = videoRef.current;
+    if (!video) return undefined;
+
+    video.pause();
+    video.currentTime = 0;
+
+    const playTimer = window.setTimeout(() => {
+      video.currentTime = 0;
+      video.play().catch(() => {
+        // Muted inline playback should be allowed, but keep rendering if a browser blocks it.
+      });
+    }, REEL_MEDIA_PLAY_DELAY);
+
+    return () => {
+      window.clearTimeout(playTimer);
+      video.pause();
+      video.currentTime = 0;
+    };
+  }, [assetUrl, hasAsset, mediaIsImage]);
 
   if (!hasAsset) {
     return (
@@ -104,10 +136,9 @@ const ReelMedia = ({ assetUrl }) => {
 
   return (
     <video
+      ref={videoRef}
       src={assetUrl}
-      autoPlay
       muted
-      loop
       playsInline
       preload="auto"
       className="h-full w-full object-cover"
@@ -118,6 +149,22 @@ const ReelMedia = ({ assetUrl }) => {
 
 const ThisWeeksFestivalReel = ({ festival = demoFestival }) => {
   const reelFestival = buildFestival(festival);
+
+  useEffect(() => {
+    const introSoundTimer = window.setTimeout(() => {
+      playSound("weekIntro");
+    }, 1200);
+
+    const lineupSoundTimer = window.setTimeout(() => {
+      playSound("weekLineup");
+    }, 400 + WEEK_LINEUP_SOUND_DELAY);
+
+    return () => {
+      window.clearTimeout(introSoundTimer);
+      window.clearTimeout(lineupSoundTimer);
+      soundManager.stopMany(["weekIntro", "weekLineup"]);
+    };
+  }, []);
 
   return (
     <div className="relative aspect-[9/16] h-[720px] overflow-hidden bg-black text-gold">
@@ -224,7 +271,7 @@ const ThisWeeksFestivalReel = ({ festival = demoFestival }) => {
       >
         {/* header animation */}
         <motion.header
-          className="space-y-2"
+          className="space-y-2 center flex-col"
           initial={{ y: -24, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
           transition={{ delay: 0.2, duration: 0.7, ease: "easeOut" }}
@@ -250,7 +297,7 @@ const ThisWeeksFestivalReel = ({ festival = demoFestival }) => {
         <section className="relative flex flex-1 flex-col items-center justify-center py-3">
           {/* video logo animation */}
           <motion.div
-            className="relative h-[200px] w-[200px] rounded-full"
+            className="relative h-[150px] w-[200px] rounded-full mb-7"
             initial={{ scale: 0.55, opacity: 0, rotate: -8 }}
             animate={{
               scale: [0.55, 1.08, 1],
@@ -260,16 +307,14 @@ const ThisWeeksFestivalReel = ({ festival = demoFestival }) => {
             transition={{ delay: 1.4, duration: 1.1, ease: "easeOut" }}
           >
             <div className="festival-glow-ring" />
-            <div className="relative z-10 h-full w-full overflow-hidden rounded-full border border-gold/50 bg-black shadow-[0_0_60px_rgba(255,186,0,0.18)]">
+            <div className="relative z-10 h-full w-full overflow-hidden border border-gold/50 bg-black">
               <ReelMedia assetUrl={reelFestival.assetUrl} />
-              {/* circular glow over video */}
-              <div className="absolute inset-0 rounded-full bg-gradient-to-b from-transparent via-transparent to-black/50" />
             </div>
           </motion.div>
 
           {/* festival name animation */}
           <motion.div
-            className="mt-6 text-center"
+            className="my-6 text-center"
             initial={{ y: 36, opacity: 0, scale: 0.95 }}
             animate={{ y: 0, opacity: 1, scale: 1 }}
             transition={{ delay: 3.0, duration: 0.7, ease: "easeOut" }}

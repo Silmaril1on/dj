@@ -16,6 +16,9 @@ const CustomInput = ({
   monthBatchLabel = "0 of 0",
   monthBatchCount = 0,
   onAnimateNext,
+  monthWeeks = [[], [], [], []],
+  activeMonthWeekIndex = null,
+  onAnimateWeek,
 }) => {
   const [isLoading, setIsLoading] = useState(false);
   const [message, setMessage] = useState("");
@@ -120,7 +123,7 @@ const CustomInput = ({
 
   if (mode === "month") {
     return (
-      <aside className="min-h-[720px] border border-gold/30 bg-black/40 p-4 text-cream">
+      <aside className="min-h-[720px] w-full border border-gold/30 bg-black/40 p-4 text-cream">
         <div className="border-b border-gold/20 pb-3">
           <p className="secondary text-[10px] uppercase tracking-[0.35em] text-chino">
             Reel Control
@@ -148,6 +151,24 @@ const CustomInput = ({
         >
           ANIMATE NEXT 5 FESTIVAL
         </button>
+
+        <div className="mt-3 grid grid-cols-4 gap-3">
+          {monthWeeks.map((weekFestivals, index) => (
+            <button
+              key={`month-week-${index}`}
+              type="button"
+              onClick={() => onAnimateWeek?.(index)}
+              disabled={!weekFestivals.length}
+              className={`border px-2 py-2 text-[10px] font-black uppercase tracking-wide transition ${
+                activeMonthWeekIndex === index
+                  ? "border-gold bg-gold text-black"
+                  : "border-gold/40 bg-black text-gold hover:border-gold"
+              } disabled:cursor-not-allowed disabled:border-gold/20 disabled:bg-stone-900 disabled:text-gold/30`}
+            >
+              WEEK {index + 1}
+            </button>
+          ))}
+        </div>
       </aside>
     );
   }

@@ -32,6 +32,8 @@ import {
   FaEdit,
   FaChevronDown,
   FaChevronUp,
+  FaChevronLeft,
+  FaChevronRight,
 } from "react-icons/fa";
 import { MdEdit } from "react-icons/md";
 
@@ -630,6 +632,7 @@ const AddFestivalLineupForm = ({
   const [deleteFullConfirm, setDeleteFullConfirm] = useState(false);
   const [isDeletingFull, setIsDeletingFull] = useState(false);
   const [lineupHelpOpen, setLineupHelpOpen] = useState(false);
+  const [lineupHelpSlide, setLineupHelpSlide] = useState(0);
 
   // Edit artist modal state
   const [editModal, setEditModal] = useState({ open: false, artist: null });
@@ -641,6 +644,11 @@ const AddFestivalLineupForm = ({
     support_act: false,
   });
   const [isEditSaving, setIsEditSaving] = useState(false);
+  const lineupHelpTitle = lineupHelpSlide === 0 ? "LINEUP MODE" : "LINEUP TAGS";
+
+  useEffect(() => {
+    if (lineupHelpOpen) setLineupHelpSlide(0);
+  }, [lineupHelpOpen]);
 
   // Sync non-locked stage artists when lineupStatus changes
   useEffect(() => {
@@ -1055,13 +1063,16 @@ const AddFestivalLineupForm = ({
       }
     >
       <form onSubmit={handleSubmit} className="w-full space-y-3">
-        <div className="flex justify-end">
+        <div className="flex justify-end flex-col items-end">
           <Button
             text="Help Center"
             type="button"
             size="small"
             onClick={() => setLineupHelpOpen(true)}
           />
+          <p className="text-chino text-xs secondary">
+            Before you upload lineup
+          </p>
         </div>
         {/* ── Announcement Phase + Mode Toggle ── */}
         <div className="bg-stone-900/50 space-y-4">
@@ -1240,102 +1251,160 @@ const AddFestivalLineupForm = ({
         title="Lineup Help Center"
         maxWidth="max-w-3xl"
       >
-        <div className="space-y-5 text-sm text-cream/85 secondary">
-          <section className="space-y-2">
+        <div className="relative text-sm text-cream/85 secondary">
+          <button
+            type="button"
+            onClick={() => setLineupHelpSlide((slide) => (slide === 0 ? 1 : 0))}
+            className="absolute -left-2 top-1/2 z-10 -translate-y-1/2 p-2 text-gold hover:text-cream duration-200"
+            aria-label="Previous lineup help section"
+          >
+            <FaChevronLeft />
+          </button>
+          <button
+            type="button"
+            onClick={() => setLineupHelpSlide((slide) => (slide === 0 ? 1 : 0))}
+            className="absolute -right-2 top-1/2 z-10 -translate-y-1/2 p-2 text-gold hover:text-cream duration-200"
+            aria-label="Next lineup help section"
+          >
+            <FaChevronRight />
+          </button>
+
+          <div className="space-y-5 px-8">
             <h3 className="text-gold font-bold uppercase tracking-widest text-xs">
-              Before You Save
+              {lineupHelpTitle}
             </h3>
-            <p className="border p-2 bg-cream/30 border-cream/40 text-cream text-xs">
-              Saving newly added artists publishes those lineup changes and can
-              notify fans who enabled lineup alerts for this festival. Review
-              names, phases, days, and stage placement before submitting.
-            </p>
-          </section>
 
-          <section className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="bg-stone-900/70 border border-gold/20 p-4 space-y-2">
-              <h3 className="text-gold font-bold uppercase tracking-widest text-xs">
-                Simple Lineup Upload
-              </h3>
-              <p className="secondary text-[10px] text-chino">
-                Add lineup, later you can assign stages, days ans set times
-              </p>
-              <ul className="list-disc pl-5 space-y-1">
-                <li>Sort lineup by days and phases</li>
-                <li>Mark artists as a support act</li>
-                <li>Later assign stages</li>
-                <li>Filter lineup by phases and days</li>
-              </ul>
+            {lineupHelpSlide === 0 ? (
+              <>
+                <section className="space-y-2">
+                  <p className="border p-2 bg-cream/30 border-cream/40 text-cream text-xs">
+                    Saving newly added artists publishes those lineup changes
+                    and can notify fans who enabled lineup alerts for this
+                    festival. Review names, phases, days, and stage placement
+                    before submitting.
+                  </p>
+                </section>
+
+                <section className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="bg-stone-900/70 border border-gold/20 p-4 space-y-2">
+                    <h3 className="text-gold font-bold uppercase tracking-widest text-xs">
+                      Simple Lineup Upload
+                    </h3>
+                    <p className="secondary text-[10px] text-chino">
+                      Add lineup, later you can assign stages, days ans set
+                      times
+                    </p>
+                    <ul className="list-disc pl-5 space-y-1">
+                      <li>Sort lineup by days and phases</li>
+                      <li>Mark artists as a support act</li>
+                      <li>Later assign stages</li>
+                      <li>Filter lineup by phases and days</li>
+                    </ul>
+                  </div>
+
+                  <div className="bg-stone-900/70 border border-gold/20 p-4 space-y-2">
+                    <h3 className="text-gold font-bold uppercase tracking-widest text-xs">
+                      Enhanced Lineup Upload
+                    </h3>
+                    <p className="secondary text-[10px] text-chino">
+                      When you know full artist schedule by stages, days and set
+                      times
+                    </p>
+                    <ul className="list-disc pl-5 space-y-1">
+                      <li>Create multiple stages for your festival.</li>
+                      <li>Submit lineup by stages, days, and set times.</li>
+                      <li>Mark lineup as phase announcement.</li>
+                      <li>Add support-act labels.</li>
+                    </ul>
+                  </div>
+                </section>
+
+                <section className="space-y-2">
+                  <h3 className="text-gold font-bold uppercase tracking-widest text-xs">
+                    Updating Existing Lineups
+                  </h3>
+                  <p className="text-chino text-xs">
+                    Additions are saved without wiping the current lineup.
+                    Existing artists should be changed with the edit button on
+                    their card, and removed with the delete button. Use Delete
+                    Full Lineup only when you want to clear the entire edition
+                    lineup.
+                  </p>
+                </section>
+              </>
+            ) : (
+              <section className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="grid gap-3">
+                  <div className="space-y-2">
+                    <h3 className="text-gold font-bold uppercase tracking-widest text-xs">
+                      Phase Tags
+                    </h3>
+                    <p className="text-xs text-cream">
+                      Phase tags help fans understand which artists are part of
+                      each announcement phase. In both mode, the selected phase
+                      applies to all artists you add. Existing artists keep
+                      their saved phase. The selected phase is applied to newly
+                      added artists.
+                    </p>
+                  </div>
+
+                  <div className="space-y-2">
+                    <h3 className="text-gold font-bold uppercase tracking-widest text-xs">
+                      Day Tags
+                    </h3>
+                    <p className="text-xs text-cream">
+                      Day tags help visitors filter and understand when artists
+                      play. In simple mode, choose days first and add names into
+                      each day section. In enhanced mode, each artist row can
+                      have its own day. Leave day empty when the day split is
+                      not announced yet.
+                    </p>
+                  </div>
+                </div>
+                <div className="space-y-2">
+                  <h3 className="text-gold font-bold uppercase tracking-widest text-xs">
+                    Artist Relevant Tags
+                  </h3>
+                  <p className="text-xs text-cream">
+                    Tags for artists like <b> B2B LIVE AND (3 HOURS SET)</b> or{" "}
+                    <b>PRESENTS</b> must be added directly in the artist name
+                    field with the following way. <br /> If artist name includes{" "}
+                    <b>&</b> simply type Eli & Fur or Eli & Dani
+                  </p>
+                  <ul className="text-xs list-disc pl-5 text-chino">
+                    <li>B2B e.g "Boris Brejcha b2b Eric Prydz"</li>
+                    <li>PRESENTS e.g "Andrew Rayel presents Extasia"</li>
+                    <li>LIVE e.g "Stephan Bodzin live"</li>
+                    <li>AND e.g "RAM and Richard Durand"</li>
+                    <li>() e.g Tiesto (5 Hours Set)</li>
+                    <li>& e.g Eli & Fur</li>
+                  </ul>
+                  <div className="*:w-auto *:h-5">
+                    <h1 className="italic pl-3 text-xs text-gold">Samples</h1>
+                    <img src="/assets/b2b.png" alt="b2b" />
+                    <img src="/assets/presents.png" alt="presents" />
+                    <img src="/assets/live.png" alt="live" />
+                    <img src="/assets/and.png" alt="and" />
+                    <img src="/assets/hours.png" alt="hours" />
+                  </div>
+                </div>
+              </section>
+            )}
+
+            <div className="flex items-center justify-center gap-2 pt-2">
+              {[0, 1].map((slide) => (
+                <button
+                  key={slide}
+                  type="button"
+                  onClick={() => setLineupHelpSlide(slide)}
+                  className={`h-2 w-2 rounded-full duration-200 ${
+                    lineupHelpSlide === slide ? "bg-gold" : "bg-cream/30"
+                  }`}
+                  aria-label={`Show lineup help section ${slide + 1}`}
+                />
+              ))}
             </div>
-
-            <div className="bg-stone-900/70 border border-gold/20 p-4 space-y-2">
-              <h3 className="text-gold font-bold uppercase tracking-widest text-xs">
-                Enhanced Lineup Upload
-              </h3>
-              <p className="secondary text-[10px] text-chino">
-                When you know full artist schedule by stages, days and set times
-              </p>
-              <ul className="list-disc pl-5 space-y-1">
-                <li>Create multiple stages for your festival.</li>
-                <li>Submit lineup by stages, days, and set times.</li>
-                <li>Mark lineup as phase announcement.</li>
-                <li>Add support-act labels.</li>
-              </ul>
-            </div>
-          </section>
-
-          <section className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div className="space-y-2">
-              <h3 className="text-gold font-bold uppercase tracking-widest text-xs">
-                Phase Tags
-              </h3>
-              <p className="text-[10px] text-cream">
-                Phase tags help fans understand which artists are part of each
-                announcement phase. In both mode, the selected phase applies to
-                all artists you add. Existing artists keep their saved phase.
-                The selected phase is applied to newly added artists.
-              </p>
-            </div>
-
-            <div className="space-y-2">
-              <h3 className="text-gold font-bold uppercase tracking-widest text-xs">
-                Artist Relevant Tags
-              </h3>
-              <p className="text-[10px] text-cream">
-                Tags for artists like B2B, LIVE or PRESENTS must be added
-                directly in the artist name field.
-              </p>
-              <ul className="text-[10px] list-disc pl-5  text-chino">
-                <li>B2B e.g "Boris Brejcha b2b Eric Prydz"</li>
-                <li>PRESENTS e.g "Andrew Rayel presents Extasia"</li>
-                <li>LIVE e.g "Stephan Bodzin live"</li>
-              </ul>
-            </div>
-
-            <div className="space-y-2">
-              <h3 className="text-gold font-bold uppercase tracking-widest text-xs">
-                Day Tags
-              </h3>
-              <p className="text-[10px] text-cream">
-                Day tags help visitors filter and understand when artists play.
-                In simple mode, choose days first and add names into each day
-                section. In enhanced mode, each artist row can have its own day.
-                Leave day empty when the day split is not announced yet.
-              </p>
-            </div>
-          </section>
-
-          <section className="space-y-2">
-            <h3 className="text-gold font-bold uppercase tracking-widest text-xs">
-              Updating Existing Lineups
-            </h3>
-            <p className="text-chino text-xs">
-              Additions are saved without wiping the current lineup. Existing
-              artists should be changed with the edit button on their card, and
-              removed with the delete button. Use Delete Full Lineup only when
-              you want to clear the entire edition lineup.
-            </p>
-          </section>
+          </div>
         </div>
       </GlobalModal>
 

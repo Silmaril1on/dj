@@ -421,6 +421,7 @@ export default function GenerateAssetsPage() {
     if (videoTask === "i2v" && !videoImageFile)
       return setVideoError("Source image is required for Image → Video.");
     setVideoError("");
+    setVideoResults([]);
     setVideoLoading(true);
 
     try {
@@ -455,7 +456,7 @@ export default function GenerateAssetsPage() {
       } else {
         const taskId = data.id || data.task_id;
         const resultId = String(Date.now());
-        setVideoResults((prev) => [
+        setVideoResults([
           {
             id: resultId,
             taskId,
@@ -467,7 +468,6 @@ export default function GenerateAssetsPage() {
             apiError: "",
             createdAt: new Date().toLocaleTimeString(),
           },
-          ...prev,
         ]);
         if (taskId) pollVideoTask(taskId, resultId);
       }
@@ -908,11 +908,14 @@ export default function GenerateAssetsPage() {
                           )}
 
                           {item.status === "succeed" && item.url && (
-                            <div>
+                            <div className="flex flex-col items-start gap-3">
                               <video
+                                key={item.url}
                                 src={item.url}
                                 controls
-                                className="w-full max-h-96 bg-black mb-3"
+                                playsInline
+                                preload="metadata"
+                                className="w-64 h-64 object-contain bg-black"
                               />
                               <Button
                                 onClick={() =>
