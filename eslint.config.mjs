@@ -13,7 +13,7 @@ const eslintConfig = [
   ...compat.extends("next/core-web-vitals"),
   {
     rules: {
-      "@next/next/no-html-link-for-pages": ["error", "./app/"],
+      "@next/next/no-html-link-for-pages": "off",
     },
   },
   {
