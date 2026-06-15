@@ -13,6 +13,7 @@ const GlobalModal = ({
   submitText,
   loading = false,
   disabled = false,
+  showClose = true,
   children,
 }) => {
   return (
@@ -23,7 +24,7 @@ const GlobalModal = ({
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           transition={{ duration: 0.2, ease: "easeInOut" }}
-          className="fixed inset-0 bg-black/50 backdrop-blur-sm px-3 z-50 flex items-center justify-center"
+          className="fixed inset-0 bg-black/50 backdrop-blur-sm px-3 z-100 flex items-center justify-center"
         >
           <motion.div
             initial={{ opacity: 0, y: 24, scale: 0.96 }}
@@ -35,12 +36,14 @@ const GlobalModal = ({
             {/* Header */}
             <div className="flex items-center justify-between mb-4">
               {title && <Title text={title} size="lg" />}
-              <div
-                onClick={onClose}
-                className="cursor-pointer text-gold hover:rotate-90 duration-300 text-xl ml-auto"
-              >
-                <IoMdClose />
-              </div>
+              {showClose && (
+                <div
+                  onClick={onClose}
+                  className="cursor-pointer text-gold hover:rotate-90 duration-300 text-xl ml-auto"
+                >
+                  <IoMdClose />
+                </div>
+              )}
             </div>
 
             {/* Content */}

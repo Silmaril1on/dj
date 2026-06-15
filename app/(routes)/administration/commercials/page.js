@@ -2,28 +2,58 @@
 import React, { useEffect, useMemo, useState } from "react";
 import ThisWeeksFestivalReel from "./ThisWeeksFestivalReel";
 import ThisMonthFestivalReel from "./ThisMonthFestivalReel";
-import LineupAnnouncementReel from "./LineupAnnouncementReel";
 import SectionContainer from "@/app/components/containers/SectionContainer";
 import DataList from "./DataList";
 import CustomInput from "./CustomInput";
+import Button from "@/app/components/buttons/Button";
+import GlobalModal from "@/app/components/modals/GlobalModal";
 
 const REEL_TABS = [
   {
     id: "this-week",
-    label: "This Week's Festivals",
+    label: "Week's Festivals",
     component: ThisWeeksFestivalReel,
   },
   {
     id: "this-month",
-    label: "This Month's Festivals",
+    label: "Month's Festivals",
     component: ThisMonthFestivalReel,
   },
+];
+
+const RENDER_STAGES = [
   {
-    id: "lineup",
-    label: "Lineup Announcement",
-    component: LineupAnnouncementReel,
+    min: 0,
+    title: "Started rendering video",
+    detail: "Warming up the reel engine and locking the selected footage.",
+  },
+  {
+    min: 20,
+    title: "Preparing your video content",
+    detail: "Syncing festival data, visuals, titles, and audio cues.",
+  },
+  {
+    min: 55,
+    title: "Composing the final reel",
+    detail: "Rendering frames and polishing the motion sequence.",
+  },
+  {
+    min: 90,
+    title: "Finishing some tweaks",
+    detail: "Packaging the MP4 and getting the download ready.",
+  },
+  {
+    min: 100,
+    title: "Video ready",
+    detail: "Your MP4 download is starting.",
   },
 ];
+
+const getRenderStage = (progress) =>
+  RENDER_STAGES.reduce(
+    (activeStage, stage) => (progress >= stage.min ? stage : activeStage),
+    RENDER_STAGES[0],
+  );
 
 const CommercialPage = () => {
   const [activeTab, setActiveTab] = useState("this-week");
@@ -34,6 +64,8 @@ const CommercialPage = () => {
   const [monthWeekIndex, setMonthWeekIndex] = useState(null);
   const [selectedFestivalId, setSelectedFestivalId] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [isRendering, setIsRendering] = useState(false);
+  const [renderProgress, setRenderProgress] = useState(0);
   const [error, setError] = useState("");
 
   const activeTabData =
@@ -118,6 +150,26 @@ const CommercialPage = () => {
     fetchFestivals();
   }, []);
 
+  useEffect(() => {
+    if (!isRendering) return undefined;
+
+    setRenderProgress(4);
+
+    const progressTimer = window.setInterval(() => {
+      setRenderProgress((prev) => {
+        if (prev >= 96) return prev;
+        if (prev < 20) return Math.min(prev + 4, 20);
+        if (prev < 55) return Math.min(prev + 2.5, 55);
+        if (prev < 90) return Math.min(prev + 1.2, 90);
+        return Math.min(prev + 0.35, 96);
+      });
+    }, 700);
+
+    return () => window.clearInterval(progressTimer);
+  }, [isRendering]);
+
+  const activeRenderStage = getRenderStage(renderProgress);
+
   const handleTabChange = (tabId) => {
     setActiveTab(tabId);
     setRestartKey((prev) => prev + 1);
@@ -172,6 +224,55 @@ const CommercialPage = () => {
     setRestartKey((prev) => prev + 1);
   };
 
+  const handleDownloadReel = async () => {
+    setIsRendering(true);
+    setRenderProgress(4);
+    setError("");
+
+    try {
+      const isMonthReel = activeTab === "this-month";
+      const fileName = isMonthReel
+        ? `soundfolio-${monthLabel || "this-month"}-${monthBatchLabel}`
+        : `soundfolio-${selectedFestival?.name || "this-week"}`;
+
+      const response = await fetch("/api/admin/reel-render", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          reelType: isMonthReel ? "this-month" : "this-week",
+          festival: selectedFestival,
+          festivals: monthFestivals,
+          monthLabel,
+          fileName,
+        }),
+      });
+
+      if (!response.ok) {
+        const data = await response.json().catch(() => null);
+        throw new Error(data?.error || "Failed to render reel video");
+      }
+
+      const blob = await response.blob();
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = `${fileName
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, "-")
+        .replace(/(^-|-$)/g, "")}.mp4`;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      URL.revokeObjectURL(url);
+      setRenderProgress(100);
+      await new Promise((resolve) => window.setTimeout(resolve, 800));
+    } catch (err) {
+      setError(err.message || "Failed to render reel video");
+    } finally {
+      setIsRendering(false);
+    }
+  };
+
   return (
     <SectionContainer
       title="Commercials"
@@ -184,27 +285,85 @@ const CommercialPage = () => {
           {/* reel tabs */}
           <div className="flex flex-wrap gap-1">
             {REEL_TABS.map((tab) => (
-              <button
+              <Button
+                size="small"
                 key={tab.id}
+                text={tab.label}
                 onClick={() => handleTabChange(tab.id)}
-                className={`border p-2 text-xs font-bold uppercase tracking-wide transition ${
-                  activeTab === tab.id
-                    ? "border-gold bg-gold text-black"
-                    : "border-gold/40 text-gold hover:border-gold"
-                }`}
-              >
-                {tab.label}
-              </button>
+                className={`${activeTab === tab.id ? " " : "opacity-60"}`}
+              />
             ))}
           </div>
           {/* restart animation button */}
-          <button
-            onClick={handleRestartAnimation}
-            className="border fixed lg:static top-0 z-50 border-gold bg-black p-2 font-bold uppercase tracking-wide text-gold transition hover:bg-gold hover:text-black"
-          >
-            Restart Animation
-          </button>
+          <div className="flex space-x-1">
+            <Button
+              size="small"
+              text="Restart Animation"
+              onClick={handleRestartAnimation}
+            />
+            <Button
+              size="small"
+              disabled={isRendering || isLoading}
+              text={isRendering ? "Rendering MP4..." : "Download MP4"}
+              onClick={handleDownloadReel}
+            />
+          </div>
         </div>
+
+        <GlobalModal
+          isOpen={isRendering}
+          onClose={() => {}}
+          title="Rendering MP4"
+          maxWidth="max-w-lg"
+          showClose={false}
+        >
+          <div className="space-y-6 py-1">
+            <div className="relative mx-auto flex h-28 w-28 items-center justify-center rounded-full border border-gold/40 bg-gold/10">
+              <div className="absolute inset-2 rounded-full border border-gold/20" />
+              <div className="absolute inset-0 animate-spin rounded-full border-2 border-transparent border-t-gold" />
+              <div className="text-center">
+                <div className="text-3xl font-bold text-gold">
+                  {Math.round(renderProgress)}%
+                </div>
+                <div className="text-[10px] uppercase tracking-[0.3em] text-gold/70">
+                  MP4
+                </div>
+              </div>
+            </div>
+
+            <div className="text-center">
+              <h3 className="text-xl font-bold uppercase text-gold">
+                {activeRenderStage.title}
+              </h3>
+              <p className="mt-2 text-sm text-chino secondary">
+                {activeRenderStage.detail}
+              </p>
+            </div>
+
+            <div>
+              <div className="h-2 overflow-hidden border border-gold/40 bg-black">
+                <div
+                  className="h-full bg-gold transition-all duration-500 ease-out"
+                  style={{ width: `${renderProgress}%` }}
+                />
+              </div>
+              <div className="mt-3 grid grid-cols-4 gap-2">
+                {RENDER_STAGES.slice(0, 4).map((stage) => (
+                  <div
+                    key={stage.min}
+                    className={`h-1 transition-colors duration-300 ${
+                      renderProgress >= stage.min ? "bg-gold" : "bg-gold/20"
+                    }`}
+                  />
+                ))}
+              </div>
+            </div>
+
+            <p className="text-center text-xs text-cream secondary">
+              Keep this tab open while the reel is rendering
+            </p>
+          </div>
+        </GlobalModal>
 
         {/* reel preview area */}
         <section className="gap-10 w-full grid lg:grid-cols-3 ">
