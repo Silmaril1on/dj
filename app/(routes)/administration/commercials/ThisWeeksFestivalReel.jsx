@@ -167,7 +167,7 @@ const ThisWeeksFestivalReel = ({ festival = demoFestival }) => {
   }, []);
 
   return (
-    <div className="relative w-full lg:aspect-[9/16] h-[720px] overflow-hidden bg-black text-gold">
+    <div className="relative w-full lg:w-auto lg:aspect-[9/16] h-[720px] overflow-hidden bg-black text-gold">
       <div className="pointer-events-none absolute inset-0 z-50">
         {/* top border: left to right */}
         <motion.div
