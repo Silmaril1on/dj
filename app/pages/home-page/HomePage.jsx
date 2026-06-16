@@ -10,7 +10,7 @@ import UpcomingFestivals from "./upcoming-festivals/UpcomingFestivals";
 
 const HomePage = ({ events = [] }) => {
   return (
-    <div className="flex-1 center flex-col space-y-10 ">
+    <div className="flex-1 center flex-col space-y-10  overflow-hidden">
       <Events events={events} />
       <News />
       <ArtistsSection />

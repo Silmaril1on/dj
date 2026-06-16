@@ -278,7 +278,7 @@ const ThisMonthFestivalReel = ({ festivals = [], monthLabel = "" }) => {
   };
 
   return (
-    <div className="relative h-[800px] w-[450px] overflow-hidden bg-black text-white">
+    <div className="relative h-[800px] w-full lg:aspect-[9/16] overflow-hidden bg-black text-white">
       {/* background gradients */}
       {/* <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(255,190,0,0.22),transparent_25%),radial-gradient(circle_at_bottom,rgba(255,190,0,0.12),transparent_35%)]" /> */}
 

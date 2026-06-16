@@ -167,7 +167,7 @@ const ThisWeeksFestivalReel = ({ festival = demoFestival }) => {
   }, []);
 
   return (
-    <div className="relative aspect-[9/16] h-[720px] overflow-hidden bg-black text-gold">
+    <div className="relative w-full lg:aspect-[9/16] h-[720px] overflow-hidden bg-black text-gold">
       <div className="pointer-events-none absolute inset-0 z-50">
         {/* top border: left to right */}
         <motion.div
@@ -255,14 +255,6 @@ const ThisWeeksFestivalReel = ({ festival = demoFestival }) => {
         animate={{ backgroundPosition: ["0px 0px", "42px 84px"] }}
         transition={{ duration: 15, ease: "linear" }}
       />
-
-      {/* golden scanning light */}
-      <motion.div
-        className="absolute left-0 top-0 h-full w-[140px] bg-gradient-to-r from-transparent via-gold/20 to-transparent blur-2xl"
-        initial={{ x: -180 }}
-        animate={{ x: 620 }}
-        transition={{ duration: 15, ease: "linear" }}
-      />
       <motion.div
         className="relative z-10 flex h-full flex-col justify-between p-4"
         initial={{ opacity: 0 }}
@@ -297,7 +289,7 @@ const ThisWeeksFestivalReel = ({ festival = demoFestival }) => {
         <section className="relative flex flex-1 flex-col items-center justify-center py-3">
           {/* video logo animation */}
           <motion.div
-            className="relative h-[150px] w-[200px] rounded-full mb-7"
+            className="relative h-[150px] w-[200px]  mb-7"
             initial={{ scale: 0.55, opacity: 0, rotate: -8 }}
             animate={{
               scale: [0.55, 1.08, 1],
@@ -307,7 +299,7 @@ const ThisWeeksFestivalReel = ({ festival = demoFestival }) => {
             transition={{ delay: 1.4, duration: 1.1, ease: "easeOut" }}
           >
             <div className="festival-glow-ring" />
-            <div className="relative z-10 h-full w-full overflow-hidden border border-gold/50 bg-black">
+            <div className="relative z-10 h-full w-full rounded-lg overflow-hidden border border-gold/50 bg-black">
               <ReelMedia assetUrl={reelFestival.assetUrl} />
             </div>
           </motion.div>

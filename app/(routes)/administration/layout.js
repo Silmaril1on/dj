@@ -8,7 +8,7 @@ export const metadata = {
 
 const AdministrationLayout = ({ children }) => {
   return (
-    <div className="min-h-screen bg-black overflow-hidden">
+    <div className="min-h-screen bg-black ">
       <PageNavigation linksData={administrationLinks} />
       {children}
     </div>

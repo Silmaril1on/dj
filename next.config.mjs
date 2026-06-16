@@ -72,7 +72,7 @@ const securityHeaders = [
 ];
 
 const nextConfig = {
-  serverExternalPackages: ["sharp", "@remotion/bundler", "@remotion/renderer"],
+  serverExternalPackages: ["sharp"],
 
   images: {
     remotePatterns: [
