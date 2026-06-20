@@ -132,6 +132,7 @@ const SubmitSection = () => {
 
   return (
     <SectionContainer
+      className="overflow-hidden"
       title="Contribute to Soundfolio"
       description="Join our community in building the ultimate electronic music database."
     >

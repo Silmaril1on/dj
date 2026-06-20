@@ -141,7 +141,7 @@ export default function RootLayout({ children }) {
         <StoreProvider>
           <AuthProvider>
             <NavigationWrapper />
-            <main id="main-content">{children}</main>
+            <main id="main-content ">{children}</main>
             <ErrorMsg />
             <ModalRoot />
             <MobileNavBar />

@@ -236,7 +236,7 @@ const UpcomingFestivals = () => {
   }
 
   return (
-    <section className="relative bg-black w-full ">
+    <section className="relative bg-black w-full">
       <div
         ref={containerRef}
         className="relative "

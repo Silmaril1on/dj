@@ -2,6 +2,9 @@ import React from "react";
 import Branding from "./Branding";
 import { getBranding } from "@/app/lib/services/admin/branding";
 
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+
 const BrandingPage = async () => {
   let branding = null;
   try {
